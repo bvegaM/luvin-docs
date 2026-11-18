@@ -1,0 +1,132 @@
+---
+title: Keep a session alive
+description: Log in with a short-lived token, renew it with the refresh token and check the new token works.
+sidebar:
+  order: 13
+---
+
+import { Steps, CardGrid, LinkCard, LinkButton } from '@astrojs/starlight/components'
+
+Access tokens expire. Apps renew them with a refresh token so the user stays logged in. This recipe tests that renewal end to end against [DummyJSON](https://dummyjson.com): the first token, the refresh, and a protected call with the new token.
+
+**What it tests:** that both tokens of the login travel to the right calls, that the refresh answers a new access token, and that the API accepts it.
+
+## Download the files
+
+<LinkButton href="/recipes/session-refresh/session-refresh.arazzo.yaml" icon="download" download>session-refresh.arazzo.yaml</LinkButton>
+<LinkButton href="/recipes/session-refresh/auth.openapi.yaml" icon="download" variant="secondary" download>auth.openapi.yaml</LinkButton>
+
+## Open it in Luvin
+
+<Steps>
+
+1. Download the two files above into one folder.
+2. In Luvin, press **New collection**, or open a collection you already have.
+3. On the collection home, press **Import Arazzo or contracts** and pick both downloaded files.
+4. In the sidebar, open the workflow `refreshSession`.
+5. In the run bar, choose **Real API**.
+6. Press **Run**. The results open at the bottom.
+
+</Steps>
+
+## The Arazzo file
+
+```yaml title="session-refresh.arazzo.yaml"
+arazzo: 1.0.1
+info:
+  title: Keep a session alive
+  version: 1.0.0
+sourceDescriptions:
+  - name: auth
+    url: ./auth.openapi.yaml
+    type: openapi
+workflows:
+  - workflowId: refreshSession
+    summary: Log in with a short-lived token, renew it with the refresh token and keep using the API
+    inputs:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string, example: emilys }
+        password: { type: string, example: emilyspass }
+    steps:
+      - stepId: login
+        operationId: login
+        requestBody:
+          contentType: application/json
+          payload:
+            username: $inputs.username
+            password: $inputs.password
+            expiresInMins: 1
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          accessToken: $response.body#/accessToken
+          refreshToken: $response.body#/refreshToken
+      - stepId: whoAmI
+        operationId: getMe
+        parameters:
+          - name: Authorization
+            in: header
+            value: Bearer {$steps.login.outputs.accessToken}
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          userId: $response.body#/id
+      - stepId: renew
+        operationId: refreshSession
+        requestBody:
+          contentType: application/json
+          payload:
+            refreshToken: $steps.login.outputs.refreshToken
+            expiresInMins: 30
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          accessToken: $response.body#/accessToken
+      - stepId: whoAmIAgain
+        operationId: getMe
+        parameters:
+          - name: Authorization
+            in: header
+            value: Bearer {$steps.renew.outputs.accessToken}
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          userId: $response.body#/id
+          username: $response.body#/username
+    outputs:
+      userId: $steps.whoAmIAgain.outputs.userId
+      username: $steps.whoAmIAgain.outputs.username
+```
+
+| Part | What it does |
+|---|---|
+| `expiresInMins: 1` | The login asks for an access token that lasts one minute, like a short-lived session. |
+| `accessToken` and `refreshToken` | `login` saves both tokens as outputs. |
+| `Bearer {$steps.login.outputs.accessToken}` | `whoAmI` proves the first token works. |
+| `refreshToken: $steps.login.outputs.refreshToken` | `renew` sends the refresh token in its body and saves the new access token. |
+| `Bearer {$steps.renew.outputs.accessToken}` | `whoAmIAgain` calls the same protected operation with the new token. |
+
+## What you get
+
+| Step | HTTP status | Outputs |
+|---|---|---|
+| `login` | 200 | `accessToken`, `refreshToken` |
+| `whoAmI` | 200 | `userId` = 1 |
+| `renew` | 200 | `accessToken` (a new one) |
+| `whoAmIAgain` | 200 | `userId` = 1, `username` = emilys |
+
+The workflow outputs are `userId` = 1 and `username` = emilys: the same user before and after the refresh. The case ends **Passed**.
+
+## Try this
+
+**A refresh token that is not valid.** In the YAML, change the value of `refreshToken` in `renew` to `not-a-token`. DummyJSON answers 401 to the refresh, `renew` fails and `whoAmIAgain` is skipped, because there is no new token to send.
+
+## Related
+
+<CardGrid>
+<LinkCard title="Log in again and retry" description="On a 401, run the login step and call the step again." href="/recipes/retry-step/" />
+<LinkCard title="Reuse a login with dependsOn" description="One workflow logs in; others depend on it." href="/recipes/depends-on/" />
+<LinkCard title="What you can test with Luvin" description="Business scenarios and the example for each one." href="/get-started/use-cases/" />
+</CardGrid>

@@ -1,0 +1,40 @@
+---
+title: Qué puedes probar con Luvin
+description: Procesos de negocio que pasan por varias APIs, qué demuestra Luvin de cada uno y un ejemplo que puedes ejecutar para empezar.
+sidebar:
+  order: 2
+---
+
+import { Aside, CardGrid, LinkCard } from '@astrojs/starlight/components'
+
+Luvin vale la pena cuando un proceso necesita varias llamadas a APIs en orden y los datos de una llamada alimentan la siguiente. Estos son procesos comunes de ese tipo, qué demuestras de cada uno con un workflow y por dónde empezar. Cada ejemplo corre contra una API pública y se prueba antes de publicar la documentación.
+
+## Escenarios
+
+| Escenario | Qué demuestras | Empieza con |
+|---|---|---|
+| **Inicio de sesión del cliente** | El token del login llega a cada llamada protegida, y una sesión de vida corta se renueva con su refresh token. | [Inicia sesión y usa el token](/es/recipes/login-token/), [Mantén una sesión activa](/es/recipes/session-refresh/) |
+| **Pedido en una tienda** | El cliente y el producto viajan por todo el pago, el stock se revisa antes de pedir y un producto inexistente detiene el pedido. | [Haz un pedido](/es/recipes/place-order/) |
+| **Pago con OAuth 2.0** | La autorización se obtiene una vez y se reutiliza, la orden se crea y se captura, y llega la confirmación del pago. | [Prueba un flujo de pago con OAuth 2.0](/es/tutorials/oauth-payment/) |
+| **Registro de clientes** | Cada ejecución registra un cliente nuevo con datos frescos, así la prueba no choca con la anterior. | [Envía datos generados](/es/recipes/generated-data/) |
+| **Buscar y elegir** | Una búsqueda devuelve una lista y las siguientes llamadas usan el elemento que eliges, o la lista completa. | [Elige un elemento de una lista](/es/recipes/list-pick/) |
+| **Recuperación de errores** | Los datos inválidos se rechazan con el status correcto, una sesión vencida vuelve a iniciar sesión y reintenta, y los errores terminan o saltan donde deben. | [Espera un error](/es/recipes/expected-error/), [Vuelve a iniciar sesión y reintenta](/es/recipes/retry-step/), [Reintenta, salta y termina ante errores](/es/recipes/error-branches/) |
+| **Piezas compartidas** | Un login se escribe una vez y lo reutilizan muchos workflows, incluso desde otro archivo Arazzo de otro equipo. | [Reutiliza un login con dependsOn](/es/recipes/depends-on/), [Usa un workflow de otro archivo Arazzo](/es/recipes/cross-document/) |
+| **Procesos con eventos** | Las llamadas HTTP y los mensajes AsyncAPI de un proceso encajan, unidos por un `correlationId`. | [Pasos de mensajería](/es/design/messaging/) |
+
+<Aside type="caution" title="Los eventos se simulan">
+Los pasos de mensajería siempre responden desde el contrato AsyncAPI, incluso contra la API real: Luvin todavía no se conecta a Kafka, AMQP ni MQTT. Úsalos para diseñar el proceso y comprobar que los datos encajan, no para demostrar una integración asíncrona de punta a punta. Mira [Limitaciones conocidas](/es/reference/limitations/).
+</Aside>
+
+## De un escenario a la evidencia
+
+1. **Diseña el proceso una vez.** Cada llamada es un paso; Luvin conecta los datos entre ellos. Mira [Diseñar un workflow](/es/design/overview/).
+2. **Prueba sus escenarios.** El camino feliz y los caminos de error se vuelven casos, generados desde los contratos. Mira [Casos](/es/test/cases/).
+3. **Comparte la evidencia.** Un reporte HTML que cualquiera puede abrir muestra cada caso, paso, request y respuesta. Mira [Reportes](/es/test/reports/).
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Ejemplos que puedes ejecutar" description="todos los ejemplos, por tema" href="/es/recipes/overview/" />
+  <LinkCard title="Qué es Luvin" description="el problema, cómo funciona y sus límites" href="/es/get-started/welcome/" />
+</CardGrid>

@@ -1,0 +1,66 @@
+arazzo: 1.0.1
+info:
+  title: Keep a session alive
+  version: 1.0.0
+sourceDescriptions:
+  - name: auth
+    url: ./auth.openapi.yaml
+    type: openapi
+workflows:
+  - workflowId: refreshSession
+    summary: Log in with a short-lived token, renew it with the refresh token and keep using the API
+    inputs:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string, example: emilys }
+        password: { type: string, example: emilyspass }
+    steps:
+      - stepId: login
+        operationId: login
+        requestBody:
+          contentType: application/json
+          payload:
+            username: $inputs.username
+            password: $inputs.password
+            expiresInMins: 1
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          accessToken: $response.body#/accessToken
+          refreshToken: $response.body#/refreshToken
+      - stepId: whoAmI
+        operationId: getMe
+        parameters:
+          - name: Authorization
+            in: header
+            value: Bearer {$steps.login.outputs.accessToken}
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          userId: $response.body#/id
+      - stepId: renew
+        operationId: refreshSession
+        requestBody:
+          contentType: application/json
+          payload:
+            refreshToken: $steps.login.outputs.refreshToken
+            expiresInMins: 30
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          accessToken: $response.body#/accessToken
+      - stepId: whoAmIAgain
+        operationId: getMe
+        parameters:
+          - name: Authorization
+            in: header
+            value: Bearer {$steps.renew.outputs.accessToken}
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          userId: $response.body#/id
+          username: $response.body#/username
+    outputs:
+      userId: $steps.whoAmIAgain.outputs.userId
+      username: $steps.whoAmIAgain.outputs.username

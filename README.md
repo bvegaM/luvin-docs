@@ -104,7 +104,9 @@ La documentación tiene que entenderse sin ayuda. Las reglas con las que se escr
 - Google Chrome (`CHROME_PATH=/ruta` si no está en el lugar de siempre).
 - Conexión a internet: usa la PokéAPI real. Para las listas levanta una API local de prueba.
 
-Para rehacer solo una parte: `node scripts/capture.mjs es .media/es requests clip-quick-start` y luego `node scripts/convert.mjs .media/es public/media/es`. Las escenas están al final de `scripts/capture.mjs`; los videos son las que empiezan con `clip-` y llevan un cursor y una leyenda por paso (los textos de las leyendas están en el mismo archivo, en los dos idiomas).
+Para rehacer solo una parte: `node scripts/capture.mjs es .media/es requests clip-quick-start` y luego `node scripts/convert.mjs .media/es public/media/es`.
+
+Las escenas están al final de `scripts/capture.mjs` y en `scripts/scenes/` (un archivo por tema: `design.mjs` para Diseñar workflows, `test.mjs` para Probar workflows). Cada archivo de `scenes/` exporta una función que recibe las herramientas de la captura (abrir los ejemplos, mover el cursor, poner leyendas, capturar) y devuelve sus escenas; sus capturas llevan el prefijo del tema (`design-…`, `test-…`). Los videos son las escenas que empiezan con `clip-` y llevan un cursor y una leyenda por paso, en los dos idiomas. La API local de prueba usa un puerto libre, así se pueden grabar varias tandas a la vez.
 
 En una página, una captura es `![Qué muestra](/media/en/builder.webp)` y un video:
 

@@ -1,0 +1,83 @@
+openapi: 3.0.3
+info:
+  title: DummyJSON auth (subset)
+  version: 1.0.0
+  description: The authentication operations of the public DummyJSON API (https://dummyjson.com), for the Luvin recipes.
+servers:
+  - url: https://dummyjson.com
+paths:
+  /auth/login:
+    post:
+      operationId: login
+      summary: Log in and get an access token and a refresh token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string, example: emilys }
+                password: { type: string, example: emilyspass }
+                expiresInMins: { type: integer, example: 1, description: How long the access token lasts }
+      responses:
+        '200':
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: integer, example: 1 }
+                  accessToken: { type: string, example: eyJhbGciOiJIUzI1NiJ9.access }
+                  refreshToken: { type: string, example: eyJhbGciOiJIUzI1NiJ9.refresh }
+        '400':
+          description: Invalid credentials
+  /auth/refresh:
+    post:
+      operationId: refreshSession
+      summary: Get a new access token with the refresh token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken: { type: string, example: eyJhbGciOiJIUzI1NiJ9.refresh }
+                expiresInMins: { type: integer, example: 30 }
+      responses:
+        '200':
+          description: A new pair of tokens
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken: { type: string, example: eyJhbGciOiJIUzI1NiJ9.new-access }
+                  refreshToken: { type: string, example: eyJhbGciOiJIUzI1NiJ9.new-refresh }
+        '401':
+          description: The refresh token is missing, invalid or expired
+  /auth/me:
+    get:
+      operationId: getMe
+      summary: The logged-in user
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema: { type: string, example: Bearer <token> }
+      responses:
+        '200':
+          description: The user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: integer, example: 1 }
+                  username: { type: string, example: emilys }
+        '401':
+          description: Missing, invalid or expired token

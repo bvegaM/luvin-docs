@@ -15,6 +15,7 @@ Esta página lista qué puede hacer Luvin y cuándo llegó cada capacidad. Lo m�
 - **`retry` con `stepId` ahora se ejecuta.** Ante una falla, Luvin ejecuta el paso que nombras y luego vuelve a intentar el paso que falló. Mira [Vuelve a iniciar sesión y reintenta](/es/recipes/retry-step/).
 - **Los pasos de un workflow envían `multipart/form-data`.** Cada campo del payload es una parte. Un paso de workflow no envía archivos.
 - **Un workflow llamado como paso toma sus valores por defecto** para los inputs que el paso no pasa.
+- **Los archivos para tu equipo y tus herramientas están en inglés, sea cual sea el idioma de la app.** El reporte en JSON (`cases`, `verdict`, `steps`), los archivos de `scenarios/` (`defaults`, `cases`, `name`, `expect`) y el comentario al inicio de cada archivo del workspace. Los archivos de escenarios con las claves en español de versiones anteriores se siguen leyendo. Mira [Reportes](/es/test/reports/) y [Archivos de un workspace](/es/workspaces/files/).
 
 **Pruebas con listas y un workspace más tranquilo.**
 

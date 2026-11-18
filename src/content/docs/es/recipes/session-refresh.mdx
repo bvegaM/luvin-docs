@@ -1,0 +1,132 @@
+---
+title: Mantén una sesión activa
+description: Inicia sesión con un token de vida corta, renuévalo con el refresh token y comprueba que el nuevo funciona.
+sidebar:
+  order: 13
+---
+
+import { Steps, CardGrid, LinkCard, LinkButton } from '@astrojs/starlight/components'
+
+Los tokens de acceso vencen. Las apps los renuevan con un refresh token para que la persona siga con la sesión iniciada. Esta receta prueba esa renovación de punta a punta contra [DummyJSON](https://dummyjson.com): el primer token, la renovación y una llamada protegida con el token nuevo.
+
+**Qué prueba:** que los dos tokens del login viajan a las llamadas correctas, que la renovación devuelve un token de acceso nuevo y que la API lo acepta.
+
+## Descarga los archivos
+
+<LinkButton href="/recipes/session-refresh/session-refresh.arazzo.yaml" icon="download" download>session-refresh.arazzo.yaml</LinkButton>
+<LinkButton href="/recipes/session-refresh/auth.openapi.yaml" icon="download" variant="secondary" download>auth.openapi.yaml</LinkButton>
+
+## Ábrela en Luvin
+
+<Steps>
+
+1. Descarga los dos archivos de arriba en una carpeta.
+2. En Luvin, pulsa **Nueva colección**, o abre una colección que ya tengas.
+3. En el inicio de la colección, pulsa **Importar Arazzo o contratos** y elige los dos archivos.
+4. En la barra lateral, abre el workflow `refreshSession`.
+5. En la barra de ejecución, elige **API real**.
+6. Pulsa **Ejecutar**. Los resultados se abren abajo.
+
+</Steps>
+
+## El archivo Arazzo
+
+```yaml title="session-refresh.arazzo.yaml"
+arazzo: 1.0.1
+info:
+  title: Keep a session alive
+  version: 1.0.0
+sourceDescriptions:
+  - name: auth
+    url: ./auth.openapi.yaml
+    type: openapi
+workflows:
+  - workflowId: refreshSession
+    summary: Log in with a short-lived token, renew it with the refresh token and keep using the API
+    inputs:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string, example: emilys }
+        password: { type: string, example: emilyspass }
+    steps:
+      - stepId: login
+        operationId: login
+        requestBody:
+          contentType: application/json
+          payload:
+            username: $inputs.username
+            password: $inputs.password
+            expiresInMins: 1
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          accessToken: $response.body#/accessToken
+          refreshToken: $response.body#/refreshToken
+      - stepId: whoAmI
+        operationId: getMe
+        parameters:
+          - name: Authorization
+            in: header
+            value: Bearer {$steps.login.outputs.accessToken}
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          userId: $response.body#/id
+      - stepId: renew
+        operationId: refreshSession
+        requestBody:
+          contentType: application/json
+          payload:
+            refreshToken: $steps.login.outputs.refreshToken
+            expiresInMins: 30
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          accessToken: $response.body#/accessToken
+      - stepId: whoAmIAgain
+        operationId: getMe
+        parameters:
+          - name: Authorization
+            in: header
+            value: Bearer {$steps.renew.outputs.accessToken}
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          userId: $response.body#/id
+          username: $response.body#/username
+    outputs:
+      userId: $steps.whoAmIAgain.outputs.userId
+      username: $steps.whoAmIAgain.outputs.username
+```
+
+| Parte | Qué hace |
+|---|---|
+| `expiresInMins: 1` | El login pide un token de acceso que dura un minuto, como una sesión de vida corta. |
+| `accessToken` y `refreshToken` | `login` guarda los dos tokens como outputs. |
+| `Bearer {$steps.login.outputs.accessToken}` | `whoAmI` comprueba que el primer token funciona. |
+| `refreshToken: $steps.login.outputs.refreshToken` | `renew` envía el refresh token en su body y guarda el token de acceso nuevo. |
+| `Bearer {$steps.renew.outputs.accessToken}` | `whoAmIAgain` llama a la misma operación protegida con el token nuevo. |
+
+## Qué obtienes
+
+| Paso | Status HTTP | Outputs |
+|---|---|---|
+| `login` | 200 | `accessToken`, `refreshToken` |
+| `whoAmI` | 200 | `userId` = 1 |
+| `renew` | 200 | `accessToken` (uno nuevo) |
+| `whoAmIAgain` | 200 | `userId` = 1, `username` = emilys |
+
+Los outputs del workflow son `userId` = 1 y `username` = emilys: el mismo usuario antes y después de renovar. El caso termina **Pasó**.
+
+## Prueba esto
+
+**Un refresh token que no es válido.** En el YAML, cambia el valor de `refreshToken` en `renew` por `not-a-token`. DummyJSON responde 401 a la renovación, `renew` falla y `whoAmIAgain` se salta, porque no hay un token nuevo que enviar.
+
+## Relacionado
+
+<CardGrid>
+<LinkCard title="Vuelve a iniciar sesión y reintenta" description="Ante un 401, ejecuta el paso de login y vuelve a llamar al paso." href="/es/recipes/retry-step/" />
+<LinkCard title="Reutiliza un login con dependsOn" description="Un workflow inicia sesión; otros dependen de él." href="/es/recipes/depends-on/" />
+<LinkCard title="Qué puedes probar con Luvin" description="Escenarios de negocio y el ejemplo de cada uno." href="/es/get-started/use-cases/" />
+</CardGrid>

@@ -35,7 +35,7 @@ Las carpetas y archivos que empiezan con punto, como `.git`, y las carpetas llam
 <TabItem label="luvin.yaml">
 
 ```yaml title="mi-workspace/luvin.yaml"
-# Workspace de Luvin. Cada colección es una carpeta con su collection.yaml.
+# Luvin workspace. Each collection is a folder with its collection.yaml.
 version: 1
 id: 4f0c6a3e-2b1d-4c58-9a77-0d3a5e9b1c22
 name: Mi workspace
@@ -47,7 +47,7 @@ collections:
 <TabItem label="collection.yaml">
 
 ```yaml title="mi-workspace/pokedex/collection.yaml"
-# Colección de Luvin: los Arazzo y contratos de esta carpeta, sus ambientes y sus casos.
+# Luvin collection: the Arazzo files and contracts in this folder, their environments and their cases.
 version: 1
 name: Pokédex
 ```
@@ -56,7 +56,7 @@ name: Pokédex
 <TabItem label="environments/local.yaml">
 
 ```yaml title="mi-workspace/pokedex/environments/local.yaml"
-# Ambiente de Luvin. Los valores de secretos y credenciales no se guardan aquí: viven cifrados en cada equipo.
+# Luvin environment. Secret and credential values are not stored here: they live encrypted on each computer.
 name: local
 servers:
   pokeapi: https://pokeapi.co/api/v2
@@ -65,7 +65,7 @@ servers:
 </TabItem>
 </Tabs>
 
-El comentario de la primera línea está en español sea cual sea el idioma de la app. Si defines una versión en el resumen de la colección, se agrega `collectionVersion` a `collection.yaml`.
+El comentario de la primera línea está en inglés sea cual sea el idioma de la app, así los archivos no cambian cuando el equipo usa idiomas distintos. Si defines una versión en el resumen de la colección, se agrega `collectionVersion` a `collection.yaml`.
 
 ## Qué es cada archivo
 
@@ -86,20 +86,20 @@ El comentario de la primera línea está en español sea cual sea el idioma de l
 
 Luvin carga como contratos o archivos Arazzo todos los `.yaml`, `.yml` y `.json` de la carpeta de la colección, salvo los de la lista que son propios de Luvin. Los demás tipos de archivo se dejan quietos.
 
-Los archivos de `scenarios/` usan claves en español (`bases` para los inputs de partida de cada workflow, `casos` para los casos), sin importar el idioma de la app:
+Los archivos de `scenarios/` usan claves en inglés (`defaults` para los inputs de partida de cada workflow, `cases` para los casos), sin importar el idioma de la app. Los archivos escritos con las claves en español de versiones anteriores se siguen leyendo:
 
 ```yaml
 version: 1
-bases:
+defaults:
   placeOrder:
     customerId: C-1001
-casos:
+cases:
   - workflow: placeOrder
-    nombre: Cliente sin crédito
+    name: Cliente sin crédito
     inputs:
       customerId: C-0000
-    espera:
-      paso: createOrder
+    expect:
+      step: createOrder
       status: [402]
 ```
 

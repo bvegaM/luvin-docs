@@ -1,9 +1,10 @@
 // Capturas y videos de la app para esta documentación, recorriendo Luvin como una persona.
 // Uso (desde luvin-docs):  npm run media              → inglés y español, y los convierte
 //                          node scripts/capture.mjs <en|es> <carpeta de salida> [escena…]
+// Las escenas están al final de este archivo y en scripts/scenes/*.mjs (una por tema: diseño, pruebas…).
 // Necesita el repositorio de la app al lado (../luvin, o LUVIN_DIR=/ruta) con sus dependencias
 // instaladas, y Google Chrome. Usa los ejemplos incluidos, la PokéAPI real y una API local de prueba.
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs'
 import { createServer as createHttp } from 'node:http'
 import { createRequire } from 'node:module'
 import path from 'node:path'
@@ -44,10 +45,13 @@ const api = createHttp((req, res) => {
   if (req.method === 'GET' && url === '/products') return json(200, { total: PRODUCTS.length, items: PRODUCTS })
   if (req.method === 'GET' && url.startsWith('/products/')) return json(200, PRODUCTS.find((p) => url.endsWith(p.sku)) ?? { sku: 'unknown' })
   return json(201, { id: 'ord-1042', status: 'CREATED' })
-}).listen(47812)
+})
+// Un puerto libre cualquiera, así se pueden grabar varias tandas a la vez.
+await new Promise((ok) => api.listen(0, '127.0.0.1', ok))
+const API = `http://127.0.0.1:${api.address().port}`
 const SHOP_OPENAPI = `openapi: 3.0.3
 info: { title: Shop, version: 1.0.0 }
-servers: [{ url: http://127.0.0.1:47812 }]
+servers: [{ url: ${API} }]
 paths:
   /products:
     get:
@@ -800,6 +804,14 @@ Object.assign(scenes, {
     await saveClip(page, 'environments', started, from)
   },
 })
+
+// Escenas de scripts/scenes/: cada archivo exporta una función que recibe estas herramientas y devuelve sus escenas.
+const sceneDir = path.join(here, 'scenes')
+if (existsSync(sceneDir))
+  for (const f of readdirSync(sceneDir).filter((n) => n.endsWith('.mjs')).sort()) {
+    const mod = await import(pathToFileURL(path.join(sceneDir, f)).href)
+    Object.assign(scenes, mod.default({ ES, locale, T, OUT, tmp, root, API, VIEW, V, path, writeFileSync, freshPage, moveTo, go, say, saveClip, shot, clip, settle, tab, openPokedex, openPaypal, openShop, focusStep, run, untilDone }))
+  }
 
 console.log(`Capturas (${locale}) → ${OUT}`)
 for (const [name, scene] of Object.entries(scenes)) {

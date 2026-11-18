@@ -1,13 +1,15 @@
 ---
 title: Qué es Luvin
-description: El problema que resuelve Luvin, cómo funciona en cuatro pasos, para quién es y qué no es.
+description: Qué consigues con Luvin, el problema que resuelve, cómo funciona en cuatro pasos, qué puedes probar y sus límites.
 sidebar:
   order: 1
 ---
 
 import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
 
-Luvin prueba cadenas de llamadas a APIs y muestra cómo viajan los datos de una llamada a la siguiente. Lee esta página para decidir si te sirve y después sigue el [inicio rápido](/es/get-started/quick-start/).
+Luvin es una herramienta de **ingeniería de workflows de APIs**. Cuando un proceso de negocio pasa por varias APIs, Luvin te deja diseñar ese proceso de forma visual, ver cómo viajan los datos de una llamada a la siguiente, probar sus escenarios y compartir evidencia de que funciona.
+
+Lee esta página para decidir si te sirve y después sigue el [inicio rápido](/es/get-started/quick-start/).
 
 ## El problema
 
@@ -43,16 +45,20 @@ Escribes un solo valor, `pokemon: pikachu`. Luvin ejecuta los cuatro pasos, pasa
 
 <Steps>
 
-1. **Trae tus contratos.** Un contrato es el archivo OpenAPI o AsyncAPI que describe una API. Agrega los contratos de las APIs que participan.
-2. **Dibuja el workflow.** Arrastra las operaciones de esos contratos a un lienzo. Luvin conecta los datos entre los pasos con reglas, sin IA. Por ejemplo, un parámetro `customerId` se conecta con el `id` que devolvió el paso "crear cliente".
-3. **Obtén el Arazzo.** El lienzo escribe un archivo [Arazzo](https://spec.openapis.org/arazzo/latest.html) estándar, el formato abierto de la OpenAPI Initiative para secuencias de llamadas a APIs. El archivo es tuyo y se puede leer como YAML.
-4. **Prueba la cadena.** Luvin genera **casos** (un caso es una ejecución del workflow con unos inputs dados) y tú agregas los tuyos. Ejecútalos contra la API real o en **simulación**, donde Luvin responde con los ejemplos del contrato sin llamar a nada.
+1. **Trae tus contratos.** Un contrato es el archivo OpenAPI o AsyncAPI que describe una API. Agrega los contratos de las APIs que participan, o importa tu colección de Postman o Bruno.
+2. **Diseña el workflow de forma visual.** Arrastra las operaciones a un lienzo. Luvin conecta solo los datos entre las operaciones, con reglas y sin IA. Por ejemplo, un parámetro `customerId` se conecta con el `id` que devolvió el paso "crear cliente".
+3. **Prueba sus escenarios.** Luvin genera **casos** (un caso es una ejecución del workflow con unos inputs dados): el camino feliz, inputs inválidos, llamadas sin credenciales y un caso por cada camino de error. Agrega los tuyos y ejecútalos contra la API real o en **simulación**, donde Luvin responde con los ejemplos del contrato sin llamar a nada.
+4. **Comparte la evidencia.** Exporta los resultados como un reporte HTML que cualquiera puede abrir. El workflow se guarda como un archivo [Arazzo](https://spec.openapis.org/arazzo/latest.html) estándar, el formato abierto de la OpenAPI Initiative para secuencias de llamadas a APIs: es tuyo, se lee como YAML, se guarda en git y se puede llevar a otras herramientas de Arazzo.
 
 </Steps>
 
 <Aside type="tip" title="¿Sin contratos, o ya tienes archivos Arazzo?">
 Si ya tienes archivos Arazzo, ábrelos y funcionan igual. Si no tienes contratos, importa tu colección de Postman o Bruno y arrastra sus requests al lienzo. Consulta [Importar tu trabajo existente](/es/get-started/import/).
 </Aside>
+
+## Qué puedes probar
+
+Iniciar sesión y mantener la sesión activa, hacer un pedido, pagar con OAuth 2.0, registrar clientes con datos nuevos, recuperarte de errores. Cada escenario tiene un ejemplo que puedes ejecutar: mira [Qué puedes probar con Luvin](/es/get-started/use-cases/).
 
 ## Para quién es
 
@@ -63,17 +69,21 @@ Si ya tienes archivos Arazzo, ábrelos y funcionan igual. Si no tienes contratos
 | Product manager o rol de negocio | Probar un workflow con tus propios datos en una interfaz simple, sin línea de comandos ni código de pruebas. |
 | Diseñador de APIs | Ver cómo se conectan tus APIs y revisar los workflows contra los contratos reales. |
 
-## Qué no es Luvin
+## Alcance y límites
 
-- **No es una herramienta de automatización ni de orquestación.** Luvin sirve para diseñar, depurar y demostrar workflows de APIs. No ejecuta integraciones en producción.
-- **No es un runner de CI.** Lo que llevas a tu pipeline son los archivos Arazzo que escribe.
-- **No reemplaza a tu cliente de APIs.** Luvin puede enviar requests sueltos, y lo hace para ayudarte a depurar un paso. Conserva tu cliente de APIs para los requests sueltos y usa Luvin para la cadena.
-- **No es un servicio en la nube.** Todo corre en tu equipo, en el navegador o en la app de escritorio. No hay backend ni cuenta.
+Luvin sirve para diseñar, depurar y demostrar procesos que pasan por varias APIs. No ejecuta integraciones en producción y no es un runner de CI: los workflows que guarda son archivos Arazzo estándar, que puedes llevar a tu pipeline. Consulta [Qué no hace Luvin](/es/reference/faq/#qué-no-hace-luvin).
+
+<Aside type="caution" title="Conoce estos límites antes de planear una prueba">
+- **Los pasos de mensajería siempre se simulan.** Los pasos `send` y `receive` de AsyncAPI responden desde el contrato, incluso cuando ejecutas contra la API real. Luvin todavía no se conecta a Kafka, AMQP ni MQTT, así que no puede demostrar una integración asíncrona de punta a punta.
+- **En el navegador, la API tiene que permitir CORS.** La app de escritorio no tiene ese límite y suma gRPC y NTLM.
+
+Consulta todas las [limitaciones conocidas](/es/reference/limitations/).
+</Aside>
 
 ## Sigue con
 
 <CardGrid>
   <LinkCard title="Inicio rápido" description="ejecuta el ejemplo incluido en pocos minutos" href="/es/get-started/quick-start/" />
-  <LinkCard title="Instalar y abrir Luvin" description="la versión de navegador y la app de escritorio" href="/es/get-started/install/" />
+  <LinkCard title="Qué puedes probar" description="escenarios de negocio y el ejemplo de cada uno" href="/es/get-started/use-cases/" />
   <LinkCard title="Glosario" description="las palabras que usa Luvin, una por concepto" href="/es/reference/glossary/" />
 </CardGrid>

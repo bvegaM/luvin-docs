@@ -15,6 +15,7 @@ This page lists what Luvin can do and when each capability arrived. The newest i
 - **`retry` with `stepId` now runs.** On a failure, Luvin runs the step you name and then tries the failed step again. See [Log in again and retry](/recipes/retry-step/).
 - **Workflow steps send `multipart/form-data`.** Each payload field is a part. Files are not sent from a workflow step.
 - **A workflow called as a step takes its default values** for the inputs the step does not pass.
+- **Files for your team and your tools are in English, whatever the app language.** The JSON report (`cases`, `verdict`, `steps`), the `scenarios/` files (`defaults`, `cases`, `name`, `expect`) and the comment at the top of each workspace file. Scenario files with the Spanish keys of earlier versions are still read. See [Reports](/test/reports/) and [Files of a workspace](/workspaces/files/).
 
 **Test with lists, and a calmer workspace.**
 

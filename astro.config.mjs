@@ -27,22 +27,24 @@ function section(label, es, dir, groups) {
   return { label, translations: { es }, items: [...items, ...rest] }
 }
 const sidebar = [
-  section('Get started', 'Empieza aquí', 'get-started', ['welcome', 'quick-start', 'install', 'interface', 'sidebar', 'preferences', 'guided-tour', 'import', 'troubleshooting']),
+  section('Get started', 'Empieza aquí', 'get-started', ['welcome', 'use-cases', 'quick-start', 'install', 'interface', 'sidebar', 'preferences', 'guided-tour', 'import', 'troubleshooting']),
   section('Examples', 'Ejemplos', 'recipes', [
     'overview',
+    ['Business processes', 'Procesos de negocio', ['place-order', 'session-refresh']],
     ['Log in and tokens', 'Login y tokens', ['login-token', 'depends-on', 'cross-document']],
     ['Work with data', 'Trabajar con datos', ['list-pick', 'pagination-query', 'generated-data']],
     ['Checks and errors', 'Comprobaciones y errores', ['expected-error', 'criteria', 'error-branches', 'retry-step']],
   ]),
   section('Tutorials', 'Tutoriales', 'tutorials', ['first-workflow', 'from-postman', 'oauth-payment', 'negative-cases', 'debug-failure', 'team-git']),
   section('Design workflows', 'Diseñar workflows', 'design', [
-    ['Basics', 'Lo básico', ['overview', 'create', 'add-steps', 'organize', 'arazzo-file']],
+    ['Basics', 'Lo básico', ['overview', 'common-situations', 'create', 'add-steps', 'organize', 'arazzo-file']],
     ['Data between steps', 'Datos entre pasos', ['wire-data', 'parameters-and-body', 'outputs', 'complete-gaps', 'required-fields']],
     ['Control the flow', 'Controlar el recorrido', ['success-and-errors', 'dependencies', 'reusables']],
     ['Other kinds of steps', 'Otros tipos de pasos', ['messaging', 'from-requests']],
     ['The Arazzo file', 'El archivo Arazzo', ['arazzo-editor']],
   ]),
   section('Test workflows', 'Probar workflows', 'test', [
+    ['Start here', 'Para empezar', ['overview', 'what-to-test']],
     ['Inputs and cases', 'Inputs y casos', ['inputs', 'cases', 'adjust-cases', 'custom-cases']],
     ['Run', 'Ejecutar', ['run', 'lists', 'simulation']],
     ['Results', 'Resultados', ['results', 'step-results', 'overview-tab', 'reports']],

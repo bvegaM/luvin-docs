@@ -22,5 +22,6 @@ Thumbs.db
 
 # Capturas sin convertir (las genera npm run media)
 .media/
+.media-*/
 .recipes-report.json
 .recipes-report.*.json

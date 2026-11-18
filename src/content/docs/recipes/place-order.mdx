@@ -1,0 +1,148 @@
+---
+title: Place an order
+description: "A shop checkout across four calls: log in, read the customer, check the stock and create the cart."
+sidebar:
+  order: 12
+---
+
+import { Steps, CardGrid, LinkCard, LinkButton } from '@astrojs/starlight/components'
+
+A checkout is a chain: the cart needs the customer, the customer needs a session, and nothing should be ordered if the product is out of stock. This recipe tests that whole sequence against the public [DummyJSON](https://dummyjson.com) shop.
+
+**What it tests:** that the customer's id and the product travel through four calls in the right order, that the stock is checked before ordering, and that a missing product stops the order.
+
+## Download the files
+
+<LinkButton href="/recipes/place-order/place-order.arazzo.yaml" icon="download" download>place-order.arazzo.yaml</LinkButton>
+<LinkButton href="/recipes/place-order/shop.openapi.yaml" icon="download" variant="secondary" download>shop.openapi.yaml</LinkButton>
+
+## Open it in Luvin
+
+<Steps>
+
+1. Download the two files above into one folder.
+2. In Luvin, press **New collection**, or open a collection you already have.
+3. On the collection home, press **Import Arazzo or contracts** and pick both downloaded files.
+4. In the sidebar, open the workflow `placeOrder`.
+5. In the run bar, choose **Real API**.
+6. Press **Run**. The results open at the bottom.
+
+</Steps>
+
+## The Arazzo file
+
+```yaml title="place-order.arazzo.yaml"
+arazzo: 1.0.1
+info:
+  title: Place an order
+  version: 1.0.0
+sourceDescriptions:
+  - name: shop
+    url: ./shop.openapi.yaml
+    type: openapi
+workflows:
+  - workflowId: placeOrder
+    summary: A customer logs in, checks a product is in stock and puts it in a new cart
+    inputs:
+      type: object
+      required: [username, password, productId, quantity]
+      properties:
+        username: { type: string, example: emilys }
+        password: { type: string, example: emilyspass }
+        productId: { type: integer, example: 1 }
+        quantity: { type: integer, example: 2 }
+    steps:
+      - stepId: login
+        operationId: login
+        requestBody:
+          contentType: application/json
+          payload:
+            username: $inputs.username
+            password: $inputs.password
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          token: $response.body#/accessToken
+      - stepId: getCustomer
+        operationId: getMe
+        parameters:
+          - name: Authorization
+            in: header
+            value: Bearer {$steps.login.outputs.token}
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          customerId: $response.body#/id
+      - stepId: checkStock
+        operationId: getProduct
+        parameters:
+          - name: productId
+            in: path
+            value: $inputs.productId
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.body#/stock > 0
+        outputs:
+          product: $response.body#/title
+          price: $response.body#/price
+        onFailure:
+          - name: productNotFound
+            type: end
+            criteria:
+              - condition: $statusCode == 404
+      - stepId: createCart
+        operationId: addCart
+        requestBody:
+          contentType: application/json
+          payload:
+            userId: $steps.getCustomer.outputs.customerId
+            products:
+              - id: $inputs.productId
+                quantity: $inputs.quantity
+        successCriteria:
+          - condition: $statusCode == 201
+          - condition: $response.body#/totalProducts == 1
+        outputs:
+          cartId: $response.body#/id
+          total: $response.body#/total
+          items: $response.body#/totalQuantity
+    outputs:
+      product: $steps.checkStock.outputs.product
+      cartId: $steps.createCart.outputs.cartId
+      total: $steps.createCart.outputs.total
+      items: $steps.createCart.outputs.items
+```
+
+| Part | What it does |
+|---|---|
+| `inputs` | The customer's credentials, the product and the quantity. The `example` values work as they are, so a run needs no typing. |
+| `Bearer {$steps.login.outputs.token}` | The session token of `login` goes in the header of `getCustomer`. |
+| `$response.body#/stock > 0` | `checkStock` passes only if the product is in stock. |
+| `onFailure` → `productNotFound` | If the product does not exist (404), the workflow ends there and no cart is created. |
+| `userId: $steps.getCustomer.outputs.customerId` | The cart is created for the customer that `getCustomer` returned, not for a fixed id. |
+| `products: - id: $inputs.productId` | The product and the quantity go inside a list in the body. |
+
+## What you get
+
+| Step | HTTP status | Outputs |
+|---|---|---|
+| `login` | 200 | `token` |
+| `getCustomer` | 200 | `customerId` = 1 |
+| `checkStock` | 200 | `product` = Essence Mascara Lash Princess, `price` = 9.99 |
+| `createCart` | 201 | `cartId` = 209, `total` = 19.98, `items` = 2 |
+
+Every step meets its criteria, so the case ends **Passed**. DummyJSON does not store the cart: it answers as if it did, so you can run the recipe as often as you like.
+
+## Try this
+
+**A product that does not exist.** Change the input `productId` to `99999` and run again. `checkStock` answers 404, the `productNotFound` action ends the workflow and `createCart` is skipped: no order is placed for a product that does not exist. The **Cases** tab also lists a case for the `productNotFound` action.
+
+**More units.** Change `quantity` to `5`. The cart comes back with `items` = 5 and a `total` five times the price.
+
+## Related
+
+<CardGrid>
+<LinkCard title="Log in and use the token" description="The first two steps of this recipe on their own." href="/recipes/login-token/" />
+<LinkCard title="Retry, jump and end on errors" description="Other actions for a step that fails." href="/recipes/error-branches/" />
+<LinkCard title="What you can test with Luvin" description="Business scenarios and the example for each one." href="/get-started/use-cases/" />
+</CardGrid>

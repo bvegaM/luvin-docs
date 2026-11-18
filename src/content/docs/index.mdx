@@ -8,8 +8,8 @@ hero:
   actions:
     - text: Quick start
       link: /get-started/quick-start/
-    - text: Install Luvin
-      link: /get-started/install/
+    - text: What you can test
+      link: /get-started/use-cases/
     - text: Design a workflow
       link: /design/overview/
     - text: Run your cases
@@ -28,7 +28,7 @@ import TopicGrid from '../../components/TopicGrid.astro'
     Open the example, run your first workflow and read the results in a few clicks.
   </TopicCard>
   <TopicCard title="Design workflows" href="/design/overview/" icon="workflow">
-    Drag API operations onto a canvas. Luvin wires the data between the steps and writes the Arazzo.
+    Design a process across several APIs on a canvas. Luvin connects the data between the operations and saves it as a portable Arazzo file.
   </TopicCard>
   <TopicCard title="Test workflows" href="/test/cases/" icon="flask">
     Run generated and custom cases against the real API or in simulation, and read each verdict.
@@ -41,6 +41,20 @@ import TopicGrid from '../../components/TopicGrid.astro'
   </TopicCard>
   <TopicCard title="Environments and authorization" href="/environments/overview/" icon="layers">
     Base URLs, variables and secrets per environment, and how each API is authorized.
+  </TopicCard>
+</TopicGrid>
+
+## Test real business processes
+
+<TopicGrid>
+  <TopicCard title="What you can test" href="/get-started/use-cases/" icon="sparkle">
+    Login, orders, payments, sign-ups and error recovery: what you prove about each one and where to start.
+  </TopicCard>
+  <TopicCard title="Place an order" href="/recipes/place-order/" icon="play">
+    A shop checkout in four calls: log in, read the customer, check the stock and create the cart.
+  </TopicCard>
+  <TopicCard title="Keep a session alive" href="/recipes/session-refresh/" icon="key">
+    Renew a short-lived token with the refresh token and keep calling the API.
   </TopicCard>
 </TopicGrid>
 

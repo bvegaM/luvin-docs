@@ -13,6 +13,14 @@ Respuestas cortas, cada una con un enlace a la página que profundiza.
 
 Luvin prueba una cadena de llamadas a APIs, llamada **workflow**, donde cada llamada usa datos de las anteriores. Diseñas el workflow a partir de tus contratos, lo ejecutas y lees un veredicto en palabras simples. No es una herramienta de automatización ni de orquestación. Mira [Qué es Luvin](/es/get-started/welcome/).
 
+### ¿Qué no hace Luvin?
+
+- **No es una herramienta de automatización ni de orquestación.** Luvin sirve para diseñar, depurar y demostrar workflows de APIs. No ejecuta integraciones en producción.
+- **No es un runner de CI.** Lo que llevas a tu pipeline son los archivos Arazzo que escribe, con cualquier runner de Arazzo.
+- **No reemplaza a tu cliente de APIs.** Luvin envía requests sueltos para ayudarte a depurar un paso. Conserva tu cliente de APIs para los requests sueltos y usa Luvin para la cadena.
+- **No es un servicio en la nube.** Todo corre en tu equipo, en el navegador o en la app de escritorio. No hay backend ni cuenta.
+- **Todavía no se conecta a brokers de mensajería.** Los pasos de mensajería se simulan. Mira [Limitaciones conocidas](/es/reference/limitations/).
+
 ### ¿Necesito una cuenta?
 
 No. Luvin no tiene backend ni cuenta. Lo abres y trabajas. Mira [Privacidad y seguridad](/es/reference/privacy/).

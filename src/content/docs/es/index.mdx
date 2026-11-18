@@ -8,8 +8,8 @@ hero:
   actions:
     - text: Inicio rápido
       link: /es/get-started/quick-start/
-    - text: Instalar Luvin
-      link: /es/get-started/install/
+    - text: Qué puedes probar
+      link: /es/get-started/use-cases/
     - text: Diseñar un workflow
       link: /es/design/overview/
     - text: Ejecutar tus casos
@@ -28,7 +28,7 @@ import TopicGrid from '../../../components/TopicGrid.astro'
     Abre el ejemplo, ejecuta tu primer workflow y lee los resultados en pocos clics.
   </TopicCard>
   <TopicCard title="Diseñar workflows" href="/es/design/overview/" icon="workflow">
-    Arrastra operaciones de tus APIs a un lienzo. Luvin conecta los datos entre los pasos y escribe el Arazzo.
+    Diseña en un lienzo un proceso que pasa por varias APIs. Luvin conecta los datos entre las operaciones y lo guarda como un archivo Arazzo portable.
   </TopicCard>
   <TopicCard title="Probar workflows" href="/es/test/cases/" icon="flask">
     Ejecuta casos generados y propios contra la API real o en simulación, y lee cada veredicto.
@@ -41,6 +41,20 @@ import TopicGrid from '../../../components/TopicGrid.astro'
   </TopicCard>
   <TopicCard title="Ambientes y autorización" href="/es/environments/overview/" icon="layers">
     URLs base, variables y secretos por ambiente, y cómo se autoriza cada API.
+  </TopicCard>
+</TopicGrid>
+
+## Prueba procesos de negocio reales
+
+<TopicGrid>
+  <TopicCard title="Qué puedes probar" href="/es/get-started/use-cases/" icon="sparkle">
+    Login, pedidos, pagos, registros y recuperación de errores: qué demuestras de cada uno y por dónde empezar.
+  </TopicCard>
+  <TopicCard title="Haz un pedido" href="/es/recipes/place-order/" icon="play">
+    El pago de una tienda en cuatro llamadas: iniciar sesión, leer el cliente, revisar el stock y crear el carrito.
+  </TopicCard>
+  <TopicCard title="Mantén una sesión activa" href="/es/recipes/session-refresh/" icon="key">
+    Renueva un token de vida corta con el refresh token y sigue llamando a la API.
   </TopicCard>
 </TopicGrid>
 

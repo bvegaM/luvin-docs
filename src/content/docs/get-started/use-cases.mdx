@@ -1,0 +1,40 @@
+---
+title: What you can test with Luvin
+description: Business processes that span several APIs, what Luvin proves about each one and a runnable example to start from.
+sidebar:
+  order: 2
+---
+
+import { Aside, CardGrid, LinkCard } from '@astrojs/starlight/components'
+
+Luvin is worth it when a process needs several API calls in order and the data of one call feeds the next. These are common processes of that kind, what you prove about each one with a workflow, and where to start. Every example runs against a public API and is tested before the docs are published.
+
+## Scenarios
+
+| Scenario | What you prove | Start with |
+|---|---|---|
+| **Customer login and session** | The token of the login reaches every protected call, and a short-lived session is renewed with its refresh token. | [Log in and use the token](/recipes/login-token/), [Keep a session alive](/recipes/session-refresh/) |
+| **Shop order** | The customer and the product travel through the whole checkout, the stock is checked before ordering, and a missing product stops the order. | [Place an order](/recipes/place-order/) |
+| **Payment with OAuth 2.0** | The authorization is obtained once and reused, the order is created and captured, and the payment confirmation arrives. | [Test a payment flow with OAuth 2.0](/tutorials/oauth-payment/) |
+| **Customer sign-up** | Each run registers a new customer with fresh data, so the test does not collide with the previous one. | [Send generated data](/recipes/generated-data/) |
+| **Search and choose** | A search returns a list, and the next calls use the item you choose, or the whole list. | [Choose an item from a list](/recipes/list-pick/) |
+| **Error recovery** | Bad data is rejected with the right status, an expired session logs in again and retries, and errors end or jump where they should. | [Expect an error](/recipes/expected-error/), [Log in again and retry](/recipes/retry-step/), [Retry, jump and end on errors](/recipes/error-branches/) |
+| **Shared building blocks** | One login is written once and reused by many workflows, also from another Arazzo file owned by another team. | [Reuse a login with dependsOn](/recipes/depends-on/), [Use a workflow from another Arazzo file](/recipes/cross-document/) |
+| **Processes with events** | The HTTP calls and the AsyncAPI messages of a process fit together, matched by a `correlationId`. | [Messaging steps](/design/messaging/) |
+
+<Aside type="caution" title="Events are simulated">
+Messaging steps always answer from the AsyncAPI contract, even against the real API: Luvin does not connect to Kafka, AMQP or MQTT yet. Use them to design the process and check that the data fits, not to prove an asynchronous integration end to end. See [Known limitations](/reference/limitations/).
+</Aside>
+
+## From a scenario to evidence
+
+1. **Design the process once.** Each call is a step; Luvin connects the data between them. See [Design a workflow](/design/overview/).
+2. **Test its scenarios.** The happy path and the error paths become cases, generated from the contracts. See [Cases](/test/cases/).
+3. **Share the evidence.** An HTML report that anyone can open shows each case, step, request and response. See [Reports](/test/reports/).
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Runnable examples" description="all the examples, by topic" href="/recipes/overview/" />
+  <LinkCard title="What is Luvin" description="the problem, how it works and its limits" href="/get-started/welcome/" />
+</CardGrid>

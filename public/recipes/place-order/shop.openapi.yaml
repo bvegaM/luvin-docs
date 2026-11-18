@@ -1,0 +1,115 @@
+openapi: 3.0.3
+info:
+  title: DummyJSON shop (subset)
+  version: 1.0.0
+  description: The operations of the public DummyJSON API (https://dummyjson.com) that a shop checkout uses, for the Luvin recipes.
+servers:
+  - url: https://dummyjson.com
+paths:
+  /auth/login:
+    post:
+      operationId: login
+      summary: Log in and get a token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string, example: emilys }
+                password: { type: string, example: emilyspass }
+      responses:
+        '200':
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: integer, example: 1 }
+                  accessToken: { type: string, example: eyJhbGciOiJIUzI1NiJ9.demo }
+                  refreshToken: { type: string, example: eyJhbGciOiJIUzI1NiJ9.refresh }
+        '400':
+          description: Invalid credentials
+  /auth/me:
+    get:
+      operationId: getMe
+      summary: The logged-in customer
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema: { type: string, example: Bearer <token> }
+      responses:
+        '200':
+          description: The customer
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: integer, example: 1 }
+                  firstName: { type: string, example: Emily }
+                  email: { type: string, example: emily.johnson@x.dummyjson.com }
+        '401':
+          description: Missing or invalid token
+  /products/{productId}:
+    get:
+      operationId: getProduct
+      summary: A product of the catalog
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema: { type: integer, example: 1 }
+      responses:
+        '200':
+          description: The product
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: integer, example: 1 }
+                  title: { type: string, example: Essence Mascara Lash Princess }
+                  price: { type: number, example: 9.99 }
+                  stock: { type: integer, example: 99 }
+        '404':
+          description: The product does not exist
+  /carts/add:
+    post:
+      operationId: addCart
+      summary: Create a cart with products for a customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, products]
+              properties:
+                userId: { type: integer, example: 1 }
+                products:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id: { type: integer, example: 1 }
+                      quantity: { type: integer, example: 2 }
+      responses:
+        '201':
+          description: The cart was created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: integer, example: 209 }
+                  userId: { type: integer, example: 1 }
+                  total: { type: number, example: 19.98 }
+                  totalProducts: { type: integer, example: 1 }
+                  totalQuantity: { type: integer, example: 2 }
+        '400':
+          description: The cart is not valid

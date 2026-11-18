@@ -1,13 +1,15 @@
 ---
 title: What is Luvin
-description: The problem Luvin solves, how it works in four steps, who it is for and what it is not.
+description: What you get from Luvin, the problem it solves, how it works in four steps, what you can test with it and its limits.
 sidebar:
   order: 1
 ---
 
 import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
 
-Luvin tests chains of API calls and shows how data moves from one call to the next. Read this page to decide whether it fits your work, then follow the [quick start](/get-started/quick-start/).
+Luvin is a tool for **API workflow engineering**. When a business process spans several APIs, Luvin lets you design that process visually, see how the data moves from one call to the next, test its scenarios, and share evidence that it works.
+
+Read this page to decide whether it fits your work, then follow the [quick start](/get-started/quick-start/).
 
 ## The problem
 
@@ -43,16 +45,20 @@ You enter one value, `pokemon: pikachu`. Luvin runs the four steps, passes each 
 
 <Steps>
 
-1. **Bring your contracts.** A contract is the OpenAPI or AsyncAPI file that describes an API. Add the contracts of the APIs involved.
-2. **Draw the workflow.** Drag the operations of those contracts onto a canvas. Luvin connects the data between steps by rules, with no AI involved. For example, a `customerId` parameter is connected to the `id` that the "create customer" step returned.
-3. **Get the Arazzo.** The canvas writes a standard [Arazzo](https://spec.openapis.org/arazzo/latest.html) file, the OpenAPI Initiative's open format for sequences of API calls. The file is yours and stays readable as YAML.
-4. **Test the chain.** Luvin generates **cases** (a case is one run of the workflow with given inputs) and you add your own. Run them against the real API, or in **simulation**, where Luvin answers from the examples in the contract without calling anything.
+1. **Bring your contracts.** A contract is the OpenAPI or AsyncAPI file that describes an API. Add the contracts of the APIs involved, or import your Postman or Bruno collection.
+2. **Design the workflow visually.** Drag the operations onto a canvas. Luvin connects the data between operations automatically, by rules and with no AI involved. For example, a `customerId` parameter is connected to the `id` that the "create customer" step returned.
+3. **Test its scenarios.** Luvin generates **cases** (a case is one run of the workflow with given inputs): the happy path, invalid inputs, calls without credentials and one case per error path. Add your own and run them against the real API, or in **simulation**, where Luvin answers from the examples in the contract without calling anything.
+4. **Share the evidence.** Export the results as an HTML report anyone can open. The workflow itself is saved as a standard [Arazzo](https://spec.openapis.org/arazzo/latest.html) file, the OpenAPI Initiative's open format for sequences of API calls: it is yours, readable as YAML, kept in git and portable to other Arazzo tools.
 
 </Steps>
 
 <Aside type="tip" title="No contracts, or Arazzo files already written?">
 If you already have Arazzo files, open them and they work the same way. If you have no contracts, import your Postman or Bruno collection and drag its requests onto the canvas. See [Import your existing work](/get-started/import/).
 </Aside>
+
+## What you can test
+
+Logging a customer in and keeping the session alive, placing an order, paying with OAuth 2.0, signing up with fresh data, recovering from errors. Each scenario has a runnable example: see [What you can test with Luvin](/get-started/use-cases/).
 
 ## Who it is for
 
@@ -63,17 +69,21 @@ If you already have Arazzo files, open them and they work the same way. If you h
 | A product manager or in a business role | Try a workflow with your own data in a simple interface, with no command line and no test code. |
 | An API designer | See how your APIs connect and check workflows against the real contracts. |
 
-## What Luvin is not
+## Scope and limits
 
-- **Not an automation or orchestration tool.** Luvin is for designing, debugging and demonstrating API workflows. It does not run integrations in production.
-- **Not a CI runner.** The Arazzo files it writes are what you take to your pipeline.
-- **Not a replacement for your API client.** Luvin can send single requests, and it does so to help you debug one step. Keep your API client for single requests and use Luvin for the chain.
-- **Not a hosted service.** Everything runs on your computer, in the browser or in the desktop app. There is no backend and no account.
+Luvin is for designing, debugging and demonstrating processes that span several APIs. It does not run integrations in production and it is not a CI runner: the workflows it saves are standard Arazzo files, which you can take to your pipeline. See [What Luvin does not do](/reference/faq/#what-does-luvin-not-do).
+
+<Aside type="caution" title="Know these limits before you plan a test">
+- **Messaging steps are always simulated.** AsyncAPI `send` and `receive` steps answer from the contract, even when you run against the real API. Luvin does not connect to Kafka, AMQP or MQTT yet, so it cannot prove an asynchronous integration end to end.
+- **In the browser, the API must allow CORS.** The desktop app has no such limit and adds gRPC and NTLM.
+
+See every [known limitation](/reference/limitations/).
+</Aside>
 
 ## Next
 
 <CardGrid>
   <LinkCard title="Quick start" description="run the bundled example in a few minutes" href="/get-started/quick-start/" />
-  <LinkCard title="Install and open Luvin" description="the browser version and the desktop app" href="/get-started/install/" />
+  <LinkCard title="What you can test" description="business scenarios and the example for each one" href="/get-started/use-cases/" />
   <LinkCard title="Glossary" description="the words Luvin uses, one per concept" href="/reference/glossary/" />
 </CardGrid>
