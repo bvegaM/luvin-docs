@@ -5,7 +5,7 @@
 #
 # Secretos necesarios en GitHub (Settings → Secrets and variables → Actions), los mismos que en luvin-web:
 #   CLOUDFLARE_API_TOKEN   token con la plantilla "Edit Cloudflare Workers"
-#   CLOUDFLARE_ACCOUNT_ID  id de la cuenta de Cloudflare
+#   CLOUDFLARE_ACCOUNT_ID  id de la cuenta de Cloudflare (puede ir como secreto o como variable)
 #
 # Las recetas (npm run verify-recipes) no se ejecutan aquí: necesitan el repositorio de la app al lado.
 name: CI
@@ -78,18 +78,23 @@ jobs:
           name: site
           path: dist/
 
-      - name: Revisar los secretos de Cloudflare
+      # El token tiene que ser un secreto. El id de la cuenta no es secreto: sirve como secreto o como
+      # variable (pestaña Variables), y si falta wrangler lo deduce del token cuando este ve una sola cuenta.
+      - name: Revisar la configuración de Cloudflare
         run: |
-          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
-            echo "::error::Faltan los secretos CLOUDFLARE_API_TOKEN y CLOUDFLARE_ACCOUNT_ID en este repositorio (Settings → Secrets and variables → Actions)."
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::error::Falta el secreto CLOUDFLARE_API_TOKEN en este repositorio (Settings → Secrets and variables → Actions → Secrets)."
             exit 1
+          fi
+          if [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::warning::No llegó CLOUDFLARE_ACCOUNT_ID (ni como secreto ni como variable). wrangler intentará deducir la cuenta desde el token."
           fi
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || vars.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Publicar
         run: npx wrangler deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || vars.CLOUDFLARE_ACCOUNT_ID }}
