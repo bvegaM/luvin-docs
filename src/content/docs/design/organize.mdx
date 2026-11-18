@@ -35,7 +35,7 @@ Only the vertical position counts. Moving a card sideways changes the drawing, n
 
 ### When the new order breaks a connection
 
-A step can only use data from steps that run before it. If you move a step above one it takes data from, a bar appears: **Check the order:** and the detail, for example **“getBenefits” uses data from “getCards”, which now runs after it**. Luvin does not change the connections. Click **Undo** in the bar, or move the other step too. The [YAML tab](/design/arazzo-editor/) and the step's panel also show the error **Uses an output of “getCards”, which runs later.**
+A step can only use data from steps that run before it. If you move a step above one it takes data from, a bar appears: **Check the order:** and the detail, for example **“getBenefits” uses data from “getCards”, which now runs after it**. Luvin does not change the connections. Click **Undo** in the bar, or move the other step too. Undoing the move, from the bar, from **Undo** above the canvas or with ⌘ + Z, also takes the bar away. The [YAML tab](/design/arazzo-editor/) and the step's panel also show the error **Uses an output of “getCards”, which runs later.**
 
 ![The bar Check the order: “getOrder” uses data from “createOrder”, which now runs after it, with Undo and Close](/media/en/design-order-warning.webp)
 
