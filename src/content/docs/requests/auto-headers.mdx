@@ -1,0 +1,96 @@
+---
+title: Headers that Luvin adds
+description: Which headers Luvin adds to a request on its own, why each one is there, how to turn one off and how to replace it with your own value.
+sidebar:
+  order: 14
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A header is a line of information that travels with a request, like `Accept: */*`. Luvin adds some by itself, as a browser or Postman would. Open this page when you see rows in **Headers** that you did not write and you want to know where they come from or how to change them.
+
+## Example: a POST with a JSON body
+
+A request `POST https://jsonplaceholder.typicode.com/posts` with a **JSON** body. You wrote no header. In the desktop app, the **Headers** tab shows:
+
+| | Key | Value | Description |
+|---|---|---|---|
+| ☑ | `Cache-Control` | `no-cache` | Asks for a fresh response, not a cached one |
+| 🔒 | `User-Agent` | `Luvin/0.1.0` | Tells the server the request comes from Luvin · write it in the table to change it |
+| 🔒 | `Content-Type` | `application/json` | Added by Luvin from the body type |
+| 🔒 | `Content-Length` | `<calculated when sent>` | Body size, in bytes |
+| 🔒 | `Host` | `jsonplaceholder.typicode.com` | Server name, from the URL |
+| 🔒 | `Accept` | `*/*` | Accepts any response type · write it in the table to change it |
+| 🔒 | `Accept-Encoding` | `gzip, deflate, br` | Allows compressed responses · write it in the table to change it |
+| 🔒 | `Connection` | `keep-alive` | Reuses the connection |
+
+The version in `User-Agent` is the version of your Luvin. These rows sit above your own rows. Their text is gray and you cannot edit it.
+
+## Where they come from
+
+| Header | Added because | Description column says |
+|---|---|---|
+| `Cache-Control`, `User-Agent`, `Accept`, `Accept-Encoding`, `Connection`, `Host` | Every request has them. | What each one is for, as in the example. |
+| `Content-Type` | The request has a body. Its value follows the type you chose in **Body**. | **Added by Luvin from the body type** |
+| `Content-Length` | The request has a body. | **Body size, in bytes** |
+| `Authorization` and similar | The **Authorization** tab, or the collection when the request inherits it. | **From the Authorization tab · Bearer**, or **Inherited from the collection · Bearer** |
+| `Cookie` | The cookie jar has cookies for that domain. | **From the cookie jar · api.shop.test** |
+
+The value of `Authorization` is masked: `Bearer ••••••`. For OAuth 2.0 it says **Token is fetched when sending** until Luvin has a token. For types that sign the request, such as Digest or AWS Signature, it shows `…` and **Luvin calculates it when sending (Digest)**. See [Authorization](/authorization/overview/).
+
+<Aside type="note" title="In the browser">
+A browser does not let a page set `User-Agent`, `Accept-Encoding` or `Connection`. In the browser version, those rows say **Set by the browser**. `Content-Length` and `Host` are always calculated when sending.
+</Aside>
+
+## Turn one off
+
+Only two rows have a checkbox: `Cache-Control` and `Cookie`.
+
+<Steps>
+
+1. Open the **Headers** tab of the request.
+2. Untick the checkbox of the row, for example the one of `Cache-Control`.
+3. Send the request. The header does not go out.
+
+</Steps>
+
+Luvin keeps the choice in the request file, in `autoHeadersOff`, so it stays after you close the app:
+
+```yaml title="requests/get-post.request.yaml"
+name: Get post
+kind: http
+method: GET
+url: "{{baseUrl}}/posts/1"
+autoHeadersOff:
+  - cache-control
+```
+
+## Replace one with your own value
+
+<Steps>
+
+1. In **Headers**, type the same name in the empty row at the end, for example `Accept`.
+2. Type your value, for example `application/json`.
+3. The automatic row disappears. Your row is the one that goes out.
+
+</Steps>
+
+The name does not depend on capitals: `accept` replaces `Accept`. If you untick your row, the automatic one comes back. If you write your own `Content-Type`, Luvin uses it instead of the one for the body type.
+
+Check the result in the **Sent request** tab of the response: it lists every header that went out. See [Read a response in detail](/requests/response-details/).
+
+## Hide the rows
+
+When the table is long, click **Hide auto-generated headers**, above it. The button changes to **Show 8 auto-generated headers**, with the real count. The headers are still sent. Luvin remembers this choice on this computer, for all requests.
+
+## Remove one of your rows
+
+Each of your rows has an ✕ at its right, with the tooltip **Remove row**. To stop sending a row without losing it, untick its checkbox instead.
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Params, headers and body" href="/requests/params-headers-body/" />
+  <LinkCard title="Send a file" href="/requests/send-files/" />
+  <LinkCard title="Read a response in detail" href="/requests/response-details/" />
+</CardGrid>

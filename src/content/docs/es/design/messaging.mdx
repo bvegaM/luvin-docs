@@ -1,0 +1,121 @@
+---
+title: Pasos de mensajería
+description: Envía y recibe mensajes de contratos AsyncAPI en un workflow, empáralos con un correlationId y entiende por qué siempre se simulan.
+sidebar:
+  order: 10
+---
+
+import { Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Algunas APIs no responden una llamada de inmediato. Publican un evento después: la confirmación de un pago, un webhook, un mensaje en una cola. Un paso de mensajería permite que un workflow envíe un mensaje o espere uno, usando un contrato AsyncAPI. Úsalo cuando una cadena mezcla llamadas a APIs con eventos.
+
+<Aside type="caution" title="La mensajería siempre se simula">
+Luvin todavía no se conecta a brokers (Kafka, AMQP, MQTT…). Un paso de mensajería nunca sale de tu equipo: se ejecuta con los ejemplos y schemas del contrato AsyncAPI, también cuando ejecutas contra la **API real**. Los pasos HTTP del mismo workflow siguen llamando a la API real.
+</Aside>
+
+## Enviar y recibir
+
+| Acción | Qué hace el paso |
+|---|---|
+| `send` | Publica un mensaje en un canal. El paso siempre funciona: toma el payload que le das. |
+| `receive` | Espera un mensaje en un canal. En una ejecución, Luvin arma un mensaje de ejemplo que cumple los criterios de éxito del paso. |
+
+Un *canal* es la dirección por la que viajan los mensajes, por ejemplo `pokedex.sighting.confirmed`. El contrato AsyncAPI lista los canales y cómo es cada mensaje.
+
+## Agrega un paso de mensajería
+
+Las operaciones de los contratos AsyncAPI no están en la paleta **Operaciones**, así que estos pasos se agregan en la [pestaña YAML](/es/design/arazzo-editor/). Una vez escrito, el paso aparece en el lienzo como cualquier otro, con una etiqueta **SEND** o **RECEIVE** y la dirección del canal. Al abrirlo, el panel dice **Este paso usa cosas que el lienzo no edita**, las nombra (por ejemplo `channel`) y ofrece **Editar en el YAML**. Sus outputs, criterios de éxito y acciones de error se siguen editando en el panel.
+
+En la pestaña YAML, el editor te ayuda a escribirlos: después de `channelPath:` y `operationId:` ofrece los canales y las operaciones de los contratos cargados, y después de `action:` ofrece `send` y `receive`.
+
+![El workflow Register sighting en la pestaña Diseño, con un paso SEND elegido y su canal, parámetros y body en el panel](/media/es/messaging-step.webp)
+
+## Ejemplo: Register sighting
+
+**Register sighting**, en el ejemplo de la Pokédex, mezcla una llamada HTTP con dos pasos de mensajería. Consulta un Pokémon, publica un avistamiento y espera que la Pokédex lo confirme.
+
+```yaml title="pokemon.arazzo.yaml" {3,15-17}
+- stepId: publishSighting
+  operationId: $sourceDescriptions.pokedexEvents.registerSighting
+  action: send
+  parameters:
+    - name: correlationId
+      in: header
+      value: $inputs.correlationId
+  requestBody:
+    payload:
+      trainer: $inputs.trainer
+      pokemonId: $steps.getPokemon.outputs.id
+      pokemon: $steps.getPokemon.outputs.name
+- stepId: awaitConfirmation
+  channelPath: '{$sourceDescriptions.pokedexEvents.url}#/channels/sightingConfirmed'
+  action: receive
+  correlationId: $inputs.correlationId
+  timeout: 5000
+  dependsOn: [publishSighting]
+  successCriteria:
+    - condition: $message.payload#/status == 'CONFIRMED'
+  onFailure:
+    - name: sightingRejected
+      type: end
+      criteria:
+        - condition: $message.payload#/status == 'REJECTED'
+  outputs:
+    entryNumber: $message.payload#/entryNumber
+```
+
+## Los campos de un paso de mensajería
+
+| Campo | Aplica a | Qué hace |
+|---|---|---|
+| `action` | Ambos | `send` o `receive`. Si lo omites, Luvin usa la acción de la operación del AsyncAPI. Defínelo cuando un canal tiene ambas. |
+| `parameters` con `in: header` | Ambos | Se vuelven headers del mensaje. Los parámetros en otros lugares se ignoran, y Luvin te avisa. |
+| `requestBody` | `send` | El payload que se publica. En un `receive` se ignora. |
+| `correlationId` | `receive` | El valor que debe traer el mensaje que se espera. Mira más abajo. |
+| `timeout` | `receive` | Cuántos milisegundos esperar. `5000` son cinco segundos. |
+| `successCriteria` | Ambos | Condiciones sobre el mensaje, como `$message.payload#/status == 'CONFIRMED'`. |
+| `outputs` | Ambos | Valores tomados del mensaje, como `$message.payload#/entryNumber`. |
+
+El prefijo `$message.payload` lee el cuerpo del mensaje y `$message.header` lee sus headers.
+
+## Empareja el mensaje correcto con correlationId
+
+Por un mismo canal llegan muchos mensajes, de muchos pedidos o usuarios. El `correlationId` le dice al paso cuál es el tuyo. En **Register sighting**, el input `correlationId` es un id único generado. El paso que envía lo pone en un header, y el paso que recibe espera un mensaje con ese mismo id. Usar un solo input para ambos los mantiene iguales.
+
+En el ejemplo de PayPal, **Capture order** espera el webhook de un pedido:
+
+```yaml
+- stepId: awaitCaptureEvent
+  channelPath: '{$sourceDescriptions.paypalEvents.url}#/channels/captureCompleted'
+  action: receive
+  correlationId: $inputs.orderId
+  timeout: 5000
+  successCriteria:
+    - condition: $message.payload#/resource/status == 'COMPLETED'
+  outputs:
+    eventId: $message.payload#/id
+    capturedAmount: $message.payload#/resource/amount/value
+```
+
+El contrato AsyncAPI dice en qué lugar del mensaje va el id. Luvin escribe el id ahí, en el mensaje que arma. El `correlationId` en un `send` se ignora.
+
+## Qué pasa al ejecutar
+
+- Un `send` termina como enviado, y los resultados lo marcan **Enviado**.
+- Un `receive` termina con **Mensaje recibido**, y sus outputs quedan disponibles para los pasos siguientes.
+- Si defines `timeout` y el caso simula que no llega ningún mensaje, el paso falla con **No llegó ningún mensaje a "channel" en 5000 ms (timeout).**
+- Sin `timeout`, Luvin agrega una nota: con un broker real, el paso esperaría indefinidamente.
+
+Cuando ejecutas contra la **API real**, la barra de ejecución te dice cuántos pasos se simulan, por ejemplo **2 paso(s) de mensajería se simulan**, y cada paso de mensajería termina con una advertencia: **Simulado: Luvin todavía no se conecta a brokers, así que este paso usa los ejemplos del AsyncAPI.** En **Simulación** termina como éxito.
+
+## Casos para mensajes
+
+Luvin puede generar casos a partir de las acciones de un paso receive. Un caso simula un mensaje con los valores que espera una acción, por ejemplo «**awaitConfirmation**: llega un mensaje REJECTED → sightingRejected». Un paso que tiene una acción sin criterios también recibe un caso en el que no llega ningún mensaje. Consulta [Casos](/es/test/cases/).
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Contratos: AsyncAPI" href="/es/contracts/asyncapi/" />
+  <LinkCard title="Simulación" href="/es/test/simulation/" />
+  <LinkCard title="Éxito y errores" href="/es/design/success-and-errors/" />
+</CardGrid>

@@ -1,0 +1,143 @@
+---
+title: Qué hay en el disco
+description: Las carpetas y archivos que Luvin escribe en un workspace, para qué sirve cada uno y cuáles puedes editar a mano.
+sidebar:
+  order: 6
+---
+
+import { Tabs, TabItem, FileTree, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Luvin guarda un workspace como archivos de texto. Puedes abrirlos con cualquier editor, compararlos y llevarlos en git. Esta página lista todos los archivos que Luvin escribe y te dice cuáles puedes editar tú.
+
+## Ejemplo: la colección Pokédex en el disco
+
+Un workspace con el ejemplo de la Pokédex se ve así:
+
+<FileTree>
+
+- mi-workspace/
+  - luvin.yaml **manifiesto del workspace**
+  - pokedex/ una colección
+    - collection.yaml manifiesto de la colección
+    - pokeapi.openapi.yaml contrato
+    - pokedex-events.asyncapi.yaml contrato
+    - pokemon.arazzo.yaml archivo Arazzo con los cuatro workflows
+    - environments/
+      - local.yaml
+    - scenarios/
+      - pokemon.arazzo.yaml inputs y casos de `pokemon.arazzo.yaml`
+
+</FileTree>
+
+Las carpetas y archivos que empiezan con punto, como `.git`, y las carpetas llamadas `node_modules` se ignoran. Una colección que los usa también tiene `requests/`, `flow-auth.yaml` y `README.md`: mira la tabla de abajo.
+
+<Tabs>
+<TabItem label="luvin.yaml">
+
+```yaml title="mi-workspace/luvin.yaml"
+# Workspace de Luvin. Cada colección es una carpeta con su collection.yaml.
+version: 1
+id: 4f0c6a3e-2b1d-4c58-9a77-0d3a5e9b1c22
+name: Mi workspace
+collections:
+  - pokedex
+```
+
+</TabItem>
+<TabItem label="collection.yaml">
+
+```yaml title="mi-workspace/pokedex/collection.yaml"
+# Colección de Luvin: los Arazzo y contratos de esta carpeta, sus ambientes y sus casos.
+version: 1
+name: Pokédex
+```
+
+</TabItem>
+<TabItem label="environments/local.yaml">
+
+```yaml title="mi-workspace/pokedex/environments/local.yaml"
+# Ambiente de Luvin. Los valores de secretos y credenciales no se guardan aquí: viven cifrados en cada equipo.
+name: local
+servers:
+  pokeapi: https://pokeapi.co/api/v2
+```
+
+</TabItem>
+</Tabs>
+
+El comentario de la primera línea está en español sea cual sea el idioma de la app. Si defines una versión en el resumen de la colección, se agrega `collectionVersion` a `collection.yaml`.
+
+## Qué es cada archivo
+
+| Archivo | Qué contiene |
+|---|---|
+| `luvin.yaml` | El workspace: su nombre, un `id` estable y la lista de carpetas de colecciones. |
+| `README.md` en la carpeta del workspace | El texto del panel de documentación del **Inicio**. |
+| `collection.yaml` | El nombre visible de la colección, su versión opcional y, si definiste una, su autorización a nivel de colección (sin valores secretos). |
+| `README.md` en la carpeta de una colección | La documentación de la colección. Mira [Escribir documentación](/es/workspaces/documentation/). |
+| Contratos (`*.openapi.yaml`, `*.asyncapi.yaml`) | Los archivos OpenAPI y AsyncAPI, tal como los importaste o editaste. |
+| Archivos Arazzo (`*.arazzo.yaml`) | Los workflows. Un archivo puede tener varios workflows. |
+| `environments/*.yaml` | Un archivo por ambiente: URLs base, variables, color y los **nombres** de sus secretos. Mira [URLs base, variables y secretos](/es/environments/variables-and-secrets/). |
+| `scenarios/<archivo Arazzo>` | Los inputs y los casos de cada archivo Arazzo. Tiene el mismo nombre que su archivo Arazzo. |
+| `requests/*.request.yaml` | Un [request](/es/requests/overview/) guardado por archivo. Las subcarpetas de `requests/` son las carpetas que ves en la barra lateral. |
+| `requests/**/_folder.request.yaml` | Marca una carpeta de requests y guarda su nombre visible. |
+| `flow-auth.yaml` | La [autorización de los workflows](/es/authorization/workflow/), por API y por workflow. Solo se escribe cuando configuras una. |
+| Archivos `.proto` | Las definiciones que usan los requests gRPC. |
+
+Luvin carga como contratos o archivos Arazzo todos los `.yaml`, `.yml` y `.json` de la carpeta de la colección, salvo los de la lista que son propios de Luvin. Los demás tipos de archivo se dejan quietos.
+
+Los archivos de `scenarios/` usan claves en español (`bases` para los inputs de partida de cada workflow, `casos` para los casos), sin importar el idioma de la app:
+
+```yaml
+version: 1
+bases:
+  placeOrder:
+    customerId: C-1001
+casos:
+  - workflow: placeOrder
+    nombre: Cliente sin crédito
+    inputs:
+      customerId: C-0000
+    espera:
+      paso: createOrder
+      status: [402]
+```
+
+## Qué no está en el disco
+
+Algunos datos nunca van a los archivos:
+
+- **Los valores de secretos y credenciales.** Se guardan cifrados en el equipo. Mira [Privacidad y seguridad](/es/reference/privacy/).
+- **Los resultados de las ejecuciones.** Viven en la app hasta que exportas un [reporte](/es/test/reports/).
+- **El registro de Dev Tools.** Vive solo en memoria.
+
+<Aside type="caution" title="Cuidado con los inputs">
+Los valores que escribes en **Inputs** y en los casos se escriben tal cual en `scenarios/`. Si un valor es una contraseña o un token, usa un secreto y escribe `{{clientSecret}}`, para que el valor real quede fuera de git.
+</Aside>
+
+## Qué archivos puedes editar a mano
+
+| Archivo | ¿A mano? |
+|---|---|
+| Archivos Arazzo | Sí. El YAML es la fuente de verdad: Luvin conserva lo que escribes. La pestaña **YAML** hace lo mismo con validación en vivo. |
+| Contratos | Sí, en el editor de contratos o en cualquier editor. |
+| Archivos `README.md` | Sí. Es Markdown. |
+| `environments/*.yaml` | Sí para URLs, variables y color. Nunca escribas un valor secreto ahí: solo su nombre va bajo `secrets`. Para renombrar un ambiente, hazlo en la app, porque el nombre del archivo sigue al nombre. |
+| `luvin.yaml` | Con cuidado. Puedes cambiar `name` y el orden o el contenido de `collections`. No cambies `id`: los secretos guardados en cada computador dependen de él y no se encontrarían. |
+| `collection.yaml` | Puedes cambiar `name` y `collectionVersion`. La autorización se define en la app. |
+| `scenarios/*`, `requests/*`, `flow-auth.yaml` | Mejor en la app. Tienen una forma fija y Luvin los reescribe cuando cambias algo. |
+
+<Aside type="note" title="Luvin no vigila la carpeta">
+Luvin lee los archivos cuando abres una colección. Si editas un archivo con otro programa mientras la colección está abierta, cierra el workspace (**Cerrar y cambiar de workspace**) y ábrelo otra vez para ver el cambio.
+</Aside>
+
+Para renombrar un archivo Arazzo, usa la app: también renombra su archivo en `scenarios/`.
+
+## Siguiente
+
+<CardGrid>
+  <LinkCard title="Llevar un workspace en git" href="/es/workspaces/git/" />
+  <LinkCard title="Workspaces y colecciones" href="/es/workspaces/overview/" />
+  <LinkCard title="Escribir documentación" href="/es/workspaces/documentation/" />
+  <LinkCard title="Privacidad y seguridad" href="/es/reference/privacy/" />
+</CardGrid>

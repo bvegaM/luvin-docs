@@ -1,0 +1,149 @@
+---
+title: Page through a list
+description: Use query parameters to read a page, ask for the next one and search, and read what the API returns about the total.
+sidebar:
+  order: 4
+---
+
+import { Steps, CardGrid, LinkCard, LinkButton, Aside } from '@astrojs/starlight/components'
+
+Lists from an API come in pages. You ask for a page with query parameters such as `limit` and `skip`, and the response tells you how many items exist in total.
+
+**What it tests:** that query parameters shape the response (page size, start, fields, search) and that a later step can compare against an earlier output.
+
+## Download the files
+
+<LinkButton href="/recipes/pagination-query/pagination-query.arazzo.yaml" icon="download" download>pagination-query.arazzo.yaml</LinkButton>
+<LinkButton href="/recipes/pagination-query/dummyjson.openapi.yaml" icon="download" variant="secondary" download>dummyjson.openapi.yaml</LinkButton>
+
+## Open it in Luvin
+
+<Steps>
+
+1. Download the two files above into one folder.
+2. In Luvin, press **New collection**, or open a collection you already have.
+3. On the collection home, press **Import Arazzo or contracts** and pick both downloaded files.
+4. In the sidebar, open the workflow `pageThroughProducts`.
+5. In the run bar, choose **Real API**.
+6. Press **Run**. The results open at the bottom.
+
+</Steps>
+
+## The Arazzo file
+
+```yaml title="pagination-query.arazzo.yaml" {15-17,24,27,33,35-36,45,51,60}
+arazzo: 1.0.1
+info:
+  title: Page through a product list
+  version: 1.0.0
+sourceDescriptions:
+  - name: dummyjson
+    url: ./dummyjson.openapi.yaml
+    type: openapi
+workflows:
+  - workflowId: pageThroughProducts
+    summary: Read the first page, the next page and a search
+    inputs:
+      type: object
+      properties:
+        pageSize: { type: integer, example: 5 }
+        nextSkip: { type: integer, example: 5 }
+        search: { type: string, example: phone }
+    steps:
+      - stepId: firstPage
+        operationId: listProducts
+        parameters:
+          - name: limit
+            in: query
+            value: $inputs.pageSize
+          - name: skip
+            in: query
+            value: 0
+          - name: select
+            in: query
+            value: title,price
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.body#/skip == 0
+        outputs:
+          total: $response.body#/total
+          firstTitle: $response.body#/products/0/title
+      - stepId: nextPage
+        operationId: listProducts
+        parameters:
+          - name: limit
+            in: query
+            value: $inputs.pageSize
+          - name: skip
+            in: query
+            value: $inputs.nextSkip
+          - name: select
+            in: query
+            value: title,price
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.body#/total == $steps.firstPage.outputs.total
+        outputs:
+          skip: $response.body#/skip
+          firstTitle: $response.body#/products/0/title
+      - stepId: searchProducts
+        operationId: searchProducts
+        parameters:
+          - name: q
+            in: query
+            value: $inputs.search
+          - name: limit
+            in: query
+            value: $inputs.pageSize
+          - name: select
+            in: query
+            value: title,price
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.body#/total > 0
+        outputs:
+          matches: $response.body#/total
+    outputs:
+      total: $steps.firstPage.outputs.total
+      firstTitle: $steps.firstPage.outputs.firstTitle
+      secondPageFirstTitle: $steps.nextPage.outputs.firstTitle
+      matches: $steps.searchProducts.outputs.matches
+```
+
+| Line | What it does |
+|---|---|
+| `pageSize`, `nextSkip`, `search` (15-17) | Three inputs, with example values, so you change them without editing the steps. |
+| `limit` `$inputs.pageSize` / `skip` `0` (24-27) | Query parameters of the first page: how many items and where to start. |
+| `$response.body#/skip == 0` (33) | A success criterion on a value of the response body. |
+| `total` and `firstTitle` (35-36) | Outputs from the response. `products/0/title` is the title of the first item of the page. |
+| `skip` `$inputs.nextSkip` (45) | The next page starts where this input says. See the note below. |
+| `$response.body#/total == $steps.firstPage.outputs.total` (51) | A criterion that compares this response with an output of the first step: the total must not change between pages. |
+| `q` `$inputs.search` (60) | The search text goes in the query parameter `q`. |
+
+## What you get
+
+| Step | HTTP status | Outputs |
+|---|---|---|
+| `firstPage` | 200 | `total` = 194, `firstTitle` = Essence Mascara Lash Princess |
+| `nextPage` | 200 | `skip` = 5, `firstTitle` = Calvin Klein CK One |
+| `searchProducts` | 200 | `matches` = 23 |
+
+The workflow outputs are `total` = 194, `firstTitle`, `secondPageFirstTitle` and `matches` = 23. The verdict is **Passed**. The totals come from the live DummyJSON catalog and can change if it changes.
+
+:::caution[What an expression cannot do]
+Arazzo expressions read values; they do not calculate. You cannot write `skip` = previous `skip` + `limit`. That is why `nextSkip` is an input: you decide where the next page starts. To walk a whole list you would repeat the step with a new `skip` each time.
+:::
+
+## Try this
+
+- **A page near the end.** Set `nextSkip` to `190` (the catalog has 194 products). `nextPage` still answers 200 and its `firstTitle` is now *Rolex Cellini Moonphase*.
+- **A search with no matches.** Set `search` to `zzzzqq`. DummyJSON answers 200 with `total` 0, so the criterion `$response.body#/total > 0` fails: `searchProducts` fails with the reason *Expected $response.body#/total greater than 0, but it is 0* and the workflow ends **Failed**. An empty result is a valid answer for the API, and your criteria decide if it is acceptable for you.
+- **Smaller pages.** Set `pageSize` to `2` and `nextSkip` to `2`: the second page now starts at the third product, *Powder Canister*.
+
+## Related
+
+<CardGrid>
+<LinkCard title="Parameters and body" description="Where query, path and header values come from." href="/design/parameters-and-body/" />
+<LinkCard title="Success criteria" description="The conditions that decide if a step passed." href="/reference/criteria/" />
+<LinkCard title="Choose an item from a list" description="When the list feeds a later step." href="/recipes/list-pick/" />
+</CardGrid>

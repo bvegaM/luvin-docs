@@ -1,0 +1,136 @@
+---
+title: Conectar datos entre pasos
+description: Cómo decide Luvin de dónde sale cada valor, qué significa la marca ? y cómo cambiar un origen tú mismo.
+sidebar:
+  order: 4
+---
+
+import { Steps, Tabs, TabItem, Aside, Badge, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Cada paso necesita valores: un id en la ruta, un campo en el body. Conectar datos es decir de dónde sale cada valor. Luvin lo hace cuando agregas un paso. Lee esta página para revisar sus decisiones y cambiarlas.
+
+## Ejemplo: la especie de un Pokémon
+
+En **Pokemon card**, el paso `getSpecies` necesita el `idOrName` de la ruta. Toma el `id` que devolvió `getPokemon`.
+
+<Tabs>
+  <TabItem label="En la app">
+
+  En el panel del paso, en **Parámetros** y **Ruta**, la fila `idOrName` tiene una lista **Origen** que dice `getPokemon › id`. En la tarjeta, el mismo valor muestra `getPokemon › id`, y una línea punteada lo une con el output de la primera tarjeta.
+
+  ![El panel de un paso con sus parámetros y la lista que define de dónde sale cada valor](/media/es/step-panel.webp)
+
+  </TabItem>
+  <TabItem label="En el YAML">
+
+```yaml title="pokemon.arazzo.yaml" {6,10}
+- stepId: getSpecies
+  operationId: $sourceDescriptions.pokeapi.getPokemonSpecies
+  parameters:
+    - name: idOrName
+      in: path
+      value: $steps.getPokemon.outputs.id
+- stepId: getPokemon
+  # ...
+  outputs:
+    id: $response.body#/id
+```
+
+  </TabItem>
+</Tabs>
+
+La línea `value:` es el origen. La línea `id:` es el output que Luvin agregó a `getPokemon` para que lo lean los pasos siguientes.
+
+## Las reglas que sigue Luvin
+
+Para cada valor obligatorio de un paso nuevo, Luvin mira los pasos anteriores, del más cercano al más lejano, y usa la primera regla que coincide. No interviene ninguna IA.
+
+| # | Regla | Ejemplo |
+|---|---|---|
+| 1 | Un paso anterior ya tiene un output con el mismo nombre. | `orderId` toma el output `orderId` de «create order». |
+| 2 | Un paso anterior devuelve un campo con el mismo nombre. | `email` toma el `email` de la respuesta. |
+| 3 | Coincide un nombre compuesto. | `customerId` toma el campo `customer/id`, o el `id` que devuelve un paso que trata de «customer», como `createCustomer`. |
+| 4 | Un parámetro de ruta que parece un identificador toma el `id` del paso inmediatamente anterior. | El `idOrName` de `/pokemon-species/{idOrName}` toma el `id` que devuelve `getPokemon`. |
+| 5 | El workflow tiene un input con el mismo nombre. | `currency` toma el input `currency`. |
+
+Si ninguna regla coincide, Luvin crea un input nuevo con ese nombre. Un *input* es un valor que el workflow pide al ejecutarse.
+
+- Los nombres se comparan sin mayúsculas ni separadores: `customer_id` y `customerId` son lo mismo.
+- Los tipos deben encajar: textos y números son intercambiables, cualquier otra cosa tiene que ser del mismo tipo.
+- Cuando el origen es un campo de una respuesta, Luvin también agrega un *output* a ese paso anterior.
+
+## La marca `?`
+
+La regla 4 es la única de la que Luvin está menos seguro. Un valor conectado con ella muestra una `?` delante en la tarjeta, por ejemplo `? getPokemon › id`.
+
+<Aside type="caution" title="Revisa cada ?">
+En la Pokédex, agrega `GET /type/{idOrName}` después de otros dos pasos y Luvin propone el `id` del paso anterior. Eso no es un tipo. El origen correcto es el campo `types/type/name` de `getPokemon`. Elígelo a mano, como se muestra más abajo.
+</Aside>
+
+La marca desaparece cuando eliges el origen tú mismo. Es un recordatorio mientras diseñas y no se guarda en el archivo.
+
+## Cambia de dónde sale un valor
+
+<Steps>
+1. Haz clic en el paso en el lienzo. Su panel se abre a la derecha.
+2. En **Parámetros**, busca el valor. Los valores se agrupan como **Ruta**, **Query**, **Headers** y **Body**.
+3. Abre la lista que está debajo de su nombre (**Origen**) y elige una opción.
+</Steps>
+
+| Opción | Qué hace |
+|---|---|
+| **Sin origen (falta)** o **No enviar** | Quita el valor. La primera aparece en los valores obligatorios, la segunda en los opcionales. Un valor obligatorio sin origen muestra **sin origen** en la tarjeta. |
+| `$inputs.name`, bajo **Inputs** | Usa un input que el workflow ya tiene. |
+| **Nuevo input «name»** | Crea un input obligatorio con el nombre del valor y lo usa. |
+| Un output, bajo el nombre de un paso anterior | Usa un valor que ese paso ya expone. |
+| **field (de la respuesta)**, bajo un paso anterior | Usa un campo de la respuesta de ese paso. Luvin agrega el output por ti. |
+| **field (de una lista: eliges cuál al ejecutar)** | Lo mismo, para un campo que pertenece a los elementos de una lista. Mira más abajo. |
+| Un output, bajo **Workflow «name» (depende de)** | Usa un output de un workflow del que este [depende](/es/design/dependencies/). |
+| **Valor fijo…** | Muestra una caja, **Escribe el valor**. El paso siempre envía lo que escribas. |
+
+La lista solo ofrece pasos que se ejecutan antes que este.
+
+## Conecta arrastrando
+
+Cada input de **Inicio**, cada output de un paso y cada parámetro tienen un punto a su derecha.
+
+<Steps>
+1. Arrastra desde el punto de un input o de un output hasta el punto de un parámetro de un paso posterior.
+2. Suelta. El parámetro ahora muestra el origen nuevo.
+</Steps>
+
+Para quitar una conexión, haz clic en su línea y pulsa Delete o Backspace. Si reemplazas un input arrastrando y ningún otro paso lo usa, Luvin lo quita del workflow.
+
+## Valores que vienen de una lista
+
+Un campo dentro de una lista se muestra sin su posición: `cards/bank`, no `cards/0/bank`. En la lista **Origen** se lee **cards/bank (de una lista: eliges cuál al ejecutar)**.
+
+No eliges el elemento cuando diseñas. Cuando ejecutas un caso, Luvin hace una pausa después del paso que devolvió la lista y pregunta con qué elemento seguir. Consulta [Elegir un elemento de una lista](/es/test/lists/).
+
+## Lee las líneas de datos
+
+Cada conexión es una línea punteada desde un output, o desde un input, hasta el parámetro que alimenta. La etiqueta junto al parámetro es el nombre del valor que llega.
+
+- Arrastra la parte vertical de una línea para alejarla de otra.
+- **Reordenar** devuelve las tarjetas y las líneas a su lugar.
+
+## Sugerencias que puedes aceptar
+
+A veces un paso tiene un valor escrito a mano, como `{{order_id}}`, y Luvin ve que un paso anterior lo devuelve. Aparece una barra sobre el lienzo: **Luvin encontró 2 conexión(es) entre pasos**.
+
+| Botón | Qué hace |
+|---|---|
+| **Conectar todas** | Aplica todas las sugerencias. |
+| **Conectar** | Aplica esa. |
+| **Ignorar** | Oculta esa. |
+
+Es más común en workflows armados con requests. Consulta [Armar desde requests guardados](/es/design/from-requests/).
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Parámetros y body" href="/es/design/parameters-and-body/" />
+  <LinkCard title="Outputs" href="/es/design/outputs/" />
+  <LinkCard title="Iniciar sesión y usar el token" description="Una receta que pasa un token de un paso al siguiente." href="/es/recipes/login-token/" />
+  <LinkCard title="Inputs" href="/es/test/inputs/" />
+</CardGrid>

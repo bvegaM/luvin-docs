@@ -1,0 +1,99 @@
+---
+title: Elige un elemento de una lista
+description: Cuando un paso devuelve una lista y los pasos siguientes dependen de ella, la ejecución se pausa para que elijas con qué probar.
+sidebar:
+  order: 6
+---
+
+import { Steps, Tabs, TabItem, Aside, Badge, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Muchas APIs devuelven listas: las tarjetas de un cliente, los productos de un catálogo. Cuando un paso posterior necesita datos de esa lista, Luvin pausa la ejecución y te muestra lo que llegó, para que elijas con qué probar.
+
+<video controls muted playsinline preload="metadata" poster="/media/es/list-pick.webp" src="/media/es/list-pick.mp4"></video>
+
+## Ejemplo: Pokemon card contra la API real
+
+El primer paso de **Pokemon card** devuelve dos listas que usan los pasos siguientes: `types` (1 elemento) y `abilities` (2 elementos). La ejecución se pausa dos veces, un diálogo después del otro.
+
+<Steps>
+1. Elige **API real** y pulsa **Ejecutar**.
+2. En el primer diálogo, `types` tiene un elemento. Pulsa **Continuar con este elemento**.
+3. En el segundo diálogo, `abilities` tiene dos elementos. Haz clic en el que quieras y pulsa **Continuar con este elemento**.
+</Steps>
+
+En **Simulación** el diálogo solo aparece cuando la lista tiene más de un elemento. Para una versión paso a paso, mira la receta [Elige un elemento de una lista](/es/recipes/list-pick/).
+
+## Elige y continúa
+
+<Steps>
+1. Ejecuta el caso. Después del paso que devuelve la lista, se abre un diálogo con el título **¿Con qué dato de la lista quieres probar?**
+2. Lee la parte de arriba del diálogo: qué paso devolvió la lista y cuántos elementos, el **Caso** que se está ejecutando y **Lo recibe**, los pasos y parámetros posteriores que reciben el dato.
+3. Haz clic en la fila del elemento que quieres.
+4. Pulsa **Continuar con este elemento**. Los pasos siguientes se ejecutan con él.
+</Steps>
+
+![El diálogo para elegir un elemento de la lista que devolvió un paso](/media/es/list-pick.webp)
+
+La tabla muestra los elementos reales de la lista:
+
+- Las columnas marcadas **se usa** contienen los valores que pasan a los pasos siguientes.
+- Con más de 8 elementos aparece una caja de búsqueda, **Buscar en la lista…**. También busca en los campos que no se muestran como columnas.
+- Si los elementos tienen más campos de los que caben en la tabla, el encabezado dice cuántos, por ejemplo **+4 datos**. **Ver todo** en una fila abre el elemento completo.
+- <Badge text="Máx. 200 elementos" variant="caution" /> La tabla muestra hasta 200 elementos. Busca para encontrar el resto.
+
+## Lo que puedes elegir depende del diseño
+
+| Cómo usa el workflow la lista | Qué ofrece el diálogo |
+|---|---|
+| Un valor de un elemento va a un parámetro de ruta, query o header | Un elemento |
+| Un valor de un elemento va dentro de una lista del body del request siguiente | Varios elementos, o **Enviar toda la lista**. El body recibe una entrada por elemento |
+| La lista completa va a un paso que recibe listas | **Enviar toda la lista**, o **Elegir elementos** para enviar solo algunos |
+| La lista completa se conecta a parámetros de un solo valor | Un elemento. Cada parámetro recibe un campo de ese elemento |
+
+![El diálogo que ofrece enviar toda la lista o elegir elementos](/media/es/list-pick-many.webp)
+
+Cuando marcas varios elementos, el botón dice **Continuar con N elegidos**. Si un paso posterior recibe un solo valor, toma el primero de los elegidos, y el diálogo lo avisa.
+
+En el último caso de la tabla, el diálogo agrega **Qué recibe cada paso del elemento que elijas**. Luvin empareja cada parámetro con el campo de nombre parecido: `bank` toma el `bank` del elemento. Para usar otro campo, cámbialo en el menú desplegable junto al parámetro.
+
+## Prepáralo en el diseño
+
+<Steps>
+1. En la pestaña **Diseño**, haz clic en el paso que necesita el dato.
+2. Bajo **Parámetros**, abre el origen del parámetro y elige el campo de la lista del paso anterior, por ejemplo `activeCreditCards/bank`. Dice *de una lista: eliges cuál al ejecutar*.
+3. Ejecuta el caso. El diálogo aparece después del paso que devuelve la lista.
+</Steps>
+
+Un campo que viene de una lista se nombra sin su posición: `activeCreditCards/bank`, no `activeCreditCards/0/bank`. Mira [Conecta datos entre pasos](/es/design/wire-data/).
+
+## Varios casos a la vez
+
+Cuando ejecutas varios casos, el diálogo ofrece **Usar esta elección en los demás casos de esta ejecución**. Déjalo marcado para que se te pregunte una sola vez. Desmárcalo para elegir en cada caso. Si un caso posterior recibe una lista sin los elementos que elegiste, el diálogo vuelve a preguntar.
+
+Luvin recuerda tu última elección y la propone la próxima vez que ejecutes.
+
+## Qué queda registrado
+
+El paso que devolvió la lista guarda una nota, **Elegido al ejecutar**. Por ejemplo: *De la lista activeCreditCards se siguió con «Banco Sur» (elemento 2 de 3).* Debajo, la nota dice qué valor recibió cada parámetro.
+
+## Cuándo no aparece el diálogo
+
+- En **Simulación**, si el ejemplo tiene un solo elemento. La respuesta se arma desde el contrato, así que no hay nada que revisar.
+- Si la lista llega vacía.
+- Si ningún paso posterior usa datos de la lista.
+- Si el paso que devuelve la lista falló.
+
+<Aside type="note">
+Contra la API real el diálogo siempre aparece, también con un solo elemento, para que veas lo que devolvió el servicio.
+</Aside>
+
+**Detener ejecución**, en el diálogo, cancela la ejecución.
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Ejecutar" href="/es/test/run/" />
+  <LinkCard title="Lee el resultado de un paso" href="/es/test/step-results/" />
+  <LinkCard title="Simulación" href="/es/test/simulation/" />
+  <LinkCard title="Elige un elemento de una lista (receta)" href="/es/recipes/list-pick/" />
+</CardGrid>

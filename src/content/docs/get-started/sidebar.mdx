@@ -1,0 +1,116 @@
+---
+title: The sidebar
+description: Read the tree of the sidebar, search in it, open a workflow or one of its steps, and manage contracts and environments from its sections.
+sidebar:
+  order: 8
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+The sidebar is the map of the open collection: its Arazzo files, workflows, steps, requests, contracts and environments. Use it to open things, to see how the last run went and to find anything by name.
+
+## Read the tree
+
+Inside a collection, from top to bottom:
+
+| Row | What it is | A click does |
+|---|---|---|
+| The Arazzo file | The file that holds workflows. With several files, it shows the title of the file and, below it, the file name. | Opens the [file view](/design/arazzo-file/) and unfolds the file. |
+| A workflow | One workflow of the file, with a colored dot. | Opens the workflow. |
+| A step | One call of the workflow, with its method (`GET`, `POST`…). | Opens a tab with that step. |
+| **Requests** | The saved requests of the collection and their folders. | Opens the request. See [Requests](/requests/overview/). |
+| **Contracts** | The OpenAPI and AsyncAPI files. | Opens the contract. See [Contracts](/contracts/overview/). |
+| **Environments** | The environments of the collection. | Makes it active and opens it. See [Environments](/environments/overview/). |
+
+The arrow before a workflow name has the tooltip **Show or hide the steps**. Click it to fold or unfold the steps without opening the workflow.
+
+### The dot of a workflow
+
+The dot shows how the last run of that workflow went. Point at it to read the state.
+
+| Dot | Tooltip | Meaning |
+|---|---|---|
+| Empty ring | **Not run** | No case has run yet. |
+| Blue, pulsing | **Running** | A case is running now. |
+| Green | **Passed** | The cases that ran passed. |
+| Yellow | **Warnings** or **Inconclusive** | At least one case ended with a warning, or could not be judged. |
+| Red | **Failed** | At least one case failed. |
+| Red, before any run | **1 error(s)** | The workflow has an error to fix before it can run. The number is how many. |
+
+A step in red has an error. A **!** next to a file name means the file has errors. Open the **Overview** tab of the workflow to see them.
+
+## Search in the sidebar
+
+Use this search to filter the tree. To search everything at once and jump to a result, use [⌘K](/get-started/interface/) instead.
+
+<Steps>
+
+1. At the top of the sidebar, next to **Collections**, click the magnifier (**Search collections**).
+2. Type in the box **Workflow, step or collection…**. The tree filters as you type.
+3. Click a result to open it.
+4. Press Esc, or click the magnifier again, to close the search and see everything.
+
+</Steps>
+
+What the search compares:
+
+| It looks at | And shows |
+|---|---|
+| The name, the id and the description of a workflow | The workflow, with all its steps. |
+| The name of a step or the path of its operation | The workflow, with only the steps that match. |
+| The name and the URL of a request, and the name of a folder | The request, inside its folder. |
+| The name of a collection | The collection. The open one always stays. |
+
+While you search, everything that matches is unfolded. The **Contracts** and **Environments** sections are not filtered.
+
+**Example.** In the Pokédex collection, type `species`. The tree keeps **Pokemon card**, with the step `getSpecies`, and **Type explorer**, with `getFirstSpecies`. Both match by name, and also by the path `/pokemon-species/{idOrName}`.
+
+## Open a step
+
+Click a step in the sidebar and a tab opens next to the workflow tabs, named after the step. It shows, from top to bottom:
+
+- The method and the full URL, built with the base URL of the active environment.
+- The description of the step, when it has one.
+- **Parameters**, with **Name**, **In** and **Value**; the body; **Success criteria**; `onSuccess` and `onFailure`; and **Outputs**.
+- **Try alone**, which calls that operation outside the workflow. See [Try one operation](/contracts/try-it-out/).
+- **Edit in YAML**, which opens the **YAML** tab of the workflow.
+
+When the step has no `successCriteria`, the tab says: *No successCriteria: any 2xx response counts as success.* This tab is for reading. To change the step, use the **Design** tab.
+
+<Aside type="tip">
+In the Simple interface the same tab shows readable names and words instead of expressions. See [Preferences and the Simple interface](/get-started/preferences/).
+</Aside>
+
+## Contracts in the sidebar
+
+Each contract row starts with a mark:
+
+| Mark | Meaning |
+|---|---|
+| ✓ | The contract is loaded. |
+| ✕ | It did not load. Point at it to read the reason. The row offers **Attach**, to pick the file, and **Download** when the contract has a URL. |
+| ○ | The file is in the collection, but no Arazzo uses it yet. Its tooltip says *No Arazzo in the collection uses this file yet*. |
+
+The number next to **Contracts** is how many are loaded, or `1/2` when one is missing. A **+** on an OpenAPI contract runs **Generate requests**. See [Generate requests from a contract](/requests/generate-from-contract/).
+
+The **+** in the header of **Contracts** (**Add contract**) offers **New OpenAPI contract**, **New AsyncAPI contract** and **Import contract…**. The **⋯** of a row offers **Delete contract…** (or **Remove contract…** when there is no file). Luvin asks first. See [Contracts](/contracts/overview/).
+
+## Environments in the sidebar
+
+- The filled dot marks the active environment. A colored dot shows its [color](/environments/overview/).
+- Click a row to use that environment and open it. Its tooltip says **Use and open this environment**.
+- On the active one, **Configure** opens it again.
+- The **+** in the header (**New environment**) creates one.
+- The **⋯** of a row offers **Delete environment…**.
+
+## Without a workspace
+
+When you opened files without a workspace, the tree shows one collection with a header: **Add files**, and **Close the collection**. Closing asks first: *Close the collection? The session and the results are discarded.* See [Open files without a workspace](/workspaces/without-workspace/).
+
+## Related
+
+<CardGrid>
+  <LinkCard title="A tour of the interface" href="/get-started/interface/" />
+  <LinkCard title="Collections" href="/workspaces/collections/" />
+  <LinkCard title="Organize a workflow" href="/design/organize/" />
+</CardGrid>

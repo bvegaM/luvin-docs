@@ -1,0 +1,128 @@
+---
+title: Simulación
+description: Ejecuta un workflow sin llamar a ninguna API. De dónde salen las respuestas simuladas, para qué sirve la simulación, qué no puede decirte y cómo trata los pasos de mensajería, los reintentos y las dependencias.
+sidebar:
+  order: 10
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+La **simulación** ejecuta un workflow sin enviar ningún request. Cada paso responde con un ejemplo tomado de su contrato. No necesitas red, ni credenciales, ni una API en funcionamiento. Úsala para comprobar la lógica de un workflow, para ver qué pasa ante un error que no puedes provocar a voluntad, y para probar un workflow antes de que exista su API.
+
+Para usarla, elige **Simulación** en la barra de ejecución, junto a **API real**, y pulsa **Ejecutar**. Mira [Ejecutar](/es/test/run/).
+
+## Ejemplo: simula getSpecies
+
+En **Pokemon card**, `getSpecies` solo necesita `capture_rate >= 0`. En simulación responde con el ejemplo del contrato.
+
+<Tabs>
+  <TabItem label="El paso">
+
+```yaml title="pokemon.arazzo.yaml" {4}
+- stepId: getSpecies
+  successCriteria:
+    - condition: $statusCode == 200
+    - condition: $response.body#/capture_rate >= 0
+```
+
+  </TabItem>
+  <TabItem label="El ejemplo del contrato">
+
+```yaml title="pokeapi.openapi.yaml" {7}
+'200':
+  content:
+    application/json:
+      example:
+        id: 25
+        name: pikachu
+        capture_rate: 190
+        is_legendary: false
+```
+
+  </TabItem>
+</Tabs>
+
+El paso responde 200 con ese body, cumple sus criterios y pasa `id` a los pasos siguientes. Ningún request sale de tu computador.
+
+## De dónde salen las respuestas
+
+Para cada paso, Luvin busca su operación en el contrato y arma la respuesta en este orden:
+
+<Steps>
+1. **El status.** El status que piden los criterios de éxito del paso. Si no piden ninguno, el primer status 2xx documentado. Si no hay ninguno, 200.
+2. **El body, desde un ejemplo.** Un ejemplo de esa respuesta en el contrato. Si hay varios, Luvin elige el que ya contiene los valores que necesitan los criterios, por ejemplo `$response.body#/status == 'ACTIVE'`. Si no, toma el primero.
+3. **El body, desde el schema.** Si el contrato no tiene ejemplo, Luvin arma uno desde el schema: usa el `example`, el `default` o la primera opción permitida de cada campo, y si no, un valor verosímil (`1` para un número, `true` para sí/no, `demo@example.com` para un email, una fecha fija para una fecha, un texto de relleno para un texto). Una lista recibe un solo elemento.
+4. **Los valores que exigen los criterios** se escriben encima del body, para que el paso cumpla sus propios criterios.
+</Steps>
+
+Cada paso responde con éxito, así que un caso normal corre de principio a fin. La única excepción es un caso por respuesta, descrito más abajo.
+
+Los pasos simulados muestran la etiqueta **Simulado** en los resultados, y la lista de casos marca el caso con **Sim**. El reporte también los marca como simulados. Mira [Lee el resultado de un paso](/es/test/step-results/).
+
+<Aside type="tip">
+Mientras mejores sean los ejemplos de tus contratos, más útil es la simulación. Un contrato con ejemplos realistas te da datos realistas fluyendo de un paso a otro.
+</Aside>
+
+## Para qué sirve
+
+- **Comprobar el diseño.** ¿Los outputs de un paso llegan al siguiente? ¿Se cumplen los criterios de éxito? ¿El workflow termina donde esperas?
+- **Caminos de error.** Los casos por respuesta hacen que un paso responda 404, 422 o 500 para que veas qué acción se activa. Mira [Casos](/es/test/cases/).
+- **Trabajar sin acceso.** La API está caída, no tienes credenciales o estás sin conexión. El ejemplo de PayPal se ejecuta en simulación sin credenciales.
+- **Demos y pruebas rápidas.** No se crea, cambia ni elimina nada en ninguna parte.
+
+## Qué no puede decirte
+
+La simulación demuestra que el workflow es coherente con su contrato. No demuestra que la API se comporte como dice el contrato.
+
+- **No valida lo que Luvin envía.** El request se arma, pero nadie lo lee. Un valor incorrecto no hace fallar el paso simulado.
+- **No puede rechazar nada.** Por eso los casos de **Validación de datos** y de **Seguridad**, y los **Casos con datos propios**, no se ejecutan en simulación. Muestran **No se ejecutará** con el motivo. Cambia la barra de ejecución a **API real** para ejecutarlos. Mira [Casos](/es/test/cases/).
+- **Sus datos son inventados.** Los ejemplos pueden no parecerse a los datos que devuelve tu API.
+
+Ejecuta contra la **API real** antes de confiar en un workflow.
+
+## Casos por respuesta y de mensaje
+
+Un **caso por respuesta** simula que un paso responde la respuesta que activa una de sus acciones, por ejemplo `getPokemon responde 404 → pokemonNotFound` en **Pokemon card**. Los demás pasos responden con éxito.
+
+La respuesta simulada se arma como arriba, con los valores que pide la condición de la acción. Se entrega **una sola vez**: la primera vez que ese paso se ejecuta. Si el workflow vuelve al paso, por ejemplo después de un reintento, el paso responde con éxito.
+
+Un **caso de mensaje** es para un paso que recibe un mensaje. Luvin simula un mensaje con los valores que espera una acción, o ningún mensaje, de modo que el paso llega a su timeout. Mira [Casos](/es/test/cases/).
+
+Los casos por respuesta se simulan por defecto. Para comprobar lo mismo contra tu API, cambia el caso a **API real** y dale datos. Mira [Ajusta un caso](/es/test/adjust-cases/).
+
+## Los pasos de mensajería siempre se simulan
+
+Luvin no se conecta a brokers de mensajes como Kafka, AMQP o MQTT. Los pasos que envían o reciben un mensaje por un canal AsyncAPI se simulan **en toda ejecución**, también cuando la barra de ejecución dice **API real**.
+
+- Un paso que **envía** se informa como **Enviado**. Nada sale de tu computador.
+- Un paso que **recibe** obtiene un mensaje de ejemplo del contrato AsyncAPI que cumple los criterios del paso, con el id de correlación que espera el workflow.
+- La barra de ejecución dice cuántos son: *N paso(s) de mensajería se simulan*.
+- Contra la **API real**, un paso así termina como **Exitoso con advertencias**, con la nota *Simulado: Luvin todavía no se conecta a brokers, así que este paso usa los ejemplos del AsyncAPI.* En **Simulación** termina como **Exitoso**.
+
+Mira [Pasos de mensajería](/es/design/messaging/).
+
+## Reintentos
+
+Cuando se activa una acción de tipo reintento, el paso se ejecuta otra vez.
+
+- En simulación Luvin no espera el tiempo de `retryAfter` entre intentos. La ejecución no se hace más lenta.
+- Si la acción también nombra un workflow que debe correr primero, por ejemplo uno que renueva un token, ese workflow corre antes del reintento.
+- Un caso por respuesta simula la respuesta fallida una sola vez, así que el intento siguiente tiene éxito. Ves el paso con **Intento 2** y el workflow continúa. En simulación no puedes ver cómo se agotan los reintentos.
+
+## Workflows que dependen de otro
+
+Los workflows de los que depende un workflow corren primero, como en una ejecución real. En simulación también se simulan, cada uno con sus propios ejemplos del contrato y sus propios valores por defecto. No se pide iniciar sesión. Sus pasos aparecen bajo **Preparación** en los resultados. Mira [Dependencias](/es/design/dependencies/).
+
+## Listas en simulación
+
+Cuando un paso devuelve una lista que usan pasos posteriores, la ejecución se pausa para que elijas un elemento. En simulación el diálogo aparece **solo cuando la lista tiene más de un elemento**. Una respuesta armada desde un schema tiene un solo elemento, así que la ejecución continúa sola. Un ejemplo del contrato puede tener varios elementos, y entonces el diálogo aparece.
+
+Contra la **API real** el diálogo siempre aparece, también con un solo elemento. Mira [Elige un elemento de una lista](/es/test/lists/).
+
+## Siguiente
+
+<CardGrid>
+  <LinkCard title="Ejecutar" href="/es/test/run/" />
+  <LinkCard title="Casos" href="/es/test/cases/" />
+  <LinkCard title="Lee los resultados" href="/es/test/results/" />
+</CardGrid>

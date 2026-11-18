@@ -1,0 +1,68 @@
+---
+title: Heredar de la colección y Sin autorización
+description: Qué envía Luvin con Heredar de la colección y con Sin autorización, y con cuál empieza un request nuevo.
+sidebar:
+  order: 3
+---
+
+import { Steps, Aside } from '@astrojs/starlight/components';
+
+**Heredar de la colección** dice "usa lo que use la colección". **Sin autorización** dice "no envíes nada". No tienen campos: eligen de dónde viene la autorización.
+
+## Ejemplo
+
+La colección está en **Bearer Token** con `{{token}}`. Tres requests:
+
+| **Tipo** del request | Luvin envía |
+|---|---|
+| **Heredar de la colección** | `Authorization: Bearer <valor de token>` |
+| **Basic Auth** (propio) | Su propio header Basic. Se ignora la colección. |
+| **Sin autorización** | Ninguna autorización, aunque la colección tenga una. |
+
+## Con qué empieza un request nuevo
+
+| Tipo de request | **Tipo** al crearlo |
+|---|---|
+| HTTP | **Heredar de la colección** |
+| GraphQL | **Heredar de la colección** |
+| WebSocket | **Heredar de la colección** |
+| gRPC | **Sin autorización** |
+
+La colección empieza en **Sin autorización**. Por eso un request HTTP nuevo sale sin autorización hasta que configures una en la colección o en el request.
+
+## Heredar de la colección
+
+En la pestaña **Autorización**, el request dice cuál usa:
+
+- *Usa la autorización de la colección: Bearer Token.*
+- *La colección no tiene autorización configurada, así que este request va sin autorización.*
+
+**Configurar en la colección** abre la tarjeta de la colección. En la pestaña **Headers**, la fila `Authorization` aparece como *Heredada de la colección · Bearer Token*.
+
+Los requests que heredan **comparten un mismo token de OAuth 2.0**. Mira [OAuth 2.0](/es/authorization/oauth2/).
+
+## Sin autorización
+
+La pestaña dice *Este request no envía autorización.* Úsalo para un request que debe salir sin credenciales, por ejemplo para comprobar que la API responde `401`.
+
+En la colección, **Sin autorización** dice *Los requests que heredan de la colección se envían sin autorización.*
+
+## Salirse de la autorización de la colección
+
+<Steps>
+
+1. Abre el request y haz clic en **Autorización**.
+2. En **Tipo**, elige **Sin autorización** para no enviar nada, u otro tipo para usar uno propio.
+
+</Steps>
+
+Elige **Heredar de la colección** para volver.
+
+<Aside type="note">
+En un workflow, **Heredar de la colección** también es una opción para cada API y significa lo mismo: usar la autorización de la colección. Si la colección no tiene ninguna, las llamadas van sin autorización. Mira [Autorización de un workflow](/es/authorization/workflow/).
+</Aside>
+
+## Relacionado
+
+- [Autorización de la colección](/es/authorization/collection/)
+- [Dónde se aplica la autorización](/es/authorization/where-it-applies/)

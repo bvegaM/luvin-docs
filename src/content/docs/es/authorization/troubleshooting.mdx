@@ -1,0 +1,66 @@
+---
+title: Solución de problemas de autorización
+description: Qué revisar cuando la API responde 401 o 403, un token vence, la ventana de inicio de sesión no se abre o la versión web falla.
+sidebar:
+  order: 31
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Empieza por mirar qué se envió de verdad: abre **Request enviado** en la respuesta de un request, o el paso en los resultados de un workflow. La mayoría de los problemas se ven ahí.
+
+## La API responde 401
+
+`401 Unauthorized` significa que la API no aceptó quién eres.
+
+| Revisa | Qué hacer |
+|---|---|
+| No se envió nada | **Request enviado** dice *No se envió ninguna Authorization. Revisa la pestaña Autorización del request o de la colección.* Elige un **Tipo**, o configura la autorización de la colección. |
+| El request hereda y la colección no tiene ninguna | La pestaña dice *La colección no tiene autorización configurada, así que este request va sin autorización.* Configúrala en la colección. |
+| Una variable está vacía o no existe | Revisa el valor en el ambiente activo. Un `{{nombre}}` en rojo no existe. |
+| Escribiste un header `Authorization` | El tuyo gana sobre Basic, Bearer y OAuth 2.0. Borra la fila en **Headers**. |
+| Ambiente equivocado | Las credenciales son por ambiente. Revisa cuál está activo. |
+| En un workflow | Abre la pestaña **Autorización**: **Se usa** dice de dónde viene. Con **Del contrato**, revisa **Credenciales** en el ambiente. |
+
+## La API responde 403
+
+`403 Forbidden` significa que la API sabe quién eres pero no lo permite.
+
+- Revisa **Scope** y **Audience** de OAuth 2.0: puede que al token le falte un permiso.
+- Con **AWS Sig v4** y *signature does not match*, revisa **Región**, **Servicio** y el reloj de tu computadora.
+- Comprueba en la propia API que el usuario o la clave tienen acceso a ese recurso.
+
+## El token venció
+
+- Con **OAuth 2.0**, Luvin renueva el token solo cuando vence (con el refresh token, o pidiendo uno nuevo). Pulsa **Borrar token** y **Obtener token nuevo** para forzarlo.
+- Con **Authorization Code** y sin refresh token, inicia sesión de nuevo: **Obtener token nuevo**, o **Iniciar sesión** en un workflow.
+- Con un **Bearer Token** escrito a mano, Luvin no puede renovarlo. Pega uno nuevo, o usa [OAuth 2.0](/es/authorization/oauth2/) o un [paso de login](/es/recipes/login-token/).
+- Los tokens se guardan solo en memoria. Al cerrar la colección desaparecen, y el próximo envío pide uno nuevo.
+
+## No se puede obtener el token
+
+*No se pudo obtener el token:* va seguido del motivo del propio proveedor. Revisa **URL del token**, **Client ID**, **Client Secret** y **Enviar credenciales del cliente en** (**Basic Auth header** o **Body**: usa el que espera tu proveedor).
+
+## La ventana de inicio de sesión no se abre
+
+- App de escritorio: **URL de callback** es obligatoria. Sin ella ves *Falta la URL de callback.* Completa también **URL de autorización**.
+- Versión web: ves *El navegador bloqueó la ventana de autorización: permite las ventanas emergentes para esta página.* Permite las ventanas emergentes y pulsa **Obtener token nuevo** otra vez.
+- Si cerraste la ventana: *Se cerró la ventana de autorización antes de terminar.* Empieza de nuevo.
+- *El proveedor no autorizó:* seguido de un motivo significa que la persona no aprobó, o que el callback o el cliente no coinciden con lo registrado en el proveedor.
+
+## Problemas en la versión web
+
+- **CORS.** El navegador bloquea una llamada cuando la API no permite el origen de la página. Lo mismo vale para la **URL del token**: si el proveedor no permite CORS, el token no se puede pedir desde el navegador. La app de escritorio no tiene ese límite. Mira [Limitaciones](/es/reference/limitations/).
+- **Headers legibles.** **Digest Auth** necesita leer el header `WWW-Authenticate` de la primera respuesta. Un servidor que no lo expone al navegador no sirve con Digest desde el navegador.
+- **NTLM.** Solo escritorio: *NTLM necesita la app de escritorio…*
+
+## Nada funciona
+
+<Aside type="tip">
+Copia el request como cURL (los secretos aparecen como `<secret>`, complétalos) y ejecútalo en una terminal. Si también falla allí, el problema está en las credenciales o en la API, no en Luvin. Mira [Copiar como cURL](/es/requests/curl/).
+</Aside>
+
+## Relacionado
+
+- [Resumen de la autorización](/es/authorization/overview/)
+- [Motivos de fallo](/es/reference/failure-reasons/)

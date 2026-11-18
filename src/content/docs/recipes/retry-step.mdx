@@ -1,0 +1,95 @@
+---
+title: Log in again and retry
+description: When a call answers 401, a retry action runs a login step first and then calls the failed step again.
+sidebar:
+  order: 11
+---
+
+import { Steps, LinkButton, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+**What it tests:** `getMe` is called before any login, so the API answers 401. A `retry` action with `stepId` runs the step `login` and then calls `getMe` again, now with a token.
+
+<LinkButton href="/recipes/retry-step/dummyjson.openapi.yaml" variant="primary" icon="download" download>Download the contract</LinkButton>
+<LinkButton href="/recipes/retry-step/retry-step.arazzo.yaml" variant="secondary" icon="download" download>Download the Arazzo</LinkButton>
+
+## Open it in Luvin
+
+<Steps>
+
+1. Download the files with the buttons above.
+2. In Luvin, create a collection with **New collection** on the workspace home, or open one you already have.
+3. Under **Quick actions**, click **Import Arazzo or contracts** and choose the two `.yaml` files together.
+4. In the sidebar, open the workflow **Relogin and retry**.
+5. In the run bar, choose **Real API**.
+6. Press **Run**. The results open at the bottom.
+
+</Steps>
+
+## The key lines
+
+```yaml title="retry-step.arazzo.yaml" {7,10-12,14-19}
+steps:
+  - stepId: getMe
+    operationId: getMe
+    parameters:
+      - name: Authorization
+        in: header
+        value: Bearer {$steps.login.outputs.token}
+    successCriteria:
+      - condition: $statusCode == 200
+    onSuccess:
+      - name: done
+        type: end
+    onFailure:
+      - name: loginAndRetry
+        type: retry
+        stepId: login
+        retryLimit: 2
+        criteria:
+          - condition: $statusCode == 401
+    outputs:
+      firstName: $response.body#/firstName
+  - stepId: login
+    operationId: login
+    requestBody:
+      contentType: application/json
+      payload:
+        username: $inputs.username
+        password: $inputs.password
+    successCriteria:
+      - condition: $statusCode == 200
+    outputs:
+      token: $response.body#/accessToken
+```
+
+| Line | What it does |
+|---|---|
+| 7 | Reads the token of `login`, a step that comes later. The first time it has no value. |
+| 10-12 | If `getMe` succeeds, the workflow ends here, so `login` does not run a second time. |
+| 14-19 | On a 401, run the step `login` once and then call `getMe` again, up to twice (`retryLimit: 2`). |
+
+## What you get
+
+| Attempt | Step | HTTP status | What Luvin shows |
+|---|---|---|---|
+| 1 | `getMe` | 401 | The API answers *Invalid/Expired Token!* |
+| | `login` | 200 | Retry 1 of 2: runs step "login" first (action "loginAndRetry") |
+| 2 | `getMe` | 200 | `firstName` = `Emily` |
+
+The workflow output `firstName` is `Emily`, and the verdict is **Passed**.
+
+## Try this
+
+- Change `retryLimit` in the YAML tab and run again. The result shows the number you set, as in *Retry 1 of 3*.
+
+:::note
+The step that runs first counts toward `retryLimit`, and Luvin waits `retryAfter` seconds before each retry. In **Simulation** the wait is skipped.
+:::
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Success and errors" href="/design/success-and-errors/" description="All the actions: end, jump and retry." />
+  <LinkCard title="Retry, jump and end on errors" href="/recipes/error-branches/" description="Retry the same step with a wait." />
+  <LinkCard title="Log in and use the token" href="/recipes/login-token/" description="The token in a header." />
+</CardGrid>

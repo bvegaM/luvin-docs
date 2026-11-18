@@ -1,0 +1,109 @@
+---
+title: Organizar un workflow
+description: Reordena, renombra y elimina pasos, deshaz y rehaz cambios, y elimina un workflow que ya no necesitas.
+sidebar:
+  order: 12
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Cuando un workflow ya tiene pasos, querrás mover algunos, renombrar otros y quitar los que no necesitas. Esta página muestra cómo hacerlo y qué hace Luvin con los datos que otros pasos tomaban de ellos.
+
+## Ejemplo: mueve un paso por encima del que lee
+
+En **Pokemon card**, `getSpecies` lee `$steps.getPokemon.outputs.id`. Arrastra `getSpecies` por encima de `getPokemon`.
+
+<Steps>
+1. Arrastra la tarjeta `getSpecies` hacia arriba y suéltala sobre `getPokemon`.
+2. Aparece una barra: **Revisa el orden:** **«getSpecies» usa datos de «getPokemon», que ahora se ejecuta después**.
+3. Haz clic en **Deshacer** en la barra. Los pasos vuelven a su lugar.
+</Steps>
+
+## Reordena pasos
+
+Los pasos se ejecutan de arriba hacia abajo, en el orden en que aparecen. Hay tres formas de mover uno.
+
+| Cómo | Pasos |
+|---|---|
+| Arrastrar | Arrastra la tarjeta hacia arriba o hacia abajo en el lienzo y suéltala entre otras dos tarjetas. |
+| Flechas de la tarjeta | Apunta a la tarjeta y haz clic en **↑** o **↓**. |
+| Flechas del panel | Haz clic en el paso y luego en **Mover arriba** o **Mover abajo**, en la parte de arriba de su panel. |
+
+La flecha que subiría el primer paso, o bajaría el último, está apagada.
+
+Solo cuenta la posición vertical. Mover una tarjeta hacia los lados cambia el dibujo, no el orden, y **Reordenar** devuelve el dibujo a su lugar.
+
+### Cuando el orden nuevo rompe una conexión
+
+Un paso solo puede usar datos de pasos que se ejecutan antes que él. Si mueves un paso por encima de otro del que toma datos, aparece una barra: **Revisa el orden:** y el detalle, por ejemplo **«getBenefits» usa datos de «getCards», que ahora se ejecuta después**. Luvin no cambia las conexiones. Haz clic en **Deshacer** en la barra, o mueve también el otro paso. La [pestaña YAML](/es/design/arazzo-editor/) y el panel del paso también muestran el error **Usa un output de «getCards», que se ejecuta después.**
+
+## Renombra un paso
+
+<Steps>
+1. Haz clic en el paso.
+2. Haz clic en su nombre, arriba en el panel.
+3. Escribe el nombre nuevo y pulsa Enter, o haz clic fuera.
+</Steps>
+
+Un nombre puede tener letras, números, `-` y `_`, sin espacios, y no puede repetirse en el workflow. Si no cumple estas reglas, Luvin muestra un error sobre el lienzo y conserva el nombre anterior.
+
+Renombrar es seguro. Luvin actualiza todos los lugares que apuntan al paso: los valores que leen sus outputs (`$steps.nombre.outputs…`), las acciones que saltan a él y el `dependsOn` de otros pasos.
+
+Para renombrar el workflow completo, consulta [Crear un workflow](/es/design/create/).
+
+## Elimina un paso
+
+<Steps>
+1. Haz clic en el paso.
+2. Pulsa Delete o Backspace, o haz clic en la papelera (**Quitar el paso**) en la parte de arriba de su panel.
+</Steps>
+
+El paso desaparece del lienzo y del archivo.
+
+Puede que otros pasos usaran sus datos. En ese caso Luvin conserva sus referencias y muestra una barra: **Otros pasos usaban lo que quitaste y quedaron sin ese dato:** y los nombres de esos pasos. Las referencias ahora no apuntan a nada, así que cada uno de esos pasos muestra un error como **Usa $steps.getPokemon.outputs.id, pero el paso "getPokemon" no existe.** Dale a esos valores otro origen (consulta [Conectar datos entre pasos](/es/design/wire-data/)), o haz clic en **Deshacer** para recuperar el paso.
+
+## Deshacer y rehacer
+
+Sobre el lienzo, **Deshacer** y **Rehacer** retroceden y avanzan por los cambios que hiciste en la pestaña **Diseño**: agregar, mover, renombrar y eliminar pasos, conexiones, valores y outputs.
+
+| Acción | macOS | Windows y Linux |
+|---|---|---|
+| **Deshacer** | ⌘ + Z | Ctrl + Z |
+| **Rehacer** | ⇧ + ⌘ + Z | Ctrl + Shift + Z |
+
+Los atajos no funcionan mientras el cursor está en un campo de texto. Luvin recuerda hasta los últimos 100 cambios. Un botón está apagado cuando no hay nada que deshacer o rehacer.
+
+## Elimina un workflow
+
+Un workflow se elimina desde la barra lateral, junto con todo lo que cuelga de él: sus pasos, sus inputs, sus casos y sus resultados.
+
+![El menú de la fila de un workflow en la barra lateral, con la acción Eliminar workflow…](/media/es/sidebar-menu.webp)
+
+<Steps>
+1. En la barra lateral, apunta a la fila del workflow y haz clic en **⋯**.
+2. Elige **Eliminar workflow…**. Aparece una confirmación bajo la fila.
+3. Haz clic en **Eliminar**, o en **Cancelar** para conservarlo.
+</Steps>
+
+La confirmación dice **¿Eliminar el workflow «Type explorer» con sus pasos, inputs y casos?** Si otros workflows del archivo lo usan, agrega quiénes: **Lo usan: Battle matchup. Quedarán con errores hasta que los ajustes.** Luvin quita el workflow del `dependsOn` de los demás. Un paso que lo llama, o un valor que lee sus outputs, queda como estaba y muestra un error hasta que lo corrijas.
+
+### El último workflow de un archivo
+
+Un archivo Arazzo necesita al menos un workflow, así que el último no se puede eliminar solo. Lo que ves depende de dónde trabajes:
+
+| Dónde | Qué dice la confirmación | Qué pasa |
+|---|---|---|
+| En un workspace | **«Nombre» es el único workflow de archivo.arazzo.yaml: se eliminará el archivo con sus casos. No se puede deshacer.** | **Eliminar** elimina el archivo completo. Los contratos se quedan. |
+| Sin workspace | **«Nombre» es el único workflow de archivo.arazzo.yaml, y un Arazzo necesita al menos uno.** | Solo **Cerrar**. Agrega antes otro workflow. |
+
+<Aside type="caution">
+Eliminar un workflow o un archivo no pasa por **Deshacer**. Lee el nombre en la confirmación antes de hacer clic en **Eliminar**.
+</Aside>
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Crear un workflow" href="/es/design/create/" />
+  <LinkCard title="Workflows que usan otros workflows" href="/es/design/dependencies/" />
+  <LinkCard title="Agregar pasos" href="/es/design/add-steps/" />
+</CardGrid>

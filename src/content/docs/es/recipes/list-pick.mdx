@@ -1,0 +1,121 @@
+---
+title: Elige un elemento de una lista
+description: Lista cinco usuarios, elige uno y usa su id en los dos pasos siguientes.
+sidebar:
+  order: 3
+---
+
+import { Steps, CardGrid, LinkCard, LinkButton, Aside } from '@astrojs/starlight/components'
+
+Muchas APIs devuelven una lista y la siguiente llamada necesita un elemento de ella. Esta receta lista cinco usuarios y luego lee un usuario y sus carritos, con el id del elemento que elijas.
+
+**Qué prueba:** que un dato elegido de una lista viaja a dos pasos posteriores, en un parámetro de ruta.
+
+## Descarga los archivos
+
+<LinkButton href="/recipes/list-pick/list-pick.arazzo.yaml" icon="download" download>list-pick.arazzo.yaml</LinkButton>
+<LinkButton href="/recipes/list-pick/dummyjson.openapi.yaml" icon="download" variant="secondary" download>dummyjson.openapi.yaml</LinkButton>
+
+## Ábrelo en Luvin
+
+<Steps>
+
+1. Descarga los dos archivos de arriba en una misma carpeta.
+2. En Luvin, pulsa **Nueva colección**, o abre una colección que ya tengas.
+3. En el inicio de la colección, pulsa **Importar Arazzo o contratos** y elige los dos archivos descargados.
+4. En la barra lateral, abre el workflow `userFromList`.
+5. En la barra de ejecución, elige **API real**.
+6. Pulsa **Ejecutar**. Los resultados se abren abajo.
+
+</Steps>
+
+## El archivo Arazzo
+
+```yaml title="list-pick.arazzo.yaml" {21,25,31,42}
+arazzo: 1.0.1
+info:
+  title: Choose a user from a list
+  version: 1.0.0
+sourceDescriptions:
+  - name: dummyjson
+    url: ./dummyjson.openapi.yaml
+    type: openapi
+workflows:
+  - workflowId: userFromList
+    summary: List five users, continue with one and read their carts
+    steps:
+      - stepId: listUsers
+        operationId: listUsers
+        parameters:
+          - name: limit
+            in: query
+            value: 5
+          - name: select
+            in: query
+            value: id,firstName,lastName
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          userId: $response.body#/users/0/id
+      - stepId: getUser
+        operationId: getUser
+        parameters:
+          - name: id
+            in: path
+            value: $steps.listUsers.outputs.userId
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          firstName: $response.body#/firstName
+          email: $response.body#/email
+      - stepId: getUserCarts
+        operationId: getUserCarts
+        parameters:
+          - name: userId
+            in: path
+            value: $steps.listUsers.outputs.userId
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          carts: $response.body#/total
+    outputs:
+      firstName: $steps.getUser.outputs.firstName
+      email: $steps.getUser.outputs.email
+      carts: $steps.getUserCarts.outputs.carts
+```
+
+| Línea | Qué hace |
+|---|---|
+| `outputs: userId: $response.body#/users/0/id` (25) | Guarda el `id` de un elemento de la lista `users`. El `0` es el elemento con el que se diseñó el workflow. |
+| `value: $steps.listUsers.outputs.userId` (31) | `getUser` pone ese id en la ruta `/users/{id}`. |
+| `value: $steps.listUsers.outputs.userId` (42) | `getUserCarts` usa el mismo id en `/carts/user/{userId}`. Los dos pasos reciben el elemento que elijas. |
+| `select: id,firstName,lastName` (21) | Un parámetro query que pide a DummyJSON solo estos campos de cada usuario. |
+
+## Qué obtienes
+
+Como los pasos posteriores usan un campo de la lista, Luvin se pausa después de `listUsers`. Un diálogo con el título **¿Con qué dato de la lista quieres probar?** muestra los cinco usuarios. Haz clic en una fila y pulsa **Continuar con este elemento**. Mira [Elige un elemento de una lista](/es/test/lists/) para el diálogo completo.
+
+| Paso | Estado HTTP | Outputs |
+|---|---|---|
+| `listUsers` | 200 | `userId`, del elemento que elijas (la lista es `/users`) |
+| `getUser` | 200 | `firstName` = Emily, `email` = emily.johnson@x.dummyjson.com |
+| `getUserCarts` | 200 | `carts` = 1 |
+
+Los valores de arriba son los del primer elemento (usuario 1, Emily). Otro elemento da su propio usuario y sus carritos. El veredicto es **Pasó** cuando los tres pasos responden 200.
+
+:::note[En el verificador]
+La herramienta que verificó esta receta no tiene a quién pedirle que haga clic, así que sigue con el elemento del diseño (el primero). En Luvin eliges tú.
+:::
+
+## Pruébalo
+
+- **Elige otro usuario.** Ejecuta de nuevo y haz clic en otra fila, por ejemplo la tercera. `getUser` y `getUserCarts` reciben el id de esa fila, no el de la primera.
+- **Una lista de un solo elemento.** Cambia `limit` a `1` en el YAML. Contra la API real el diálogo igual aparece, con una sola fila, para que veas lo que devolvió el servicio.
+
+## Relacionado
+
+<CardGrid>
+<LinkCard title="Elige un elemento de una lista" description="El diálogo en detalle y lo que ofrece según el diseño." href="/es/test/lists/" />
+<LinkCard title="Conecta datos entre pasos" description="Conecta un campo de una lista a un parámetro." href="/es/design/wire-data/" />
+<LinkCard title="Recorre una lista por páginas" description="Parámetros query y paginación." href="/es/recipes/pagination-query/" />
+</CardGrid>

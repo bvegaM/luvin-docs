@@ -1,0 +1,53 @@
+arazzo: 1.0.1
+info:
+  title: Log in and call a protected API
+  version: 1.0.0
+sourceDescriptions:
+  - name: dummyjson
+    url: ./dummyjson.openapi.yaml
+    type: openapi
+workflows:
+  - workflowId: loginAndCarts
+    summary: Log in, read the user with the token and list their carts
+    inputs:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string, example: emilys }
+        password: { type: string, example: emilyspass }
+    steps:
+      - stepId: login
+        operationId: login
+        requestBody:
+          contentType: application/json
+          payload:
+            username: $inputs.username
+            password: $inputs.password
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          token: $response.body#/accessToken
+      - stepId: getMe
+        operationId: getMe
+        parameters:
+          - name: Authorization
+            in: header
+            value: Bearer {$steps.login.outputs.token}
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          userId: $response.body#/id
+          firstName: $response.body#/firstName
+      - stepId: getUserCarts
+        operationId: getUserCarts
+        parameters:
+          - name: userId
+            in: path
+            value: $steps.getMe.outputs.userId
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          carts: $response.body#/total
+    outputs:
+      firstName: $steps.getMe.outputs.firstName
+      carts: $steps.getUserCarts.outputs.carts

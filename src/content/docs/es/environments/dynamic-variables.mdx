@@ -1,0 +1,178 @@
+---
+title: Variables dinámicas
+description: La lista completa de generadores que producen un valor nuevo en cada ejecución, y dónde puedes usarlos.
+sidebar:
+  order: 3
+---
+
+import { Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Una variable dinámica es un `{{nombre}}` que Luvin completa con un valor recién generado: un email nuevo, un UUID nuevo, un documento válido. Úsala cuando un caso se tiene que poder repetir, por ejemplo cuando la API rechaza un email que ya existe.
+
+## Ejemplo
+
+Un body para un request "crear cliente", con tres generadores:
+
+```json title="Body del request"
+{
+  "name": "{{$randomFullName}}",
+  "email": "{{$randomEmail}}",
+  "externalId": "{{$guid}}"
+}
+```
+
+Cada ejecución envía valores nuevos. Esta es una ejecución posible:
+
+```json title="Lo que envía una ejecución"
+{
+  "name": "Daniela Rojas",
+  "email": "Daniela.Rojas42@yahoo.com",
+  "externalId": "9b2f4c1e-6a37-4d0b-8c55-3e1f7a9d2b64"
+}
+```
+
+La siguiente ejecución envía otros valores, así que la API nunca ve el mismo email dos veces. Consulta la receta [Arma el body con datos generados](/es/recipes/generated-data/).
+
+## Cómo funcionan
+
+- Escribe el nombre entre llaves dobles, como cualquier [variable](/es/environments/variables-and-secrets/): `{{$randomEmail}}`.
+- **Cada aparición produce un valor nuevo.** Dos `{{$guid}}` en el mismo body dan dos UUID distintos.
+- Los nombres que empiezan con `$` son los mismos que usan Postman y Bruno, así que los requests importados siguen funcionando.
+- Los nombres, ciudades y otros textos salen en el idioma de la interfaz: español latinoamericano o inglés.
+- Cuando escribes `{{` en un campo, Luvin las sugiere. Escribe `{{$` para ver todas las que empiezan con `$`, cada una con un valor de ejemplo.
+
+<Aside type="tip" title="El mismo valor en varios pasos">
+Para reutilizar un valor generado en varios pasos, pon el generador en un input y conecta los pasos a ese input. El input se genera una vez por caso. El ejemplo de la Pokédex lo hace: el input `correlationId` de **Register sighting** es `{{$guid}}`, y tanto el paso que publica como el paso que espera usan `$inputs.correlationId`.
+</Aside>
+
+## Dónde puedes usarlas
+
+- En la pestaña **Inputs** y en los datos de cada caso, en la pestaña **Casos**.
+- En el valor de un parámetro o de un campo del body de un paso, y en el YAML del Arazzo.
+- En los requests sueltos: URL, params, headers y body.
+- En las URLs base, las credenciales y los campos de autorización.
+
+Un fragmento real del ejemplo de PayPal, que envía una clave de idempotencia nueva en cada ejecución:
+
+```yaml
+requestId:
+  name: PayPal-Request-Id
+  in: header
+  value: '{{$randomUUID}}'
+```
+
+## Los generadores propios de Luvin
+
+| Nombre | Qué produce |
+|---|---|
+| `{{email}}` | Un email único en `example.com`. |
+| `{{cpf}}` | Un CPF brasileño válido: 11 dígitos con sus dígitos verificadores. |
+| `{{rut}}` | Un RUT chileno válido, con su dígito verificador, sin puntos ni guion. |
+| `{{uuid}}` | Un UUID v4. |
+| `{{numero:8}}` | Dígitos al azar. El número después de los dos puntos es cuántos, de 1 a 32. `{{numero}}` da 6. |
+| `{{fecha}}` | La fecha de hoy, como `YYYY-MM-DD`. |
+| `{{timestamp}}` | La hora actual en milisegundos. |
+
+`{{number:8}}` y `{{date}}` son los nombres en inglés de `{{numero:8}}` y `{{fecha}}`. Las dos formas funcionan en los dos idiomas.
+
+<Aside type="note" title="Una variable con el mismo nombre manda">
+Si el ambiente activo tiene una variable llamada `email`, `{{email}}` usa la variable y no el generador. El ambiente te avisa: *Tapa al generador `{{email}}`: se usará el valor de la variable.*
+</Aside>
+
+## Variables compatibles con Postman
+
+### Identificadores, tiempo y valores básicos
+
+| Nombre | Qué produce |
+|---|---|
+| `{{$guid}}` | UUID v4 |
+| `{{$randomUUID}}` | UUID v4 |
+| `{{$timestamp}}` | Segundos desde 1970 (Unix) |
+| `{{$isoTimestamp}}` | Fecha y hora actual (ISO 8601) |
+| `{{$randomAlphaNumeric}}` | Un carácter alfanumérico |
+| `{{$randomBoolean}}` | `true` o `false` |
+| `{{$randomInt}}` | Número entre 0 y 1000 |
+| `{{$randomColor}}` | Nombre de un color |
+| `{{$randomHexColor}}` | Color hexadecimal |
+| `{{$randomAbbreviation}}` | Sigla (API, JSON…) |
+
+<Aside type="caution">
+`{{$timestamp}}` va en segundos. `{{timestamp}}`, sin `$`, va en milisegundos.
+</Aside>
+
+### Internet y sistemas
+
+| Nombre | Qué produce |
+|---|---|
+| `{{$randomIP}}` | Dirección IPv4 |
+| `{{$randomIPV6}}` | Dirección IPv6 |
+| `{{$randomMACAddress}}` | Dirección MAC |
+| `{{$randomPassword}}` | Contraseña de 15 caracteres |
+| `{{$randomLocale}}` | Código de idioma (es, pt…) |
+| `{{$randomUserAgent}}` | User-Agent de un navegador |
+| `{{$randomProtocol}}` | `http` o `https` |
+| `{{$randomSemver}}` | Versión semántica (1.4.2) |
+| `{{$randomDomainName}}` | Nombre de dominio |
+| `{{$randomEmail}}` | Email |
+| `{{$randomExampleEmail}}` | Email `@example.com` |
+| `{{$randomUserName}}` | Nombre de usuario |
+| `{{$randomUrl}}` | URL |
+
+### Personas
+
+| Nombre | Qué produce |
+|---|---|
+| `{{$randomFirstName}}` | Nombre |
+| `{{$randomLastName}}` | Apellido |
+| `{{$randomFullName}}` | Nombre y apellido |
+| `{{$randomNamePrefix}}` | Tratamiento (Sr., Dra.…) |
+| `{{$randomJobTitle}}` | Cargo |
+| `{{$randomPhoneNumber}}` | Número de teléfono |
+
+### Lugares
+
+| Nombre | Qué produce |
+|---|---|
+| `{{$randomCity}}` | Ciudad |
+| `{{$randomStreetName}}` | Calle |
+| `{{$randomStreetAddress}}` | Dirección con número |
+| `{{$randomCountry}}` | País |
+| `{{$randomCountryCode}}` | Código de país (ISO) |
+| `{{$randomLatitude}}` | Latitud |
+| `{{$randomLongitude}}` | Longitud |
+
+### Negocios y dinero
+
+| Nombre | Qué produce |
+|---|---|
+| `{{$randomBankAccount}}` | Número de cuenta bancaria |
+| `{{$randomCurrencyCode}}` | Código de moneda (CLP, USD…) |
+| `{{$randomPrice}}` | Precio con dos decimales |
+| `{{$randomCreditCardMask}}` | Últimos 4 dígitos de una tarjeta |
+| `{{$randomCompanyName}}` | Nombre de empresa |
+
+### Texto
+
+| Nombre | Qué produce |
+|---|---|
+| `{{$randomWord}}` | Una palabra |
+| `{{$randomWords}}` | Algunas palabras |
+| `{{$randomLoremSentence}}` | Una frase |
+
+### Fechas
+
+| Nombre | Qué produce |
+|---|---|
+| `{{$randomDatePast}}` | Fecha del último año (ISO 8601) |
+| `{{$randomDateFuture}}` | Fecha del próximo año (ISO 8601) |
+| `{{$randomDateRecent}}` | Fecha de los últimos días (ISO 8601) |
+
+Estos 47 nombres son todas las variables con `$` que tiene Luvin. Cualquier otro `{{$nombre}}` queda tal como lo escribiste.
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="URLs base, variables y secretos" href="/es/environments/variables-and-secrets/" />
+  <LinkCard title="Tus propios casos" href="/es/test/custom-cases/" />
+  <LinkCard title="Inputs" href="/es/test/inputs/" />
+</CardGrid>

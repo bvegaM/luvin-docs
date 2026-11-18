@@ -1,0 +1,135 @@
+---
+title: Reutilizables
+description: Guarda una acción de error o un parámetro una vez, aplícalo en otros pasos, desvincúlalo de un paso o elimínalo.
+sidebar:
+  order: 8
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Un reutilizable es una acción de error o un parámetro que defines una vez y usas en varios pasos. Lo cambias en un solo lugar y cambian todos los pasos que lo usan. Úsalos para lo que se repite: «ante un 401, termina el workflow», o un header que necesita toda llamada.
+
+En el archivo Arazzo, los reutilizables viven en una sección llamada `components`. El ejemplo de PayPal los usa. Sus acciones de error `unauthorized` (terminar el workflow ante un 401) y `notApproved` (terminar ante un 422) las usan varios pasos. Sus parámetros `requestId` (el header `PayPal-Request-Id`) y `fullResponse` (el header `Prefer`) los usan los pasos que crean o capturan un pedido.
+
+<Aside type="note">
+Los reutilizables pertenecen al archivo, no a un solo workflow. Un reutilizable guardado en un workflow se puede aplicar en cualquier otro workflow del mismo archivo.
+</Aside>
+
+![El panel del paso createOrder del ejemplo de PayPal: sus headers usan los reutilizables PayPal-Request-Id y Prefer, marcados con ♻](/media/es/reusables.webp)
+
+## Ejemplo: PayPal
+
+El archivo de PayPal define sus reutilizables una sola vez, en `components`. **Create order** los aplica con `reference`.
+
+<Tabs>
+  <TabItem label="En la app">
+
+En el panel del paso `createOrder`, los headers `PayPal-Request-Id` y `Prefer` muestran una insignia ♻ y **Desvincular**. Bajo **Si responde con error**, las filas **400** y **401** muestran ♻ `invalidRequest` y ♻ `unauthorized`.
+
+  </TabItem>
+  <TabItem label="En el YAML">
+
+```yaml title="paypal.arazzo.yaml" {2-5,8,12-13}
+components:
+  failureActions:
+    unauthorized:
+      name: unauthorized
+      type: end
+      criteria:
+        - condition: $statusCode == 401
+# ...
+- stepId: createOrder
+  parameters:
+    - reference: $components.parameters.requestId
+    - reference: $components.parameters.fullResponse
+  onFailure:
+    - reference: $components.failureActions.invalidRequest
+    - reference: $components.failureActions.unauthorized
+```
+
+  </TabItem>
+</Tabs>
+
+## Guarda una acción de error como reutilizable
+
+Necesitas un paso que ya tenga una acción definida para un error. Consulta [Éxito y errores](/es/design/success-and-errors/).
+
+<Steps>
+1. En la pestaña **Diseño**, haz clic en el paso.
+2. Bajo **Si responde con error**, busca el estado que tiene la acción, por ejemplo **404**.
+3. Haz clic en ♻ (**Guardar como reutilizable**) en esa fila.
+4. Escribe un nombre. La caja sugiere uno, por ejemplo `on404`.
+5. Haz clic en **Guardar**. **Cancelar** cierra la caja.
+</Steps>
+
+El paso sigue funcionando igual. La fila ahora muestra una insignia ♻ con el nombre y un enlace **Desvincular**. Si el nombre ya existe, Luvin agrega un número (`on4042`). Se conservan letras, números, `-` y `_`; todo lo demás se quita.
+
+## Guarda un parámetro como reutilizable
+
+<Steps>
+1. Haz clic en el paso.
+2. Bajo **Parámetros**, busca un parámetro que tenga un valor, por ejemplo un header fijo.
+3. Haz clic en ♻ (**Guardar como reutilizable**) en su fila.
+4. Escribe un nombre y haz clic en **Guardar**.
+</Steps>
+
+El botón no aparece en un parámetro sin valor, ni en uno que viene de los inputs del workflow. La fila ahora muestra una insignia ♻ con el nombre del parámetro y **Desvincular**.
+
+## Aplica un reutilizable en otro paso
+
+Los reutilizables del archivo están en el grupo **Reutilizables** de la paleta **Operaciones**. El grupo solo aparece cuando el archivo tiene al menos uno. Cada fila muestra su nombre, qué hace y cuántos pasos lo usan, por ejemplo **1 uso(s)**.
+
+Puedes aplicar uno de tres maneras:
+
+| Cómo | Qué pasa |
+|---|---|
+| En el panel del paso, abre la lista de acciones de un estado de error y elige **Reutilizables** › ♻ nombre | El paso usa el reutilizable para ese estado. La lista solo ofrece los reutilizables que manejan ese estado. |
+| Arrastra la fila de la paleta sobre la tarjeta de un paso | El reutilizable se agrega a ese paso. |
+| Haz clic en el paso y luego en **+** de la fila del reutilizable | Lo mismo, sobre el paso seleccionado. El botón está apagado mientras no haya un paso seleccionado. |
+
+## Edita un reutilizable
+
+<Steps>
+1. Haz clic en su fila de la paleta, o en la insignia ♻ de un paso.
+2. Cámbialo en el panel. Arriba hay una etiqueta, **acción de error** o **parámetro**, y el **Nombre del reutilizable**.
+3. Para volver al paso, haz clic en **← Volver al paso**.
+</Steps>
+
+| Reutilizable | Qué puedes cambiar |
+|---|---|
+| Acción de error | **Si responde** (el código de estado) y **Entonces** (**Terminar el workflow**, **Reintentar (hasta 3 veces)** o **Ir a «paso»**). Con reintento, dos campos más: `retryLimit` y `retryAfter (s)`. |
+| Parámetro | **Nombre del parámetro**, `in` (path, query, header o cookie) y **Valor**. |
+
+Cada cambio se aplica a todos los pasos que lo usan. La sección **Se usa en** los lista. Si renombras el reutilizable, Luvin actualiza todos los pasos que lo usan.
+
+## Desvincúlalo de un paso
+
+Desvincula cuando un paso necesita un comportamiento distinto y los demás no.
+
+<Steps>
+1. Haz clic en el paso.
+2. Haz clic en **Desvincular**, junto a la insignia ♻.
+</Steps>
+
+El paso se queda con su propia copia de la acción o del parámetro, y el reutilizable sigue en el archivo. Una acción que se llamaba `unauthorized` vuelve al nombre de su estado, por ejemplo `on401`. Elegir otra acción en la lista del error también la desvincula.
+
+## Elimina un reutilizable
+
+<Steps>
+1. Haz clic en el reutilizable de la paleta para abrir su panel.
+2. Haz clic en la papelera de arriba.
+</Steps>
+
+La papelera está apagada mientras algún paso lo use. Su texto de ayuda dice **Se usa en 2 paso(s): quítalo de ahí primero**. Desvincúlalo de cada paso primero, o elige otra acción ahí. Cuando ningún paso lo usa, la papelera lo elimina del archivo.
+
+<Aside type="tip">
+Si eliminas un reutilizable por error, haz clic en **Deshacer** sobre el lienzo. Consulta [Organizar un workflow](/es/design/organize/).
+</Aside>
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Éxito y errores" href="/es/design/success-and-errors/" />
+  <LinkCard title="Parámetros y body" href="/es/design/parameters-and-body/" />
+  <LinkCard title="La pestaña YAML" href="/es/design/arazzo-editor/" />
+</CardGrid>

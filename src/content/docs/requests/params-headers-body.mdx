@@ -1,0 +1,128 @@
+---
+title: Params, headers and body
+description: How to fill in the query params, the headers and the body of an HTTP request, and how to use variables in any field.
+sidebar:
+  order: 3
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+An HTTP request has three places for data: the query params in the URL, the headers and the body. This page explains each tab and what Luvin adds on its own.
+
+## Example
+
+URL `https://jsonplaceholder.typicode.com/posts` with two rows in **Params**:
+
+| Key | Value |
+|---|---|
+| `userId` | `1` |
+| `_limit` | `2` |
+
+Luvin sends `https://jsonplaceholder.typicode.com/posts?userId=1&_limit=2` and the API answers `200` with a list of two posts, the ones with `"id": 1` and `"id": 2`. For a POST with a JSON body, see [HTTP requests](/requests/http/).
+
+## Query params
+
+The **Params** tab is a table. Each row has a checkbox, a **Key**, a **Value** and an optional **Description**. An empty row always waits at the end for the next param.
+
+The table and the URL stay in sync:
+
+- Type `?page=2&size=10` at the end of the URL and two rows appear in the table.
+- Add a row in the table and it appears in the URL.
+- Untick a row to stop sending it without deleting it. It leaves the URL and stays in the table.
+
+For example, with the URL `{{baseUrl}}/pokemon` and the rows `limit = 20` and `offset = 40`, Luvin sends `{{baseUrl}}/pokemon?limit=20&offset=40`.
+
+## Values in the path
+
+Luvin has no separate table for path values. Write the value straight in the URL, as text or as a variable:
+
+```text
+{{baseUrl}}/customers/{{customerId}}/cards
+```
+
+:::caution
+Placeholders such as `:id` or `{id}` are not replaced. They are sent as written. Use `{{id}}` with a variable of the active environment.
+:::
+
+## Headers
+
+The **Headers** tab uses the same table. When you type a key, Luvin suggests common header names and, for many of them, common values.
+
+### Automatic headers
+
+Luvin adds some headers by itself. They appear at the top of the table as rows you cannot edit, with the reason in the **Description** column. **Hide auto-generated headers** hides them; **Show N auto-generated headers** brings them back.
+
+| Header | Value | Notes |
+|---|---|---|
+| `Cache-Control` | `no-cache` | Untick it to stop sending it. |
+| `User-Agent` | `Luvin/<version>` | Desktop app only. In the browser, the browser sets it. |
+| `Content-Type` | Depends on the body type | Added when the request has a body. |
+| `Content-Length` | Calculated when sent | Only with a body. |
+| `Host` | Taken from the URL | Calculated when sent. |
+| `Accept` | `*/*` | |
+| `Accept-Encoding` | `gzip, deflate, br` | Desktop app only. |
+| `Connection` | `keep-alive` | Desktop app only. |
+| `Authorization` | From the **Authorization** tab, or inherited from the collection | The value is shown masked. |
+| `Cookie` | From the cookie jar, for that domain | Untick it to stop sending it. |
+
+To change an automatic header, write a row with the same name in the table. Your row wins and the automatic one disappears. Every row, its reason and how to turn one off are in [Headers that Luvin adds](/requests/auto-headers/).
+
+## Body
+
+Open the **Body** tab and choose the type from the menu at the top.
+
+| Group | Type | What you fill in | Content-Type that Luvin sets |
+|---|---|---|---|
+| **Form** | **Multipart Form** | A table of fields. Each field is **Text** or **File**. | `multipart/form-data` |
+| **Form** | **Form URL Encoded** | A table of fields. | `application/x-www-form-urlencoded` |
+| **Raw** | **JSON** | An editor. **Beautify** formats the JSON. | `application/json` |
+| **Raw** | **XML** | An editor. | `application/xml` |
+| **Raw** | **Text** | An editor. | `text/plain` |
+| **Raw** | **SPARQL** | An editor. | `application/sparql-query` |
+| **Other** | **File / Binary** | One file, sent as-is. Click **Choose file**. | From the file extension |
+| **Other** | **No Body** | Nothing. | None |
+
+If you write your own `Content-Type` in **Headers**, Luvin uses yours.
+
+:::caution
+A body is not sent with GET or HEAD. Change the method to POST, PUT, PATCH or DELETE to send it.
+:::
+
+About files:
+
+- In the desktop app, Luvin remembers the path and reads the file when you send. A file larger than 50 MB is not sent.
+- In the browser version, the file is kept only while the app is open. After a reload, Luvin asks you to choose it again.
+
+To upload a file, see [Send a file](/requests/send-files/).
+
+GraphQL is not a body type. It is its own kind of request: see [GraphQL](/requests/graphql/).
+
+## Variables and generators
+
+Any field accepts `{{variables}}`: the URL, params, headers, the authorization fields and the body. Luvin replaces them with the values of the active environment when you send.
+
+- Type `{{` in a field to see the variables of the active environment and the generators.
+- Move the mouse over a `{{name}}` to see its value. If it does not exist in the environment, the card says so and offers **Create variable** or **Create secret**.
+- A generator produces a new value on every send, for example `{{$randomEmail}}` or `{{uuid}}`.
+
+```json
+{
+  "email": "{{$randomEmail}}",
+  "reference": "{{uuid}}",
+  "country": "{{country}}"
+}
+```
+
+See [Variables and secrets](/environments/variables-and-secrets/) and [Dynamic variables](/environments/dynamic-variables/).
+
+## Required fields
+
+A request generated from a contract knows which fields the contract requires. Required params and headers come ticked; optional ones stay in the table, unticked, so you can turn them on when you need them. See [Generate requests from a contract](/requests/generate-from-contract/).
+
+This information matters when the request becomes a workflow step: Luvin uses it to decide which data the workflow needs and which negative cases to generate. For a request that did not come from a contract, you mark the required fields yourself in the step panel, with **Mark required fields**. See [Workflows from requests](/design/from-requests/).
+
+## Related
+
+- [Authorization](/authorization/overview/)
+- [Cookies and saved examples](/requests/cookies-and-examples/)
+- [Copy as cURL](/requests/curl/)

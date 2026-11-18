@@ -1,0 +1,122 @@
+---
+title: Preferencias y la interfaz Simple
+description: Cambia el idioma, tu rol, la interfaz (Simple o Completa) y el tema, y lee qué oculta la interfaz Simple.
+sidebar:
+  order: 9
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+**Preferencias** reúne los ajustes que son tuyos, no de un workspace: idioma, rol, interfaz y tema. Ábrelas cuando Luvin muestre demasiado (o muy poco) detalle técnico, o cuando quieras otro idioma u otro tema.
+
+![El diálogo de Preferencias con las opciones de idioma, rol, interfaz y tema](/media/es/preferences.webp)
+
+## Abre Preferencias
+
+<Steps>
+
+1. Haz clic en el ícono de engranaje, abajo a la izquierda de la ventana (la barra de estado).
+2. El diálogo **Preferencias** se abre sobre la app.
+3. Cambia lo que necesites. Cada cambio se aplica al instante; no hay botón para guardar.
+4. Pulsa Esc, haz clic en la **✕** o haz clic fuera del diálogo para cerrarlo.
+
+</Steps>
+
+Luvin recuerda cada ajuste en este equipo. No los guarda en tu workspace ni en tus archivos.
+
+## Cada ajuste
+
+| Ajuste | Opciones | Qué hace |
+|---|---|---|
+| **Idioma** | **Español**, **English** | Cambia todas las etiquetas de la app. La primera vez, Luvin sigue el idioma de tu navegador. |
+| **Tu rol** | **Product Manager / Owner**, **Negocio o partners**, **QA / Testing**, **Desarrollo**, **Arquitectura**, **Otro** | También define la interfaz, como muestra la tabla siguiente. Queda vacío (**—**) hasta que eliges uno. |
+| **Interfaz** | **Completa (desarrollo)**, **Simple (producto)** | Cuánto detalle técnico muestra Luvin. |
+| **Tema** | **Sistema**, **Claro**, **Oscuro** | **Sistema** sigue el de tu sistema operativo. |
+
+Debajo de los ajustes, el diálogo también muestra:
+
+- **Privacidad**: dónde viven tus datos. En el navegador: *Todo corre en tu navegador. Tu sesión se guarda solo en este equipo, sin credenciales.* En la app de escritorio: *Todo corre en tu equipo. Las peticiones salen de la app, sin pasar por ningún servidor nuestro.* Con un workspace abierto, dice que cada cambio se guarda en los archivos del workspace y que los secretos se cifran en este equipo.
+- **Atajos de teclado**: los tres principales (**⌘Enter**, **⌘K**, **Esc**). La lista completa está en [Atajos de teclado](/es/reference/shortcuts/).
+- **Tour guiado**, con **Empezar el tour**. Consulta [El tour guiado](/es/get-started/guided-tour/).
+- La versión de Luvin, al final.
+
+### El tema, sin abrir Preferencias
+
+El ícono de sol o luna junto al engranaje, en la barra de estado, cambia el tema con un clic. Cada clic pasa al siguiente: **Sistema**, **Claro**, **Oscuro**, y vuelve a **Sistema**. Su tooltip dice el tema actual y el siguiente.
+
+### El rol y la interfaz van juntos
+
+Elegir un rol cambia la interfaz. Cambiar solo la interfaz no cambia el rol.
+
+| Rol | Interfaz que elige Luvin |
+|---|---|
+| **Product Manager / Owner** | **Simple (producto)** |
+| **Negocio o partners** | **Simple (producto)** |
+| **QA / Testing** | **Completa (desarrollo)** |
+| **Desarrollo** | **Completa (desarrollo)** |
+| **Arquitectura** | **Completa (desarrollo)** |
+| **Otro** | **Completa (desarrollo)** |
+
+La pantalla de bienvenida ofrece la misma elección la primera vez. Consulta [Recorrido por la interfaz](/es/get-started/interface/).
+
+## Ejemplo: una persona de producto abre Pokemon card
+
+Abre el ejemplo de la Pokédex con cada interfaz y compara el mismo workflow.
+
+<Tabs>
+  <TabItem label="Completa (desarrollo)">
+
+  - El workflow se abre en **Diseño**. **Resumen** es la última pestaña.
+  - Los pasos se llaman `getPokemon`, `getSpecies`, y cada uno muestra su método, por ejemplo `GET`.
+  - El panel de un paso lista `onSuccess`, `onFailure` y `Outputs`.
+  - **Dev Tools** está en la barra de estado.
+
+  </TabItem>
+  <TabItem label="Simple (producto)">
+
+  - El workflow se abre en **Resumen**, que ahora es la primera pestaña. **Diseño** va después.
+  - Los pasos se llaman **Get pokemon**, **Get species**, sin método.
+  - El panel de un paso dice **Si sale bien**, **Si sale mal** y **Datos obtenidos**.
+  - El criterio `$statusCode == 200` se lee **La API responde 200 (OK)**.
+  - **Dev Tools** desaparece.
+
+  </TabItem>
+</Tabs>
+
+## Qué cambia la interfaz Simple
+
+Cambia cómo se muestran las cosas. No cambia lo que hace Luvin: se ejecutan los mismos casos y se envían los mismos requests.
+
+| Dónde | En Simple |
+|---|---|
+| Barra de estado | El botón **Dev Tools** desaparece, y el panel queda oculto aunque estuviera abierto. Consulta [Dev Tools](/es/dev-tools/overview/). |
+| Terminal | **Abrir en terminal** está desactivado, con la pista **no en modo simple**. |
+| Pestañas de un workflow | **Resumen** va primero. El workflow se abre en ella. |
+| Barra lateral y pestañas | Los pasos usan un nombre legible (`getPokemon` pasa a ser **Get pokemon**) y no llevan el distintivo del método. |
+| El lienzo (**Diseño**) | Las tarjetas muestran nombres legibles, la descripción del paso y los criterios en palabras. |
+| La pestaña de un paso | Sin la línea técnica (operationId, timeout, dependsOn). Los valores se muestran en palabras y la expresión aparece al apuntarlos. Los títulos son **Si sale bien**, **Si sale mal** y **Datos obtenidos**. |
+| Resultados | Los nombres de los pasos son legibles y la línea del request se oculta. Los criterios están en palabras, y uno que pasó muestra **—** en lugar del detalle. La pestaña de outputs es **Datos obtenidos**. |
+| Diálogo para elegir de una lista | Los nombres de los pasos son legibles. Consulta [Listas](/es/test/lists/). |
+| Tour guiado | Se salta la parada de **Dev Tools**. |
+
+<Aside type="note">
+El YAML, los inputs, los casos, los ambientes y los contratos son los mismos en las dos interfaces. Cambia a **Completa (desarrollo)** cuando necesites el detalle técnico.
+</Aside>
+
+## Cambia la interfaz
+
+<Steps>
+
+1. Abre **Preferencias**.
+2. Junto a **Interfaz**, haz clic en **Simple (producto)** o **Completa (desarrollo)**. La pista bajo el nombre dice qué significa cada una.
+3. Mira la app detrás del diálogo: cambia al instante.
+
+</Steps>
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Recorrido por la interfaz" href="/es/get-started/interface/" />
+  <LinkCard title="Atajos de teclado" href="/es/reference/shortcuts/" />
+  <LinkCard title="Lee los resultados" href="/es/test/results/" />
+</CardGrid>

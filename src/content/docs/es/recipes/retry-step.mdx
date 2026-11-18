@@ -1,0 +1,95 @@
+---
+title: Vuelve a iniciar sesión y reintenta
+description: Cuando una llamada responde 401, una acción retry ejecuta primero un paso de login y luego llama otra vez al paso que falló.
+sidebar:
+  order: 11
+---
+
+import { Steps, LinkButton, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+**Qué prueba:** `getMe` se llama antes de cualquier login, así que la API responde 401. Una acción `retry` con `stepId` ejecuta el paso `login` y después llama otra vez a `getMe`, ahora con un token.
+
+<LinkButton href="/recipes/retry-step/dummyjson.openapi.yaml" variant="primary" icon="download" download>Descargar el contrato</LinkButton>
+<LinkButton href="/recipes/retry-step/retry-step.arazzo.yaml" variant="secondary" icon="download" download>Descargar el Arazzo</LinkButton>
+
+## Ábrelo en Luvin
+
+<Steps>
+
+1. Descarga los archivos con los botones de arriba.
+2. En Luvin, crea una colección con **Nueva colección** en el inicio del workspace, o abre una que ya tengas.
+3. En **Acciones rápidas**, haz clic en **Importar Arazzo o contratos** y elige juntos los dos archivos `.yaml`.
+4. En la barra lateral, abre el workflow **Relogin and retry**.
+5. En la barra de ejecución, elige **API real**.
+6. Pulsa **Ejecutar**. Los resultados se abren abajo.
+
+</Steps>
+
+## Las líneas clave
+
+```yaml title="retry-step.arazzo.yaml" {7,10-12,14-19}
+steps:
+  - stepId: getMe
+    operationId: getMe
+    parameters:
+      - name: Authorization
+        in: header
+        value: Bearer {$steps.login.outputs.token}
+    successCriteria:
+      - condition: $statusCode == 200
+    onSuccess:
+      - name: done
+        type: end
+    onFailure:
+      - name: loginAndRetry
+        type: retry
+        stepId: login
+        retryLimit: 2
+        criteria:
+          - condition: $statusCode == 401
+    outputs:
+      firstName: $response.body#/firstName
+  - stepId: login
+    operationId: login
+    requestBody:
+      contentType: application/json
+      payload:
+        username: $inputs.username
+        password: $inputs.password
+    successCriteria:
+      - condition: $statusCode == 200
+    outputs:
+      token: $response.body#/accessToken
+```
+
+| Línea | Qué hace |
+|---|---|
+| 7 | Lee el token de `login`, un paso que viene después. La primera vez no tiene valor. |
+| 10-12 | Si `getMe` tiene éxito, el workflow termina aquí, así que `login` no corre una segunda vez. |
+| 14-19 | Ante un 401, ejecuta una vez el paso `login` y luego llama otra vez a `getMe`, hasta dos veces (`retryLimit: 2`). |
+
+## Qué obtienes
+
+| Intento | Paso | Status HTTP | Qué muestra Luvin |
+|---|---|---|---|
+| 1 | `getMe` | 401 | La API responde *Invalid/Expired Token!* |
+| | `login` | 200 | Reintento 1 de 2: antes corre el paso "login" (acción "loginAndRetry") |
+| 2 | `getMe` | 200 | `firstName` = `Emily` |
+
+El output del workflow `firstName` es `Emily`, y el veredicto es **Pasó**.
+
+## Pruébalo
+
+- Cambia `retryLimit` en la pestaña YAML y ejecuta de nuevo. El resultado muestra el número que pusiste, como en *Reintento 1 de 3*.
+
+:::note
+El paso que corre primero cuenta para `retryLimit`, y Luvin espera `retryAfter` segundos antes de cada reintento. En **Simulación** no se espera.
+:::
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Éxito y errores" href="/es/design/success-and-errors/" description="Todas las acciones: terminar, saltar y reintentar." />
+  <LinkCard title="Reintenta, salta o termina ante errores" href="/es/recipes/error-branches/" description="Reintenta el mismo paso con una espera." />
+  <LinkCard title="Inicia sesión y usa el token" href="/es/recipes/login-token/" description="El token en un header." />
+</CardGrid>

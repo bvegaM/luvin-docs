@@ -1,0 +1,159 @@
+---
+title: Install and open Luvin
+description: Requirements, running Luvin in the browser or as a desktop app, building installers, and what changes between the two versions.
+sidebar:
+  order: 3
+---
+
+import { Steps, Tabs, TabItem, Aside, Badge, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Luvin runs on your computer, in the browser or as a desktop app. There is no backend and no account.
+
+```bash title="From the Luvin project folder"
+npm install        # once
+npm run dev        # browser: open http://localhost:5173
+npm run desktop:dev  # desktop app
+```
+
+<Aside>
+There is no hosted version yet. You run Luvin from its project folder, install the desktop app, or serve the static build yourself.
+</Aside>
+
+## Requirements
+
+- **Node.js 20.19 or later, or 22.12 or later.** Check with `node --version`.
+- **npm**, which comes with Node.js.
+- The Luvin project folder on your computer.
+
+## Start Luvin
+
+<Tabs>
+<TabItem label="Browser">
+
+<Steps>
+
+1. Open a terminal in the Luvin project folder.
+2. Install the dependencies (once):
+
+   ```bash
+   npm install
+   ```
+
+3. Start the app:
+
+   ```bash
+   npm run dev
+   ```
+
+4. Open `http://localhost:5173` in your browser.
+
+</Steps>
+
+The welcome screen appears. To host it for your team, run `npm run build`: it writes a static site to `dist/` that any web server can serve.
+
+</TabItem>
+<TabItem label="Desktop app">
+
+<Steps>
+
+1. Open a terminal in the Luvin project folder.
+2. Run `npm install` if you have not done it yet.
+3. Start the app:
+
+   ```bash
+   npm run desktop:dev
+   ```
+
+</Steps>
+
+A Luvin window opens with the same welcome screen.
+
+</TabItem>
+</Tabs>
+
+## Build the installers
+
+<Steps>
+
+1. In the project folder, run:
+
+   ```bash
+   npm run desktop:build
+   ```
+
+2. Open the `release/` folder. The installer is there.
+
+</Steps>
+
+| System | What is built |
+|---|---|
+| macOS | A `.dmg` and a `.zip` |
+| Windows | An installer (NSIS) |
+| Linux | An AppImage |
+
+<Aside type="caution">
+The installers have been tested on macOS. The Windows and Linux builds have not been tried on those systems yet.
+</Aside>
+
+### Open an unsigned installer
+
+The installers are not signed yet, so your system warns you the first time.
+
+<Tabs>
+<TabItem label="macOS">
+
+1. Drag Luvin to **Applications** and open it. macOS says it cannot verify the app. Click **Done**.
+2. Open **System Settings → Privacy & Security** and scroll down to **Security**.
+3. Next to the message about Luvin, click **Open Anyway** and confirm with your password.
+
+You only do this the first time. Since macOS Sequoia (15), right-clicking the app and choosing **Open** no longer skips the warning.
+
+</TabItem>
+<TabItem label="Windows">
+
+1. Run the installer.
+2. In the warning, click **More info**.
+3. Click **Run anyway**.
+
+</TabItem>
+</Tabs>
+
+## Browser or desktop
+
+Both have the same interface. The differences come from what a browser allows.
+
+| | Browser | Desktop app |
+|---|---|---|
+| CORS | The API must allow the app's origin | Does not apply |
+| Cookie parameters and the `Host` header | Not sent: browsers do not allow it | Sent |
+| Cookies set by your APIs | Handled by the browser. Luvin cannot read them | Kept by Luvin, which shows and manages them |
+| gRPC requests | Not available | Available |
+| NTLM authorization | Not available | Available |
+| Terminal in Dev Tools | Not available | Available |
+| Where a workspace is saved | Browser storage, or a folder on disk in Chrome and Edge | A folder on disk |
+| Secrets | Encrypted in the browser with WebCrypto | Encrypted with the operating system's keychain |
+
+If the API you test does not allow CORS and you cannot change that, use the desktop app.
+
+## CORS in the browser version
+
+CORS is a browser rule: a web page may call an API on another address only if that API allows it. In the browser version Luvin is a web page, so the rule applies to every call.
+
+The API you test must:
+
+- allow the origin of the app, for example `http://localhost:5173`;
+- list the headers your workflows send in `Access-Control-Allow-Headers`.
+
+When a call is blocked, Luvin shows the exact headers to ask for. See [Troubleshooting](/get-started/troubleshooting/). The desktop app sends the requests itself, so CORS does not apply.
+
+<Aside type="tip">
+The bundled Pokédex works in both versions: the PokéAPI allows CORS and needs no credentials.
+</Aside>
+
+## Next
+
+<CardGrid>
+  <LinkCard title="Quick start" description="Your first run with the example." href="/get-started/quick-start/" />
+  <LinkCard title="A tour of the interface" href="/get-started/interface/" />
+  <LinkCard title="Limitations" href="/reference/limitations/" />
+</CardGrid>

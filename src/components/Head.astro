@@ -1,0 +1,107 @@
+---
+// La cabecera de Starlight más un visor: al hacer clic en una captura se ve a tamaño completo.
+// Las capturas de la app tienen mucho detalle y la columna de texto es angosta.
+import Default from '@astrojs/starlight/components/Head.astro'
+---
+
+<Default><slot /></Default>
+
+<style is:global>
+  .sl-markdown-content img {
+    cursor: zoom-in;
+  }
+  dialog.zoom {
+    max-width: none;
+    max-height: none;
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 2.5vh 2.5vw;
+    border: 0;
+    background: rgba(8, 12, 10, 0.92);
+    cursor: zoom-out;
+  }
+  dialog.zoom::backdrop {
+    background: rgba(8, 12, 10, 0.92);
+  }
+  dialog.zoom img {
+    display: block;
+    max-width: 95vw;
+    max-height: 95vh;
+    margin: auto;
+    border-radius: 8px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  }
+  .lv-video {
+    position: relative;
+  }
+  .lv-play {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    display: grid;
+    place-items: center;
+    width: 4.2rem;
+    height: 4.2rem;
+    margin: -2.6rem 0 0 -2.1rem;
+    padding: 0 0 0 0.3rem;
+    border: 0;
+    border-radius: 50%;
+    background: var(--sl-color-accent);
+    color: #fff;
+    box-shadow:
+      0 0 0 8px color-mix(in srgb, var(--sl-color-accent) 25%, transparent),
+      0 12px 30px rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .lv-play:hover {
+    transform: scale(1.06);
+  }
+  .lv-video.playing .lv-play {
+    display: none;
+  }
+  dialog.zoom[open] {
+    display: grid;
+    place-items: center;
+  }
+</style>
+
+<script>
+  // Un solo visor para toda la página: clic en la imagen lo abre; clic o Esc lo cierra.
+  const setup = () => {
+    if (document.querySelector('dialog.zoom')) return
+    const dialog = document.createElement('dialog')
+    dialog.className = 'zoom'
+    const big = document.createElement('img')
+    dialog.append(big)
+    dialog.addEventListener('click', () => dialog.close())
+    document.body.append(dialog)
+    document.addEventListener('click', (e) => {
+      const img = (e.target as HTMLElement | null)?.closest?.('.sl-markdown-content img') as HTMLImageElement | null
+      if (!img || img.closest('a')) return
+      big.src = img.currentSrc || img.src
+      big.alt = img.alt
+      dialog.showModal()
+    })
+  }
+  setup()
+
+  // Los videos llevan un botón grande de reproducir encima del póster; desaparece al empezar.
+  for (const video of document.querySelectorAll<HTMLVideoElement>('.sl-markdown-content video')) {
+    if (video.parentElement?.classList.contains('lv-video')) continue
+    const wrap = document.createElement('div')
+    wrap.className = 'lv-video'
+    video.replaceWith(wrap)
+    wrap.append(video)
+    const play = document.createElement('button')
+    play.type = 'button'
+    play.className = 'lv-play'
+    play.setAttribute('aria-label', document.documentElement.lang === 'es' ? 'Reproducir el video' : 'Play the video')
+    play.innerHTML = '<svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>'
+    wrap.append(play)
+    play.addEventListener('click', () => video.play())
+    video.addEventListener('play', () => wrap.classList.add('playing'))
+    video.addEventListener('ended', () => wrap.classList.remove('playing'))
+  }
+</script>

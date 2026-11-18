@@ -1,0 +1,21 @@
+arazzo: 1.0.1
+info: { title: Auth, version: 1.0.0 }
+sourceDescriptions:
+  - { name: dummyjson, url: ./dummyjson.openapi.yaml, type: openapi }
+workflows:
+  - workflowId: login
+    summary: Log in to DummyJSON
+    inputs:
+      type: object
+      properties:
+        username: { type: string, example: emilys }
+        password: { type: string, example: emilyspass }
+    steps:
+      - stepId: doLogin
+        operationId: login
+        requestBody:
+          contentType: application/json
+          payload: { username: $inputs.username, password: $inputs.password }
+        successCriteria: [{ condition: $statusCode == 200 }]
+        outputs: { token: $response.body#/accessToken }
+    outputs: { token: $steps.doLogin.outputs.token }

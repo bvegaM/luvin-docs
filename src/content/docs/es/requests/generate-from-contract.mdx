@@ -1,0 +1,111 @@
+---
+title: Generar requests desde un contrato
+description: Cómo crear un request listo para enviar por cada operación de un contrato OpenAPI, agrupados por tag, con la URL base como variable del ambiente.
+sidebar:
+  order: 31
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Si tienes el contrato OpenAPI de una API, no necesitas escribir sus requests a mano. Luvin crea un request por cada operación del contrato, con sus parámetros y un body de ejemplo ya completos. Úsalo para empezar a probar una API en un minuto, o para llenar una colección con todas las llamadas de la API. El contrato debe ser OpenAPI; los contratos AsyncAPI no generan requests.
+
+## Ejemplo
+
+El archivo incluido `pokeapi.openapi.yaml` describe la operación `listPokemon`. Luvin la convierte en este request, en la carpeta de su tag `pokemon`:
+
+```yaml
+name: Lista Pokémon (paginado)
+kind: http
+description: Lista Pokémon (paginado)
+method: GET
+url: "{{pokeapi}}/pokemon"
+params:
+  - key: limit
+    value: "5"
+    enabled: false
+    description: Cuántos devolver.
+  - key: offset
+    value: "0"
+    enabled: false
+    description: Desde cuál empezar.
+auth:
+  type: inherit
+requiredFields: []
+```
+
+Los nombres vienen del contrato: el summary es el nombre y la descripción, y los ejemplos de los parámetros son los valores. `limit` y `offset` son opcionales en el contrato, así que sus filas vienen sin marcar (`enabled: false`). La URL empieza con `{{pokeapi}}`, una variable que guarda el servidor del contrato.
+
+## Generar los requests
+
+<Steps>
+
+1. Abre la colección que tiene el contrato. Mira [Contratos](/es/contracts/overview/) si todavía necesitas agregarlo.
+2. Abre el diálogo de una de estas dos formas:
+   - En la lista **Contratos** de la barra lateral, haz clic en el botón **+** de la fila del contrato (**Generar requests**).
+   - Abre el contrato en el editor y haz clic en **Generar requests** en su barra superior.
+3. Se abre el diálogo **Generar requests de «nombre»**. Lista todas las operaciones del contrato.
+4. Elige lo que quieres, como se describe más abajo.
+5. Pulsa **Generar N requests**.
+
+</Steps>
+
+![El diálogo que genera requests desde un contrato, con las operaciones agrupadas por tag](/media/es/generate-requests.webp)
+
+Luvin muestra *Se crearon N requests en «carpeta»* y abre el primero. Los requests están en el grupo **Requests** de la barra lateral, en una carpeta con el nombre que elegiste.
+
+Si el archivo no es un OpenAPI válido, ves *Este archivo no es un OpenAPI válido.*
+
+## Elegir qué generar
+
+| Control | Qué hace |
+|---|---|
+| **Carpeta** | La carpeta que guarda los requests. Empieza con el título del contrato (`info.title`). Escribe otro nombre si prefieres. |
+| **Una subcarpeta por tag** | Crea una subcarpeta por cada tag del contrato, como `pets` u `orders`. Aparece solo cuando el contrato tiene tags, y viene marcada por defecto. Desmárcala para dejar todos los requests en una carpeta. |
+| **Marcar todos** / **Ninguno** | Marca o desmarca todas las operaciones. |
+| Cada fila | Una casilla, el método, la ruta y el nombre del request. Desmarca las operaciones que no quieres. |
+
+Un *tag* es una etiqueta que el contrato pone a las operaciones para agruparlas. Las operaciones sin tag quedan bajo **Sin tag**.
+
+El botón **Generar** queda deshabilitado mientras no haya ninguna operación marcada o el nombre de la carpeta esté vacío.
+
+## La URL base
+
+Todo request generado empieza con una variable, por ejemplo `{{pokeapi}}/pokemon/pikachu`, y no con la dirección completa. El diálogo dice cuál: *La URL base va como `{{pokeapi}}` (https://pokeapi.co/api/v2), así cambia con el ambiente.*
+
+- La variable lleva el nombre del archivo del contrato. `pokeapi.openapi.yaml` da `pokeapi`. Si un workflow ya usa el contrato como fuente, se usa el nombre de esa fuente.
+- Su valor es el primer servidor del contrato. Se agrega como URL base a cada ambiente que todavía no la tiene. Un ambiente que ya la tiene conserva su valor.
+- Para apuntar los mismos requests a otro servidor, cambia el ambiente activo o cambia el valor en él. Mira [Variables y secretos](/es/environments/variables-and-secrets/).
+
+Si el contrato no tiene ningún servidor, el request se genera igual y tú completas la variable en el ambiente.
+
+## Qué contiene cada request
+
+| Parte | Qué pone Luvin |
+|---|---|
+| **Nombre** | El summary de la operación. Si no tiene, su `operationId`. Si no tiene ninguno de los dos, el método y la ruta, por ejemplo `GET /pets/{id}`. |
+| **Método y URL** | El método, y la variable seguida de la ruta. Un parámetro de ruta toma su ejemplo del contrato. Sin ejemplo se convierte en `{{nombre}}`, una variable para que completes. |
+| **Params** | Una fila por cada parámetro de query, con su valor de ejemplo y la primera línea de su descripción. |
+| **Headers** | Lo mismo para los parámetros de header. `Content-Type`, `Authorization`, `Content-Length`, `Host` y `Accept` no se agregan como filas: Luvin los maneja por sí mismo. |
+| **Body** | Un body de ejemplo. Usa el ejemplo del contrato; si no hay, lo arma a partir del schema. Los body JSON van con formato. Para un formulario (`application/x-www-form-urlencoded` o `multipart/form-data`) obtienes una tabla de campos. Luvin prefiere JSON cuando el contrato ofrece varios tipos. |
+| **Autorización** | **Heredar de la colección**. Mira [Autorización](/es/authorization/overview/). |
+| **Descripción** | La descripción de la operación. |
+
+### Campos obligatorios y opcionales
+
+El contrato dice qué campos son obligatorios. Los params de query y los headers obligatorios vienen marcados. Los opcionales quedan en la tabla, sin marcar: márcalos cuando los necesites. También se recuerdan los campos marcados como `required` en el schema del body.
+
+Luvin guarda esta información en el request. Cuando más tarde arrastres el request a un workflow, sabrá qué datos necesita el workflow y qué casos negativos generar. Mira [Workflows desde requests](/es/design/from-requests/).
+
+## Requests que ya existen
+
+Luvin compara cada operación con los requests de la colección. Cuando ya existe un request con el mismo método y la misma URL (sin la query), la fila muestra **ya existe** y queda sin marcar, así que abrir el diálogo dos veces no duplica nada. Puedes marcarla si quieres una segunda copia.
+
+## Después de generar
+
+Envía un request para comprobarlo. Si la API responde `401`, configura la autorización de la colección. Mira [Autorización](/es/authorization/overview/).
+
+## Relacionado
+
+- [Requests sueltos](/es/requests/overview/)
+- [Params, headers y body](/es/requests/params-headers-body/)
+- [Contratos](/es/contracts/overview/)

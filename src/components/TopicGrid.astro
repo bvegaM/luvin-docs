@@ -1,0 +1,23 @@
+---
+// Rejilla de tarjetas de la portada. `wide`: dos por fila en vez de tres.
+const { wide = false } = Astro.props
+---
+
+<div class:list={['topic-grid', { wide }]}><slot /></div>
+
+<style>
+  .topic-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+    gap: 1rem;
+  }
+  .topic-grid.wide {
+    grid-template-columns: repeat(auto-fill, minmax(24rem, 1fr));
+  }
+  @media (max-width: 30rem) {
+    .topic-grid,
+    .topic-grid.wide {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

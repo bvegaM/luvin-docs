@@ -1,0 +1,76 @@
+---
+title: Workspaces y colecciones
+description: Qué son un workspace y una colección, cómo se organizan en el disco, cómo guarda Luvin tu trabajo y un mapa de esta sección.
+sidebar:
+  order: 1
+---
+
+import { FileTree, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Un **workspace** es la carpeta que contiene todo tu trabajo. Dentro, cada **colección** es una subcarpeta para un tema: un partner, un producto, una familia de APIs. Necesitas un workspace en cuanto quieres que Luvin conserve lo que construyes.
+
+![El inicio del workspace, con sus colecciones, las acciones rápidas y el panel de documentación](/media/es/home.webp)
+
+## La jerarquía
+
+<FileTree>
+
+- mi-workspace/ el workspace
+  - luvin.yaml la lista de colecciones
+  - README.md la documentación del workspace (opcional)
+  - pokedex/ una colección
+    - collection.yaml su nombre, versión y autorización
+    - README.md la documentación de la colección (opcional)
+    - pokeapi.openapi.yaml un contrato
+    - pokemon.arazzo.yaml un archivo Arazzo con workflows
+    - environments/
+      - local.yaml un ambiente
+    - scenarios/ los inputs y casos de cada Arazzo
+    - requests/ los requests guardados
+  - partners/ otra colección
+
+</FileTree>
+
+Todo son archivos de texto, así que puedes guardar el workspace en git. [Qué hay en el disco](/es/workspaces/files/) explica cada archivo.
+
+## Workspace y colección
+
+| | Workspace | Colección |
+|---|---|---|
+| **Qué es** | La carpeta que contiene colecciones. | Una subcarpeta para un tema. |
+| **Archivo que la describe** | `luvin.yaml` | `collection.yaml` |
+| **Qué contiene** | La lista de colecciones y un README opcional. | Contratos, archivos Arazzo, ambientes, casos, requests, una autorización y un README opcional. |
+| **Cuántas** | Trabajas en uno a la vez. | Una o muchas por workspace. Hay una abierta a la vez. |
+
+Cada uno tiene su propia documentación, un `README.md`. Mira [Escribir documentación](/es/workspaces/documentation/).
+
+## Cómo guarda Luvin tu trabajo
+
+Nunca presionas Guardar. Medio segundo después de tu último cambio, Luvin escribe solo los archivos que cambiaron. La barra superior muestra el estado:
+
+| Ves | Significa |
+|---|---|
+| **Guardando…** | Luvin está escribiendo archivos. |
+| **✓ Guardado** | Todo está en el disco. |
+| **Error al guardar** | Algo no se pudo escribir. Pasa el cursor sobre la insignia para leer el motivo. |
+
+En los editores (un ambiente, un request) el mismo estado aparece como **Cambios sin guardar…**, **Guardando…**, **Guardado** y luego **Guardado automáticamente**. Si falla, ves **No se pudo guardar** y **Reintentar**. **⌘S** (**Ctrl+S**) guarda al instante.
+
+Luvin también guarda antes de cambiar de colección o cerrar el workspace. Guardar nunca borra un archivo Arazzo ni un contrato. Los ambientes y requests que eliminas en la app se eliminan del disco.
+
+<Aside type="note" title="¿Sin workspace?">
+Puedes abrir archivos para una prueba rápida sin workspace. Entonces no se escribe nada en el disco. Mira [Usar Luvin sin workspace](/es/workspaces/without-workspace/).
+</Aside>
+
+## Mapa de esta sección
+
+<CardGrid>
+  <LinkCard title="Crear y abrir un workspace" description="Empezar, reabrir, cambiar, renombrar y cerrar." href="/es/workspaces/create-and-open/" />
+  <LinkCard title="Colecciones" description="Crear, agregar archivos, importar, renombrar, quitar y eliminar." href="/es/workspaces/collections/" />
+  <LinkCard title="Autorización de la colección" description="Una autorización para los requests de una colección." href="/es/workspaces/collection-authorization/" />
+  <LinkCard title="Escribir documentación" description="El README de un workspace y de una colección." href="/es/workspaces/documentation/" />
+  <LinkCard title="Qué hay en el disco" description="Cada archivo que Luvin escribe." href="/es/workspaces/files/" />
+  <LinkCard title="Llevar un workspace en git" description="Qué subir y qué hace un compañero al clonar." href="/es/workspaces/git/" />
+  <LinkCard title="El resumen de la colección" description="La página resumen de una colección." href="/es/workspaces/collection-overview/" />
+  <LinkCard title="Sin workspace" description="Abrir archivos para una prueba rápida." href="/es/workspaces/without-workspace/" />
+</CardGrid>

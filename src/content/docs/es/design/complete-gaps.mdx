@@ -1,0 +1,92 @@
+---
+title: Completa los datos que faltan
+description: Qué detecta la barra «A este workflow le faltan datos», qué hace el botón Completar y cómo deshacerlo.
+sidebar:
+  order: 15
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A veces un workflow pide un valor que nadie entrega. Luvin lo nota y muestra una barra, **A este workflow le faltan datos**, con un botón **Completar** que lo arregla sin rehacer tus pasos. Esta página explica qué detecta Luvin, qué cambia **Completar** y cómo volver atrás.
+
+## Ejemplo: un precio sin moneda
+
+El contrato de la API de una tienda empieza a exigir el parámetro de query `currency` en `GET /prices`. El workflow tiene un paso `getPrice` que no lo envía. La barra dice:
+
+```text
+A este workflow le faltan datos
+El contrato pide datos que estos pasos no envían: getPrice · currency.
+```
+
+La pestaña **Resumen** también lo lista como error: **El contrato exige el parámetro query "currency" y el paso no lo envía.**
+
+## Cuándo aparece la barra
+
+La barra aparece sobre el lienzo en la pestaña **Diseño**, y sobre los campos en la pestaña **Inputs**. Solo se muestra cuando Luvin encuentra algo que completar. Un workflow al que no le falta nada no la muestra.
+
+Suele aparecer cuando algo cambia debajo del workflow:
+
+- El contrato (OpenAPI) ahora marca un parámetro o un campo del body como obligatorio.
+- Editaste el [YAML](/es/design/arazzo-editor/) y un paso ahora usa un input que el workflow no declara.
+
+La barra no aparece mientras el YAML no se puede leer. Arregla primero el YAML.
+
+## Qué detecta Luvin
+
+La barra tiene hasta dos frases. Cada una es un problema distinto.
+
+| Frase | Qué significa |
+|---|---|
+| **Se usan inputs que el workflow no declara: …** | Un paso lee `$inputs.nombre`, en un parámetro o en el body, pero el workflow no tiene un input con ese nombre. A continuación van los nombres. |
+| **El contrato pide datos que estos pasos no envían: …** | Un paso llama a una operación cuyo contrato exige un valor, y el paso no envía nada para él. Cada elemento se escribe como el paso y el valor, por ejemplo `getPrice · currency`. |
+
+Para la segunda frase, Luvin revisa:
+
+- Los parámetros que el contrato marca como obligatorios y todos los parámetros de ruta. Un valor cuenta como faltante cuando el paso no tiene valor para él o el valor está vacío.
+- Los campos del body que el contrato marca como obligatorios. Solo se revisan los campos simples (texto, número, verdadero/falso), no los objetos ni las listas.
+
+Luvin no compara con un contrato los pasos que llaman a otro workflow. Sí revisa si sus valores leen un input que no está declarado.
+
+<Aside type="note">
+Los valores opcionales nunca se reportan. Si el contrato no lo exige, el paso puede omitirlo.
+</Aside>
+
+## Qué hace Completar
+
+Haz clic en **Completar**. Luvin recorre las dos listas, paso por paso, y cambia solo lo que falta. Tus pasos quedan como están.
+
+<Steps>
+1. **Inputs que se usan pero no se declaran.** Luvin los declara como inputs del workflow. Si un parámetro usa el input, el input toma del contrato el tipo, la descripción, el ejemplo y si es obligatorio de ese parámetro. Si se usa en otro lugar, como el body, Luvin lo declara sin más detalles.
+2. **Datos que el contrato exige y un paso no envía.** Para cada uno, Luvin busca una fuente entre los pasos anteriores, con las mismas reglas que sigue cuando agregas un paso. Mira [Conectar datos entre pasos](/es/design/wire-data/).
+   - Si un paso anterior tiene el valor, el paso ahora lo lee. Luvin agrega el output a ese paso anterior si hace falta.
+   - Si ninguno lo tiene, Luvin crea un input **obligatorio** con el nombre del valor y el tipo del contrato, y el paso lee ese input. Si el nombre ya existe, agrega un número: `currency2`.
+</Steps>
+
+Después de esto, la barra desaparece. En el ejemplo, `getPrice` ahora envía `$inputs.currency` y la pestaña **Inputs** tiene un campo obligatorio nuevo, **currency**. Complétalo antes de ejecutar. Mira [Inputs](/es/test/inputs/).
+
+<Aside type="tip">
+Abre el paso después y revisa de dónde viene cada valor. Una fuente que Luvin eligió por el nombre puede no ser la que querías. Puedes cambiarla como se explica en [Conectar datos entre pasos](/es/design/wire-data/).
+</Aside>
+
+## Deshazlo
+
+**Completar** es un cambio más en el historial de la pestaña **Diseño**.
+
+<Steps>
+1. Haz clic en **Completar** en la barra de la pestaña **Diseño**.
+2. Si no te gusta el resultado, haz clic en **Deshacer** sobre el lienzo, o pulsa ⌘ + Z (Ctrl + Z).
+</Steps>
+
+**Rehacer** lo trae de vuelta. Mira [Organizar un workflow](/es/design/organize/).
+
+<Aside type="note">
+La barra también está en la pestaña **Inputs**, con el mismo botón **Completar**. **Deshacer** es un botón de la pestaña **Diseño**, así que si quieres poder deshacer, haz clic en **Completar** en **Diseño**.
+</Aside>
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Conectar datos entre pasos" href="/es/design/wire-data/" />
+  <LinkCard title="Inputs" href="/es/test/inputs/" />
+  <LinkCard title="Organizar un workflow" href="/es/design/organize/" />
+</CardGrid>

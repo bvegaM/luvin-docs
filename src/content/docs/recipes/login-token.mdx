@@ -1,0 +1,118 @@
+---
+title: Log in and use the token
+description: Log in to DummyJSON, send the token in a header and read the user and their carts.
+sidebar:
+  order: 2
+---
+
+import { Steps, CardGrid, LinkCard, LinkButton, Aside } from '@astrojs/starlight/components'
+
+Most APIs need a token before they answer. This recipe logs in, saves the token and sends it in a header to the next step.
+
+**What it tests:** that a token from one step travels in a header to the next, so a protected API answers.
+
+## Download the files
+
+<LinkButton href="/recipes/login-token/login-token.arazzo.yaml" icon="download" download>login-token.arazzo.yaml</LinkButton>
+<LinkButton href="/recipes/login-token/dummyjson.openapi.yaml" icon="download" variant="secondary" download>dummyjson.openapi.yaml</LinkButton>
+
+## Open it in Luvin
+
+<Steps>
+
+1. Download the two files above into one folder.
+2. In Luvin, press **New collection**, or open a collection you already have.
+3. On the collection home, press **Import Arazzo or contracts** and pick both downloaded files.
+4. In the sidebar, open the workflow `loginAndCarts`.
+5. In the run bar, choose **Real API**.
+6. Press **Run**. The results open at the bottom.
+
+</Steps>
+
+## The Arazzo file
+
+```yaml title="login-token.arazzo.yaml" {23-25,29,35,46}
+arazzo: 1.0.1
+info:
+  title: Log in and call a protected API
+  version: 1.0.0
+sourceDescriptions:
+  - name: dummyjson
+    url: ./dummyjson.openapi.yaml
+    type: openapi
+workflows:
+  - workflowId: loginAndCarts
+    summary: Log in, read the user with the token and list their carts
+    inputs:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string, example: emilys }
+        password: { type: string, example: emilyspass }
+    steps:
+      - stepId: login
+        operationId: login
+        requestBody:
+          contentType: application/json
+          payload:
+            username: $inputs.username
+            password: $inputs.password
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          token: $response.body#/accessToken
+      - stepId: getMe
+        operationId: getMe
+        parameters:
+          - name: Authorization
+            in: header
+            value: Bearer {$steps.login.outputs.token}
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          userId: $response.body#/id
+          firstName: $response.body#/firstName
+      - stepId: getUserCarts
+        operationId: getUserCarts
+        parameters:
+          - name: userId
+            in: path
+            value: $steps.getMe.outputs.userId
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          carts: $response.body#/total
+    outputs:
+      firstName: $steps.getMe.outputs.firstName
+      carts: $steps.getUserCarts.outputs.carts
+```
+
+| Line | What it does |
+|---|---|
+| `inputs` (lines 12-17) | The workflow asks for `username` and `password`. The `example` values are the demo user of DummyJSON, so a run works without typing anything. |
+| `payload` (23-25) | The body of the login request is built from the two inputs. |
+| `token: $response.body#/accessToken` (29) | The step saves the `accessToken` of the response as its output `token`. |
+| `Bearer {$steps.login.outputs.token}` (35) | The next step sends that token in the `Authorization` header. The braces mark an expression inside text. |
+| `value: $steps.getMe.outputs.userId` (46) | The user id that `getMe` returned goes to the path of the carts request. |
+
+## What you get
+
+| Step | HTTP status | Outputs |
+|---|---|---|
+| `login` | 200 | `token` (the `accessToken` of the response) |
+| `getMe` | 200 | `userId` = 1, `firstName` = Emily |
+| `getUserCarts` | 200 | `carts` = 1 |
+
+The workflow outputs are `firstName` = Emily and `carts` = 1. Every step meets its criteria, so the case ends **Passed**.
+
+## Try this
+
+**Wrong password.** Change the input `password` to `wrong` and run again. DummyJSON answers 400 (*Invalid credentials*) to the login, `login` does not meet `$statusCode == 200` and fails, and the two later steps are skipped. The workflow ends **Failed**. To make a rejection the expected result, see [Prove the API rejects bad data](/recipes/expected-error/).
+
+## Related
+
+<CardGrid>
+<LinkCard title="Wire data between steps" description="How an output of one step becomes the input of the next." href="/design/wire-data/" />
+<LinkCard title="Workflow authorization" description="Add a token without writing it in the steps." href="/authorization/workflow/" />
+<LinkCard title="Depends on" description="One workflow logs in and others reuse its token." href="/recipes/depends-on/" />
+</CardGrid>

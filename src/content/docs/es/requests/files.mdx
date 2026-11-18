@@ -1,0 +1,208 @@
+---
+title: Cómo se guarda un request
+description: El archivo YAML que Luvin escribe para cada request, las claves que contiene, cómo se guardan las carpetas y qué valores nunca llegan al archivo.
+sidebar:
+  order: 5
+---
+
+import { FileTree, Aside, Tabs, TabItem, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+En un workspace, cada request es un archivo YAML legible. Puedes abrirlo en cualquier editor, revisarlo en un pull request y guardarlo en git junto con la colección.
+
+## Un archivo de request completo
+
+Este es el archivo que Luvin escribe para un request llamado **Create post**: un POST con un Bearer token que viene de una variable y un body JSON.
+
+```yaml title="requests/create-post.request.yaml"
+name: Create post
+kind: http
+method: POST
+url: "{{baseUrl}}/posts"
+headers:
+  - key: X-Trace
+    value: "{{traceId}}"
+auth:
+  type: bearer
+  token: "{{token}}"
+  prefix: Bearer
+body:
+  mode: json
+  text: |-
+    {
+      "title": "Hello Luvin",
+      "body": "My first post",
+      "userId": 1
+    }
+requiredFields:
+  - body:title
+  - body:userId
+```
+
+## Dónde viven los archivos
+
+Los requests están en la carpeta `requests/` de la colección. Una carpeta de la barra lateral es una subcarpeta real, con un pequeño archivo marcador dentro.
+
+<FileTree>
+
+- shop/ una colección
+  - collection.yaml
+  - environments/
+    - local.yaml
+  - requests/
+    - get-post.request.yaml
+    - create-post.request.yaml
+    - customers/
+      - _folder.request.yaml el marcador de la carpeta
+      - list-customers.request.yaml
+      - create-customer.request.yaml
+    - uploads/
+      - _folder.request.yaml
+      - upload-avatar.request.yaml
+
+</FileTree>
+
+- El nombre del archivo es el nombre del request en minúsculas, sin tildes y con guiones: **Create post** pasa a ser `create-post.request.yaml`. Si el nombre ya está ocupado, Luvin agrega `-2`, `-3` y así sucesivamente.
+- Renombrar un request en Luvin renombra el archivo. Arrastrar un request sobre una carpeta mueve el archivo.
+- El marcador `_folder.request.yaml` guarda el nombre visible de la carpeta, con espacios y mayúsculas:
+
+```yaml title="requests/customers/_folder.request.yaml"
+kind: folder
+name: Customers
+```
+
+Una subcarpeta que creas a mano en el disco también aparece en la barra lateral, aunque no tenga marcador. Su nombre es el de la carpeta.
+
+## Las claves
+
+Luvin omite toda clave vacía, así que un archivo solo tiene lo que usa el request.
+
+| Clave | Qué contiene |
+|---|---|
+| `name`, `kind` | El nombre y el tipo: `http`, `graphql`, `grpc` o `websocket`. Un archivo sin un `kind` válido no se lee como request. |
+| `description` | El texto del request, cuando lo tiene. |
+| `method`, `url` | El método (HTTP y GraphQL) y la dirección. En gRPC la `url` es `host:puerto`; en WebSocket empieza con `ws://` o `wss://`. |
+| `params`, `headers` | Una lista de filas (mira abajo). En gRPC los headers se guardan como `metadata`. |
+| `auth` | La autorización. No se escribe cuando el tipo es **Sin autorización**. |
+| `body` | Solo HTTP: `mode` y luego `text`, `form` o `file` según ese modo. No se escribe con **Sin body**. |
+| `query`, `variables` | GraphQL: la consulta, y las variables cuando no son `{}`. |
+| `proto`, `service`, `rpc`, `message`, `tls` | gRPC. |
+| `messages` | WebSocket: los mensajes guardados, cada uno con `name` y `text`. |
+| `autoHeadersOff` | Los headers automáticos que desmarcaste, en minúsculas. |
+| `requiredFields` | Los campos que marcaste como obligatorios, como `query:bank` o `body:title`. |
+| `examples` | Las respuestas guardadas como ejemplos. |
+
+### Las filas
+
+`params`, `headers` y los campos de un formulario comparten una misma forma:
+
+```yaml
+params:
+  - key: userId
+    value: "1"
+  - key: _limit
+    value: "10"
+    enabled: false
+    description: Not sent
+```
+
+`enabled: false` aparece solo en las filas desmarcadas.
+
+### Tipos de body
+
+`mode` es uno de `json`, `text`, `xml`, `sparql`, `urlencoded`, `formdata` o `file`. Los cuatro primeros escriben el texto en `text`. `urlencoded` y `formdata` escriben una lista `form`. `file` escribe un `file`.
+
+Un campo de archivo de un **Multipart Form** guarda la ruta del archivo, no su contenido:
+
+```yaml title="requests/uploads/upload-avatar.request.yaml"
+name: Upload avatar
+kind: http
+method: POST
+url: "{{baseUrl}}/avatars"
+auth:
+  type: inherit
+body:
+  mode: formdata
+  form:
+    - key: name
+      value: Ana
+    - key: avatar
+      type: file
+      file:
+        path: /Users/ana/pics/ana.png
+        name: ana.png
+        contentType: image/png
+```
+
+En la versión de navegador un archivo no tiene ruta en el disco, así que `path` se guarda vacío y Luvin te pide elegir el archivo otra vez. Mira [Body](/es/requests/params-headers-body/).
+
+## Ejemplos guardados
+
+Las respuestas que guardas con **Guardar respuesta** van en el mismo archivo, bajo `examples`. Un ejemplo conserva el request (método, URL, params, headers y body) y la respuesta. No conserva la autorización.
+
+```yaml title="requests/create-post.request.yaml"
+examples:
+  - id: m1x2
+    name: 201 - Create post
+    savedAt: 2026-11-17T14:03:22.000Z
+    request:
+      method: POST
+      url: "{{baseUrl}}/posts"
+      body:
+        mode: json
+        text: '{"title":"Hello Luvin"}'
+    response:
+      status: 201
+      statusText: Created
+      durationMs: 312
+      headers:
+        content-type: application/json; charset=utf-8
+      body: |-
+        {
+          "title": "Hello Luvin",
+          "id": 101
+        }
+```
+
+Mira [Cookies y ejemplos guardados](/es/requests/cookies-and-examples/).
+
+## Dónde van los secretos
+
+Algunos campos del bloque `auth` son secretos: `token`, `password`, `value` (de una API Key), `consumerSecret`, `tokenSecret`, `clientSecret`, `secretAccessKey`, `sessionToken`, `clientToken` y `accessToken`.
+
+| Escribes en el campo | En el archivo | Dónde queda el valor |
+|---|---|---|
+| `{{token}}` (una variable) | `token: "{{token}}"` | En tu ambiente. |
+| `s3cr3t` (tal cual) | La clave se omite | Cifrado en este equipo. La app de escritorio usa el llavero del sistema operativo; la versión de navegador lo cifra en el navegador. |
+
+Por ejemplo, un request con Basic Auth y la contraseña escrita tal cual se guarda solo con el usuario:
+
+```yaml
+auth:
+  type: basic
+  username: ana
+```
+
+:::caution
+Solo los campos de la lista de arriba se tratan como secretos. Todo lo demás que escribes en la pestaña **Autorización**, como un usuario, un Client ID o un Access Key ID, se escribe en el archivo tal cual. Usa una `{{variable}}` para cualquier valor que no quieras en git.
+:::
+
+La autorización de toda la colección se escribe en `collection.yaml`, con las mismas reglas:
+
+```yaml title="collection.yaml"
+version: 1
+name: Shop
+auth:
+  type: bearer
+  token: "{{token}}"
+```
+
+## Editar un archivo a mano
+
+Es más seguro cambiar un request en la app: tiene una forma fija y Luvin reescribe el archivo cuando cambias algo. Si editas un archivo con otro programa, respeta las claves de arriba y mantén el YAML válido. Luvin lee los archivos cuando abres una colección, así que cierra el workspace (**Cerrar y cambiar de workspace**) y ábrelo otra vez para ver el cambio. Mira [Qué hay en el disco](/es/workspaces/files/).
+
+## Siguiente
+
+<CardGrid>
+  <LinkCard title="Autorización" href="/es/authorization/overview/" description="Los tipos de autorización y dónde configurarlos." />
+  <LinkCard title="Qué hay en el disco" href="/es/workspaces/files/" description="Toda la estructura de carpetas de un workspace." />
+</CardGrid>

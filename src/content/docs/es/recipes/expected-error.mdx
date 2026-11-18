@@ -1,0 +1,112 @@
+---
+title: Espera un error
+description: Un workflow que inicia sesión con una contraseña incorrecta y pasa solo si la API responde 400, y la misma comprobación como caso de rechazo.
+sidebar:
+  order: 6
+---
+
+import { Steps, LinkButton, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+**Qué prueba:** un login con una contraseña incorrecta debe ser rechazado con un 400 y el mensaje `Invalid credentials`.
+
+<LinkButton href="/recipes/expected-error/dummyjson.openapi.yaml" variant="primary" icon="download" download>Descargar el contrato</LinkButton>
+<LinkButton href="/recipes/expected-error/expected-error.arazzo.yaml" variant="secondary" icon="download" download>Descargar el Arazzo</LinkButton>
+
+## Ábrelo en Luvin
+
+<Steps>
+
+1. Descarga los archivos con los botones de arriba.
+2. En Luvin, crea una colección con **Nueva colección** en el inicio del workspace, o abre una que ya tengas.
+3. En **Acciones rápidas**, haz clic en **Importar Arazzo o contratos** y elige juntos los archivos `.yaml` descargados.
+4. En la barra lateral, abre el workflow **Wrong password**.
+5. En la barra de ejecución, elige **API real**.
+6. Pulsa **Ejecutar**. Los resultados se abren abajo.
+
+</Steps>
+
+## Las líneas clave
+
+```yaml title="expected-error.arazzo.yaml" {27-28}
+arazzo: 1.0.1
+info:
+  title: The API rejects a wrong password
+  version: 1.0.0
+sourceDescriptions:
+  - name: dummyjson
+    url: ./dummyjson.openapi.yaml
+    type: openapi
+workflows:
+  - workflowId: wrongPassword
+    summary: Log in with a wrong password and expect the 400
+    inputs:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string, example: emilys }
+        password: { type: string, example: not-the-password }
+    steps:
+      - stepId: loginRejected
+        operationId: login
+        requestBody:
+          contentType: application/json
+          payload:
+            username: $inputs.username
+            password: $inputs.password
+        successCriteria:
+          - condition: $statusCode == 400
+          - condition: $response.body#/message == 'Invalid credentials'
+        outputs:
+          message: $response.body#/message
+    outputs:
+      message: $steps.loginRejected.outputs.message
+```
+
+| Línea | Qué hace |
+|---|---|
+| 27 | `$statusCode == 400`: el paso pasa solo si la API responde 400. Un 200 aquí lo haría fallar. |
+| 28 | El body debe traer el mensaje documentado, `Invalid credentials`. El texto se compara sin distinguir mayúsculas. |
+| 24-25 | El usuario y la contraseña vienen de los inputs. La contraseña por defecto del archivo es `not-the-password`, incorrecta a propósito. |
+
+## Qué obtienes
+
+La API responde **400** con `{"message":"Invalid credentials"}`. El paso cuenta como exitoso porque esa es la respuesta que piden los criterios.
+
+| Paso | Status HTTP | Output |
+|---|---|---|
+| `loginRejected` | 400 | `message` = `Invalid credentials` |
+
+Veredicto del workflow: **Pasó**. El output del workflow `message` vale `Invalid credentials`.
+
+Si cambias la contraseña por `emilyspass`, la API te deja entrar y responde 200. El paso falla entonces con la razón *Se esperaba $statusCode igual a 400, pero vale 200*.
+
+## La misma comprobación como caso de rechazo
+
+También puedes dejar un workflow escrito para el éxito, como el login de [Inicia sesión y usa el token](/es/recipes/login-token/), y probar el rechazo desde la pestaña **Casos**.
+
+<Steps>
+
+1. Abre el workflow y haz clic en la pestaña **Casos**.
+2. En el grupo **Casos con datos propios**, pulsa **+ Nuevo caso con datos**.
+3. En **Nombre del caso**, escribe `Wrong password`. En **Paso que se verifica**, elige `login`.
+4. En **Status esperado**, escribe `400`.
+5. En **Inputs del caso**, escribe `not-the-password` en `password`.
+6. Pulsa **Agregar caso** y luego **Ejecutar** con **API real**.
+
+</Steps>
+
+El caso termina como **Pasó**. El paso `login` muestra **Respondió 400 (esperado)** y la nota **Es lo que prueba el caso**, porque aquí el error es justo lo que el caso quiere.
+
+## Pruébalo
+
+- Cambia `password` por `emilyspass` y ejecuta de nuevo. El workflow termina **No pasó** con *Se esperaba $statusCode igual a 400, pero vale 200*. Así te enteras de que la API dejó de rechazar.
+- Quita la línea 28 y deja solo el status. El paso pasa con cualquier 400, con el mensaje que sea.
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Comprueba que tu API rechaza datos malos" href="/es/tutorials/negative-cases/" description="Los casos de rechazo que Luvin genera, paso a paso." />
+  <LinkCard title="Casos" href="/es/test/cases/" description="La pestaña Casos y sus grupos." />
+  <LinkCard title="Casos con datos propios" href="/es/test/custom-cases/" description="Agrega un caso con tus datos y el status esperado." />
+  <LinkCard title="Criterios de éxito" href="/es/reference/criteria/" description="Todos los tipos de criterio." />
+</CardGrid>

@@ -1,0 +1,59 @@
+openapi: 3.0.3
+info:
+  title: DummyJSON (subset)
+  version: 1.0.0
+  description: A few operations of the public DummyJSON API (https://dummyjson.com), for the Luvin recipes.
+servers:
+  - url: https://dummyjson.com
+paths:
+  /auth/login:
+    post:
+      operationId: login
+      summary: Log in and get a token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string, example: emilys }
+                password: { type: string, example: emilyspass }
+      responses:
+        '200':
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: integer, example: 1 }
+                  username: { type: string, example: emilys }
+                  accessToken: { type: string }
+                  refreshToken: { type: string }
+        '400':
+          description: Invalid credentials
+  /auth/me:
+    get:
+      operationId: getMe
+      summary: The logged-in user
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema: { type: string, example: Bearer <token> }
+      responses:
+        '200':
+          description: The user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: integer, example: 1 }
+                  firstName: { type: string, example: Emily }
+                  lastName: { type: string, example: Johnson }
+                  email: { type: string }
+        '401':
+          description: Missing or invalid token

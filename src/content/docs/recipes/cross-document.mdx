@@ -1,0 +1,101 @@
+---
+title: Use a workflow from another Arazzo file
+description: A login lives in its own Arazzo file; a second file runs it first with dependsOn, or calls it as a step.
+sidebar:
+  order: 10
+---
+
+import { Steps, LinkButton, LinkCard, CardGrid, FileTree } from '@astrojs/starlight/components';
+
+**What it tests:** the workflow `login` is written once, in `auth.arazzo.yaml`. Two workflows of `profile.arazzo.yaml` reuse it: `myProfile` through `dependsOn`, and `loginAsStep` by calling it as a step.
+
+<LinkButton href="/recipes/cross-document/auth.arazzo.yaml" variant="primary" icon="download" download>Download auth.arazzo.yaml</LinkButton>
+<LinkButton href="/recipes/cross-document/profile.arazzo.yaml" variant="secondary" icon="download" download>Download profile.arazzo.yaml</LinkButton>
+<LinkButton href="/recipes/cross-document/dummyjson.openapi.yaml" variant="secondary" icon="download" download>Download the contract</LinkButton>
+
+<FileTree>
+
+- auth.arazzo.yaml the workflow `login`
+- profile.arazzo.yaml `myProfile` and `loginAsStep`
+- dummyjson.openapi.yaml the contract both files use
+
+</FileTree>
+
+## Open it in Luvin
+
+<Steps>
+
+1. Download the three files with the buttons above.
+2. In Luvin, create a collection with **New collection** on the workspace home, or open one you already have.
+3. Under **Quick actions**, click **Import Arazzo or contracts** and choose the three files together. Both Arazzo files must be in the same collection.
+4. In the sidebar, open the workflow **My profile**.
+5. In the run bar, choose **Real API**.
+6. Press **Run**. The results open at the bottom.
+
+</Steps>
+
+## The key lines
+
+```yaml title="profile.arazzo.yaml" {3,7,12,19,20}
+sourceDescriptions:
+  - { name: dummyjson, url: ./dummyjson.openapi.yaml, type: openapi }
+  - { name: auth, url: ./auth.arazzo.yaml, type: arazzo }
+workflows:
+  - workflowId: myProfile
+    summary: Read my profile after logging in (another document)
+    dependsOn: [$sourceDescriptions.auth.login]
+    steps:
+      - stepId: getMe
+        operationId: getMe
+        parameters:
+          - { name: Authorization, in: header, value: 'Bearer {$workflows.login.outputs.token}' }
+        successCriteria: [{ condition: $statusCode == 200 }]
+        outputs: { firstName: $response.body#/firstName }
+  - workflowId: loginAsStep
+    summary: Call the login of another document as a step
+    steps:
+      - stepId: auth
+        workflowId: $sourceDescriptions.auth.login
+        outputs: { token: $outputs.token }
+      - stepId: getMe
+        operationId: getMe
+        parameters:
+          - { name: Authorization, in: header, value: 'Bearer {$steps.auth.outputs.token}' }
+        successCriteria: [{ condition: $statusCode == 200 }]
+```
+
+| Line | What it does |
+|---|---|
+| 3 | Declares the other file as a source with `type: arazzo`. Its workflows are now named `$sourceDescriptions.auth.<workflowId>`. |
+| 7 | `dependsOn` with that name: Luvin runs `login` first, once. |
+| 12 | The output of `login` is read as `$workflows.login.outputs.token`, with the workflow id only, not the source. |
+| 19 | A step with `workflowId` calls the same workflow in the middle of the steps. |
+| 20 | `$outputs.token` copies the output `token` of the called workflow into an output of the step. |
+
+## What you get
+
+Run `myProfile`: Luvin runs `login` of `auth.arazzo.yaml`, then `getMe`.
+
+| Workflow | Step | HTTP status | Output |
+|---|---|---|---|
+| `myProfile` | `login` (from `auth.arazzo.yaml`) | 200 | `token` |
+| `myProfile` | `getMe` | 200 | `firstName` = `Emily` |
+
+Run `loginAsStep` too: its step `auth` runs the login and `getMe` uses the token. All three workflows pass.
+
+## Try this
+
+- In the **Design** tab of `myProfile`, click the **Start** card. The **Depends on** card shows `login` and the file it comes from.
+- Remove `auth.arazzo.yaml` from the collection and open `myProfile`. The analysis says that the file is not in the collection and asks you to add it.
+
+:::note
+The other file is found by its file name, so it must be in the same collection and keep the name written in `url`. Circles across files, such as A depends on B and B on A, are detected and reported.
+:::
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Workflows that use other workflows" href="/design/dependencies/" description="Pick a workflow of another file in the app, or write it in the YAML." />
+  <LinkCard title="Reuse a login with dependsOn" href="/recipes/depends-on/" description="The same idea inside one file." />
+  <LinkCard title="Analysis messages" href="/reference/analysis-messages/" description="What the messages about other files mean." />
+</CardGrid>

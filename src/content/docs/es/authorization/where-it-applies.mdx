@@ -1,0 +1,87 @@
+---
+title: Dónde se aplica la autorización
+description: Request, colección, workflow y credenciales del ambiente lado a lado, con los clics exactos para llegar a cada uno.
+sidebar:
+  order: 2
+---
+
+import { Tabs, TabItem, Steps, Aside } from '@astrojs/starlight/components';
+
+Luvin guarda la autorización en cuatro lugares. Cada uno responde una pregunta distinta: qué requests, qué workflows, qué APIs.
+
+## Lado a lado
+
+| | Request | Colección | Workflow | Credenciales del ambiente |
+|---|---|---|---|---|
+| Cubre | Un request guardado | Los requests con **Heredar de la colección** | Los pasos de un workflow, por API | Los pasos cuya API usa **Del contrato** |
+| Tipos | Todos, más **Heredar de la colección** | Todos menos **Heredar de la colección** | Todos, más **Del contrato** y **Heredar de la colección** | Un valor por cada `securitySchemes` del contrato |
+| Se guarda en | `requests/<nombre>.request.yaml` | `collection.yaml` | `flow-auth.yaml` | El ambiente (valores cifrados en este equipo) |
+| Inicio de sesión de OAuth 2.0 | **Obtener token nuevo** | **Obtener token nuevo** | **Iniciar sesión**, o **Ejecutar** | No aplica: pegas un token |
+
+## Cómo llegar a cada uno
+
+<Tabs>
+  <TabItem label="Request">
+    <Steps>
+
+    1. Abre un request desde la barra lateral.
+    2. Haz clic en la pestaña **Autorización**.
+    3. Elige un **Tipo**.
+
+    </Steps>
+
+    Solo los requests HTTP y GraphQL tienen esta pestaña.
+  </TabItem>
+  <TabItem label="Colección">
+    <Steps>
+
+    1. Haz clic en el nombre de la colección en la barra lateral. Se abre el resumen de la colección.
+    2. Busca la tarjeta **Autorización**.
+    3. Elige un **Tipo**.
+
+    </Steps>
+
+    Desde un request que hereda, **Configurar en la colección** te lleva a la misma tarjeta.
+  </TabItem>
+  <TabItem label="Workflow">
+    <Steps>
+
+    1. Abre un workflow desde la barra lateral.
+    2. Haz clic en la pestaña **Autorización**, junto a **Casos**.
+    3. En la tarjeta de una API, elige **Todos los workflows** o **Solo este workflow**, y luego un **Tipo**.
+
+    </Steps>
+  </TabItem>
+  <TabItem label="Ambiente">
+    <Steps>
+
+    1. Abre el ambiente de la colección.
+    2. Abre la sección **Credenciales** y completa un campo por cada esquema.
+
+    </Steps>
+
+    Desde la documentación de un contrato, **Autorizar** abre el mismo lugar. Desde la tarjeta de un workflow en **Del contrato**, **Abrir el ambiente** también.
+  </TabItem>
+</Tabs>
+
+![La pestaña Autorización de un workflow, con una tarjeta por API](/media/es/workflow-auth.webp)
+
+## Cuál usar
+
+- **Una llamada puntual o explorar una API:** el request.
+- **Todos tus requests guardados comparten un login:** la colección, y deja los requests en **Heredar de la colección**.
+- **Un workflow necesita un token que vence o se pide al ejecutar:** la pestaña del workflow con **OAuth 2.0**.
+- **El contrato ya dice lo que necesita y basta con pegar un token:** las credenciales del ambiente.
+
+La autorización de la colección es para requests sueltos. Un workflow la usa solo si una API está en **Heredar de la colección** en la pestaña del workflow.
+
+<Aside type="note">
+Las variables como `{{clientId}}` funcionan en todos los campos de todos los lugares. Se reemplazan por los valores del ambiente activo al enviar o ejecutar.
+</Aside>
+
+## Relacionado
+
+- [Resumen de la autorización](/es/authorization/overview/)
+- [Autorización de la colección](/es/authorization/collection/)
+- [Autorización de un workflow](/es/authorization/workflow/)
+- [Credenciales del contrato](/es/authorization/contract-credentials/)

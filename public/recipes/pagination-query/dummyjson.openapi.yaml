@@ -1,0 +1,84 @@
+openapi: 3.0.3
+info:
+  title: DummyJSON products (subset)
+  version: 1.0.0
+  description: Two operations of the public DummyJSON API (https://dummyjson.com), for the Luvin recipes.
+servers:
+  - url: https://dummyjson.com
+paths:
+  /products:
+    get:
+      operationId: listProducts
+      summary: List products, one page at a time
+      parameters:
+        - name: limit
+          in: query
+          description: How many products per page
+          schema: { type: integer, example: 5 }
+        - name: skip
+          in: query
+          description: How many products to skip (page start)
+          schema: { type: integer, example: 0 }
+        - name: select
+          in: query
+          description: Comma-separated fields to return
+          schema: { type: string, example: 'title,price' }
+      responses:
+        '200':
+          description: A page of products
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: integer }
+                        title: { type: string }
+                        price: { type: number }
+                  total: { type: integer, example: 194 }
+                  skip: { type: integer, example: 0 }
+                  limit: { type: integer, example: 5 }
+              example:
+                products:
+                  - { id: 1, title: Essence Mascara Lash Princess, price: 9.99 }
+                total: 194
+                skip: 0
+                limit: 1
+  /products/search:
+    get:
+      operationId: searchProducts
+      summary: Search products by text
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string, example: phone }
+        - name: limit
+          in: query
+          schema: { type: integer, example: 5 }
+        - name: select
+          in: query
+          schema: { type: string, example: 'title,price' }
+      responses:
+        '200':
+          description: The products that match
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: integer }
+                        title: { type: string }
+                        price: { type: number }
+                  total: { type: integer, example: 28 }
+                  skip: { type: integer }
+                  limit: { type: integer }

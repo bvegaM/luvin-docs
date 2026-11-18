@@ -1,0 +1,45 @@
+---
+title: Akamai EdgeGrid
+description: Sign requests to APIs behind Akamai with EdgeGrid (EG1-HMAC-SHA256), with the fields and what Luvin signs.
+sidebar:
+  order: 18
+---
+
+import { Badge } from '@astrojs/starlight/components';
+
+<Badge text="Beta" variant="caution" />
+
+Use **Akamai EdgeGrid** when the API is behind Akamai and its documentation asks for an EdgeGrid signature. The app marks the option **Akamai EdgeGrid (Beta)**.
+
+## Example
+
+```text
+Authorization: EG1-HMAC-SHA256 client_token=akab-xxxx;access_token=akab-yyyy;timestamp=20261117T14:03:22+0000;nonce=<uuid>;signature=…
+```
+
+Timestamp and nonce are new on every send.
+
+## Fields
+
+| Field | What to write |
+|---|---|
+| **Client Token** | From your Akamai credential. A secret field. |
+| **Client Secret** | From your Akamai credential. A secret field. |
+| **Access Token** | From your Akamai credential. A secret field. |
+| **Headers to sign** | Optional. Header names separated by commas. |
+| **Max body size (bytes)** | Optional. `131072` when empty. |
+
+## What Luvin signs
+
+The method, the scheme, the host, the path with its query, the headers you listed (only those the request has), a hash of the body and the timestamp. The body enters the signature only for a `POST`, and only its first **Max body size** bytes.
+
+It replaces an `Authorization` header you wrote yourself. The signature is calculated when sending.
+
+## Secrets
+
+**Client Token**, **Client Secret** and **Access Token** are all secrets: typed as-is they are stored encrypted on your computer and not in the file. See [Secrets](/authorization/secrets/).
+
+## Related
+
+- [AWS Sig v4](/authorization/aws-sigv4/)
+- [Authorization overview](/authorization/overview/)

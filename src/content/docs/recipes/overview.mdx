@@ -1,0 +1,53 @@
+---
+title: Runnable examples
+description: Small, real workflows against public APIs. Download the files, open them in Luvin and run them.
+sidebar:
+  order: 1
+---
+
+import { CardGrid, LinkCard, Steps, Aside } from '@astrojs/starlight/components'
+
+Each example is a real workflow against a public API that needs no account: [DummyJSON](https://dummyjson.com), [PokéAPI](https://pokeapi.co) or [JSONPlaceholder](https://jsonplaceholder.typicode.com). You get the contract and the Arazzo file, ready to run.
+
+<Aside type="tip" title="Tested before publishing">
+Every example on these pages is run with Luvin's engine against the real API before the docs are published. The statuses and values you see are the ones it got.
+</Aside>
+
+## Open an example
+
+<Steps>
+
+1. Download the files of the example (the buttons at the top of each page).
+2. In Luvin, open or create a collection and choose **Import Arazzo or contracts**. Pick the downloaded files.
+3. Open the workflow in the sidebar, choose **Real API** and press **Run**.
+
+</Steps>
+
+## Log in and tokens
+
+<CardGrid>
+  <LinkCard title="Log in and call a protected API" description="Log in, put the token in a header, read the user and list their carts." href="/recipes/login-token/" />
+  <LinkCard title="Reuse a login in other workflows" description="One workflow logs in; others depend on it and reuse its token." href="/recipes/depends-on/" />
+  <LinkCard title="Use a workflow from another file" description="A login in its own Arazzo file, run first or called as a step." href="/recipes/cross-document/" />
+</CardGrid>
+
+## Work with data
+
+<CardGrid>
+  <LinkCard title="Choose an item from a list" description="A step returns users; the run pauses so you choose which one the next steps use." href="/recipes/list-pick/" />
+  <LinkCard title="Query parameters and paging" description="Ask for a page of products and read what came back." href="/recipes/pagination-query/" />
+  <LinkCard title="Fresh data on every run" description="A body built from generators like {{$randomEmail}}." href="/recipes/generated-data/" />
+</CardGrid>
+
+## Checks and errors
+
+<CardGrid>
+  <LinkCard title="Prove the API rejects bad data" description="A wrong password must answer 400, and that is a pass." href="/recipes/expected-error/" />
+  <LinkCard title="Check more than the status" description="Simple, regex and JSONPath success criteria." href="/recipes/criteria/" />
+  <LinkCard title="Retry, jump or end on errors" description="What the workflow does when a call fails." href="/recipes/error-branches/" />
+  <LinkCard title="Log in again and retry" description="On a 401, run the login step and call the step again." href="/recipes/retry-step/" />
+</CardGrid>
+
+## More examples
+
+The Pokédex and PayPal examples come with Luvin and open from the welcome screen. See [The bundled examples](/reference/examples/).

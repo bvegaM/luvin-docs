@@ -1,0 +1,91 @@
+---
+title: Luvin Docs
+description: Learn how to design, run and share API workflows with Luvin. Search the docs or start with the quick start.
+template: splash
+hero:
+  title: 'Test the chain, <em>not just the call</em>'
+  tagline: "Learn how to design, run and share API workflows with Luvin: from your contracts to a passing chain of calls."
+  actions:
+    - text: Quick start
+      link: /get-started/quick-start/
+    - text: Install Luvin
+      link: /get-started/install/
+    - text: Design a workflow
+      link: /design/overview/
+    - text: Run your cases
+      link: /test/run/
+    - text: Examples
+      link: /reference/examples/
+---
+
+import TopicCard from '../../components/TopicCard.astro'
+import TopicGrid from '../../components/TopicGrid.astro'
+
+## Explore by topic
+
+<TopicGrid>
+  <TopicCard title="Get started with Luvin" href="/get-started/quick-start/" icon="rocket">
+    Open the example, run your first workflow and read the results in a few clicks.
+  </TopicCard>
+  <TopicCard title="Design workflows" href="/design/overview/" icon="workflow">
+    Drag API operations onto a canvas. Luvin wires the data between the steps and writes the Arazzo.
+  </TopicCard>
+  <TopicCard title="Test workflows" href="/test/cases/" icon="flask">
+    Run generated and custom cases against the real API or in simulation, and read each verdict.
+  </TopicCard>
+  <TopicCard title="Send requests" href="/requests/overview/" icon="send">
+    HTTP, GraphQL, gRPC and WebSocket requests, from scratch, from a cURL or from Postman and Bruno.
+  </TopicCard>
+  <TopicCard title="Contracts" href="/contracts/overview/" icon="file">
+    Add your OpenAPI and AsyncAPI contracts, edit them next to their preview and try an operation.
+  </TopicCard>
+  <TopicCard title="Environments and authorization" href="/environments/overview/" icon="layers">
+    Base URLs, variables and secrets per environment, and how each API is authorized.
+  </TopicCard>
+</TopicGrid>
+
+## Learn by doing
+
+<TopicGrid>
+  <TopicCard title="Build your first workflow" href="/tutorials/first-workflow/" icon="workflow">
+    From the contract to a passing run in about 15 minutes, with the Pokédex example.
+  </TopicCard>
+  <TopicCard title="From Postman to a tested workflow" href="/tutorials/from-postman/" icon="send">
+    Import a Postman or Bruno collection and turn its requests into a chain you can test.
+  </TopicCard>
+  <TopicCard title="Test a payment with OAuth 2.0" href="/tutorials/oauth-payment/" icon="key">
+    The PayPal example: authorization, simulation, the sandbox and a webhook.
+  </TopicCard>
+  <TopicCard title="Prove your API rejects bad data" href="/tutorials/negative-cases/" icon="flask">
+    Rejection cases, the status each one must return and a report to share.
+  </TopicCard>
+  <TopicCard title="Find out why a case failed" href="/tutorials/debug-failure/" icon="terminal">
+    Read the reason, compare expected and received, and reproduce it with cURL.
+  </TopicCard>
+  <TopicCard title="Share a workspace with your team" href="/tutorials/team-git/" icon="folder">
+    Keep workflows in git, review them in a pull request, keep secrets out.
+  </TopicCard>
+</TopicGrid>
+
+## Explore more
+
+<TopicGrid>
+  <TopicCard title="Runnable examples" href="/recipes/overview/" icon="play">
+    Real workflows against public APIs, tested before publishing. Download, import and run.
+  </TopicCard>
+  <TopicCard title="Workspaces" href="/workspaces/overview/" icon="folder">
+    Your work is a folder of plain files. Keep it in git and review workflows like code.
+  </TopicCard>
+  <TopicCard title="Dev Tools" href="/dev-tools/overview/" icon="terminal">
+    Console, Network, Performance and a terminal to look at a single request on its own.
+  </TopicCard>
+  <TopicCard title="Frequently asked questions" href="/reference/faq/" icon="question">
+    Short answers to what people ask first, with a link to the full explanation.
+  </TopicCard>
+  <TopicCard title="What's new" href="/reference/whats-new/" icon="sparkle">
+    What Luvin can do, release by release.
+  </TopicCard>
+  <TopicCard title="Reference" href="/reference/support/" icon="book">
+    Specification support, expressions, criteria, failure reasons, shortcuts and the glossary.
+  </TopicCard>
+</TopicGrid>

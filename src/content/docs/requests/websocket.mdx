@@ -1,0 +1,112 @@
+---
+title: WebSocket requests
+description: How to connect to a WebSocket, send messages, read the message log, and what a WebSocket request cannot do.
+sidebar:
+  order: 22
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A WebSocket request opens a live connection to a server. While it is open, you send messages and see what arrives, in the order it happens.
+
+## Example
+
+`echo.websocket.org` is a public server that sends back every message it receives.
+
+<Steps>
+
+1. Create a **WebSocket** request, write the URL `wss://echo.websocket.org` and press **Connect**.
+2. The server greets you with a line that starts with `Request served by`. It appears in the log with ↓.
+3. Press **Send** (⌘/Ctrl + Enter) with the first message, **Message 1**, which a new request starts with:
+
+   ```json
+   {
+     "type": "ping"
+   }
+   ```
+
+</Steps>
+
+The log shows your message with ↑, and the same message coming back with ↓.
+
+## Create a WebSocket request
+
+<Steps>
+
+1. In the sidebar, click **New request** under your collection.
+2. In the **New request** dialog, choose **WebSocket**.
+3. The request opens with the name **New WebSocket**. In the sidebar it has a **WS** badge.
+
+</Steps>
+
+## Connect
+
+<Steps>
+
+1. Write the URL. It must start with `ws://` or `wss://`, for example `wss://echo.websocket.org`.
+2. Press **Connect**. The status on the right changes to **Connecting…** and then to **Connected**, with the time the connection opened.
+3. To close the connection, press **Disconnect**.
+
+</Steps>
+
+Environment `{{variables}}` in the URL are replaced when you connect.
+
+The connection stays open when you switch to another tab of Luvin. It closes when you press **Disconnect**, when the server closes it, or when you rename or delete the request.
+
+## Send messages
+
+The left side keeps the messages you want to send. A new request starts with **Message 1**.
+
+<Steps>
+
+1. Click a message in the list, or **+ New message** to add one.
+2. Give it a name in the field above the editor, for example `Subscribe to prices`.
+3. Write the text. JSON is coloured as you type.
+4. Press **Send** (⌘/Ctrl + Enter).
+
+</Steps>
+
+**Send** works only while the status is **Connected** and the message has text. `{{variables}}` in the message are replaced when you send it.
+
+Messages are saved with the request, so you can send them again later. To remove one, select it and click **Delete** next to its name.
+
+For example, a message that subscribes to a channel:
+
+```json
+{
+  "type": "subscribe",
+  "channel": "prices",
+  "symbol": "{{symbol}}"
+}
+```
+
+## The message log
+
+The right side shows everything that happened on the connection, newest first. Each line has a mark, the text and the time.
+
+| Mark | Meaning |
+|---|---|
+| ↑ | A message you sent. |
+| ↓ | A message that arrived. |
+| • | A connection event: connecting, open or closed, with the close code. |
+| ! | An error. |
+
+- Click a message that is JSON to see it formatted. Click it again to fold it.
+- **Filter messages** shows only the lines that contain the text you type.
+- **Clear** empties the log.
+
+The log keeps the latest 1,000 lines. It lives in memory: it is not saved with the request.
+
+## Limits
+
+- **No custom headers.** Browsers do not allow custom headers on a WebSocket, and Luvin connects the same way in the desktop app. Put what the server needs in the URL, for example `wss://api.example.com/stream?token={{token}}`.
+- **No Authorization tab.** For the same reason, send the token in the URL or in the first message, as the server expects.
+- **No subprotocols.** The connection is opened without one.
+- **Text messages.** What you send is sent as text. A binary message that arrives is shown as text.
+- A WebSocket request cannot be used as a workflow step.
+
+## Related
+
+- [Single requests](/requests/overview/)
+- [Variables and secrets](/environments/variables-and-secrets/)
+- [Limitations](/reference/limitations/)

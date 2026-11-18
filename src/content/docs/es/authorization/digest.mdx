@@ -1,0 +1,67 @@
+---
+title: Digest Auth
+description: Responde a un desafío Digest del servidor sin enviar la contraseña, con los pasos que sigue Luvin y un ejemplo verificado.
+sidebar:
+  order: 15
+---
+
+import { Steps, Aside } from '@astrojs/starlight/components';
+
+Usa **Digest Auth** cuando el servidor responde `401` con un header `WWW-Authenticate: Digest`. Digest nunca envía la contraseña: envía un hash calculado a partir de ella.
+
+## Ejemplo
+
+Request `GET https://httpbin.org/digest-auth/auth/user/passwd`.
+
+**Tipo** `Digest Auth`, **Usuario** `user`, **Contraseña** `passwd`. La respuesta final es `200`:
+
+```json
+{
+  "authenticated": true,
+  "user": "user",
+  "authorized": true
+}
+```
+
+Sin credenciales el mismo request responde `401`.
+
+## Qué hace Luvin
+
+<Steps>
+
+1. Luvin envía el request sin credenciales.
+2. El servidor responde `401` con `WWW-Authenticate: Digest`, un *realm* y un *nonce*.
+3. Luvin calcula la respuesta y envía el request otra vez con `Authorization: Digest …`.
+4. Ves la segunda respuesta. El tiempo mostrado suma las dos llamadas.
+
+</Steps>
+
+Si la primera respuesta no es un `401` con un desafío Digest, Luvin no repite el request.
+
+## Campos
+
+| Campo | Qué escribir |
+|---|---|
+| **Usuario** | El usuario. |
+| **Contraseña** | La contraseña. Es un campo secreto. |
+
+## Detalles
+
+El segundo request lleva `username`, `realm`, `nonce`, `uri`, `qop`, `nc`, `cnonce`, `response` y, cuando el servidor los dio, `opaque` y `algorithm`.
+
+- El algoritmo es **MD5**, salvo que el servidor pida **SHA-256**. Las variantes `-sess` están soportadas.
+- Cuando el servidor ofrece varias opciones de `qop`, Luvin prefiere `auth` y luego `auth-int`.
+- Funciona en requests, en la colección y en un workflow.
+
+<Aside type="caution" title="En la versión web">
+Luvin tiene que leer el header `WWW-Authenticate` de la primera respuesta. Un servidor que no permite que el navegador lo lea (CORS) no sirve con Digest desde el navegador. La app de escritorio no tiene ese límite.
+</Aside>
+
+## Secretos
+
+**Contraseña** es un secreto: escrita tal cual se guarda cifrada en tu equipo. **Usuario** va al archivo. Mira [Secretos](/es/authorization/secrets/).
+
+## Relacionado
+
+- [Basic Auth](/es/authorization/basic/)
+- [Solución de problemas](/es/authorization/troubleshooting/)

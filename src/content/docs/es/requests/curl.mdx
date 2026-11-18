@@ -1,0 +1,143 @@
+---
+title: Importar y copiar cURL
+description: Cómo crear un request a partir de un comando cURL pegado, qué opciones reconoce Luvin y cómo copiar un request como comando cURL para una terminal.
+sidebar:
+  order: 30
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+cURL es una herramienta de línea de comandos que envía un request HTTP, y muchas herramientas y documentos de APIs muestran sus ejemplos como comandos cURL. Luvin lee ese comando y lo convierte en un request, y también puede escribir cualquier request de vuelta como comando.
+
+<video controls muted playsinline preload="metadata" poster="/media/es/request-from-curl.webp" src="/media/es/request-from-curl.mp4"></video>
+
+## Ejemplo
+
+Pega este comando de la documentación de una API:
+
+```bash
+curl -X POST 'https://jsonplaceholder.typicode.com/posts' \
+  -H 'Content-Type: application/json' \
+  -d '{"title":"Hello Luvin","body":"My first post","userId":1}'
+```
+
+Luvin crea un request llamado **POST posts**:
+
+| Parte del request | Qué completa Luvin |
+|---|---|
+| Método y URL | **POST**, `https://jsonplaceholder.typicode.com/posts` |
+| **Headers** | `Content-Type: application/json` |
+| **Body** | **JSON**, con formato, con el título, el cuerpo y el usuario. |
+
+Pulsa **Enviar**: la respuesta es `201 Created` con `"id": 101`. Mira [Requests HTTP](/es/requests/http/).
+
+## Crear un request desde un comando cURL
+
+Copia el comando desde Chrome (pestaña Network, **Copy as cURL**), desde Postman o desde la documentación de una API. Luego usa una de estas dos formas.
+
+### Desde el diálogo Nuevo request
+
+<Steps>
+
+1. En la barra lateral, abre el menú **⋯** de la colección, del grupo **Requests** o de una carpeta, y elige **Importar desde cURL**. También puedes hacer clic en **Nuevo request** y elegir **Importar desde cURL** en el diálogo.
+2. Pega el comando en el cuadro de texto. El diálogo dice: *Pega el comando. Se convierten el método, la URL, los headers, la autorización y el body.*
+3. Pulsa **Importar** (o ⌘/Ctrl + Enter). **Volver** regresa a la lista de tipos de request.
+
+</Steps>
+
+![El diálogo Importar desde cURL con un comando pegado](/media/es/import-curl.webp)
+
+El request se abre en su propia pestaña, listo para enviar. Su nombre es el método y la última parte de la ruta: `curl 'https://pokeapi.co/api/v2/pokemon/pikachu'` se convierte en **GET pikachu**. Renómbralo si quieres un nombre más claro.
+
+### Pegando en el campo de la URL
+
+<Steps>
+
+1. Abre un request HTTP.
+2. Pega el comando en el campo de la URL.
+
+</Steps>
+
+Luvin completa el método, la URL, los params, los headers, la autorización y el body a partir del comando. Esto reemplaza lo que el request tenía en esos campos. No funciona en un request GraphQL.
+
+Si el texto empieza con `curl` pero no se puede leer, aparece un mensaje: *No parece un comando cURL válido (debe empezar con «curl» e incluir una URL).* Un comando debe empezar con `curl` y contener una URL.
+
+## Qué reconoce Luvin
+
+| En el comando | En el request |
+|---|---|
+| `-X`, `--request` | El método. Sin él, el método es POST cuando hay body y GET cuando no lo hay. |
+| `-I`, `--head` | El método HEAD. |
+| La URL (o `--url`) | La URL. Lo que sigue a `?` va a la pestaña **Params**. |
+| `-H`, `--header` | Una fila en **Headers**. |
+| `-d`, `--data`, `--data-raw`, `--data-binary`, `--data-ascii` | El **Body**. Varios `-d` se unen con `&`. |
+| `--data-urlencode` | Un valor del body con los caracteres especiales codificados. |
+| `--json` | El body, y los headers `Content-Type` y `Accept` con `application/json` cuando no los diste. |
+| `-F`, `--form`, `--form-string` | Un body **Multipart Form**. Los campos entran como texto. |
+| `-G`, `--get` | Los datos de `-d` van a la pestaña **Params** en lugar del body. |
+| `-u`, `--user` | **Basic Auth** con el usuario y la contraseña. |
+| `-H 'Authorization: Bearer …'` | **Bearer Token**, con el token en la pestaña **Autorización**. |
+| `-A`, `--user-agent` | Un header `User-Agent`. |
+| `-e`, `--referer` | Un header `Referer`. |
+| `-b`, `--cookie` | Un header `Cookie`. |
+
+Luvin elige el tipo de body según el contenido:
+
+| Si el body... | El tipo es |
+|---|---|
+| Tiene un `Content-Type` JSON, o no tiene `Content-Type` y empieza con `{` o `[` | **JSON**, con formato. |
+| Tiene un `Content-Type` XML | **XML**. |
+| Tiene un `Content-Type` de formulario, o se parece a `nombre=valor` | **Form URL Encoded**. |
+| Es cualquier otra cosa | **Texto**. |
+
+El comando puede usar comillas simples, comillas dobles, `$'…'` y una `\` al final de la línea para continuar en la siguiente, como en una terminal.
+
+Las opciones que solo cambian cómo corre curl, como `-o`, `-L`, `-k`, `--compressed` o `-m`, se omiten. Los archivos de cookies, los proxies y los certificados no se convierten.
+
+:::tip
+Después de importar, pulsa **Enviar** y abre **Request enviado** en la respuesta. Verás lo que Luvin envía de verdad y podrás compararlo con tu comando.
+:::
+
+## Copiar un request como cURL
+
+Úsalo para reproducir un request en una terminal, adjuntarlo a un reporte de error o pedirle a un compañero que lo ejecute.
+
+<Steps>
+
+1. Abre el request.
+2. A la derecha de las pestañas del request, haz clic en **Copiar como cURL**. Se abre un diálogo con el mismo nombre y muestra el comando.
+3. Elige la versión que necesitas:
+
+   | Opción | Qué contiene el comando |
+   |---|---|
+   | **Con `{{variables}}`** | Las `{{variables}}` quedan como las escribiste. No sale nada de tu ambiente. Úsalo para compartir o guardar. |
+   | **Con valores de «nombre»** | Los valores del ambiente activo, listo para pegar en una terminal. Los secretos salen como `<secret>`. |
+
+4. Pulsa **Copiar comando**. El botón dice **Copiado al portapapeles**.
+
+</Steps>
+
+Un comando se ve así:
+
+```bash
+curl -X POST 'https://api.example.com/customers' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <secret>' \
+  --data-raw '{
+  "name": "Ana"
+}'
+```
+
+Antes de ejecutarlo, reemplaza cada `<secret>` por el valor real. Es a propósito: los secretos se ocultan para que un comando que pegues en otro lugar no los exponga.
+
+Un request GET no lleva `-X`. Un body Multipart Form se escribe con `-F`, y un body de archivo con `--data-binary @archivo`.
+
+:::note
+Los resultados también tienen un botón **Copiar como cURL**, en el detalle de un paso de un workflow. Mira [Resultados de un paso](/es/test/step-results/).
+:::
+
+## Relacionado
+
+- [Requests sueltos](/es/requests/overview/)
+- [Params, headers y body](/es/requests/params-headers-body/)
+- [Variables y secretos](/es/environments/variables-and-secrets/)

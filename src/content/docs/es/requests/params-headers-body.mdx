@@ -1,0 +1,128 @@
+---
+title: Params, headers y body
+description: Cómo completar los params de query, los headers y el body de un request HTTP, y cómo usar variables en cualquier campo.
+sidebar:
+  order: 3
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Un request HTTP tiene tres lugares para los datos: los params de query en la URL, los headers y el body. Esta página explica cada pestaña y lo que Luvin agrega por su cuenta.
+
+## Ejemplo
+
+URL `https://jsonplaceholder.typicode.com/posts` con dos filas en **Params**:
+
+| Clave | Valor |
+|---|---|
+| `userId` | `1` |
+| `_limit` | `2` |
+
+Luvin envía `https://jsonplaceholder.typicode.com/posts?userId=1&_limit=2` y la API responde `200` con una lista de dos posts, los que tienen `"id": 1` y `"id": 2`. Para un POST con un body JSON, mira [Requests HTTP](/es/requests/http/).
+
+## Params de query
+
+La pestaña **Params** es una tabla. Cada fila tiene una casilla, una **Clave**, un **Valor** y una **Descripción** opcional. Siempre hay una fila vacía al final, lista para el siguiente param.
+
+La tabla y la URL se mantienen sincronizadas:
+
+- Escribe `?page=2&size=10` al final de la URL y aparecen dos filas en la tabla.
+- Agrega una fila en la tabla y aparece en la URL.
+- Desmarca una fila para dejar de enviarla sin borrarla. Sale de la URL y queda en la tabla.
+
+Por ejemplo, con la URL `{{baseUrl}}/pokemon` y las filas `limit = 20` y `offset = 40`, Luvin envía `{{baseUrl}}/pokemon?limit=20&offset=40`.
+
+## Valores en la ruta
+
+Luvin no tiene una tabla aparte para los valores de la ruta. Escribe el valor directamente en la URL, como texto o como variable:
+
+```text
+{{baseUrl}}/customers/{{customerId}}/cards
+```
+
+:::caution
+Los marcadores como `:id` o `{id}` no se reemplazan. Se envían tal cual los escribes. Usa `{{id}}` con una variable del ambiente activo.
+:::
+
+## Headers
+
+La pestaña **Headers** usa la misma tabla. Cuando escribes una clave, Luvin sugiere nombres de headers comunes y, para muchos de ellos, valores comunes.
+
+### Headers automáticos
+
+Luvin agrega algunos headers por sí mismo. Aparecen arriba de la tabla como filas que no puedes editar, con el motivo en la columna **Descripción**. **Ocultar headers automáticos** los oculta; **Mostrar N headers automáticos** los vuelve a mostrar.
+
+| Header | Valor | Notas |
+|---|---|---|
+| `Cache-Control` | `no-cache` | Desmárcalo para dejar de enviarlo. |
+| `User-Agent` | `Luvin/<versión>` | Solo en la app de escritorio. En el navegador lo pone el navegador. |
+| `Content-Type` | Depende del tipo de body | Se agrega cuando el request tiene body. |
+| `Content-Length` | Se calcula al enviar | Solo con body. |
+| `Host` | Sale de la URL | Se calcula al enviar. |
+| `Accept` | `*/*` | |
+| `Accept-Encoding` | `gzip, deflate, br` | Solo en la app de escritorio. |
+| `Connection` | `keep-alive` | Solo en la app de escritorio. |
+| `Authorization` | De la pestaña **Autorización**, o heredado de la colección | El valor se muestra tapado. |
+| `Cookie` | Del almacén de cookies, para ese dominio | Desmárcalo para dejar de enviarlo. |
+
+Para cambiar un header automático, escribe una fila con el mismo nombre en la tabla. Tu fila gana y el automático desaparece. Cada fila, su motivo y cómo desactivar una están en [Los headers que agrega Luvin](/es/requests/auto-headers/).
+
+## Body
+
+Abre la pestaña **Body** y elige el tipo en el menú de arriba.
+
+| Grupo | Tipo | Qué completas | Content-Type que pone Luvin |
+|---|---|---|---|
+| **Formulario** | **Multipart Form** | Una tabla de campos. Cada campo es **Texto** o **Archivo**. | `multipart/form-data` |
+| **Formulario** | **Form URL Encoded** | Una tabla de campos. | `application/x-www-form-urlencoded` |
+| **Texto** | **JSON** | Un editor. **Formatear** da formato al JSON. | `application/json` |
+| **Texto** | **XML** | Un editor. | `application/xml` |
+| **Texto** | **Texto** | Un editor. | `text/plain` |
+| **Texto** | **SPARQL** | Un editor. | `application/sparql-query` |
+| **Otro** | **Archivo / binario** | Un archivo, que se envía tal cual. Haz clic en **Elegir archivo**. | Según la extensión del archivo |
+| **Otro** | **Sin body** | Nada. | Ninguno |
+
+Si escribes tu propio `Content-Type` en **Headers**, Luvin usa el tuyo.
+
+:::caution
+Con GET o HEAD no se envía body. Cambia el método a POST, PUT, PATCH o DELETE para enviarlo.
+:::
+
+Sobre los archivos:
+
+- En la app de escritorio, Luvin recuerda la ruta y lee el archivo cuando envías. Un archivo de más de 50 MB no se envía.
+- En la versión de navegador, el archivo se conserva solo mientras la app está abierta. Después de recargar, Luvin te pide que lo elijas de nuevo.
+
+Para subir un archivo, mira [Envía un archivo](/es/requests/send-files/).
+
+GraphQL no es un tipo de body. Es su propio tipo de request: mira [GraphQL](/es/requests/graphql/).
+
+## Variables y generadores
+
+Cualquier campo acepta `{{variables}}`: la URL, los params, los headers, los campos de autorización y el body. Luvin las reemplaza con los valores del ambiente activo cuando envías.
+
+- Escribe `{{` en un campo para ver las variables del ambiente activo y los generadores.
+- Pasa el mouse sobre un `{{nombre}}` para ver su valor. Si no existe en el ambiente, la tarjeta lo dice y ofrece **Crear variable** o **Crear secreto**.
+- Un generador produce un valor nuevo en cada envío, por ejemplo `{{$randomEmail}}` o `{{uuid}}`.
+
+```json
+{
+  "email": "{{$randomEmail}}",
+  "reference": "{{uuid}}",
+  "country": "{{country}}"
+}
+```
+
+Mira [Variables y secretos](/es/environments/variables-and-secrets/) y [Variables dinámicas](/es/environments/dynamic-variables/).
+
+## Campos obligatorios
+
+Un request generado desde un contrato sabe qué campos exige el contrato. Los params y headers obligatorios vienen marcados; los opcionales quedan en la tabla, sin marcar, para que los actives cuando los necesites. Mira [Generar requests desde un contrato](/es/requests/generate-from-contract/).
+
+Esta información importa cuando el request se convierte en un paso de un workflow: Luvin la usa para decidir qué datos necesita el workflow y qué casos negativos generar. Para un request que no viene de un contrato, marcas tú los campos obligatorios en el panel del paso, con **Marcar campos obligatorios**. Mira [Workflows desde requests](/es/design/from-requests/).
+
+## Relacionado
+
+- [Autorización](/es/authorization/overview/)
+- [Cookies y ejemplos guardados](/es/requests/cookies-and-examples/)
+- [Copiar como cURL](/es/requests/curl/)

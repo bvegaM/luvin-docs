@@ -1,0 +1,140 @@
+---
+title: Recorrido por la interfaz
+description: Para qué sirve cada parte de la pantalla de Luvin, desde la barra superior y la barra lateral hasta las pestañas, la barra de ejecución, los resultados, la barra de estado, la búsqueda y las Preferencias.
+sidebar:
+  order: 4
+---
+
+import { Steps, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Esta página nombra cada parte de la pantalla y dice para qué sirve. Léela una vez después del [inicio rápido](/es/get-started/quick-start/) y vuelve a ella cuando no encuentres algo.
+
+![Un workflow abierto en Luvin, con la barra lateral a la izquierda, las pestañas arriba, la barra de ejecución debajo y la barra de resultados abajo](/media/es/interface.webp)
+
+| Área | Dónde | Para qué sirve |
+|---|---|---|
+| Barra superior | Borde de arriba | El workspace abierto y el estado de guardado |
+| Barra lateral | Izquierda | Todo lo que hay en tus colecciones |
+| Pestañas | Sobre el área principal | Lo que tienes abierto |
+| Barra de ejecución | Bajo las pestañas, en un workflow | Dónde y cómo ejecutar |
+| Barra de resultados | Abajo de un workflow | Los resultados de la última ejecución |
+| Barra de estado | Borde de abajo | Preferencias, tema, tour, búsqueda y Dev Tools |
+
+## Barra superior
+
+- **Inicio** (el ícono de la casa) abre el inicio del workspace, con sus colecciones y acciones rápidas.
+- **El selector de workspace** es el botón con el nombre del workspace. Su menú muestra dónde está guardado el workspace y ofrece **Renombrar workspace**, **Cerrar y cambiar de workspace** y **Eliminar workspace…**. La app de escritorio agrega **Mostrar en Finder** (**Mostrar en el explorador** en Windows y Linux).
+- **El estado de guardado**, a la derecha, dice **Guardando…**, **✓ Guardado** o **Error al guardar**. Cada cambio se guarda solo. ⌘S (Ctrl+S) guarda al instante.
+
+## Barra lateral
+
+| Sección | Qué muestra |
+|---|---|
+| **Colecciones** | Cada colección. Haz clic en la flecha para desplegar una, o en su nombre para abrir el resumen de la colección. Dentro: los archivos Arazzo, sus workflows, los pasos de cada workflow y los **Requests**. |
+| **Contratos** | Los contratos de la colección abierta: ✓ cargado, ✕ no cargado, ○ todavía no lo usa ningún workflow. |
+| **Ambientes** | Los ambientes de la colección abierta. Haz clic en uno para activarlo y abrirlo. |
+
+El punto junto a un workflow indica cómo salió su última ejecución. Pasa el cursor por encima para leer el estado, por ejemplo **Pasaron**, **No pasaron** o **Sin ejecutar**. La mayoría de las filas tiene un menú ⋯ con acciones como **Renombrar** y **Eliminar**.
+
+## Pestañas
+
+Todo lo que abres se vuelve una pestaña: un workflow, un request, un contrato, un ambiente. En un workspace, **Inicio** es siempre la primera pestaña.
+
+- **Pestañas de vista previa.** En un workspace, un solo clic abre una pestaña de vista previa, con su nombre en cursiva. Lo siguiente que abras la reemplaza. Para dejarla abierta, haz doble clic en la pestaña o en la fila de la barra lateral, edítala o ejecútala.
+- **El botón +** (**Crear o importar**) abre un menú con **Nuevo request**, **Nuevo workflow en este archivo**, **Nuevo Arazzo**, **Nuevo contrato OpenAPI**, **Nuevo contrato AsyncAPI** e **Importar de Postman o Bruno**. Un elemento está apagado cuando no puede aplicarse, por ejemplo cuando no hay una colección abierta.
+- **Clic derecho en una pestaña** para **Nuevo Arazzo**, **Cerrar**, **Cerrar las demás**, **Cerrar a la izquierda**, **Cerrar a la derecha** y **Cerrar todas**. Un elemento está apagado cuando no hay nada que cerrar. La pestaña **Inicio** no se puede cerrar.
+
+## Las pestañas de un workflow
+
+| Pestaña | Para qué sirve |
+|---|---|
+| **Diseño** | Armar el workflow en un lienzo arrastrando operaciones |
+| **Inputs** | Los valores con los que parte cada caso. Un número indica que faltan valores o que no son válidos |
+| **Casos** | Los casos generados y los tuyos. El número es cuántos están listos para ejecutar |
+| **Autorización** | La autorización de cada API que llama el workflow |
+| **YAML** | El archivo Arazzo, con validación mientras escribes |
+| **Resumen** | El diagrama, los hallazgos de la validación y qué respuestas documentadas maneja el workflow |
+
+Haz clic en un paso de la barra lateral y se abre una pestaña más, con el nombre de ese paso.
+
+## Barra de ejecución
+
+De izquierda a derecha: el nombre y la descripción del workflow (haz clic en cualquiera para editarlos), **API real** o **Simulación**, el selector **Ambiente** con **Configurar ambiente…** al final de su lista, y el botón **Ejecutar**. ⌘ Enter (Ctrl+Enter) también ejecuta. Durante una ejecución, el botón se convierte en **Cancelar**.
+
+## Barra de resultados
+
+**Resultado** es una barra delgada abajo hasta que ejecutas. Entonces se abre sola. Haz clic en su título para plegarla o desplegarla. Su encabezado tiene **Repetir**, **JSON** y **Reporte**, y un botón para ver los resultados a la derecha o abajo. En **Diseño** los resultados siempre van abajo.
+
+## Barra de estado
+
+| Elemento | Qué hace |
+|---|---|
+| Ícono de engranaje | Abre las **Preferencias** |
+| Ícono de tema | Cambia el tema: **Sistema**, **Claro**, **Oscuro** |
+| **Local y privado** | Pasa el cursor para leer dónde se guardan tus datos |
+| Nombre del ambiente | El ambiente activo. Haz clic para abrirlo |
+| **Tour** | Inicia el [tour guiado](/es/get-started/guided-tour/) |
+| **Buscar** | Abre la búsqueda |
+| **Dev Tools** | Abre Console, Network y Performance, más una Terminal en la app de escritorio |
+
+## Búsqueda con ⌘K
+
+Pulsa ⌘K (Ctrl+K en Windows y Linux), escribe y pulsa Enter. La búsqueda encuentra workflows, pasos, ambientes, contratos, requests y colecciones. Las palabras pueden ir en cualquier orden, y las tildes y las mayúsculas no importan. Usa ↑ y ↓ para moverte y Esc para cerrar. Los resultados aparecen en grupos, hasta 60 a la vez:
+
+| Grupo | Qué muestra una fila | Qué hace Enter |
+|---|---|---|
+| **Workflows** | El nombre del workflow y, cuando la colección tiene varios archivos Arazzo, el archivo en que está. Si no, su resumen. | Abre el workflow. |
+| **Pasos** | El paso, con su método HTTP y el workflow al que pertenece. | Abre ese paso en su workflow. |
+| **Ambientes** | El ambiente, con su color. El que está en uso dice **activo**. | Lo hace el ambiente activo y lo abre. |
+| **Contratos** | El contrato, con **API** o **ASYNC**, y su archivo. | Abre el contrato. |
+| **Requests** | El request guardado, con su método y su URL. | Abre el request. |
+| **Colecciones** | La colección y su carpeta. | Abre la colección. |
+
+El método y el nombre del grupo también cuentan cuando Luvin compara tus palabras, así que `get pokemon` encuentra los pasos `GET` con ese nombre. Cuando nada coincide, dice **Nada coincide con lo que buscas.**
+
+![La búsqueda abierta sobre la app, con resultados agrupados en workflows, pasos y ambientes](/media/es/command-palette.webp)
+
+## Preferencias: idioma, tema e interfaz
+
+![El diálogo de Preferencias con las opciones de idioma, rol, interfaz y tema](/media/es/preferences.webp)
+
+| Ajuste | Opciones |
+|---|---|
+| **Idioma** | **Español** o **English**. La primera vez, Luvin sigue el idioma de tu navegador |
+| **Tu rol** | Cambiarlo también ajusta la interfaz |
+| **Interfaz** | **Completa (desarrollo)** o **Simple (producto)** |
+| **Tema** | **Sistema**, **Claro** u **Oscuro** |
+
+Las Preferencias también listan los atajos de teclado y tienen **Empezar el tour**.
+
+**La interfaz Simple** es para quienes solo ejecutan workflows. Comparada con la completa:
+
+- **Dev Tools** y la terminal quedan ocultas.
+- Un workflow se abre en **Resumen**, que pasa a ser la primera pestaña.
+- Los pasos muestran un nombre legible (`getPokemon` pasa a ser "Get pokemon") y no muestran el método HTTP.
+- Los resultados usan etiquetas más simples, como **Datos obtenidos** en lugar de **Outputs**.
+
+Los roles **Product Manager / Owner** y **Negocio o partners** eligen la interfaz Simple. Los demás roles eligen la completa.
+
+### Tu rol, desde la pantalla de bienvenida
+
+La primera vez, la pantalla de bienvenida no te pregunta por tu rol: puedes empezar de inmediato. Abajo dice **Opcional: cuéntanos tu rol**. Haz clic en ese enlace. Después de elegir un rol, el mismo lugar dice **Perfil: QA / Testing.** con un enlace, **Cambiar**.
+
+<Steps>
+
+1. Haz clic en **cuéntanos tu rol**. Se abre la página **Antes de empezar**.
+2. Bajo **¿Cuál es tu rol?**, elige uno: **Product Manager / Owner**, **Negocio o partners**, **QA / Testing**, **Desarrollo**, **Arquitectura** u **Otro**. Una línea debajo dice qué interfaz vas a ver.
+3. Bajo **¿Para qué vas a usar Luvin?**, marca lo que corresponda: **Validar la integración con un partner**, **Probar flujos de API de punta a punta**, **Revisar o editar contratos OpenAPI / AsyncAPI**, **Diseñar workflows entre varias APIs** o **Conocer qué es Arazzo**.
+4. Haz clic en **Continuar**. Haz clic en **Omitir por ahora** para salir sin elegir.
+
+</Steps>
+
+Luvin guarda tus respuestas en este computador y ajusta la interfaz según el rol, como se describe arriba. También marca una tarjeta de la pantalla de bienvenida como **Recomendado para ti**: el tour si quieres aprender, el ejemplo si quieres probar, o crear un workspace si quieres escribir contratos o workflows. Puedes cambiar el rol después en **Preferencias**, en **Tu rol**.
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Atajos de teclado" href="/es/reference/shortcuts/" />
+  <LinkCard title="Workspaces y colecciones" href="/es/workspaces/overview/" />
+  <LinkCard title="Dev Tools" href="/es/dev-tools/overview/" />
+</CardGrid>

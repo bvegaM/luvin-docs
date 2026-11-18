@@ -1,0 +1,132 @@
+---
+title: Inicio rápido
+description: Abre el ejemplo incluido de la Pokédex, ejecuta el workflow "Pokemon card" y lee los resultados, clic por clic.
+sidebar:
+  order: 2
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Una primera ejecución completa con la Pokédex incluida, que llama a la PokéAPI pública. No pide credenciales ni configuración. Si todavía no tienes Luvin abierto, consulta [Instalar y abrir Luvin](/es/get-started/install/).
+
+<video controls muted playsinline preload="metadata" poster="/media/es/quick-start.webp" src="/media/es/quick-start.mp4"></video>
+
+## Qué vas a ejecutar
+
+El workflow **Pokemon card**, de `pokemon.arazzo.yaml`. Cada paso usa lo que devolvió el anterior:
+
+```yaml title="pokemon.arazzo.yaml" {8,13-14}
+workflows:
+  - workflowId: pokemonCard
+    inputs:
+      properties:
+        pokemon: { type: string, example: pikachu }
+    steps:
+      - stepId: getPokemon
+        operationId: $sourceDescriptions.pokeapi.getPokemon
+        parameters:
+          - name: idOrName
+            in: path
+            value: $inputs.pokemon
+        outputs:
+          id: $response.body#/id
+      - stepId: getSpecies
+        operationId: $sourceDescriptions.pokeapi.getPokemonSpecies
+        parameters:
+          - name: idOrName
+            in: path
+            value: $steps.getPokemon.outputs.id
+```
+
+Con `pokemon: pikachu`, la primera llamada es `GET https://pokeapi.co/api/v2/pokemon/pikachu` y la segunda `GET https://pokeapi.co/api/v2/pokemon-species/25`.
+
+## Ejecútalo
+
+<Steps>
+
+1. **Abre el ejemplo.** Abre Luvin y haz clic en **Probar con el ejemplo** en la pantalla titulada **Bienvenido a Luvin**.
+
+   Luvin crea un workspace llamado **Ejemplos** con la colección **Pokédex** y abre su primer workflow, **Pokemon card**.
+
+   ![La pantalla de bienvenida, con Probar con el ejemplo arriba y las tarjetas para crear un workspace, abrir uno o hacer el tour guiado](/media/es/welcome.webp)
+
+2. **Mira el diseño.** Haz clic en la pestaña **Diseño**.
+
+   El lienzo muestra `getPokemon`, `getSpecies`, `getWeakness` y `getAbility`. Las líneas entre ellos son los datos que viajan.
+
+3. **Revisa los casos.** Haz clic en la pestaña **Casos**.
+
+   Ves **Camino feliz** y un caso para el 404 que el workflow maneja. Solo se ejecutan los casos marcados.
+
+4. **Elige API real.** En la barra de ejecución, sobre las pestañas, deja elegida **API real**. El selector **Ambiente** muestra `local`.
+
+5. **Ejecuta.** Haz clic en **Ejecutar** (su texto dice cuántos casos, por ejemplo **Ejecutar 2 casos**) o pulsa ⌘ Enter (Ctrl+Enter en Windows y Linux).
+
+   La barra **Resultado**, abajo, se abre sola y se llena a medida que termina cada caso.
+
+6. **Continúa las listas.** Se abre un diálogo titulado **Ejecución en pausa**. Haz clic en **Continuar con este elemento**. Se abre dos veces: `types` tiene un elemento y `abilities` tiene dos.
+
+   Consulta [Elegir un elemento de una lista](/es/test/lists/) para ver qué ofrece el diálogo.
+
+</Steps>
+
+<Aside type="note" title="¿No ves el botón &quot;Probar con el ejemplo&quot;?">
+Si ya abriste un workspace antes, la bienvenida te ofrece volver a abrirlo. Haz clic en **Ver los ejemplos** y después en **Probar la Pokédex**.
+</Aside>
+
+<Aside type="note">
+Con la interfaz **Simple**, un workflow se abre en la pestaña **Resumen**, no en **Diseño**. Consulta [Recorrido por la interfaz](/es/get-started/interface/).
+</Aside>
+
+## Qué hay en la barra lateral
+
+| Sección | Qué trae el ejemplo |
+|---|---|
+| **Colecciones** | **Pokédex**, su archivo `pokemon.arazzo.yaml`, cuatro workflows y sus pasos |
+| **Contratos** | `pokeapi` (OpenAPI) y `pokedexEvents` (AsyncAPI), cada uno con un ✓ porque está cargado |
+| **Ambientes** | Un ambiente, `local` |
+
+| Workflow | Qué muestra |
+|---|---|
+| **Pokemon card** | Cuatro pasos, cada uno usa lo que devolvió el anterior |
+| **Type explorer** | Un tipo, su primer Pokémon y su especie |
+| **Battle matchup** | Un workflow que depende de otro: primero se ejecuta **Type explorer** |
+| **Register sighting** | Una llamada HTTP real más dos pasos de mensajería, que se simulan |
+
+Un aviso dice **Estás viendo un ejemplo** y ofrece **Empezar el tour**. Si lo cierras con la ✕, no vuelve a aparecer en este equipo.
+
+## API real o Simulación
+
+| Opción | Qué hace |
+|---|---|
+| **API real** | Llama a pokeapi.co por la red. El ejemplo se abre con esta. |
+| **Simulación** | No llama a nada. Luvin responde con los ejemplos del contrato. |
+
+Con **API real** el diálogo **Ejecución en pausa** aparece aunque la lista tenga un solo elemento. En **Simulación** aparece solo si la lista tiene más de uno.
+
+## Lee los resultados
+
+![Los resultados de una ejecución: la lista de casos a la izquierda y los pasos de un caso que pasó a la derecha](/media/es/results.webp)
+
+| Parte | Qué muestra |
+|---|---|
+| **Encabezado** | Conteos: ✓ pasaron, ✕ no pasaron, ! advertencias, ? no concluyentes |
+| **Lista de casos** (izquierda) | Una fila por caso con un punto de color. La etiqueta **Sim** marca un caso con pasos simulados. El caso del 404 se simula aunque esté elegida **API real**, así ves el manejo del error sin provocarlo |
+| **Detalle** (derecha) | El veredicto (**Pasó**, **No pasó**, **Advertencia**, **No concluyente**), lo **Esperado**, el **Resultado** en palabras simples y los **Inputs** usados |
+| **Pasos** | Una tarjeta por paso. Haz clic en una para abrir **Criterios**, **Petición**, **Respuesta**, **Contrato** y **Outputs** |
+
+## Qué probar después
+
+- **Otro Pokémon.** En **Inputs**, cambia `pokemon` por `charizard` o `150` y vuelve a ejecutar.
+- **Simulación.** Elige **Simulación** y ejecuta: sin llamadas por la red.
+- **Una dependencia.** Ejecuta **Battle matchup**. Los resultados muestran un bloque **Preparación**: primero se ejecutó **Type explorer**.
+- **Un reporte.** Haz clic en **Reporte**, en el encabezado de los resultados, para un archivo HTML que puedes compartir.
+
+## Sigue con
+
+<CardGrid>
+  <LinkCard title="Recorrido por la interfaz" href="/es/get-started/interface/" />
+  <LinkCard title="El tour guiado" href="/es/get-started/guided-tour/" />
+  <LinkCard title="Diseñar un workflow" href="/es/design/overview/" />
+  <LinkCard title="Leer los resultados" href="/es/test/results/" />
+</CardGrid>

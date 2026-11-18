@@ -1,0 +1,26 @@
+# Dependencias
+node_modules/
+
+# Salida de la compilación y archivos generados por Astro
+dist/
+.astro/
+.wrangler/
+
+# Variables de entorno
+.env
+.env.*
+!.env.example
+
+# Registros
+npm-debug.log*
+
+# Sistema operativo y editores
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+
+# Capturas sin convertir (las genera npm run media)
+.media/
+.recipes-report.json
+.recipes-report.*.json

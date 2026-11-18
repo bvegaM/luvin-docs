@@ -1,0 +1,100 @@
+---
+title: Novedades
+description: Qué puede hacer Luvin, versión por versión, agrupado por fecha y escrito para quienes lo usan.
+sidebar:
+  order: 12
+---
+
+Esta página lista qué puede hacer Luvin y cuándo llegó cada capacidad. Lo más nuevo va primero. La versión actual es la **0.1.0**.
+
+## 17 de noviembre de 2026
+
+**Workflows de otros archivos Arazzo, retry con un paso y multipart.**
+
+- **Usa un workflow de otro archivo Arazzo.** Declara el archivo como fuente con `type: arazzo` y usa `$sourceDescriptions.<fuente>.<workflowId>` en `dependsOn`, en un paso o en una acción `goto` o `retry`. En la pestaña **Diseño**, **Depende de** lista los workflows de los otros archivos y la paleta **Operaciones** tiene el grupo **De otros archivos Arazzo**. Mira [Workflows que usan otros workflows](/es/design/dependencies/) y [Usa un workflow de otro archivo Arazzo](/es/recipes/cross-document/).
+- **`retry` con `stepId` ahora se ejecuta.** Ante una falla, Luvin ejecuta el paso que nombras y luego vuelve a intentar el paso que falló. Mira [Vuelve a iniciar sesión y reintenta](/es/recipes/retry-step/).
+- **Los pasos de un workflow envían `multipart/form-data`.** Cada campo del payload es una parte. Un paso de workflow no envía archivos.
+- **Un workflow llamado como paso toma sus valores por defecto** para los inputs que el paso no pasa.
+
+**Pruebas con listas y un workspace más tranquilo.**
+
+- **Elige con qué elemento de una lista continúa un caso.** Cuando un paso devuelve una lista que usan pasos posteriores, la ejecución se pausa y pregunta. Puedes elegir un elemento, varios o enviar la lista completa. Mira [Elige un elemento de una lista](/es/test/lists/).
+- **Los datos de una lista se nombran sin su posición.** El builder muestra `cards/bank`, no `cards/0/bank`.
+- **Edita el body de un paso en el diseñador** y alimenta sus datos desde inputs. Mira [Parámetros y body](/es/design/parameters-and-body/).
+- **Genera los requests de una colección a partir de un contrato OpenAPI** y úsalos en un workflow. Mira [Generar requests desde un contrato](/es/requests/generate-from-contract/).
+- **Detecta y completa lo que le falta a un workflow**, y decide qué campos de un request son obligatorios. Mira [Completa los datos que faltan](/es/design/complete-gaps/).
+- **Empieza desde el ejemplo.** La pantalla de bienvenida abre el ejemplo Pokédex con menos decisiones.
+- **Pantallas de inicio, barra lateral, casos y colección más claras.** Los resultados esperan en una barra abajo, y lo que abres con un clic ocupa una sola pestaña de vista previa.
+- **Suelta contratos y archivos Arazzo en cualquier parte de un workspace.**
+- **Elimina** workflows, contratos y ambientes desde la barra lateral, y **renombra** workflows. Una vista nueva muestra el resumen del archivo Arazzo.
+- **El diagrama se abre con un zoom legible**, y un paso que agregas queda a la vista.
+- **Una palabra por concepto** en toda la interfaz: workflow, input, caso, Ejecutar.
+- **Una corrección:** un paso que responde el error esperado ahora se lee como que pasó en todos los tipos de caso, y un parámetro de ruta ya no recibe un caso de "input faltante", porque sin él la URL apunta a otro recurso.
+
+## 16 de noviembre de 2026
+
+**Un espacio de trabajo para requests e importaciones.**
+
+- **Requests sueltos al nivel de Postman y Bruno**: la URL y sus parámetros query se mantienen sincronizados, y Luvin inicia sesión antes de enviar. Mira [Requests sueltos](/es/requests/overview/).
+- **Importa colecciones de Postman y Bruno.** Mira [Trae tus propios archivos y requests](/es/get-started/import/).
+- **Diseña workflows a partir de los requests de una colección.** Mira [Armar desde requests guardados](/es/design/from-requests/).
+- **Elige el status esperado de un caso** y lee resultados sin contradicciones. Mira [Ajusta un caso](/es/test/adjust-cases/).
+- **Resultados acoplados abajo**, e inicio de sesión automático antes de una ejecución.
+- **Corrección en escritorio:** los requests pasan firewalls que rechazan clientes desconocidos, y los inicios de sesión conservan la identidad propia de Luvin.
+
+## 15 de noviembre de 2026
+
+**Luvin, con el builder visual.**
+
+- **Nuevo nombre y logo:** la app ahora se llama Luvin.
+- **Diseña workflows arrastrando.** Las operaciones del contrato se vuelven pasos y Luvin conecta los datos por reglas, sin IA. El diagrama es el canvas. Mira [Diseñar un workflow](/es/design/overview/).
+- **Reutilizables**: guarda parámetros y acciones de error una vez y úsalos en varios pasos. Mira [Reutilizables](/es/design/reusables/).
+- **Llama a un workflow como paso**, define outputs del workflow y `dependsOn` en el builder. Mira [Workflows que usan otros workflows](/es/design/dependencies/).
+- **Clientes de requests, gRPC y WebSocket**, importación desde cURL y muchos tipos de autorización. Mira [Requests sueltos](/es/requests/overview/).
+- **Autorización por API y por workflow** en una ejecución. Mira [Autorización de un workflow](/es/authorization/workflow/).
+- **El ejemplo PayPal** con OAuth 2.0 y un webhook, y un tour guiado más largo. Mira [Los ejemplos incluidos](/es/reference/examples/).
+- **Los ejemplos se abren como colecciones reales**, con documentación y un selector en la pantalla de bienvenida.
+- **Resultados en palabras simples, un modo de interfaz simple y una elección de rol** para gente de producto.
+- **Las plantillas `{{variable}}` y `{{$generador}}` se resuelven** dentro de los valores del Arazzo. Mira [Expresiones de runtime](/es/reference/expressions/).
+
+## 14 de noviembre de 2026
+
+**La app de escritorio y los workspaces.**
+
+- **La app de escritorio.** Los instaladores no están firmados y se probaron en macOS. Mira [Instalar y abrir Luvin](/es/get-started/install/).
+- **Un workspace en disco**, con colecciones que guardan varios archivos Arazzo, **ambientes** con colores, **variables y secretos**. Mira [Workspaces y colecciones](/es/workspaces/overview/).
+- **Dev Tools** con Console, Network y Performance, y una **Terminal** integrada. Mira [Dev Tools](/es/dev-tools/overview/).
+- **Edita contratos** junto a una vista previa de Swagger UI, **prueba una operación** y mira qué workflows afecta un cambio. Mira [Contratos](/es/contracts/overview/).
+- **El ejemplo Pokédex** contra la PokéAPI pública y un **tour guiado** sobre él. Mira [El tour guiado](/es/get-started/guided-tour/).
+- **Resumen de la colección** con versión, estadísticas y documentación generada.
+- **Una interfaz simple** que oculta Dev Tools y la terminal.
+- **`dependsOn` de workflows**, cookies en la app de escritorio y soporte de XPath 1.0.
+- **Soporte de Arazzo 1.1, AsyncAPI y `$ref` externos.** Mira [Soporte de especificaciones](/es/reference/support/).
+- **El editor del Arazzo** con validación en vivo y un diagrama que se puede arrastrar. Mira [La pestaña YAML](/es/design/arazzo-editor/).
+- **Una corrección:** un input de ruta faltante ahora espera un 400 o 404 y muestra la URL a la que se llamó de verdad.
+
+## 23 de octubre de 2026
+
+**Casos, ambientes y fallas más claras.**
+
+- **Por qué falla un criterio, dato por dato**, y una comparación entre el valor esperado y el recibido. Mira [Criterios de éxito](/es/reference/criteria/).
+- **Ayuda cuando la API no responde**, con los headers de CORS que necesita. Mira [Ayuda de conexión](/es/dev-tools/connection-help/).
+- **Se distinguen** una falla de conexión, una URL que falta y una ejecución cancelada.
+- **Ambientes** (DEV, QA, UAT...) con sus propias URLs y credenciales, y el ambiente se muestra en el reporte.
+- **Copia cualquier request como cURL**, con la API key de la query tapada.
+- **Inputs anidados editados dato por dato**, con avisos mientras escribes cuando un valor no cumple el contrato.
+- **Elige qué workflows probar**, con nombres legibles en casos, resultados y reportes.
+- **Avance de una ejecución** con el caso actual y el tiempo restante, y una sesión que puedes continuar cuando vuelves.
+
+## 22 de octubre de 2026
+
+**La primera versión.**
+
+- **Español e inglés** en la interfaz, los mensajes y los resultados, con un selector de idioma.
+- **Un primer flujo para cargar contratos y archivos Arazzo**, ver los workflows y su diagrama, y generar casos de prueba.
+
+## Relacionado
+
+- [Los ejemplos incluidos](/es/reference/examples/)
+- [Limitaciones conocidas](/es/reference/limitations/)
+- [Soporte de especificaciones](/es/reference/support/)

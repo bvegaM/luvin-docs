@@ -1,0 +1,91 @@
+---
+title: AsyncAPI contracts
+description: How Luvin reads AsyncAPI contracts, which versions it supports, what the preview shows and how channels and operations become send and receive steps.
+sidebar:
+  order: 4
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+AsyncAPI is to messages what OpenAPI is to REST calls: a file that describes the channels of a system, the messages that travel through them and who sends or receives each one. Use an AsyncAPI contract when a workflow mixes HTTP calls with events, for example a payment that ends with a webhook.
+
+## Example: a step that waits for an event
+
+AsyncAPI operations do not appear in the operations palette of the **Design** tab. They become steps in the workflow file, the Arazzo file, in the version 1.1 of the format. A messaging step names the channel of the contract and says whether the workflow sends or receives.
+
+This is a step of the PayPal example that waits for a webhook:
+
+```yaml title="paypal.arazzo.yaml"
+- stepId: awaitCaptureEvent
+  channelPath: '{$sourceDescriptions.paypalEvents.url}#/channels/captureCompleted'
+  action: receive
+  correlationId: $inputs.orderId
+  timeout: 5000
+  successCriteria:
+    - condition: $message.payload#/resource/status == 'COMPLETED'
+  outputs:
+    eventId: $message.payload#/id
+```
+
+| Field | What it does |
+|---|---|
+| `channelPath` | Points to the channel of the contract, through the name of the source (`paypalEvents`). |
+| `action` | `send` to publish a message, `receive` to wait for one. |
+| `correlationId` | A value that links the message to the right case, for example an order number. |
+| `timeout` | How many milliseconds the step waits for a message. |
+| `$message` | Lets criteria and outputs read the payload and the headers of the message. |
+
+The step needs the AsyncAPI contract to be loaded (✓ in the **Contracts** list) and to be listed as a source of the Arazzo.
+
+Messaging steps are always **simulated**: Luvin builds the message from the examples of the contract, or from its schema, and checks that the workflow reacts as expected. It does not connect to Kafka, AMQP, MQTT or any other broker. The app says so before you run.
+
+For how to add, read and test these steps, see [Messaging steps](/design/messaging/).
+
+## Supported versions
+
+Luvin reads AsyncAPI **2.x** and **3.x**. If the file declares another version, the editor warns you: *AsyncAPI version “x”: 2.x or 3.x is expected.*
+
+Luvin tells the type from a field at the top of the file: `asyncapi:` for AsyncAPI, `openapi:` for OpenAPI. In the **Contracts** list the row shows `asyncapi` next to the name.
+
+To start one, click the **+** of the **Contracts** section and choose **New AsyncAPI contract**. See [Contracts](/contracts/overview/).
+
+## Send and receive
+
+Luvin calls every AsyncAPI operation **send** or **receive**, from the point of view of the workflow:
+
+| Version | How the contract says it | What Luvin calls it |
+|---|---|---|
+| 3.x | `action: send` or `action: receive` in `operations` | **send** or **receive** |
+| 2.x | `publish` in a channel | **send**: the workflow sends the message to the channel |
+| 2.x | `subscribe` in a channel | **receive**: the workflow waits for a message from the channel |
+
+In a 3.x contract, every operation needs an `action` and a `channel` with a `$ref`. If one is missing, the editor shows an error on that operation.
+
+## The preview
+
+The preview of an AsyncAPI contract is Luvin's own. It is not Swagger UI, which only exists for OpenAPI. It follows the YAML as you type.
+
+<Steps>
+
+1. At the top you see the title, the description and the version, for example *AsyncAPI 3.0.0*.
+2. **Servers** lists each server as `name: host (protocol)`.
+3. **Operations** lists the operations. Each row starts with **SEND** or **RECEIVE**, then the channel and the summary.
+4. Click a row to open it. You see the description and, for each **Message**, its payload as a schema tree and its examples.
+5. Click **Show in YAML** to jump to that operation in the editor.
+
+</Steps>
+
+Errors and warnings appear above the preview, as in any contract. See [Edit a contract](/contracts/edit/).
+
+<Aside type="note">
+Two things that OpenAPI contracts have are not available for AsyncAPI: **Try it out** and **Generate requests**. Luvin does not connect to a message broker.
+</Aside>
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Contracts" href="/contracts/overview/" />
+  <LinkCard title="Messaging steps" href="/design/messaging/" />
+  <LinkCard title="Simulation" href="/test/simulation/" />
+  <LinkCard title="Examples" href="/reference/examples/" />
+</CardGrid>

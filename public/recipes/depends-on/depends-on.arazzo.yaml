@@ -1,0 +1,49 @@
+arazzo: 1.0.1
+info:
+  title: One workflow logs in, another reuses its token
+  version: 1.0.0
+sourceDescriptions:
+  - name: dummyjson
+    url: ./dummyjson.openapi.yaml
+    type: openapi
+workflows:
+  - workflowId: auth
+    summary: Log in and expose the token
+    inputs:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string, example: emilys }
+        password: { type: string, example: emilyspass }
+    steps:
+      - stepId: login
+        operationId: login
+        requestBody:
+          contentType: application/json
+          payload:
+            username: $inputs.username
+            password: $inputs.password
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          token: $response.body#/accessToken
+    outputs:
+      token: $steps.login.outputs.token
+
+  - workflowId: myProfile
+    summary: Read the logged-in user with the token of auth
+    dependsOn: [auth]
+    steps:
+      - stepId: getMe
+        operationId: getMe
+        parameters:
+          - name: Authorization
+            in: header
+            value: Bearer {$workflows.auth.outputs.token}
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          firstName: $response.body#/firstName
+          email: $response.body#/email
+    outputs:
+      firstName: $steps.getMe.outputs.firstName

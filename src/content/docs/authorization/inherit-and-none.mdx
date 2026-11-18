@@ -1,0 +1,68 @@
+---
+title: Inherit from collection and No Auth
+description: What Luvin sends with Inherit from collection and with No Auth, and which one a new request starts with.
+sidebar:
+  order: 3
+---
+
+import { Steps, Aside } from '@astrojs/starlight/components';
+
+**Inherit from collection** says "use whatever the collection uses". **No Auth** says "send nothing". They add no fields: they choose where the authorization comes from.
+
+## Example
+
+The collection is set to **Bearer Token** with `{{token}}`. Three requests:
+
+| Request **Type** | Luvin sends |
+|---|---|
+| **Inherit from collection** | `Authorization: Bearer <value of token>` |
+| **Basic Auth** (its own) | Its own Basic header. The collection is ignored. |
+| **No Auth** | No authorization, even though the collection has one. |
+
+## What a new request starts with
+
+| Kind of request | **Type** at creation |
+|---|---|
+| HTTP | **Inherit from collection** |
+| GraphQL | **Inherit from collection** |
+| WebSocket | **Inherit from collection** |
+| gRPC | **No Auth** |
+
+The collection itself starts with **No Auth**. So a new HTTP request goes out without authorization until you set one in the collection or in the request.
+
+## Inherit from collection
+
+On the **Authorization** tab, the request says which one it uses:
+
+- *Uses the collection’s authorization: Bearer Token.*
+- *The collection has no authorization set up, so this request goes without one.*
+
+**Configure in the collection** opens the collection's card. In the **Headers** tab, the `Authorization` row appears as *Inherited from the collection · Bearer Token*.
+
+Requests that inherit **share one OAuth 2.0 token**. See [OAuth 2.0](/authorization/oauth2/).
+
+## No Auth
+
+The tab says *This request sends no authorization.* Use it for a request that must go out without credentials, for example to check that the API answers `401`.
+
+In the collection, **No Auth** reads *Requests that inherit from the collection are sent without authorization.*
+
+## Opt out of the collection's authorization
+
+<Steps>
+
+1. Open the request and click **Authorization**.
+2. In **Type**, choose **No Auth** to send nothing, or another type to use its own.
+
+</Steps>
+
+Choose **Inherit from collection** to go back.
+
+<Aside type="note">
+In a workflow, **Inherit from collection** is also an option for each API, and it means the same: use the collection's authorization. If the collection has none, the calls go without authorization. See [Authorization of a workflow](/authorization/workflow/).
+</Aside>
+
+## Related
+
+- [Authorization of the collection](/authorization/collection/)
+- [Where authorization applies](/authorization/where-it-applies/)

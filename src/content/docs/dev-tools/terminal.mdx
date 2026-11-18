@@ -1,0 +1,93 @@
+---
+title: Terminal
+description: Use your own shell inside Luvin, in the folder of your workspace or collection. Desktop app only.
+sidebar:
+  order: 4
+---
+
+import { Badge, Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+The **Terminal** tab opens your system shell inside Luvin, so you can run `git`, `curl` or any command without leaving the app. It exists only in the desktop app. In the browser, the tab is not there.
+
+## Example: see what changed
+
+From the collection menu choose **Open in Terminal**. Dev Tools opens on **Terminal**, in that folder:
+
+```bash
+git status
+git diff pokemon.arazzo.yaml
+```
+
+<Badge text="Desktop only" variant="caution" />
+
+## Open a terminal
+
+There are two ways.
+
+**From Dev Tools:**
+
+<Steps>
+
+1. Click **Dev Tools** in the bottom bar.
+2. Click the **Terminal** tab. A first session starts.
+
+</Steps>
+
+The session opens in the folder of the open workspace.
+
+**From a collection**, to start in its folder:
+
+<Steps>
+
+1. Open the **⋯** menu of the collection in the sidebar, or the **Location** card of the [collection overview](/workspaces/collection-overview/).
+2. Choose **Open in Terminal**.
+
+</Steps>
+
+Dev Tools opens on the **Terminal** tab with a new session in that folder. The menu **Collection options** of the sidebar has the same action for the workspace folder.
+
+<Aside type="note" title="Where a session can start">
+A terminal starts in the folder of a workspace of the desktop app, or in a collection folder inside it. For any other place, it starts in your home folder. The browser version has no terminal, and a workspace saved in the browser has no folder to open.
+</Aside>
+
+The shell is the one of your system: the one in your `SHELL` variable (`/bin/zsh` if there is none) on macOS and Linux, and PowerShell on Windows. It starts as a login shell, so your usual profile and prompt load.
+
+## Work with several sessions
+
+The list of sessions is on the right of the terminal.
+
+| To do this | Do this |
+|---|---|
+| Start another session | Click **+** (**New terminal**) at the top of the panel. |
+| Switch session | Click its name in the list. |
+| Rename a session | Double-click its name, type the new one and press **Enter**. **Esc** cancels. |
+| Close a session | Click the trash icon of its row (**Kill terminal**), or type `exit` in the shell. |
+| Clear the screen | Click **Clear** at the top of the panel. It acts on the session you see. |
+
+A session is named after its shell and a number, for example `zsh 1`. Next to the name, the list shows the name of its folder. The top bar of the panel shows the full folder of the session you see.
+
+Sessions stay alive when you change tab or close the panel, and the command in them keeps running. They end when you close them, when the shell exits, or when you quit Luvin. When the shell exits, for example after `exit`, the session leaves the list. With no sessions left, the panel says **No open terminals** and offers **New terminal**.
+
+If the terminal cannot start, the panel says **Couldn’t open the terminal**, shows the reason and offers **Retry**.
+
+## Limits
+
+- **Desktop app only.** There is no terminal in the browser version.
+- **Not in the Simple interface.** The **Open in Terminal** actions are disabled with **not in simple mode**. See [Dev Tools](/dev-tools/overview/).
+- **Your permissions.** It is a normal shell: a command can do what you can do. Luvin does not limit what you type.
+- **Folders.** Only a workspace folder, one of its collections, or your home folder. This keeps the terminal away from other places when it opens.
+- **History on screen.** The terminal keeps the last 5000 lines of output.
+- **Nothing is restored.** If you quit Luvin, the sessions end. They do not come back when you open the app again.
+- **The theme follows the app.** Light and dark change the colors of the terminal. For prompts with icons, install a Nerd Font (for example MesloLGS NF): Luvin uses it if it finds it.
+
+<Aside type="tip" title="A handy use">
+Open the terminal from the collection, run `git status` and `git diff` to see what changed since your last commit, and read [Keep a workspace in git](/workspaces/git/).
+</Aside>
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Dev Tools" href="/dev-tools/overview/" />
+  <LinkCard title="Keep a workspace in git" href="/workspaces/git/" />
+  <LinkCard title="Privacy and security" href="/reference/privacy/" />
+</CardGrid>

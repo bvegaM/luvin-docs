@@ -1,0 +1,81 @@
+---
+title: Authorization overview
+description: The map of everything about authorization in Luvin - the four places it lives, which one to use and what wins when they overlap.
+sidebar:
+  order: 1
+---
+
+import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
+
+Authorization is how Luvin proves who it is to an API: a key, a password, a token or a signature. Luvin has twelve ways to do it and four places to set it. This page is the map.
+
+![The Authorization tab of a request, with the Type selector and its fields](/media/en/request-auth.webp)
+
+## Example: the same token in two places
+
+Say your shop API wants `Authorization: Bearer abc123`.
+
+- For a **single request**, open its **Authorization** tab, choose **Bearer Token** and write `abc123` in **Token**.
+- For **every request of a collection**, set **Bearer Token** once in the collection overview and leave the requests on **Inherit from collection**.
+- For a **workflow**, set it once per API in the workflow's **Authorization** tab.
+
+The three use the same types and the same fields. Only the place changes.
+
+## The four places
+
+| Place | What it covers | Where you set it |
+|---|---|---|
+| A request | That one request | **Authorization** tab of the request |
+| The collection | Every request set to **Inherit from collection** | **Authorization** card in the collection overview |
+| A workflow | The steps of a workflow, API by API | **Authorization** tab of the workflow |
+| The environment | The credentials that a contract asks for, used by workflow steps by default | **Credentials** section of the environment |
+
+Details and click paths: [Where authorization applies](/authorization/where-it-applies/).
+
+## I want to... use...
+
+| I want to... | Use | Page |
+|---|---|---|
+| Send a fixed key in a header or in the URL | **API Key** | [API Key](/authorization/api-key/) |
+| Send a username and password | **Basic Auth** | [Basic Auth](/authorization/basic/) |
+| Send a token I already have | **Bearer Token** | [Bearer Token](/authorization/bearer/) |
+| Get a token from an authorization server and renew it | **OAuth 2.0** | [OAuth 2.0](/authorization/oauth2/) |
+| Sign each request with consumer and token keys | **OAuth 1.0** | [OAuth 1.0](/authorization/oauth1/) |
+| Answer a `401` Digest challenge | **Digest Auth** | [Digest Auth](/authorization/digest/) |
+| Call a Windows or intranet server | **NTLM Auth** (desktop app) | [NTLM Auth](/authorization/ntlm/) |
+| Call an API on AWS with IAM keys | **AWS Sig v4** | [AWS Sig v4](/authorization/aws-sigv4/) |
+| Call an API behind Akamai | **Akamai EdgeGrid** | [Akamai EdgeGrid](/authorization/akamai/) |
+| Call a SOAP or legacy service | **WSSE Auth** | [WSSE Auth](/authorization/wsse/) |
+| Use the same authorization for all requests of a collection | **Inherit from collection** | [Inherit and No Auth](/authorization/inherit-and-none/) |
+| Send a request with no credentials | **No Auth** | [Inherit and No Auth](/authorization/inherit-and-none/) |
+| Let a workflow use what the contract declares | **From the contract** | [Credentials of the contract](/authorization/contract-credentials/) |
+
+## What wins when they overlap
+
+**For a single request**, from the most specific to the least:
+
+1. A header you wrote yourself in the **Headers** tab. For **Basic Auth**, **Bearer Token** and **OAuth 2.0**, your own `Authorization` header is kept and Luvin adds nothing. For **API Key** in a header, your header of the same name is kept.
+2. The **Type** of the request. If it is **Inherit from collection**, the type of the collection is used. If the collection has none, the request goes without authorization.
+
+**For a step of a workflow**, from the most specific to the least:
+
+1. **This workflow only**, if you set one for that API.
+2. **All workflows**, if you set one for that API. If it says **Inherit from collection**, the collection's authorization is used.
+3. The credentials of the contract, taken from the active environment.
+
+A case that tests a call *without credentials* always goes without authorization, whatever you set.
+
+<Aside type="note">
+The signing types (**AWS Sig v4**, **OAuth 1.0**, **WSSE Auth**, **Akamai EdgeGrid**) replace an `Authorization` header you wrote yourself. A signature covers the final request, so Luvin calculates it when sending.
+</Aside>
+
+## Where the secrets go
+
+A password, token or key typed as-is is stored encrypted on your computer and is not written to files or git. Use `{{variables}}` to share a setup. See [Secrets and what goes into files](/authorization/secrets/).
+
+## Next
+
+<CardGrid>
+  <LinkCard title="Where authorization applies" href="/authorization/where-it-applies/" description="Request, collection, workflow and environment side by side." />
+  <LinkCard title="Troubleshooting" href="/authorization/troubleshooting/" description="401, 403, expired tokens and sign-in problems." />
+</CardGrid>

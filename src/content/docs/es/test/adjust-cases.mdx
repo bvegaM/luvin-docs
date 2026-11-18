@@ -1,0 +1,118 @@
+---
+title: Ajusta un caso
+description: Cambia los inputs de un caso, elige el status que debe devolver un rechazo, ejecuta un caso por respuesta contra la API real e importa o exporta casos.
+sidebar:
+  order: 3
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Los casos generados funcionan tal como están. Ajusta uno cuando necesita otros datos, cuando tu API se comporta distinto de su contrato o cuando quieres llevar los casos a otro computador.
+
+## Ejemplo: un Pokémon que no existe
+
+El caso `getPokemon responde 404 → pokemonNotFound` es simulado. Para probarlo contra tu API, cámbialo a **API real** y cambia un input.
+
+| Input | Estado | Valor |
+|---|---|---|
+| `pokemon` | **Cambiado** | `missingno` (el valor por defecto, `pikachu`, aparece debajo) |
+
+El caso ahora envía `missingno`, y `getPokemon` debe responder 404 para que se active la acción `pokemonNotFound`.
+
+## Cambia los inputs de un caso
+
+<Steps>
+1. En la pestaña **Casos**, pulsa **Inputs** en el caso. Se abre **Inputs de este caso** con una fila por input.
+2. Escribe un valor nuevo. La fila pasa de **Por defecto** a **Cambiado** y muestra el valor por defecto debajo.
+3. Para dejar un input fuera, pulsa **Omitir**. La fila dice **No se envía en este caso**.
+4. Para volver atrás, pulsa **Restablecer** en la fila, o **Restablecer todo** arriba.
+5. Pulsa **Cerrar inputs**.
+</Steps>
+
+El cambio se aplica solo a este caso. El caso muestra entonces cuántos inputs cambia.
+
+| Estado | Significado |
+|---|---|
+| **Por defecto** | El caso usa el valor de la pestaña **Inputs**. |
+| **Cambiado** | El caso usa su propio valor. |
+| **Omitido** | El caso no envía este input. |
+| **Lo define el caso** | El valor es lo que prueba el caso, por ejemplo el valor inválido. No se puede editar. |
+
+Los inputs de tipo grupo o lista muestran un resumen; **Editar campos** los abre. Los valores aceptan variables y generadores, como `{{uuid}}`. Mira [Casos con datos propios](/es/test/custom-cases/).
+
+Si el workflow todavía no tiene inputs, el editor ofrece **Elegir datos para variar**. Mira [Inputs](/es/test/inputs/).
+
+## Elige el status que debe devolver un caso de rechazo
+
+Los casos de **Validación de datos** y de **Seguridad** esperan que un paso rechace el request. Bajo el caso, **Status que debe responder «…»:** muestra los status aceptados.
+
+Luvin sugiere 400 o 422 cuando el contrato los documenta para ese paso, o si no, los otros status 4xx que documenta. Para **Sin credenciales** sugiere 401 y 403. Si no eliges ningún status, vale cualquier 4xx.
+
+<Steps>
+1. Haz clic en un status para agregarlo o quitarlo. Un punto marca los status documentados en el contrato.
+2. Para un status que no está en la lista, escríbelo en **Otro (Enter)** y pulsa Enter.
+3. Para deshacer tu elección, pulsa **Volver a lo sugerido**.
+</Steps>
+
+Lo que pasa cuando la API responde otra cosa depende de quién eligió el status. El caso lo dice: **Si responde otra cosa: advertencia** o **Si responde otra cosa: error**.
+
+| Status | Si la API responde otra cosa |
+|---|---|
+| Sugerido por Luvin, en un caso de **Validación de datos** | **Advertencia**. Las APIs suelen ser más permisivas que su contrato, y el workflow igual funciona. |
+| Elegido por ti | **No pasó**. Es lo que afirmas de tu API. |
+| **Sin credenciales** | **No pasó**. |
+
+<Aside type="tip">
+Si tu API acepta un request que el contrato dice que debería rechazar, y eso está bien, agrega `200` y quita los demás. El caso muestra **Se espera 200** y pasa cuando la API responde 200.
+</Aside>
+
+## Ejecuta un caso por respuesta contra la API real
+
+Los casos por respuesta son simulados: Luvin hace que el paso responda la respuesta que activa la acción. Para comprobar lo mismo contra tu API, dale al caso datos que provoquen esa respuesta.
+
+<Steps>
+1. En el caso, cambia **Simulado** a **API real**. Se abren sus inputs.
+2. Cambia los inputs. Para `getPokemon responde 404 → pokemonNotFound`, pon en `pokemon` un nombre que no exista.
+3. Ejecuta el caso.
+</Steps>
+
+Mientras no cambies al menos un input, el caso muestra **No se ejecutará**. Los casos de mensaje no tienen este interruptor: siempre se simulan.
+
+<Aside type="note">
+Un caso por respuesta puesto en **API real** llama a la API incluso cuando la barra de ejecución está en **Simulación**.
+</Aside>
+
+## Importa y exporta casos
+
+Arriba a la derecha de la pestaña **Casos**, el menú **⋯** tiene dos acciones:
+
+- **Exportar casos** descarga un archivo YAML con el nombre del archivo Arazzo, terminado en `.escenarios.yaml`. Contiene los inputs por defecto de cada workflow de ese archivo, tus casos con datos propios y los inputs que cambiaste en los casos generados.
+- **Importar casos** lee un archivo `.yaml`, `.yml` o `.json` con ese formato. Reemplaza los casos con datos propios de este archivo Arazzo y los inputs por defecto de los workflows que nombra el archivo. Luego un mensaje dice cuántos se agregaron y actualizaron, y lista lo que no se pudo aplicar.
+
+```yaml
+version: 1
+bases:
+  pokemonCard:
+    pokemon: pikachu
+casos:
+  - workflow: pokemonCard
+    nombre: Pokémon desconocido
+    inputs:
+      pokemon: missingno
+    espera:
+      paso: getPokemon
+      status: [404]
+      accion: pokemonNotFound
+```
+
+Los nombres de los campos están en español en los dos idiomas de la app.
+
+En un workspace no necesitas exportar para conservar tus casos: Luvin guarda esta misma información en la colección, en `scenarios/`. Mira [Archivos de un workspace](/es/workspaces/files/).
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Casos" href="/es/test/cases/" />
+  <LinkCard title="Casos con datos propios" href="/es/test/custom-cases/" />
+  <LinkCard title="Lee los resultados" href="/es/test/results/" />
+</CardGrid>

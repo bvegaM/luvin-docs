@@ -1,0 +1,63 @@
+arazzo: 1.0.1
+info:
+  title: Success criteria beyond the status
+  version: 1.0.0
+sourceDescriptions:
+  - name: dummyjson
+    url: ./dummyjson.openapi.yaml
+    type: openapi
+workflows:
+  - workflowId: searchPhones
+    summary: Search products and check the status, a number, a header and a price
+    inputs:
+      type: object
+      properties:
+        q: { type: string, example: phone }
+    steps:
+      - stepId: search
+        operationId: searchProducts
+        parameters:
+          - name: q
+            in: query
+            value: $inputs.q
+          - name: limit
+            in: query
+            value: 3
+          - name: select
+            in: query
+            value: title,price
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.body#/total > 0
+          - context: $response.header.Content-Type
+            condition: ^application/json
+            type: regex
+          - context: $response.body
+            condition: $.products[?(@.price > 0)]
+            type: jsonpath
+        outputs:
+          total: $response.body#/total
+          firstTitle: $response.body#/products/0/title
+    outputs:
+      total: $steps.search.outputs.total
+
+  - workflowId: impossiblePrice
+    summary: Fails on purpose - no phone costs more than 100000
+    steps:
+      - stepId: search
+        operationId: searchProducts
+        parameters:
+          - name: q
+            in: query
+            value: phone
+          - name: limit
+            in: query
+            value: 3
+          - name: select
+            in: query
+            value: title,price
+        successCriteria:
+          - condition: $statusCode == 200
+          - context: $response.body
+            condition: $.products[?(@.price > 100000)]
+            type: jsonpath

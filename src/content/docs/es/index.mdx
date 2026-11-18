@@ -1,0 +1,91 @@
+---
+title: Documentación de Luvin
+description: Aprende a diseñar, ejecutar y compartir workflows de APIs con Luvin. Busca en la documentación o empieza por el inicio rápido.
+template: splash
+hero:
+  title: 'Prueba la cadena, <em>no solo la llamada</em>'
+  tagline: "Aprende a diseñar, ejecutar y compartir workflows de APIs con Luvin: de tus contratos a una cadena de llamadas que pasa."
+  actions:
+    - text: Inicio rápido
+      link: /es/get-started/quick-start/
+    - text: Instalar Luvin
+      link: /es/get-started/install/
+    - text: Diseñar un workflow
+      link: /es/design/overview/
+    - text: Ejecutar tus casos
+      link: /es/test/run/
+    - text: Ejemplos
+      link: /es/reference/examples/
+---
+
+import TopicCard from '../../../components/TopicCard.astro'
+import TopicGrid from '../../../components/TopicGrid.astro'
+
+## Explora por tema
+
+<TopicGrid>
+  <TopicCard title="Empieza con Luvin" href="/es/get-started/quick-start/" icon="rocket">
+    Abre el ejemplo, ejecuta tu primer workflow y lee los resultados en pocos clics.
+  </TopicCard>
+  <TopicCard title="Diseñar workflows" href="/es/design/overview/" icon="workflow">
+    Arrastra operaciones de tus APIs a un lienzo. Luvin conecta los datos entre los pasos y escribe el Arazzo.
+  </TopicCard>
+  <TopicCard title="Probar workflows" href="/es/test/cases/" icon="flask">
+    Ejecuta casos generados y propios contra la API real o en simulación, y lee cada veredicto.
+  </TopicCard>
+  <TopicCard title="Enviar requests" href="/es/requests/overview/" icon="send">
+    Requests HTTP, GraphQL, gRPC y WebSocket, desde cero, desde un cURL o desde Postman y Bruno.
+  </TopicCard>
+  <TopicCard title="Contratos" href="/es/contracts/overview/" icon="file">
+    Agrega tus contratos OpenAPI y AsyncAPI, edítalos junto a su vista previa y prueba una operación.
+  </TopicCard>
+  <TopicCard title="Ambientes y autorización" href="/es/environments/overview/" icon="layers">
+    URLs base, variables y secretos por ambiente, y cómo se autoriza cada API.
+  </TopicCard>
+</TopicGrid>
+
+## Aprende haciendo
+
+<TopicGrid>
+  <TopicCard title="Arma tu primer workflow" href="/es/tutorials/first-workflow/" icon="workflow">
+    Del contrato a una ejecución que pasa en unos 15 minutos, con el ejemplo de la Pokédex.
+  </TopicCard>
+  <TopicCard title="De Postman a un workflow probado" href="/es/tutorials/from-postman/" icon="send">
+    Importa una colección de Postman o Bruno y convierte sus requests en una cadena que puedes probar.
+  </TopicCard>
+  <TopicCard title="Prueba un pago con OAuth 2.0" href="/es/tutorials/oauth-payment/" icon="key">
+    El ejemplo de PayPal: autorización, simulación, el sandbox y un webhook.
+  </TopicCard>
+  <TopicCard title="Demuestra que tu API rechaza datos malos" href="/es/tutorials/negative-cases/" icon="flask">
+    Casos de rechazo, el status que debe responder cada uno y un reporte para compartir.
+  </TopicCard>
+  <TopicCard title="Averigua por qué falló un caso" href="/es/tutorials/debug-failure/" icon="terminal">
+    Lee la razón, compara lo esperado con lo recibido y reprodúcelo con cURL.
+  </TopicCard>
+  <TopicCard title="Comparte un workspace con tu equipo" href="/es/tutorials/team-git/" icon="folder">
+    Ten los workflows en git, revísalos en un pull request y deja fuera los secretos.
+  </TopicCard>
+</TopicGrid>
+
+## Explora más
+
+<TopicGrid>
+  <TopicCard title="Ejemplos que puedes ejecutar" href="/es/recipes/overview/" icon="play">
+    Workflows reales contra APIs públicas, probados antes de publicarse. Descarga, importa y ejecuta.
+  </TopicCard>
+  <TopicCard title="Workspaces" href="/es/workspaces/overview/" icon="folder">
+    Tu trabajo es una carpeta de archivos de texto. Tenla en git y revisa los workflows como código.
+  </TopicCard>
+  <TopicCard title="Dev Tools" href="/es/dev-tools/overview/" icon="terminal">
+    Console, Network, Performance y una terminal para mirar un solo request por separado.
+  </TopicCard>
+  <TopicCard title="Preguntas frecuentes" href="/es/reference/faq/" icon="question">
+    Respuestas cortas a lo que se pregunta primero, con un enlace a la explicación completa.
+  </TopicCard>
+  <TopicCard title="Novedades" href="/es/reference/whats-new/" icon="sparkle">
+    Lo que puede hacer Luvin, versión por versión.
+  </TopicCard>
+  <TopicCard title="Referencia" href="/es/reference/support/" icon="book">
+    Soporte de especificaciones, expresiones, criterios, motivos de fallo, atajos y el glosario.
+  </TopicCard>
+</TopicGrid>

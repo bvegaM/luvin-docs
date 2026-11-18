@@ -1,0 +1,156 @@
+---
+title: Contratos
+description: Qué es un contrato, por qué lo necesita Luvin, y cómo agregar, adjuntar, descargar y eliminar contratos en la barra lateral.
+sidebar:
+  order: 1
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Un contrato es un archivo que describe una API: qué llamadas tiene, qué recibe cada una y qué responde. Luvin lee dos tipos, **OpenAPI** (APIs REST) y **AsyncAPI** (mensajes y eventos). Sin un contrato, Luvin no sabe qué operaciones existen, así que no puedes diseñar un workflow a partir de ellas.
+
+## Ejemplo: una operación del contrato de la PokéAPI
+
+Este es un fragmento recortado de `examples/pokemon/pokeapi.openapi.yaml`, incluido con Luvin:
+
+```yaml title="pokeapi.openapi.yaml"
+servers:
+  - url: https://pokeapi.co/api/v2
+paths:
+  /pokemon/{idOrName}:
+    get:
+      operationId: getPokemon
+      summary: Consulta un Pokémon
+      parameters:
+        - $ref: '#/components/parameters/IdOrName'
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                id: 25
+                name: pikachu
+                types:
+                  - slot: 1
+                    type: { name: electric }
+        '404':
+          $ref: '#/components/responses/NotFound'
+```
+
+Esta única operación es lo que Luvin necesita para diseñar, ejecutar y simular una llamada:
+
+| En el contrato | Qué hace Luvin con eso |
+|---|---|
+| `operationId: getPokemon` | Lo muestra en la pestaña **Diseño**, listo para arrastrarlo al lienzo |
+| `parameters` | Pide `idOrName` en el paso y genera casos a partir de su tipo |
+| `example` de la respuesta `200` | Es la respuesta en **Simulación** |
+| Respuesta `404` | Te deja armar un caso que espera ese error |
+
+## Por qué Luvin usa contratos
+
+- La pestaña **Diseño** lista las operaciones de tus contratos. Las arrastras al lienzo para armar un workflow.
+- Luvin conecta los datos entre pasos a partir de los campos que declara el contrato.
+- Genera casos de prueba a partir de los campos obligatorios y los tipos.
+- En **Simulación**, responde con los ejemplos del contrato.
+- Después de cada ejecución, comprueba que la respuesta real cumple el contrato.
+
+## La lista Contratos
+
+En la barra lateral, la sección **Contratos** lista los contratos de la colección abierta. Junto al nombre ves cuántos hay. Cuando alguno no cargó, ves *cargados/total*, por ejemplo `2/3`.
+
+![Un contrato abierto en el editor, junto a la vista previa de Swagger UI](/media/es/contract.webp)
+
+Cada fila empieza con una marca:
+
+| Marca | Significado |
+|---|---|
+| ✓ | El contrato está cargado y listo para usar. |
+| ✕ | No está cargado: falta el archivo, no se puede leer, o apunta a otros archivos que faltan. Pasa el mouse sobre la fila para leer el motivo. |
+| ○ | El archivo está en la colección, pero ningún workflow lo usa todavía. |
+
+Junto al nombre ves el tipo: `openapi` o `asyncapi`. Haz clic en el nombre para abrir el contrato en el editor. Mira [Editar un contrato](/es/contracts/edit/).
+
+Las filas de los contratos OpenAPI cargados tienen un botón **+** que genera requests. Mira [Generar requests desde un contrato](/es/requests/generate-from-contract/).
+
+## Agregar un contrato
+
+Hay cuatro formas. En todas necesitas una colección abierta.
+
+### Crear uno nuevo
+
+<Steps>
+
+1. En la sección **Contratos**, haz clic en el **+** (**Agregar contrato**).
+2. Elige **Nuevo contrato OpenAPI** o **Nuevo contrato AsyncAPI**.
+
+</Steps>
+
+El contrato se abre en el editor con un pequeño ejemplo válido: un OpenAPI con una operación `/health`, o un AsyncAPI con un evento. El archivo se llama `nuevo-contrato.openapi.yaml` o `nuevos-eventos.asyncapi.yaml`. Edítalo para describir tu API.
+
+### Importar archivos
+
+<Steps>
+
+1. Haz clic en el **+** y elige **Importar contrato…**.
+2. Elige uno o más archivos `.yaml`, `.yml` o `.json`.
+
+</Steps>
+
+El primer archivo se abre en el editor. También puedes usar **Importar Arazzo o contratos** en la pantalla de inicio.
+
+### Arrastrar y soltar
+
+Arrastra los archivos desde tu computador a la ventana de Luvin. La ventana dice *Suelta para agregar a «colección»*. Suéltalos y verás *Se agregaron N archivo(s) a la colección*. Solo se agregan archivos `.yaml`, `.yml` y `.json`.
+
+Puedes soltar un contrato junto con los archivos a los que apuntan sus `$ref`. Mira [Contratos remotos y referencias](/es/contracts/remote-and-refs/).
+
+### Abrir una carpeta
+
+Al abrir un workspace o una carpeta se cargan los archivos YAML y JSON que contiene, incluidos sus contratos.
+
+## Un contrato que no cargó
+
+Un workflow puede pedir un contrato que no está en la colección, por ejemplo porque apunta a una URL. Esa fila muestra ✕ y uno o dos botones:
+
+| Botón | Qué hace |
+|---|---|
+| **Adjuntar** | Abre un selector de archivos. Elige el archivo del contrato y Luvin lo vincula a esa fila. |
+| **Descargar** | Descarga el contrato desde su URL. Aparece solo cuando la dirección empieza con `http://` o `https://`. |
+
+Si eliges un archivo del tipo equivocado, la fila muestra *"nombre" no parece un OpenAPI.* (o AsyncAPI). Mira [Contratos remotos y referencias](/es/contracts/remote-and-refs/) para las descargas.
+
+![La barra lateral de una colección cuyos contratos no cargaron: cada uno muestra ✕ y un enlace Adjuntar](/media/es/contract-missing.webp)
+
+## Eliminar un contrato
+
+<Steps>
+
+1. Abre el menú **⋯** de la fila.
+2. Elige **Eliminar contrato…**. Para un contrato que nunca cargó, la opción es **Quitar contrato…**.
+
+</Steps>
+
+![El menú ⋯ de la fila de un contrato, con su acción de eliminar](/media/es/sidebar-menu.webp)
+
+Lo que pasa después depende del contrato:
+
+| Caso | Qué dice y qué hace Luvin |
+|---|---|
+| Ningún workflow lo usa | *¿Eliminar el contrato «nombre»? Se borra su archivo. No se puede deshacer.* Se borra el archivo. Si un archivo de workflow solo lo declaraba sin usarlo, esa declaración se quita. |
+| Un workflow lo usa | *«nombre» se usa en: nombres de workflows. Esos pasos quedarán sin contrato hasta que adjuntes otro. ¿Eliminar su archivo? No se puede deshacer.* Si confirmas, se borra el archivo. Los pasos se quedan en los workflows y muestran un error hasta que adjuntes otro contrato. |
+| Nunca cargó y ningún paso lo usa | *«nombre» no tiene archivo y ningún paso lo usa. ¿Quitarlo de los workflows?* **Quitar** lo saca de los workflows. |
+| Nunca cargó y un paso lo usa | *«nombre» se usa en: nombres de workflows. Adjunta su archivo, o elimina los pasos que lo usan para poder quitarlo.* No hay nada que borrar: usa **Adjuntar**, o elimina los pasos. |
+
+Luvin pregunta antes de cada eliminación, con un botón **Eliminar** o **Quitar** y **Cancelar**.
+
+<Aside type="note">
+Los contratos que Luvin arma por sí mismo a partir de tus requests no tienen menú **⋯**. Se actualizan solos y no se pueden eliminar a mano. Mira [Workflows desde requests](/es/design/from-requests/).
+</Aside>
+
+## Siguiente
+
+<CardGrid>
+  <LinkCard title="Editar un contrato" href="/es/contracts/edit/" />
+  <LinkCard title="Probar una operación" href="/es/contracts/try-it-out/" />
+  <LinkCard title="Contratos AsyncAPI" href="/es/contracts/asyncapi/" />
+</CardGrid>

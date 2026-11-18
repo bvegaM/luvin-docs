@@ -1,0 +1,102 @@
+---
+title: Run
+description: Run the cases of a workflow against the real API or in simulation, run a single case, confirm steps that modify data and stop a run.
+sidebar:
+  order: 5
+---
+
+import { Steps, Tabs, TabItem, Aside, Badge, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Running a workflow runs its selected cases, one after another, and gives each one a verdict. You choose where they run, against which environment, and press **Run**.
+
+<video controls muted playsinline preload="metadata" poster="/media/en/run-cases.webp" src="/media/en/run-cases.mp4"></video>
+
+## Example: run Pokemon card
+
+The Pokédex example needs no credentials, so you can run it right away.
+
+<Steps>
+1. Open **Pokemon card**. In the **Cases** tab, its two cases are ticked.
+2. In the run bar, choose **Simulation**. The button reads **Run 2 cases**.
+3. Press **Run**. The results open at the bottom: *Running case 2 of 2*, then a verdict for each case.
+4. Switch to **Real API** and press **Run** again. The run pauses to ask you to choose from a list. See [Choose an item from a list](/test/lists/).
+</Steps>
+
+## The run bar
+
+The run bar is at the top of an open workflow, above its tabs. The workflow name is on the left and the run controls are on the right.
+
+![A workflow open, with the run bar at the top and the results bar at the bottom](/media/en/interface.webp)
+
+| Control | What it does |
+|---|---|
+| **Real API** / **Simulation** | Where the cases run. **Real API** sends the requests to the base URLs of the environment. **Simulation** answers from the contract, with no network calls. See [Simulation](/test/simulation/). |
+| **Environment** | The environment whose base URLs, variables and credentials are used. **Configure environment…**, at the end of the list, opens it. |
+| **Run** | Runs the selected cases that are ready. Its label says how many: **Run 3 cases**, **Run 1 case**. With none ready it says **Run** and cannot be pressed. |
+
+## Run the cases
+
+<Steps>
+1. Open the workflow.
+2. In the **Cases** tab, tick the cases you want. See [Cases](/test/cases/).
+3. In the run bar, choose **Real API** or **Simulation**.
+4. Choose the **Environment**.
+5. Press **Run**. You can also press ⌘ + Enter on macOS, or Ctrl + Enter on Windows and Linux.
+</Steps>
+
+The results open at the bottom. While the run is in progress they show which case is running, for example *Running case 2 of 5*, and each case gets its verdict as it ends.
+
+## Run one case
+
+<Steps>
+1. In the **Cases** tab, find the case.
+2. Press ▶ on its row. Its tooltip says **Run only this case**.
+</Steps>
+
+The case runs even if it is not ticked. The results then show that case only. If ▶ cannot be pressed, the case cannot run: rest the pointer on the button to read why.
+
+<Aside type="caution">
+▶ starts at once. It does not show the confirmation for steps that modify data, described below.
+</Aside>
+
+## Steps that modify data
+
+A step that uses `POST`, `PUT`, `PATCH` or `DELETE` creates, changes or deletes data. When a case goes against the real API and the workflow has such steps, **Run** first shows a notice: *These steps modify data in the "…" environment*, with the method and URL of each step.
+
+| Button | What it does |
+|---|---|
+| **Run anyway** | Runs the cases. Luvin does not ask again until you switch environment or change a base URL. |
+| **Use simulation** | Switches to **Simulation** and runs there. Nothing is sent to the API. |
+| **Cancel** | Closes the notice without running. |
+
+Read the environment name in the notice before you confirm.
+
+## Other notices before a run
+
+- *Credentials are missing in "…": calls that need them will answer 401.* **Fill in** opens the environment.
+- *This workflow signs in with OAuth 2.0 to: …* Press **Sign in**, or press **Run** and the sign-in opens first. If you cancel it, the workflow does not run. See [OAuth 2.0](/authorization/oauth2/).
+- *N messaging step(s) are simulated*, next to the workflow name. Messaging steps are simulated even against the real API. See [Simulation](/test/simulation/).
+
+## Stop a run
+
+While cases are running, the **Run** button becomes **Cancel**. The results show a **Cancel** button too. The run stops at the current step, and the cases that had not started stay **Pending**.
+
+## When a workflow depends on another
+
+Some workflows need another one to run first: for example, **Battle matchup** in the Pokédex runs after **Type explorer** and uses its outputs.
+
+- The workflows it depends on run first, in order, once per run, before the cases.
+- Each one uses its own default values, from its own **Inputs** tab.
+- In **Simulation** they are simulated too.
+- The results show them under **Preparation**. Click one to see its steps.
+- If one of them fails, the cases cannot be tested. Each case ends as **Inconclusive** and says which workflow failed.
+
+See [Dependencies](/design/dependencies/) and the recipe [One workflow logs in, others reuse its token](/recipes/depends-on/).
+
+## Next
+
+<CardGrid>
+  <LinkCard title="Choose an item from a list" description="When the run pauses to ask you." href="/test/lists/" />
+  <LinkCard title="Read the results" href="/test/results/" />
+  <LinkCard title="Keyboard shortcuts" href="/reference/shortcuts/" />
+</CardGrid>

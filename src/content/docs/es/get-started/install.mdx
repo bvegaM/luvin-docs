@@ -1,0 +1,159 @@
+---
+title: Instalar y abrir Luvin
+description: Requisitos, cómo usar Luvin en el navegador o como app de escritorio, cómo generar los instaladores y qué cambia entre las dos versiones.
+sidebar:
+  order: 3
+---
+
+import { Steps, Tabs, TabItem, Aside, Badge, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Luvin corre en tu equipo, en el navegador o como app de escritorio. No hay backend ni cuenta.
+
+```bash title="Desde la carpeta del proyecto de Luvin"
+npm install        # una vez
+npm run dev        # navegador: abre http://localhost:5173
+npm run desktop:dev  # app de escritorio
+```
+
+<Aside>
+Todavía no hay una versión alojada en línea. Usas Luvin desde la carpeta de su proyecto, instalas la app de escritorio o publicas tú el sitio estático.
+</Aside>
+
+## Requisitos
+
+- **Node.js 20.19 o posterior, o 22.12 o posterior.** Revisa con `node --version`.
+- **npm**, que viene con Node.js.
+- La carpeta del proyecto de Luvin en tu equipo.
+
+## Inicia Luvin
+
+<Tabs>
+<TabItem label="Navegador">
+
+<Steps>
+
+1. Abre una terminal en la carpeta del proyecto de Luvin.
+2. Instala las dependencias (una sola vez):
+
+   ```bash
+   npm install
+   ```
+
+3. Inicia la app:
+
+   ```bash
+   npm run dev
+   ```
+
+4. Abre `http://localhost:5173` en tu navegador.
+
+</Steps>
+
+Aparece la pantalla de bienvenida. Para publicarla para tu equipo, ejecuta `npm run build`: genera un sitio estático en `dist/` que cualquier servidor web puede servir.
+
+</TabItem>
+<TabItem label="App de escritorio">
+
+<Steps>
+
+1. Abre una terminal en la carpeta del proyecto de Luvin.
+2. Ejecuta `npm install` si todavía no lo hiciste.
+3. Inicia la app:
+
+   ```bash
+   npm run desktop:dev
+   ```
+
+</Steps>
+
+Se abre una ventana de Luvin con la misma pantalla de bienvenida.
+
+</TabItem>
+</Tabs>
+
+## Genera los instaladores
+
+<Steps>
+
+1. En la carpeta del proyecto, ejecuta:
+
+   ```bash
+   npm run desktop:build
+   ```
+
+2. Abre la carpeta `release/`. Ahí queda el instalador.
+
+</Steps>
+
+| Sistema | Qué se genera |
+|---|---|
+| macOS | Un `.dmg` y un `.zip` |
+| Windows | Un instalador (NSIS) |
+| Linux | Un AppImage |
+
+<Aside type="caution">
+Los instaladores se probaron en macOS. Las versiones para Windows y Linux todavía no se han probado en esos sistemas.
+</Aside>
+
+### Abre un instalador sin firmar
+
+Los instaladores todavía no están firmados, así que tu sistema te avisa la primera vez.
+
+<Tabs>
+<TabItem label="macOS">
+
+1. Arrastra Luvin a **Aplicaciones** y ábrela. macOS dice que no puede verificar la app. Cierra el aviso.
+2. Abre **Ajustes del Sistema → Privacidad y seguridad** y baja hasta **Seguridad**.
+3. Junto al mensaje sobre Luvin, haz clic en **Abrir igualmente** y confirma con tu contraseña.
+
+Solo hace falta la primera vez. Desde macOS Sequoia (15), hacer clic derecho en la app y elegir **Abrir** ya no salta el aviso.
+
+</TabItem>
+<TabItem label="Windows">
+
+1. Ejecuta el instalador.
+2. En el aviso, haz clic en **Más información**.
+3. Haz clic en **Ejecutar de todas formas**.
+
+</TabItem>
+</Tabs>
+
+## Navegador o escritorio
+
+Las dos tienen la misma interfaz. Las diferencias vienen de lo que permite un navegador.
+
+| | Navegador | App de escritorio |
+|---|---|---|
+| CORS | La API debe permitir el origen de la app | No aplica |
+| Parámetros en cookie y el header `Host` | No se envían: los navegadores no lo permiten | Se envían |
+| Cookies que ponen tus APIs | Las maneja el navegador. Luvin no puede leerlas | Las guarda Luvin, que las muestra y las administra |
+| Requests gRPC | No disponibles | Disponibles |
+| Autorización NTLM | No disponible | Disponible |
+| Terminal en Dev Tools | No disponible | Disponible |
+| Dónde se guarda un workspace | Almacenamiento del navegador, o una carpeta del disco en Chrome y Edge | Una carpeta del disco |
+| Secretos | Cifrados en el navegador con WebCrypto | Cifrados con el llavero del sistema operativo |
+
+Si la API que pruebas no permite CORS y no puedes cambiarlo, usa la app de escritorio.
+
+## CORS en la versión de navegador
+
+CORS es una regla de los navegadores: una página web solo puede llamar a una API de otra dirección si esa API lo permite. En el navegador Luvin es una página web, así que la regla aplica a cada llamada.
+
+La API que pruebas debe:
+
+- permitir el origen de la app, por ejemplo `http://localhost:5173`;
+- incluir en `Access-Control-Allow-Headers` los headers que envían tus workflows.
+
+Cuando una llamada queda bloqueada, Luvin muestra los headers exactos que hay que pedir. Consulta [Solución de problemas](/es/get-started/troubleshooting/). La app de escritorio envía los requests ella misma, así que CORS no aplica.
+
+<Aside type="tip">
+La Pokédex incluida funciona en las dos versiones: la PokéAPI permite CORS y no pide credenciales.
+</Aside>
+
+## Sigue con
+
+<CardGrid>
+  <LinkCard title="Inicio rápido" description="Tu primera ejecución con el ejemplo." href="/es/get-started/quick-start/" />
+  <LinkCard title="Recorrido por la interfaz" href="/es/get-started/interface/" />
+  <LinkCard title="Limitaciones" href="/es/reference/limitations/" />
+</CardGrid>

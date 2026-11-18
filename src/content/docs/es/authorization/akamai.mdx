@@ -1,0 +1,45 @@
+---
+title: Akamai EdgeGrid
+description: Firma requests a APIs detrás de Akamai con EdgeGrid (EG1-HMAC-SHA256), con los campos y lo que firma Luvin.
+sidebar:
+  order: 18
+---
+
+import { Badge } from '@astrojs/starlight/components';
+
+<Badge text="Beta" variant="caution" />
+
+Usa **Akamai EdgeGrid** cuando la API está detrás de Akamai y su documentación pide una firma EdgeGrid. La app marca la opción como **Akamai EdgeGrid (Beta)**.
+
+## Ejemplo
+
+```text
+Authorization: EG1-HMAC-SHA256 client_token=akab-xxxx;access_token=akab-yyyy;timestamp=20261117T14:03:22+0000;nonce=<uuid>;signature=…
+```
+
+El timestamp y el nonce son nuevos en cada envío.
+
+## Campos
+
+| Campo | Qué escribir |
+|---|---|
+| **Client Token** | De tu credencial de Akamai. Es un campo secreto. |
+| **Client Secret** | De tu credencial de Akamai. Es un campo secreto. |
+| **Access Token** | De tu credencial de Akamai. Es un campo secreto. |
+| **Headers a firmar** | Opcional. Nombres de headers separados por comas. |
+| **Tamaño máximo del body (bytes)** | Opcional. `131072` si está vacío. |
+
+## Qué firma Luvin
+
+El método, el esquema, el host, la ruta con su query, los headers que listaste (solo los que el request tiene), un hash del body y el timestamp. El body entra en la firma solo en un `POST`, y solo sus primeros bytes según **Tamaño máximo del body (bytes)**.
+
+Reemplaza un header `Authorization` que hayas escrito tú. La firma se calcula al enviar.
+
+## Secretos
+
+**Client Token**, **Client Secret** y **Access Token** son secretos: escritos tal cual se guardan cifrados en tu equipo y no en el archivo. Mira [Secretos](/es/authorization/secrets/).
+
+## Relacionado
+
+- [AWS Sig v4](/es/authorization/aws-sigv4/)
+- [Resumen de la autorización](/es/authorization/overview/)

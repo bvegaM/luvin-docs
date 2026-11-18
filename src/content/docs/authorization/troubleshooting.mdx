@@ -1,0 +1,66 @@
+---
+title: Authorization troubleshooting
+description: What to check when the API answers 401 or 403, a token expires, the sign-in window does not open or the browser version fails.
+sidebar:
+  order: 31
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Start by looking at what was really sent: open **Sent request** in the response of a request, or the step in the results of a workflow. Most problems show there.
+
+## The API answers 401
+
+`401 Unauthorized` means the API did not accept who you are.
+
+| Check | What to do |
+|---|---|
+| Nothing was sent | **Sent request** says *No Authorization was sent. Check the Authorization tab of the request or of the collection.* Choose a **Type**, or set the collection's authorization. |
+| The request inherits and the collection has none | The tab says *The collection has no authorization set up, so this request goes without one.* Set it in the collection. |
+| A variable is empty or missing | Check the value in the active environment. A `{{name}}` in red does not exist. |
+| You wrote an `Authorization` header | Yours wins over Basic, Bearer and OAuth 2.0. Delete the row in **Headers**. |
+| Wrong environment | Credentials are per environment. Check which one is active. |
+| In a workflow | Open the **Authorization** tab: **In use** tells where it comes from. With **From the contract**, check **Credentials** in the environment. |
+
+## The API answers 403
+
+`403 Forbidden` means the API knows who you are but does not allow it.
+
+- Check the **Scope** and **Audience** of OAuth 2.0: the token may lack permission.
+- For **AWS Sig v4** with *signature does not match*, check **Region**, **Service** and your computer's clock.
+- Check that the user or key has access to that resource in the API itself.
+
+## The token expired
+
+- With **OAuth 2.0**, Luvin renews the token by itself when it expires (with the refresh token, or by asking for a new one). Press **Clear token** and **Get new token** to force it.
+- With **Authorization Code** and no refresh token, sign in again: **Get new token**, or **Sign in** in a workflow.
+- With **Bearer Token** typed by hand, Luvin cannot renew it. Paste a new one, or use [OAuth 2.0](/authorization/oauth2/) or a [login step](/recipes/login-token/).
+- Tokens are kept in memory only. When you close the collection they are gone, and the next send asks for a new one.
+
+## The token cannot be fetched
+
+*The token couldn’t be fetched:* is followed by the provider's own reason. Check **Access token URL**, **Client ID**, **Client Secret** and **Send client credentials in** (**Basic Auth header** or **Body**: use the one your provider expects).
+
+## The sign-in window does not open
+
+- Desktop app: **Callback URL** is required. Without it you see *The callback URL is missing.* Fill in **Authorization URL** too.
+- Browser version: you see *The browser blocked the authorization window: allow pop-ups for this page.* Allow pop-ups for the page and press **Get new token** again.
+- If you closed the window: *The authorization window was closed before finishing.* Start again.
+- *The provider didn’t authorize:* followed by a reason means the person did not approve, or the callback or client does not match what is registered with the provider.
+
+## Problems in the browser version
+
+- **CORS.** The browser blocks a call when the API does not allow the origin of the page. The same applies to the **Access token URL**: if the provider does not allow CORS, the token cannot be requested from the browser. The desktop app has no such limit. See [Limitations](/reference/limitations/).
+- **Readable headers.** **Digest Auth** needs to read the `WWW-Authenticate` header of the first answer. A server that does not expose it to the browser cannot be used with Digest from the browser.
+- **NTLM.** Desktop only: *NTLM needs the desktop app…*
+
+## Nothing helps
+
+<Aside type="tip">
+Copy the request as cURL (secrets show as `<secret>`, so fill them in) and run it in a terminal. If it fails there too, the problem is in the credentials or in the API, not in Luvin. See [Copy as cURL](/requests/curl/).
+</Aside>
+
+## Related
+
+- [Authorization overview](/authorization/overview/)
+- [Failure reasons](/reference/failure-reasons/)

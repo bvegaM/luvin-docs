@@ -1,0 +1,127 @@
+---
+title: Agregar pasos
+description: Agrega operaciones de la paleta al lienzo y mira qué completa Luvin en cada paso nuevo.
+sidebar:
+  order: 3
+---
+
+import { Steps, Tabs, TabItem, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Un paso es una llamada del workflow. Los pasos se agregan desde la paleta **Operaciones**, a la izquierda de la pestaña **Diseño**. Cada operación que agregas se vuelve un paso que ya viene completado a partir de su contrato.
+
+## Ejemplo: agrega getPokemon
+
+Arrastra `GET /pokemon/{idOrName}` desde la paleta al lienzo vacío.
+
+<Tabs>
+  <TabItem label="En la app">
+
+El lienzo recibe la tarjeta `getPokemon`, con el método **GET** y la ruta `/pokemon/{idOrName}`. Su panel se abre a la derecha. **Inicio** ahora lista el input `idOrName`, y el parámetro lo lee.
+
+![La pestaña Diseño: paleta de operaciones, lienzo con pasos conectados y panel del paso](/media/es/builder.webp)
+
+  </TabItem>
+  <TabItem label="En el YAML">
+
+```yaml title="Lo que escribe Luvin" {1,5-6,7-8}
+- stepId: getPokemon
+  operationId: $sourceDescriptions.pokeapi.getPokemon
+  parameters:
+    - name: idOrName
+      in: path
+      value: $inputs.idOrName
+  successCriteria:
+    - condition: $statusCode == 200
+```
+
+  </TabItem>
+</Tabs>
+
+## Antes de empezar
+
+La paleta lista las operaciones de los contratos OpenAPI de tu colección. Si dice **La colección no tiene contratos OpenAPI. Agrega uno para ver sus operaciones aquí.**, haz una de estas cosas primero:
+
+- Agrega un contrato. Consulta [Contratos](/es/contracts/overview/).
+- Usa los requests que ya tienes. Consulta [Armar desde requests guardados](/es/design/from-requests/).
+
+## Busca una operación
+
+La paleta tiene un grupo por contrato, con su nombre y la cantidad de operaciones que tiene. Cada fila muestra el método, la ruta y el resumen de la operación.
+
+<Steps>
+1. Haz clic en el nombre de un grupo para plegarlo o desplegarlo.
+2. Escribe en **Buscar operación…** para filtrar. La búsqueda mira la ruta, el id de la operación, el resumen y las etiquetas.
+</Steps>
+
+## Agrégala al workflow
+
+| Cómo | Dónde queda el paso |
+|---|---|
+| Arrastra la operación al lienzo | Debajo del paso sobre el que la sueltas. Si la sueltas encima del primer paso, queda como el primero. |
+| Haz clic en **+** de su fila | Al final del workflow. |
+
+Después de agregarlo, el paso nuevo queda seleccionado, su panel se abre a la derecha y el lienzo se desplaza para mantenerlo a la vista.
+
+## Qué recibe automáticamente un paso nuevo
+
+Luvin lee el contrato y completa el paso con reglas. No se adivina nada con IA.
+
+| Parte | Qué pone Luvin |
+|---|---|
+| Nombre | El id de la operación del contrato, por ejemplo `getPokemon`. Sin id de operación, se arma con el método y la ruta, por ejemplo `getPokemonById`. Si el nombre ya existe, se agrega un número: `getPokemon2`. |
+| Descripción | El resumen de la operación, o su método y ruta si no tiene. |
+| Criterio de éxito | El menor estado 2xx que documenta el contrato para la operación, por ejemplo 201 en un «crear». Si el contrato no documenta ningún 2xx, 200. |
+| Parámetros obligatorios | Cada uno recibe un origen: un paso anterior, un input que el workflow ya tiene o un input nuevo creado para él. Los parámetros opcionales se dejan fuera. |
+| Body | Cada campo obligatorio recibe un origen de la misma forma. Si el contrato no marca ningún campo como obligatorio, cada campo simple que no esté en una lista se vuelve un input opcional con el ejemplo del contrato (hasta 25 campos; si son más, ninguno). |
+
+Dos cosas **no** se agregan por ti:
+
+- **Outputs**, salvo los que necesitan las conexiones. Consulta [Outputs](/es/design/outputs/).
+- **Acciones ante errores**. El panel del paso lista cada error documentado para que elijas tú. Consulta [Éxito y errores](/es/design/success-and-errors/).
+
+### Un ejemplo
+
+Parte de un workflow vacío en la colección Pokédex.
+
+<Steps>
+1. Arrastra `GET /pokemon/{idOrName}` al lienzo. Obtienes el paso `getPokemon`. Nada provee `idOrName` todavía, así que **Inicio** ahora lista un input nuevo, `idOrName`, y el paso lo usa.
+2. Arrastra `GET /pokemon-species/{idOrName}` debajo. Obtienes el paso `getPokemonSpecies`. Su `idOrName` muestra `? getPokemon › id`: Luvin lo conectó con el `id` que devuelve el primer paso, y `getPokemon` ahora tiene un output llamado `id`.
+</Steps>
+
+La `?` significa que Luvin está menos seguro de esa conexión. [Conectar datos entre pasos](/es/design/wire-data/) explica las reglas y cómo cambiar un origen.
+
+## Otras cosas que puedes agregar
+
+La paleta tiene tres grupos más cuando corresponden. Se agregan igual: arrastrando, o con **+**.
+
+| Grupo | Qué agrega | Lee |
+|---|---|---|
+| **Requests de la colección** | Un request guardado, enviado tal cual es. | [Armar desde requests guardados](/es/design/from-requests/) |
+| **Workflows de este Arazzo** | Otro workflow del mismo archivo, llamado como un paso. | [Workflows que usan otros workflows](/es/design/dependencies/) |
+| **Reutilizables** | Una acción de error o un parámetro guardado para usar en varios pasos. Se aplica a un paso, no se agrega como uno. | [Reutilizables](/es/design/reusables/) |
+
+Las operaciones de los contratos AsyncAPI no están en la paleta. [Pasos de mensajería](/es/design/messaging/) explica cómo agregarlas.
+
+### La pregunta sobre los campos obligatorios
+
+Un request guardado no tiene un contrato que diga cuáles de sus campos exige la API. La primera vez que agregas un request a un workflow, un diálogo pregunta **¿Qué exige la API en «…»?** con todos los campos del request.
+
+<Steps>
+1. Marca los campos que la API exige. **Marcar todos** y **Ninguno** cambian todos a la vez. Los parámetros de la ruta siempre son obligatorios.
+2. Haz clic en **Guardar**, o en **Ahora no** para decidir más tarde.
+</Steps>
+
+Tu respuesta se guarda en el request y vale para todos los workflows que lo usen. Las operaciones de un contrato nunca muestran este diálogo: el contrato ya dice qué es obligatorio.
+
+## Si el lienzo dice que al workflow le faltan datos
+
+Una barra con el título **A este workflow le faltan datos** aparece cuando un paso usa un input que el workflow no declara, o cuando el contrato pide datos que un paso no envía. Pasa, por ejemplo, después de que un contrato cambia.
+
+Haz clic en **Completar**. Luvin declara los inputs que faltan o conecta los datos con un paso anterior, sin rehacer los pasos. **Deshacer** lo revierte.
+
+## Siguiente
+
+<CardGrid>
+  <LinkCard title="Conectar datos entre pasos" href="/es/design/wire-data/" />
+  <LinkCard title="Parámetros y body" href="/es/design/parameters-and-body/" />
+</CardGrid>

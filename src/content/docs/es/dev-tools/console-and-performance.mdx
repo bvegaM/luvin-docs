@@ -1,0 +1,111 @@
+---
+title: Console y Performance
+description: Qué registra la Console sobre tus ejecuciones y la app, cómo filtrarla y qué mide la pestaña Performance.
+sidebar:
+  order: 3
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+La **Console** es el diario de la sesión: lo que Luvin cargó, guardó y ejecutó, con avisos y errores. La pestaña **Performance** te dice cuánto usa la app y cuánto tarda cada paso. Ábrelas en [Dev Tools](/es/dev-tools/overview/).
+
+![La pestaña Console, con el registro de una ejecución y sus casos](/media/es/devtools-console.webp)
+
+## Ejemplo: la Console después de una ejecución
+
+```text
+Ejecutando «Pokemon card»: 3 caso(s) en el ambiente «local»
+Caso «Happy path» (API real)
+getPokemon — GET 200 · 143 ms
+Pasó: «Happy path» en 812 ms
+```
+
+Una línea por evento: el workflow, el caso, cada paso con su status y su tiempo, y el veredicto. Una **▸** abre el detalle.
+
+## Leer la Console
+
+Cada línea tiene tres partes:
+
+| Parte | Qué muestra |
+|---|---|
+| Hora | La hora, minuto, segundo y milisegundo. |
+| Origen | `ejecución` para las ejecuciones, `app` para lo que hace la app (cargar, guardar, importar) y `js` para errores inesperados del programa. |
+| Mensaje | El texto. Una línea con **▸** tiene más detalle: haz clic para abrirlo con **▾**. |
+
+Las líneas se colorean por nivel: información, aviso o error. La Console sigue a la línea más nueva. Si subes a leer, se queda donde estás.
+
+Cuando todavía no hay nada, la pestaña dice **No hay registros todavía**.
+
+### Qué escribe una ejecución
+
+Una ejecución escribe estas líneas, en orden:
+
+<Steps>
+
+1. `Ejecutando «Pokemon card»: 3 caso(s) en el ambiente «local»`. El workflow, cuántos casos y el ambiente.
+2. Si el workflow depende de otro (`dependsOn`): `Preparando el workflow (dependsOn): typeExplorer → battleMatchup`.
+3. Por cada caso: `Caso «Happy path» (API real)`. El modo es **API real** o **Simulado**.
+4. Por cada paso: `getPokemon — GET 200 · 143 ms`. En un paso de mensajería: `SEND pokedex.sighting.registered · 4 ms`. Un paso sin respuesta dice si quedó **correcto**, **falló**, **omitido** o **con avisos**. Si un paso llama a otro workflow, sus pasos vienen a continuación.
+5. Cuando termina el caso: `Pasó: «Happy path» en 812 ms`.
+6. Si cancelas: `Ejecución cancelada`.
+
+</Steps>
+
+Un caso que no pasó escribe su línea como **error**. Un caso que terminó con una advertencia o no concluyente escribe un **aviso**. Un paso que falló o terminó con avisos escribe un **aviso**, no un error: en un caso negativo, un paso que falla es justo lo que esperas, y el caso decide si el resultado está mal.
+
+El detalle de una línea (haz clic en la **▸**) trae el motivo en palabras simples, los problemas encontrados contra el contrato y cualquier valor que Luvin no pudo resolver.
+
+### Qué escribe la app
+
+- `3 archivo(s) cargado(s)` cuando abres archivos, y un aviso por cada archivo que no se pudo leer.
+- `Colección «payments» abierta: 4 archivo(s), 2 ambiente(s)` y `Workspace «Mi workspace» abierto (…)`.
+- `Importada «Shop» (24 requests)` después de importar de Postman o Bruno.
+- Un error, `No se pudo guardar el workspace`, con el motivo en su detalle, si falla el guardado.
+- Un error con el método y la URL cuando un request que enviaste desde un request guardado o desde **Try it out** no recibe respuesta.
+- Los errores que nadie atrapó, con origen `js`.
+
+### Filtrar y limpiar
+
+- Usa el selector de nivel para mostrar **Todo**, **Info**, **Avisos** o **Errores**.
+- Haz clic en **Limpiar** (el ícono de papelera) para vaciar la Console.
+
+El número rojo de la pestaña **Console**, y del botón **Dev Tools** cuando el panel está cerrado, cuenta los errores. La Console conserva las últimas 500 líneas y se vacía cuando cierras la app.
+
+## La pestaña Performance
+
+### Recursos de la app
+
+| Tarjeta | App de escritorio | Navegador |
+|---|---|---|
+| **Uso de CPU** | De toda la app. | No disponible. |
+| **Memoria** | De toda la app, con el número de procesos. | **Memoria JS**, de esta pestaña, en los navegadores que la informan. |
+| **Tiempo encendida** | Desde que se abrió la app. | Desde que se abrió la página. |
+| **PID** | El proceso principal. | No disponible. |
+
+Los números se actualizan cada dos segundos. En el navegador, la pestaña avisa que la CPU, la memoria total y el PID solo están en la app de escritorio.
+
+### Tiempo por paso
+
+La tabla **Tiempos por paso en esta sesión (API real)** tiene una fila por paso, con las columnas **Paso** (con su método), **Workflow**, **Llamadas**, **Promedio**, **Máximo** y **Fallidas**. Está ordenada de más lento a más rápido según el promedio.
+
+<Steps>
+
+1. Ejecuta un workflow contra la **API real**.
+2. Abre **Performance**.
+3. Lee las primeras filas: son los pasos que más tardan.
+
+</Steps>
+
+Una ejecución simulada no aparece, porque no hace llamadas de red. Mientras no ejecutes algo real, la pestaña dice **Ejecuta un workflow contra la API real para ver cuánto tarda cada paso.**
+
+<Aside type="tip">
+Si un caso es lento, mira **Máximo** junto a **Promedio**. Una gran diferencia significa que una llamada tardó mucho más que las otras, y la causa suele ser la API o la red, no el workflow.
+</Aside>
+
+## Siguiente
+
+<CardGrid>
+  <LinkCard title="Network" href="/es/dev-tools/network/" />
+  <LinkCard title="Terminal" href="/es/dev-tools/terminal/" />
+  <LinkCard title="Leer los resultados de una ejecución" href="/es/test/results/" />
+</CardGrid>

@@ -1,0 +1,32 @@
+arazzo: 1.0.1
+info:
+  title: The API rejects a wrong password
+  version: 1.0.0
+sourceDescriptions:
+  - name: dummyjson
+    url: ./dummyjson.openapi.yaml
+    type: openapi
+workflows:
+  - workflowId: wrongPassword
+    summary: Log in with a wrong password and expect the 400
+    inputs:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string, example: emilys }
+        password: { type: string, example: not-the-password }
+    steps:
+      - stepId: loginRejected
+        operationId: login
+        requestBody:
+          contentType: application/json
+          payload:
+            username: $inputs.username
+            password: $inputs.password
+        successCriteria:
+          - condition: $statusCode == 400
+          - condition: $response.body#/message == 'Invalid credentials'
+        outputs:
+          message: $response.body#/message
+    outputs:
+      message: $steps.loginRejected.outputs.message

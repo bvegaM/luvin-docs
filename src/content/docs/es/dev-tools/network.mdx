@@ -1,0 +1,111 @@
+---
+title: Network
+description: Lee la lista de requests y mensajes de tus ejecuciones, abre el detalle de uno y cópialo como comando cURL con los secretos tapados.
+sidebar:
+  order: 2
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+La pestaña **Network** lista cada request HTTP y cada mensaje que envió Luvin. Úsala para ver exactamente qué salió hacia la API y qué volvió, por ejemplo cuando un paso falla y quieres revisar la URL, un header o el body.
+
+![La pestaña Network: la lista de requests y el detalle del seleccionado](/media/es/devtools-network.webp)
+
+## Ejemplo: Copiar como cURL, con un secreto tapado
+
+Un comando cURL repite el request desde una terminal, lo que sirve para compartir un problema o para descartar que sea la app.
+
+<Steps>
+
+1. Abre el detalle de un request HTTP.
+2. Haz clic en **Copiar como cURL**. El botón muestra **✓ Copiado** un momento.
+3. Pégalo en una terminal o en un ticket.
+
+</Steps>
+
+Las filas de mensajes no tienen este botón.
+
+### Los secretos van tapados
+
+Todo lo de **Network** ya viene tapado: los tokens, contraseñas, API keys y valores de [secretos](/es/environments/variables-and-secrets/) se ven como `••••`. En el comando copiado, un valor tapado en la URL o en un header se reemplaza por `<secret>`, para que veas qué debes completar:
+
+```bash title="Pegado en una terminal"
+curl -X POST 'https://api.shop.test/orders' \
+  -H 'Authorization: Bearer <secret>' \
+  -H 'content-type: application/json' \
+  --data-raw '{
+  "customerId": "C-1001"
+}'
+```
+
+<Aside type="caution">
+Un valor tapado dentro del body queda como `••••` en la copia. Revisa el body antes de ejecutar el comando.
+</Aside>
+
+## Ver los requests
+
+<Steps>
+
+1. Abre [Dev Tools](/es/dev-tools/overview/) y haz clic en la pestaña **Network**.
+2. Ejecuta un workflow. Cada request aparece como una fila mientras avanza la ejecución.
+
+</Steps>
+
+Mientras no hay nada, la pestaña dice **Todavía no hay peticiones**.
+
+## Qué es cada fila
+
+| Columna | Qué muestra |
+|---|---|
+| **Status** | El status HTTP, en verde. En rojo si el paso falló o la API no respondió. Un guion (—) significa que no hubo respuesta. En los mensajes: ✓ o ✕. |
+| **Método** | `GET`, `POST`, etc. Un paso de mensajería muestra `SEND` o `RECEIVE`. |
+| **URL** | La dirección completa. En un mensaje, el canal. La etiqueta **Simulado** marca una respuesta que no salió a la red. |
+| **Paso** | El paso que hizo la llamada. |
+| **Tiempo** | Cuánto tardó la llamada, en milisegundos. |
+| **Tamaño** | El tamaño aproximado de la respuesta (o del mensaje): B, KB o MB. |
+
+Las filas que fallaron aparecen resaltadas. Cada caso de una ejecución agrega sus propias filas, así que un workflow con varios casos lista sus llamadas una vez por caso.
+
+Aparece una fila por:
+
+- Cada paso de la ejecución de un workflow, contra la **API real** o en **Simulación**. Los pasos que llaman a otro workflow agregan las filas de ese workflow.
+- Los requests que envías desde un [request](/es/requests/overview/) guardado: la columna del workflow dice **Requests** y el paso es el nombre del request.
+- **Try it out** de un contrato: el workflow es `Swagger UI`.
+
+Los requests gRPC o WebSocket no aparecen en esta lista.
+
+## Filtrar la lista
+
+Escribe en el campo **Filtrar por URL, paso o status…**. Luvin deja las filas donde el texto aparece en el método, la URL, el status, el paso, el workflow o el nombre del caso. Si nada coincide, la pestaña dice **Ninguna petición coincide con el filtro.**
+
+Haz clic en **Limpiar** (el ícono de papelera) para vaciar la lista. También se vacía sola cuando cierras la app, y conserva las últimas 500 entradas.
+
+## Abrir el detalle de un request
+
+<Steps>
+
+1. Haz clic en una fila. Se abre un panel junto a la lista.
+2. Lee el resumen de arriba:
+
+</Steps>
+
+| Campo | Qué muestra |
+|---|---|
+| **Status** | El status y su texto, por ejemplo `201 Created`. Si no hubo respuesta, **Sin respuesta**. |
+| **Tiempo** y **Tamaño** | Igual que en la fila. |
+| **Paso** | El paso y, después de un punto, el workflow. |
+| **Caso** | El caso que hizo la llamada, con **Simulado** cuando fue una simulación. |
+
+3. Haz clic en **Petición** para ver lo que envió Luvin, o en **Respuesta** para ver lo que volvió. En un mensaje, las pestañas se llaman **Enviado** y **Recibido**.
+4. Lee los **Headers** y el **Body**. Cuando no hay nada, el panel dice **Sin headers.** o **Sin body.**
+5. Haz clic otra vez en la fila, o en la **×** del panel, para cerrarlo.
+
+El panel se abre en **Respuesta** si la llamada tuvo una.
+
+## Siguiente
+
+<CardGrid>
+  <LinkCard title="Console y Performance" href="/es/dev-tools/console-and-performance/" />
+  <LinkCard title="Leer el resultado de un paso" href="/es/test/step-results/" />
+  <LinkCard title="Privacidad y seguridad" href="/es/reference/privacy/" />
+</CardGrid>

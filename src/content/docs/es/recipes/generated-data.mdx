@@ -1,0 +1,112 @@
+---
+title: Envía datos generados
+description: Arma el body de un request con generadores, como un nombre y un email al azar, y comprueba lo que la API devuelve.
+sidebar:
+  order: 5
+---
+
+import { Steps, CardGrid, LinkCard, LinkButton, Aside } from '@astrojs/starlight/components'
+
+Las pruebas que reutilizan siempre el mismo usuario chocan o se quedan viejas. Los generadores hacen que Luvin escriba un valor nuevo cada vez que envía el request.
+
+**Qué prueba:** que un body armado con generadores e inputs es aceptado (201) y que la API devuelve los datos que enviaste.
+
+## Descarga los archivos
+
+<LinkButton href="/recipes/generated-data/generated-data.arazzo.yaml" icon="download" download>generated-data.arazzo.yaml</LinkButton>
+<LinkButton href="/recipes/generated-data/dummyjson.openapi.yaml" icon="download" variant="secondary" download>dummyjson.openapi.yaml</LinkButton>
+
+## Ábrelo en Luvin
+
+<Steps>
+
+1. Descarga los dos archivos de arriba en una misma carpeta.
+2. En Luvin, pulsa **Nueva colección**, o abre una colección que ya tengas.
+3. En el inicio de la colección, pulsa **Importar Arazzo o contratos** y elige los dos archivos descargados.
+4. En la barra lateral, abre el workflow `addGeneratedUser`.
+5. En la barra de ejecución, elige **API real**.
+6. Pulsa **Ejecutar**. Los resultados se abren abajo.
+
+</Steps>
+
+## El archivo Arazzo
+
+```yaml title="generated-data.arazzo.yaml" {22-25,28-34}
+arazzo: 1.0.1
+info:
+  title: Create a user with generated data
+  version: 1.0.0
+sourceDescriptions:
+  - name: dummyjson
+    url: ./dummyjson.openapi.yaml
+    type: openapi
+workflows:
+  - workflowId: addGeneratedUser
+    summary: Send a new random user on every run and check the echo
+    inputs:
+      type: object
+      properties:
+        age: { type: integer, example: 29 }
+    steps:
+      - stepId: addUser
+        operationId: addUser
+        requestBody:
+          contentType: application/json
+          payload:
+            firstName: '{{$randomFirstName}}'
+            lastName: '{{$randomLastName}}'
+            email: '{{$randomEmail}}'
+            age: $inputs.age
+        successCriteria:
+          - condition: $statusCode == 201
+          - condition: $response.body#/age == $inputs.age
+          - context: $response.body#/email
+            condition: ^[^@\s{]+@[^@\s]+\.[^@\s]+$
+            type: regex
+          - context: $response.body#/firstName
+            condition: ^[^{]+$
+            type: regex
+        outputs:
+          id: $response.body#/id
+          firstName: $response.body#/firstName
+          email: $response.body#/email
+    outputs:
+      firstName: $steps.addUser.outputs.firstName
+      email: $steps.addUser.outputs.email
+```
+
+| Línea | Qué hace |
+|---|---|
+| `'{{$randomFirstName}}'` (22) | Luvin reemplaza el generador por un nombre inventado al enviar el request. En YAML, escríbelo entre comillas. |
+| `'{{$randomLastName}}'`, `'{{$randomEmail}}'` (23-24) | Cada uno es un valor nuevo. Son independientes entre sí. |
+| `age: $inputs.age` (25) | Un input normal, mezclado con los generadores en el mismo body. |
+| `$response.body#/age == $inputs.age` (28) | La edad devuelta debe ser igual a la que se envió. |
+| `type: regex` sobre `email` (29-31) | El email devuelto debe parecer una dirección y no debe contener un `{`, señal de un generador sin resolver. |
+| `type: regex` sobre `firstName` (32-34) | El nombre devuelto tampoco debe contener un `{`. |
+
+## Qué obtienes
+
+| Paso | Estado HTTP | Outputs |
+|---|---|---|
+| `addUser` | 201 | `id` (lo asigna la API), `firstName`, `email` (los valores generados que devolvió) |
+
+El veredicto es **Pasó**. Los outputs cambian en cada ejecución. Dos ejecuciones de esta receta enviaron, por ejemplo, *Joyce* con `Lavern.Leannon@gmail.com` y *Amiya* con `Valentina_Hodkiewicz77@hotmail.com`.
+
+:::note
+`POST /users/add` de DummyJSON responde con el usuario tal como lo recibió y no lo guarda. Puedes ejecutar la receta las veces que quieras sin dejar datos.
+:::
+
+Los generadores de Luvin siguen los nombres de Postman (`{{$guid}}`, `{{$randomInt}}`, `{{$randomCity}}` y más). Los nombres salen en el idioma de la interfaz: con Luvin en español, `{{$randomFirstName}}` produce nombres en español. Mira [Variables dinámicas](/es/environments/dynamic-variables/) para la lista completa.
+
+## Pruébalo
+
+- **Ejecútala dos veces.** Pulsa **Ejecutar** de nuevo y abre el paso: `firstName` y `email` son distintos. Ningún input cambió.
+- **Cambia un input.** Pon `age` en `41`. El body envía 41, la API devuelve 41 y el criterio sobre `age` sigue pasando.
+
+## Relacionado
+
+<CardGrid>
+<LinkCard title="Variables dinámicas" description="La lista completa de generadores y cómo se resuelven." href="/es/environments/dynamic-variables/" />
+<LinkCard title="Criterios de éxito" description="Comprobaciones JSONPath y regex sobre la respuesta." href="/es/reference/criteria/" />
+<LinkCard title="Parámetros y body" description="Arma el body del request de un paso." href="/es/design/parameters-and-body/" />
+</CardGrid>

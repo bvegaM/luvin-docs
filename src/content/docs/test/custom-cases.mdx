@@ -1,0 +1,97 @@
+---
+title: Custom data cases
+description: Add your own cases with a combination of inputs and an expected result, and use generators to get fresh data on every run.
+sidebar:
+  order: 4
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A **custom data case** runs the workflow with your own combination of inputs and checks that one step answers what you expect. Use it for situations Luvin cannot work out from the contract: a customer that already exists, an account with no balance, a Pokémon that does not exist.
+
+Custom data cases always run against the real API. With the run bar on **Simulation** they show **Will not run**.
+
+## Example: Unknown Pokémon in Pokemon card
+
+This case checks that `getPokemon` answers 404 for a name that does not exist.
+
+| Field | Value |
+|---|---|
+| **Case name** | Unknown Pokémon |
+| **Step to check** | `getPokemon` |
+| **Expected action (optional)** | `pokemonNotFound (end)` |
+| **Expected status** | `404` |
+| **Case inputs** | `pokemon` = `missingno` |
+
+## Create a case
+
+<Steps>
+1. Open the workflow and click the **Cases** tab.
+2. In the **Custom data cases** group, press **+ New data case**. A form opens.
+3. In **Case name**, type a name that says what the case tests.
+4. In **Step to check**, choose the step whose response you want to check. Luvin proposes the last step.
+5. Fill in the expected result. See the next section.
+6. Under **Case inputs**, change the values that make this situation happen.
+7. Press **Add case**. The case appears in the group, ticked and ready to run.
+</Steps>
+
+**Add case** is available once the case has a name, a step and at least one expectation: a status, a code or an action.
+
+## The expected result
+
+| Field | What it checks |
+|---|---|
+| **Expected status** | The status the step must answer. It starts with the success status of the step: change it if the case expects an error. For several, separate them with commas: `200, 201`. The label lists the statuses documented in the contract. |
+| **Expected code in the body (optional)** | The `code` field of the response body must be exactly this value, for example `ACCOUNT_ALREADY_EXISTS`. |
+| **Expected action (optional)** | The success or failure action of the step that must fire. The list shows the named actions of the step. |
+
+A case **passes** when everything you filled in matches. If not, it **fails** and says what was different, for example *"getPokemon" responded 200 and 404 was expected.* If the workflow stops before reaching the step, the case is **inconclusive**.
+
+When the expected status is an error, the step that answers it is shown as passed in the results. See [Read a step result](/test/step-results/).
+
+## Give it inputs
+
+The editor is the same one every case has:
+
+- Type a value to change an input. The row goes from **Default** to **Changed**.
+- Press **Omit** to leave an input out.
+- **Reset** returns an input to its default.
+
+Inputs you do not change use the values of the **Inputs** tab. If you change a default there later, the case follows it. The states are explained in [Adjust a case](/test/adjust-cases/).
+
+## Fresh data with generators
+
+A value can contain a generator: a name between double braces that Luvin replaces with a new value on every run. That way a case that creates a customer can run again without failing because the customer already exists.
+
+| Generator | Produces |
+|---|---|
+| `{{$randomEmail}}` | A random email address |
+| `{{uuid}}` | A UUID |
+| `{{number:8}}` | 8 random digits. Change the number for another length, from 1 to 32 |
+| `{{cpf}}`, `{{rut}}` | A valid Brazilian CPF, a valid Chilean RUT |
+| `{{email}}` | A unique email address at `example.com` |
+| `{{date}}` | Today's date, as `YYYY-MM-DD` |
+
+You can mix a generator with text: `QA-{{number:6}}`.
+
+Type `{{` in a field to see the suggestions, or `{{$` to see the 47 dynamic variables, which have the same names as in Postman. Variables of the active environment work the same way: `{{partnerCode}}`. The full list is in [Dynamic variables](/environments/dynamic-variables/).
+
+<Aside type="tip">
+After a run, **Show values sent** in the case detail shows the value each generator produced.
+</Aside>
+
+## Edit and delete
+
+- To change the inputs, press **Inputs** on the case.
+- The name and the expected result cannot be changed once the case exists. Delete the case and add it again.
+- **Delete** removes the case at once, with no confirmation. Only custom data cases have this button.
+- To keep a case without running it, untick it.
+
+In a workspace, custom data cases are saved with the collection. To move them elsewhere, see [Import and export cases](/test/adjust-cases/#import-and-export-cases).
+
+## Next
+
+<CardGrid>
+  <LinkCard title="Run" href="/test/run/" />
+  <LinkCard title="Read the results" href="/test/results/" />
+</CardGrid>

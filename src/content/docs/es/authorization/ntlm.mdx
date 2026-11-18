@@ -1,0 +1,46 @@
+---
+title: NTLM Auth
+description: Autentícate contra un servidor Windows o de intranet con NTLM desde la app de escritorio, con sus campos y límites.
+sidebar:
+  order: 16
+---
+
+import { Aside, Badge } from '@astrojs/starlight/components';
+
+<Badge text="Solo en escritorio" variant="caution" />
+
+Usa **NTLM Auth** cuando un servidor Windows o de intranet (por ejemplo IIS con autenticación de Windows) pide NTLM. El intercambio tiene tres mensajes y deben viajar por la misma conexión. Los navegadores no lo permiten, así que solo la app de escritorio puede hacerlo.
+
+## Ejemplo
+
+Un request `GET https://intranet.example.com/api/orders` a un servidor que responde `401` con `WWW-Authenticate: NTLM`.
+
+**Tipo** `NTLM Auth`, **Usuario** `ana`, **Contraseña** `{{password}}`, **Dominio** `CORP`, **Estación de trabajo** (vacía). Luvin hace el intercambio (Negotiate, Challenge, Authenticate) en una sola conexión y ves la respuesta final.
+
+## Campos
+
+| Campo | Qué escribir |
+|---|---|
+| **Usuario** | El usuario. |
+| **Contraseña** | La contraseña. Es un campo secreto. |
+| **Dominio** | El dominio de Windows, por ejemplo `CORP`. |
+| **Estación de trabajo** | El nombre de la estación de trabajo. Opcional. |
+
+## Límites
+
+- **Solo la app de escritorio.** En la versión web la opción dice *NTLM Auth · solo en escritorio*, y al enviar ves *NTLM necesita la app de escritorio: el intercambio tiene que ocurrir en la misma conexión y el navegador no lo permite.*
+- Es NTLM versión 2.
+- Funciona en requests, en la colección y en un workflow, siempre desde la app de escritorio.
+
+<Aside type="note">
+No hay un servicio público para probar NTLM, así que esta página no tiene un ejemplo en vivo. El servidor del ejemplo es solo un marcador.
+</Aside>
+
+## Secretos
+
+**Contraseña** es un secreto: escrita tal cual se guarda cifrada en tu equipo. **Usuario**, **Dominio** y **Estación de trabajo** van al archivo. Usa variables para compartir. Mira [Secretos](/es/authorization/secrets/).
+
+## Relacionado
+
+- [Digest Auth](/es/authorization/digest/)
+- [Limitaciones](/es/reference/limitations/)

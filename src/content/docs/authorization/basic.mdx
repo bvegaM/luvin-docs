@@ -1,0 +1,55 @@
+---
+title: Basic Auth
+description: Send a username and password in the Authorization header, with the fields and a verified example.
+sidebar:
+  order: 11
+---
+
+Use **Basic Auth** when the API documentation says "use basic authentication" or gives you a username and a password.
+
+## Example
+
+Request `GET https://httpbin.org/basic-auth/user/passwd`.
+
+**Type** `Basic Auth`, **Username** `user`, **Password** `passwd`. Luvin sends:
+
+```text
+Authorization: Basic dXNlcjpwYXNzd2Q=
+```
+
+The response is `200`:
+
+```json
+{
+  "authenticated": true,
+  "user": "user",
+  "authorized": true
+}
+```
+
+`dXNlcjpwYXNzd2Q=` is `user:passwd` in base64. It is an encoding, not encryption: anyone who sees the header can read it. Use `https`. With a wrong password the API answers `401`.
+
+## Fields
+
+| Field | What to write |
+|---|---|
+| **Username** | The user. Written to the file as typed. |
+| **Password** | The password. A secret field. |
+
+## Rules
+
+- Luvin sends `Authorization: Basic <base64 of username:password>`.
+- If you wrote an `Authorization` header in **Headers**, yours wins and Luvin adds nothing.
+- With both fields empty, nothing is sent.
+- Works in requests, in the collection and in a workflow.
+
+## Secrets
+
+**Password** is a secret: typed as-is it is stored encrypted on your computer. **Username** is not a secret and goes to the file as typed. Use `{{user}}` and `{{password}}` to share the setup. See [Secrets](/authorization/secrets/).
+
+In a workflow, a contract that declares HTTP basic takes one value, `user:password`, in the environment. See [Credentials of the contract](/authorization/contract-credentials/).
+
+## Related
+
+- [Digest Auth](/authorization/digest/), when the server answers with a challenge.
+- [Authorization overview](/authorization/overview/)

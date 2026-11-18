@@ -1,0 +1,595 @@
+---
+// El buscador: un botón en la cabecera y una paleta de comandos propia sobre el índice de Pagefind
+// (el que Starlight genera al compilar). Resultados agrupados por página, con su sección, los títulos
+// de dentro de la página, navegación con flechas, búsquedas recientes y sugerencias.
+// Atajos: ⌘K / Ctrl+K y "/". En `npm run dev` no hay índice: lo dice y sugiere `npm start`.
+const { sidebar, lang } = Astro.locals.starlightRoute
+type Entry = (typeof sidebar)[number]
+const first = (e: Entry): string | undefined => (e.type === 'link' ? e.href : e.entries.map(first).find(Boolean))
+// Carpeta → nombre de la sección, para la etiqueta de cada resultado.
+const sections = Object.fromEntries(
+  sidebar
+    .filter((e) => e.type === 'group')
+    .map((g) => [first(g)?.replace(/^\/(es\/)?/, '').split('/')[0] ?? '', g.label])
+    .filter(([dir]) => dir),
+)
+const es = lang === 'es'
+const base = es ? '/es' : ''
+const t = es
+  ? {
+      button: 'Buscar',
+      placeholder: 'Busca workflows, casos, requests, ambientes…',
+      close: 'Cerrar',
+      recent: 'Búsquedas recientes',
+      suggested: 'Para empezar',
+      none: 'Nada coincide con',
+      tryOther: 'Prueba con otra palabra o revisa las preguntas frecuentes.',
+      navigate: 'moverse',
+      open: 'abrir',
+      dev: 'El buscador funciona en el sitio compilado. Ejecuta npm start y abre http://localhost:4321.',
+      results: 'resultados',
+      clear: 'Borrar',
+    }
+  : {
+      button: 'Search',
+      placeholder: 'Search workflows, cases, requests, environments…',
+      close: 'Close',
+      recent: 'Recent searches',
+      suggested: 'Start here',
+      none: 'Nothing matches',
+      tryOther: 'Try another word or check the frequently asked questions.',
+      navigate: 'move',
+      open: 'open',
+      dev: 'Search works in the built site. Run npm start and open http://localhost:4321.',
+      results: 'results',
+      clear: 'Clear',
+    }
+const suggestions = es
+  ? [
+      ['Inicio rápido', `${base}/get-started/quick-start/`, 'get-started'],
+      ['Diseñar un workflow', `${base}/design/overview/`, 'design'],
+      ['Ejecutar los casos', `${base}/test/run/`, 'test'],
+      ['Elegir un elemento de una lista', `${base}/test/lists/`, 'test'],
+      ['Requests HTTP', `${base}/requests/http/`, 'requests'],
+      ['Preguntas frecuentes', `${base}/reference/faq/`, 'reference'],
+    ]
+  : [
+      ['Quick start', `${base}/get-started/quick-start/`, 'get-started'],
+      ['Design a workflow', `${base}/design/overview/`, 'design'],
+      ['Run the cases', `${base}/test/run/`, 'test'],
+      ['Choose an item from a list', `${base}/test/lists/`, 'test'],
+      ['HTTP requests', `${base}/requests/http/`, 'requests'],
+      ['Frequently asked questions', `${base}/reference/faq/`, 'reference'],
+    ]
+---
+
+<lv-search data-sections={JSON.stringify(sections)} data-suggestions={JSON.stringify(suggestions)} data-dev={import.meta.env.DEV ? '1' : undefined} data-lang={lang}>
+  <button type="button" class="lv-search-btn" data-open-modal aria-label={t.button} aria-keyshortcuts="Control+K Meta+K /">
+    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+    <span class="lbl">{t.button}</span>
+    <kbd class="lbl"><span data-mod>⌘</span>K</kbd>
+  </button>
+
+  <dialog class="lv-search-dialog" aria-label={t.button}>
+    <div class="panel">
+      <div class="bar">
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+        <input type="search" placeholder={t.placeholder} autocomplete="off" spellcheck="false" aria-label={t.button} aria-controls="lv-search-list" role="combobox" aria-expanded="true" />
+        <button type="button" class="esc" data-close>esc</button>
+      </div>
+      <div class="body" id="lv-search-list" role="listbox"></div>
+      <div class="foot">
+        <span><kbd>↑</kbd><kbd>↓</kbd> {t.navigate}</span>
+        <span><kbd>↵</kbd> {t.open}</span>
+        <span><kbd>esc</kbd> {t.close.toLowerCase()}</span>
+        <span class="count" aria-live="polite"></span>
+      </div>
+    </div>
+  </dialog>
+  <template data-t set:html={JSON.stringify(t)} />
+</lv-search>
+
+<script>
+  type Sub = { title: string; url: string; excerpt: string }
+  type Data = { url: string; meta: { title?: string }; excerpt: string; sub_results?: Sub[] }
+
+  const RECENT = 'lv-search-recent'
+  const ICON_PAGE = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>'
+  const ICON_HASH = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 9h14M5 15h14M10 4 8 20M16 4l-2 16"/></svg>'
+  const ICON_CLOCK = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'
+  const ICON_ARROW = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!)
+
+  class LvSearch extends HTMLElement {
+    dialog!: HTMLDialogElement
+    input!: HTMLInputElement
+    list!: HTMLElement
+    count!: HTMLElement
+    t: Record<string, string> = {}
+    sections: Record<string, string> = {}
+    pagefind: any
+    active = 0
+    seq = 0
+
+    connectedCallback() {
+      this.dialog = this.querySelector('dialog')!
+      this.input = this.querySelector('input')!
+      this.list = this.querySelector('.body')!
+      this.count = this.querySelector('.count')!
+      this.t = JSON.parse(this.querySelector<HTMLTemplateElement>('template[data-t]')!.innerHTML)
+      this.sections = JSON.parse(this.dataset.sections ?? '{}')
+      if (!/Mac|iPhone|iPad/.test(navigator.platform)) this.querySelectorAll('[data-mod]').forEach((el) => (el.textContent = 'Ctrl '))
+      this.querySelector('[data-open-modal]')!.addEventListener('click', (e) => {
+        e.stopPropagation()
+        this.open()
+      })
+      this.querySelector('[data-close]')!.addEventListener('click', () => this.close())
+      // Clic en el fondo (fuera del panel) cierra.
+      this.dialog.addEventListener('click', (e) => e.target === this.dialog && this.close())
+      this.dialog.addEventListener('close', () => document.body.classList.remove('lv-search-open'))
+      this.input.addEventListener('input', () => this.search())
+      this.input.addEventListener('keydown', (e) => this.keys(e))
+      // Una sola fila resaltada: la que señala el cursor pasa a ser la activa.
+      this.list.addEventListener('mousemove', (e) => {
+        const el = (e.target as HTMLElement).closest<HTMLElement>('.item')
+        const i = el ? this.items().indexOf(el) : -1
+        if (i >= 0 && i !== this.active) {
+          this.active = i
+          this.items().forEach((x, n) => x.toggleAttribute('data-active', n === i))
+        }
+      })
+      window.addEventListener('keydown', (e) => {
+        const el = e.target as HTMLElement | null
+        const typing = el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+          e.preventDefault()
+          this.dialog.open ? this.close() : this.open()
+        } else if (e.key === '/' && !typing && !this.dialog.open) {
+          e.preventDefault()
+          this.open()
+        }
+      })
+    }
+
+    open() {
+      if (this.dialog.open) return
+      this.dialog.showModal()
+      document.body.classList.add('lv-search-open')
+      this.input.select()
+      this.search()
+    }
+    close() {
+      this.dialog.close()
+    }
+
+    async load() {
+      if (this.pagefind || this.dataset.dev) return this.pagefind
+      try {
+        const url = '/pagefind/pagefind.js'
+        this.pagefind = await import(/* @vite-ignore */ url)
+        await this.pagefind.options({ excerptLength: 22 })
+        this.pagefind.init()
+      } catch {
+        this.pagefind = undefined
+      }
+      return this.pagefind
+    }
+
+    section(url: string) {
+      const dir = url.replace(/^\/(es\/)?/, '').split('/')[0]
+      return this.sections[dir] ?? ''
+    }
+
+    async search() {
+      const q = this.input.value.trim()
+      const run = ++this.seq
+      if (!q) return this.empty()
+      if (this.dataset.dev) return this.render(`<p class="note">${esc(this.t.dev)}</p>`, 0)
+      const pf = await this.load()
+      if (!pf) return this.render(`<p class="note">${esc(this.t.dev)}</p>`, 0)
+      const res = await pf.debouncedSearch(q, {}, 140)
+      if (!res || run !== this.seq) return
+      const data: Data[] = await Promise.all(res.results.slice(0, 9).map((r: any) => r.data()))
+      if (run !== this.seq) return
+      if (!data.length) {
+        return this.render(`<div class="none"><strong>${esc(this.t.none)} “${esc(q)}”</strong><span>${esc(this.t.tryOther)}</span></div>`, 0)
+      }
+      let html = ''
+      for (const d of data) {
+        const url = d.url.replace(/index\.html$/, '')
+        // Los títulos de dentro de la página, sin repetir el de la página misma.
+        const subs = (d.sub_results ?? []).filter((s) => s.url.split('#')[1] && s.title !== d.meta.title).slice(0, 3)
+        const sec = this.section(url)
+        html += `<div class="group">`
+        html += `<a class="item page" href="${esc(url)}" role="option"><span class="ic">${ICON_PAGE}</span><span class="txt"><span class="row1">${sec ? `<span class="sec">${esc(sec)}</span>` : ''}<span class="title">${esc(d.meta.title ?? url)}</span></span><span class="ex">${d.excerpt}</span></span><span class="go">${ICON_ARROW}</span></a>`
+        for (const s of subs) html += `<a class="item sub" href="${esc(s.url)}" role="option"><span class="ic">${ICON_HASH}</span><span class="txt"><span class="title">${esc(s.title)}</span><span class="ex">${s.excerpt}</span></span><span class="go">${ICON_ARROW}</span></a>`
+        html += `</div>`
+      }
+      this.render(html, res.results.length)
+      this.remember(q)
+    }
+
+    empty() {
+      const recent: string[] = this.recent()
+      const sugg: [string, string, string][] = JSON.parse(this.dataset.suggestions ?? '[]')
+      let html = ''
+      if (recent.length) {
+        html += `<div class="label">${esc(this.t.recent)}<button type="button" class="clear" data-clear>${esc(this.t.clear)}</button></div>`
+        for (const r of recent) html += `<button type="button" class="item recent" data-q="${esc(r)}" role="option"><span class="ic">${ICON_CLOCK}</span><span class="txt"><span class="title">${esc(r)}</span></span><span class="go">${ICON_ARROW}</span></button>`
+      }
+      html += `<div class="label">${esc(this.t.suggested)}</div>`
+      for (const [title, url, dir] of sugg) html += `<a class="item page" href="${esc(url)}" role="option"><span class="ic">${ICON_PAGE}</span><span class="txt"><span class="row1"><span class="sec">${esc(this.sections[dir] ?? '')}</span><span class="title">${esc(title)}</span></span></span><span class="go">${ICON_ARROW}</span></a>`
+      this.render(html, -1)
+      this.list.querySelectorAll<HTMLElement>('[data-q]').forEach((b) =>
+        b.addEventListener('click', () => {
+          this.input.value = b.dataset.q!
+          this.search()
+          this.input.focus()
+        }),
+      )
+      this.list.querySelector('[data-clear]')?.addEventListener('click', () => {
+        try {
+          localStorage.removeItem(RECENT)
+        } catch {}
+        this.empty()
+        this.input.focus()
+      })
+    }
+
+    render(html: string, total: number) {
+      this.list.innerHTML = html
+      this.count.textContent = total > 0 ? `${total} ${this.t.results}` : ''
+      this.active = 0
+      this.mark()
+    }
+
+    items() {
+      return [...this.list.querySelectorAll<HTMLElement>('.item')]
+    }
+    mark() {
+      this.items().forEach((el, i) => el.toggleAttribute('data-active', i === this.active))
+      this.items()[this.active]?.scrollIntoView({ block: 'nearest' })
+    }
+    keys(e: KeyboardEvent) {
+      const n = this.items().length
+      if (e.key === 'ArrowDown' && n) {
+        e.preventDefault()
+        this.active = (this.active + 1) % n
+        this.mark()
+      } else if (e.key === 'ArrowUp' && n) {
+        e.preventDefault()
+        this.active = (this.active - 1 + n) % n
+        this.mark()
+      } else if (e.key === 'Enter') {
+        const el = this.items()[this.active]
+        if (!el) return
+        e.preventDefault()
+        el.click()
+      }
+    }
+
+    recent(): string[] {
+      try {
+        return JSON.parse(localStorage.getItem(RECENT) ?? '[]')
+      } catch {
+        return []
+      }
+    }
+    remember(q: string) {
+      clearTimeout((this as any)._rt)
+      ;(this as any)._rt = setTimeout(() => {
+        if (q.length < 3) return
+        const next = [q, ...this.recent().filter((r) => r.toLowerCase() !== q.toLowerCase())].slice(0, 5)
+        try {
+          localStorage.setItem(RECENT, JSON.stringify(next))
+        } catch {}
+      }, 1200)
+    }
+  }
+  customElements.define('lv-search', LvSearch)
+</script>
+
+<style>
+  lv-search {
+    display: contents;
+  }
+  .lv-search-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    width: 100%;
+    max-width: 22rem;
+    padding: 0.5rem 0.55rem 0.5rem 0.8rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.65rem;
+    background: var(--sl-color-black);
+    color: var(--sl-color-gray-3);
+    font: inherit;
+    font-size: var(--sl-text-sm);
+    cursor: pointer;
+    transition:
+      border-color 0.15s,
+      color 0.15s;
+  }
+  .lv-search-btn:hover {
+    border-color: var(--sl-color-accent);
+    color: var(--sl-color-gray-2);
+  }
+  .lv-search-btn span.lbl {
+    flex: 1;
+    text-align: start;
+  }
+  .lv-search-btn kbd {
+    padding: 0.05rem 0.4rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-bottom-width: 2px;
+    border-radius: 0.35rem;
+    background: var(--sl-color-gray-6);
+    font-family: inherit;
+    font-size: 0.72rem;
+    color: var(--sl-color-gray-2);
+  }
+  @media (max-width: 50rem) {
+    .lv-search-btn {
+      width: auto;
+      border: 0;
+      background: none;
+      padding: 0.4rem;
+      color: var(--sl-color-gray-1);
+    }
+    .lv-search-btn .lbl {
+      display: none;
+    }
+  }
+
+  /* La paleta */
+  .lv-search-dialog {
+    width: min(42rem, calc(100vw - 2rem));
+    max-height: min(36rem, calc(100vh - 6rem));
+    margin: 10vh auto auto;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    overflow: visible;
+  }
+  .lv-search-dialog::backdrop {
+    background: rgba(5, 9, 7, 0.55);
+    backdrop-filter: blur(6px);
+  }
+  .lv-search-dialog[open] .panel {
+    animation: lv-pop 0.16s ease-out;
+  }
+  @keyframes lv-pop {
+    from {
+      opacity: 0;
+      transform: translateY(-6px) scale(0.985);
+    }
+  }
+  .panel {
+    display: flex;
+    flex-direction: column;
+    max-height: min(36rem, calc(100vh - 6rem));
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 1rem;
+    background: var(--sl-color-black);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--sl-color-accent) 18%, transparent),
+      0 30px 80px -20px rgba(0, 0, 0, 0.55);
+    overflow: hidden;
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.95rem 1.1rem;
+    border-bottom: 1px solid var(--sl-color-gray-5);
+    color: var(--sl-color-text-accent);
+  }
+  .bar input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: none;
+    color: var(--sl-color-white);
+    font: inherit;
+    font-size: 1.08rem;
+  }
+  .bar input::placeholder {
+    color: var(--sl-color-gray-3);
+  }
+  .bar input::-webkit-search-cancel-button {
+    display: none;
+  }
+  .esc {
+    padding: 0.15rem 0.45rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.35rem;
+    background: var(--sl-color-gray-6);
+    color: var(--sl-color-gray-3);
+    font: inherit;
+    font-size: 0.72rem;
+    cursor: pointer;
+  }
+  .body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0.5rem;
+    scroll-padding: 0.5rem;
+  }
+  .body :global(.label) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.7rem 0.65rem 0.35rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--sl-color-gray-3);
+  }
+  .body :global(.clear) {
+    border: 0;
+    background: none;
+    color: var(--sl-color-gray-3);
+    font: inherit;
+    font-size: 0.7rem;
+    text-transform: none;
+    letter-spacing: 0;
+    cursor: pointer;
+  }
+  .body :global(.group) {
+    padding-bottom: 0.35rem;
+    margin-bottom: 0.35rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--sl-color-gray-5) 60%, transparent);
+  }
+  .body :global(.group:last-child) {
+    border-bottom: 0;
+  }
+  .body :global(.item) {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.6rem 0.65rem;
+    border: 0;
+    border-radius: 0.6rem;
+    background: none;
+    color: var(--sl-color-gray-2);
+    font: inherit;
+    text-align: start;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .body :global(.item.sub) {
+    padding-left: 2.1rem;
+  }
+  .body :global(.item[data-active]) {
+    background: color-mix(in srgb, var(--sl-color-accent) 13%, var(--sl-color-black));
+    color: var(--sl-color-white);
+  }
+  .body :global(.ic) {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.5rem;
+    color: var(--sl-color-gray-3);
+  }
+  .body :global(.item.sub .ic) {
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 0;
+  }
+  .body :global(.item[data-active] .ic) {
+    border-color: color-mix(in srgb, var(--sl-color-accent) 55%, transparent);
+    color: var(--sl-color-text-accent);
+  }
+  .body :global(.txt) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    flex: 1;
+    min-width: 0;
+  }
+  .body :global(.row1) {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+  .body :global(.sec) {
+    flex: none;
+    padding: 0.05rem 0.45rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--sl-color-accent) 16%, transparent);
+    color: var(--sl-color-text-accent);
+    font-size: 0.68rem;
+    font-weight: 600;
+  }
+  .body :global(.title) {
+    overflow: hidden;
+    color: var(--sl-color-white);
+    font-weight: 600;
+    font-size: var(--sl-text-sm);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .body :global(.item.sub .title) {
+    font-weight: 500;
+    color: var(--sl-color-gray-1);
+  }
+  .body :global(.ex) {
+    overflow: hidden;
+    font-size: 0.8rem;
+    color: var(--sl-color-gray-3);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .body :global(.ex mark) {
+    background: none;
+    color: var(--sl-color-text-accent);
+    font-weight: 600;
+  }
+  .body :global(.go) {
+    flex: none;
+    color: var(--sl-color-text-accent);
+    opacity: 0;
+    transform: translateX(-3px);
+    transition:
+      opacity 0.12s,
+      transform 0.12s;
+  }
+  .body :global(.item[data-active] .go) {
+    opacity: 1;
+    transform: none;
+  }
+  .body :global(.none),
+  .body :global(.note) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 2.2rem 1rem;
+    text-align: center;
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-sm);
+  }
+  .body :global(.none strong) {
+    color: var(--sl-color-white);
+  }
+  .foot {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.6rem 1rem;
+    border-top: 1px solid var(--sl-color-gray-5);
+    background: var(--sl-color-gray-6);
+    font-size: 0.72rem;
+    color: var(--sl-color-gray-3);
+  }
+  .foot kbd {
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    margin-right: 0.2rem;
+    padding: 0 0.3rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-bottom-width: 2px;
+    border-radius: 0.3rem;
+    background: var(--sl-color-black);
+    font-family: inherit;
+    font-size: 0.68rem;
+  }
+  .foot .count {
+    margin-left: auto;
+  }
+  @media (max-width: 40rem) {
+    .foot span:not(.count) {
+      display: none;
+    }
+  }
+</style>

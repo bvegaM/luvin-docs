@@ -1,0 +1,41 @@
+openapi: 3.0.3
+info:
+  title: DummyJSON (products)
+  version: 1.0.0
+servers:
+  - url: https://dummyjson.com
+paths:
+  /products/search:
+    get:
+      operationId: searchProducts
+      summary: Search products by text
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string, example: phone }
+        - name: limit
+          in: query
+          schema: { type: integer, example: 3 }
+        - name: select
+          in: query
+          schema: { type: string, example: 'title,price' }
+      responses:
+        '200':
+          description: The matching products
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: integer, example: 101 }
+                        title: { type: string, example: Apple AirPods Max Silver }
+                        price: { type: number, example: 549.99 }
+                  total: { type: integer, example: 23 }
+                  skip: { type: integer, example: 0 }
+                  limit: { type: integer, example: 3 }

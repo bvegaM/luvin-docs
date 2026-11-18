@@ -1,0 +1,116 @@
+---
+title: La barra lateral
+description: Lee el árbol de la barra lateral, busca en él, abre un workflow o uno de sus pasos, y administra contratos y ambientes desde sus secciones.
+sidebar:
+  order: 8
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+La barra lateral es el mapa de la colección abierta: sus archivos Arazzo, workflows, pasos, requests, contratos y ambientes. Úsala para abrir cosas, para ver cómo salió la última ejecución y para encontrar lo que sea por su nombre.
+
+## Lee el árbol
+
+Dentro de una colección, de arriba hacia abajo:
+
+| Fila | Qué es | Un clic hace |
+|---|---|---|
+| El archivo Arazzo | El archivo que contiene workflows. Con varios archivos, muestra el título del archivo y, debajo, el nombre del archivo. | Abre la [vista del archivo](/es/design/arazzo-file/) y despliega el archivo. |
+| Un workflow | Un workflow del archivo, con un punto de color. | Abre el workflow. |
+| Un paso | Una llamada del workflow, con su método (`GET`, `POST`…). | Abre una pestaña con ese paso. |
+| **Requests** | Los requests guardados de la colección y sus carpetas. | Abre el request. Consulta [Requests](/es/requests/overview/). |
+| **Contratos** | Los archivos OpenAPI y AsyncAPI. | Abre el contrato. Consulta [Contratos](/es/contracts/overview/). |
+| **Ambientes** | Los ambientes de la colección. | Lo deja activo y lo abre. Consulta [Ambientes](/es/environments/overview/). |
+
+La flecha antes del nombre de un workflow tiene el tooltip **Mostrar u ocultar los pasos**. Haz clic en ella para plegar o desplegar los pasos sin abrir el workflow.
+
+### El punto de un workflow
+
+El punto muestra cómo salió la última ejecución de ese workflow. Apúntalo para leer el estado.
+
+| Punto | Tooltip | Significado |
+|---|---|---|
+| Anillo vacío | **Sin ejecutar** | Todavía no se ejecutó ningún caso. |
+| Azul, parpadeando | **Ejecutando** | Un caso se está ejecutando. |
+| Verde | **Pasaron** | Los casos que se ejecutaron pasaron. |
+| Amarillo | **Advertencias** o **No concluyentes** | Al menos un caso terminó con una advertencia, o no se pudo juzgar. |
+| Rojo | **No pasaron** | Al menos un caso falló. |
+| Rojo, antes de ejecutar | **1 error(es)** | El workflow tiene un error que corregir antes de poder ejecutarse. El número dice cuántos. |
+
+Un paso en rojo tiene un error. Un **!** junto al nombre de un archivo significa que el archivo tiene errores. Abre la pestaña **Resumen** del workflow para verlos.
+
+## Busca en la barra lateral
+
+Esta búsqueda filtra el árbol. Para buscar en todo a la vez y saltar a un resultado, usa mejor [⌘K](/es/get-started/interface/).
+
+<Steps>
+
+1. Arriba de la barra lateral, junto a **Colecciones**, haz clic en la lupa (**Buscar en las colecciones**).
+2. Escribe en el cuadro **Workflow, paso o colección…**. El árbol se filtra mientras escribes.
+3. Haz clic en un resultado para abrirlo.
+4. Pulsa Esc, o haz clic de nuevo en la lupa, para cerrar la búsqueda y ver todo.
+
+</Steps>
+
+Qué compara la búsqueda:
+
+| Mira | Y muestra |
+|---|---|
+| El nombre, el id y la descripción de un workflow | El workflow, con todos sus pasos. |
+| El nombre de un paso o la ruta de su operación | El workflow, solo con los pasos que coinciden. |
+| El nombre y la URL de un request, y el nombre de una carpeta | El request, dentro de su carpeta. |
+| El nombre de una colección | La colección. La abierta siempre se queda. |
+
+Mientras buscas, todo lo que coincide aparece desplegado. Las secciones **Contratos** y **Ambientes** no se filtran.
+
+**Ejemplo.** En la colección Pokédex, escribe `species`. El árbol deja **Pokemon card**, con el paso `getSpecies`, y **Type explorer**, con `getFirstSpecies`. Los dos coinciden por el nombre, y también por la ruta `/pokemon-species/{idOrName}`.
+
+## Abre un paso
+
+Haz clic en un paso de la barra lateral y se abre una pestaña junto a las pestañas del workflow, con el nombre del paso. Muestra, de arriba hacia abajo:
+
+- El método y la URL completa, armada con la URL base del ambiente activo.
+- La descripción del paso, si la tiene.
+- **Parámetros**, con **Nombre**, **En** y **Valor**; el body; **Criterios de éxito**; `onSuccess` y `onFailure`; y **Outputs**.
+- **Probar sola**, que llama a esa operación fuera del workflow. Consulta [Probar una operación](/es/contracts/try-it-out/).
+- **Editar en YAML**, que abre la pestaña **YAML** del workflow.
+
+Cuando el paso no tiene `successCriteria`, la pestaña dice: *Sin successCriteria: se considera exitosa cualquier respuesta 2xx.* Esta pestaña es para leer. Para cambiar el paso, usa la pestaña **Diseño**.
+
+<Aside type="tip">
+En la interfaz Simple la misma pestaña muestra nombres legibles y palabras en lugar de expresiones. Consulta [Preferencias y la interfaz Simple](/es/get-started/preferences/).
+</Aside>
+
+## Los contratos en la barra lateral
+
+Cada fila de contrato empieza con una marca:
+
+| Marca | Significado |
+|---|---|
+| ✓ | El contrato está cargado. |
+| ✕ | No cargó. Apúntalo para leer el motivo. La fila ofrece **Adjuntar**, para elegir el archivo, y **Descargar** cuando el contrato tiene una URL. |
+| ○ | El archivo está en la colección, pero ningún Arazzo lo usa todavía. Su tooltip dice *Ningún Arazzo de la colección usa este archivo todavía*. |
+
+El número junto a **Contratos** es cuántos están cargados, o `1/2` cuando falta uno. Un **+** en un contrato OpenAPI ejecuta **Generar requests**. Consulta [Generar requests desde un contrato](/es/requests/generate-from-contract/).
+
+El **+** del encabezado de **Contratos** (**Agregar contrato**) ofrece **Nuevo contrato OpenAPI**, **Nuevo contrato AsyncAPI** e **Importar contrato…**. El **⋯** de una fila ofrece **Eliminar contrato…** (o **Quitar contrato…** cuando no hay archivo). Luvin pregunta antes. Consulta [Contratos](/es/contracts/overview/).
+
+## Los ambientes en la barra lateral
+
+- El punto lleno marca el ambiente activo. Un punto de color muestra su [color](/es/environments/overview/).
+- Haz clic en una fila para usar ese ambiente y abrirlo. Su tooltip dice **Usar y abrir este ambiente**.
+- En el activo, **Configurar** lo abre de nuevo.
+- El **+** del encabezado (**Nuevo ambiente**) crea uno.
+- El **⋯** de una fila ofrece **Eliminar ambiente…**.
+
+## Sin workspace
+
+Cuando abriste archivos sin un workspace, el árbol muestra una colección con un encabezado: **Agregar archivos** y **Cerrar la colección**. Cerrar pregunta antes: *¿Cerrar la colección? Se descartan la sesión y los resultados.* Consulta [Usar Luvin sin workspace](/es/workspaces/without-workspace/).
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Recorrido por la interfaz" href="/es/get-started/interface/" />
+  <LinkCard title="Colecciones" href="/es/workspaces/collections/" />
+  <LinkCard title="Organiza un workflow" href="/es/design/organize/" />
+</CardGrid>

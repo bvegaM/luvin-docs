@@ -1,0 +1,98 @@
+---
+title: Keep a workspace in git
+description: What to commit, why secrets stay out of the repository, how to review a workflow in a pull request and what a teammate does after cloning.
+sidebar:
+  order: 7
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A workspace is a folder of text files, so you can keep it in git like code. Your team can then review a change to a workflow in a pull request, see its history and share one source of truth. Luvin does not run git for you: use your usual git client, or the terminal of the desktop app (see [Terminal](/dev-tools/terminal/)).
+
+## Example: a workflow change in a pull request
+
+A change to a workflow is a change to a text file, so the pull request shows it line by line. For example, adding a header to a step appears as:
+
+```diff
+   - stepId: createOrder
+     operationId: $sourceDescriptions.shop.createOrder
+     parameters:
++      - name: Idempotency-Key
++        in: header
++        value: $inputs.requestId
+```
+
+What a reviewer reads, and where:
+
+| Change | File that shows it |
+|---|---|
+| A new step, a new wiring between steps, a different success criterion | The `*.arazzo.yaml` file. |
+| New starting inputs or a new custom case | The file with the same name inside `scenarios/`. |
+| A different base URL or variable in an environment | `environments/<name>.yaml`. |
+| A contract change that can break a workflow | The `*.openapi.yaml` or `*.asyncapi.yaml` file. |
+| A new request saved for debugging | `requests/*.request.yaml`. |
+
+The reviewer can also open the branch in Luvin, run the cases and read the results. Keep the [generated documentation](/workspaces/documentation/) in the repository so the pull request shows how the summary of the workflows changes.
+
+## What to commit
+
+Commit the whole workspace folder: `luvin.yaml`, the optional `README.md` and every collection folder. Luvin writes nothing in it that you need to ignore. [What is on disk](/workspaces/files/) lists each file.
+
+You can also commit a single collection, if each collection has its own repository. A folder with `collection.yaml` and Arazzo files opens as a workspace.
+
+## Why secrets are safe
+
+Luvin keeps secret values out of the files:
+
+- An environment file lists only the **names** of its secrets. The values are stored encrypted on each computer.
+- Credentials, such as a token or an API key, are not written to the files.
+- The workflow authorization (`flow-auth.yaml`) points to variables, for example `clientSecret: '{{clientSecret}}'`, instead of holding the value.
+- The generated documentation says it too: credentials and secrets are not in the repository.
+
+An environment file in the repository looks like this:
+
+```yaml
+name: Staging
+servers:
+  shop: https://staging.api.shop.test
+variables:
+  clientId: shop-staging-client
+secrets:
+  - clientSecret
+```
+
+<Aside type="caution" title="Check what you type in Inputs">
+Luvin does not hide the values you type in **Inputs** or in the cases: they go to `scenarios/` as written. Do not paste a real password or token there. Use a secret and write `{{clientSecret}}`.
+</Aside>
+
+## After cloning: add your secrets
+
+The files hold names and no values, so a teammate who clones the repository has to enter their own.
+
+<Steps>
+
+1. Clone the repository with git.
+2. In Luvin, choose **Open a workspace** and pick the cloned folder (the one with `luvin.yaml`).
+3. In the sidebar, under **Environments**, open the environment you will use.
+4. In **Secrets**, type the **Value** of each secret. The names are already listed.
+5. Fill in **Credentials** if the contracts ask for them, and any variable with an empty value.
+
+</Steps>
+
+If you run against the real API and something is missing, a notice above the workflow says **Credentials are missing in “name”** and **Fill in** opens the environment. See [Base URLs, variables and secrets](/environments/variables-and-secrets/).
+
+The values stay on that computer, encrypted. They are never added to the repository, so everyone uses their own.
+
+<Aside type="tip" title="Tell the next person where to get them">
+In the README of the workspace, list the secrets each environment needs and where to ask for them. The generated collection documentation already says that credentials are not in the repository.
+</Aside>
+
+Which environment is active in each collection is also remembered per computer, not in the files.
+
+## Next
+
+<CardGrid>
+  <LinkCard title="What is on disk" href="/workspaces/files/" />
+  <LinkCard title="Privacy and security" href="/reference/privacy/" />
+  <LinkCard title="Variables and secrets" href="/environments/variables-and-secrets/" />
+</CardGrid>

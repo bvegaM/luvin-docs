@@ -1,0 +1,171 @@
+---
+title: Workflows que usan otros workflows
+description: Llama a un workflow como un paso, o haz que un workflow dependa de otro, y lee sus outputs.
+sidebar:
+  order: 9
+---
+
+import { Tabs, TabItem, Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Un workflow puede usar otro workflow del mismo archivo de dos maneras. Puede **llamarlo** como un paso, o puede **depender de** él, lo que significa que el otro workflow se ejecuta primero y este lee lo que devolvió. Úsalo para no armar dos veces la misma cadena, por ejemplo «iniciar sesión» o «crear un cliente».
+
+## El ejemplo: Battle matchup
+
+En el ejemplo de la Pokédex, **Type explorer** recibe un tipo como `fire`, busca el primer Pokémon de ese tipo y devuelve `pokemon`, `strongAgainst` e `isLegendary`. **Battle matchup** depende de él: usa el tipo contra el que **Type explorer** es fuerte para buscar un rival.
+
+En el archivo, esto es una línea, `dependsOn`, y un valor que lee un output:
+
+<Tabs>
+  <TabItem label="En la app">
+
+![Un workflow con una tarjeta Depende de sobre Inicio, que lista los outputs del workflow del que depende, y dos pasos que los usan](/media/es/builder-depends.webp)
+
+  </TabItem>
+  <TabItem label="En el YAML">
+
+```yaml title="pokemon.arazzo.yaml" {2,9}
+- workflowId: battleMatchup
+  dependsOn: [typeExplorer]
+  steps:
+    - stepId: getRivalType
+      operationId: $sourceDescriptions.pokeapi.getType
+      parameters:
+        - name: idOrName
+          in: path
+          value: $workflows.typeExplorer.outputs.strongAgainst
+```
+
+  </TabItem>
+</Tabs>
+
+Una versión ejecutable: [Un workflow inicia sesión, otros reutilizan su token](/es/recipes/depends-on/).
+
+## Haz que un workflow dependa de otro
+
+<Steps>
+1. Abre el workflow que necesita los datos y ve a la pestaña **Diseño**.
+2. Haz clic en la tarjeta **Inicio**. Su panel se abre a la derecha.
+3. Bajo **Depende de**, abre **Agregar un workflow…** y elige un workflow.
+</Steps>
+
+Aparece una tarjeta **Depende de** sobre **Inicio**. Lista cada workflow y sus outputs. Si un workflow no tiene outputs, la tarjeta dice **sin outputs declarados**: abre ese workflow y agrega outputs en su tarjeta **Fin del workflow**. Consulta [Outputs](/es/design/outputs/).
+
+El panel dice **Este Arazzo no tiene otros workflows.** cuando el archivo tiene un solo workflow. Agrega otro con **+ Workflow**. Consulta [Crear un workflow](/es/design/create/).
+
+Para dejar de depender de un workflow, haz clic en la papelera junto a su nombre en el mismo panel.
+
+## Usa sus outputs
+
+Los outputs de los workflows de los que dependes están disponibles para todos los pasos, como `$workflows.<workflow>.outputs.<nombre>`. Hay dos formas de conectar uno:
+
+- En el panel del paso, abre **Origen** de un parámetro. Cada dependencia tiene un grupo, **Workflow «Type explorer» (depende de)**, con sus outputs.
+- Arrastra desde el punto de un output de la tarjeta **Depende de** hasta un parámetro de un paso. [Conectar datos entre pasos](/es/design/wire-data/) explica ambas formas.
+
+## Llama a un workflow como un paso
+
+<Steps>
+1. En la paleta **Operaciones**, abre **Workflows de este Arazzo**. Lista los otros workflows del archivo, cada uno marcado **FLOW**.
+2. Arrastra uno al lienzo, o haz clic en **+** de su fila.
+</Steps>
+
+El paso lleva el nombre del workflow. Luvin hace las conexiones por ti:
+
+- Cada input obligatorio del workflow llamado se vuelve un parámetro del paso, tomado de un paso anterior o de un input de este workflow, como en cualquier otro paso. El panel los lista bajo **Inputs del workflow**.
+- Cada output del workflow llamado se vuelve un output del paso, para que los pasos siguientes lo lean.
+
+El panel del paso muestra **llama al workflow typeExplorer** bajo el nombre. Si el workflow no está en el archivo, agrega **no existe**.
+
+## Usa un workflow de otro archivo Arazzo
+
+El workflow que necesitas puede estar en otro archivo Arazzo de la misma colección, por ejemplo un `login` que todos los archivos reutilizan. Luvin lo ejecuta como si estuviera en este archivo.
+
+<Tabs>
+  <TabItem label="En la app">
+
+<Steps>
+1. Abre la pestaña **Diseño** del workflow y haz clic en la tarjeta **Inicio**.
+2. Bajo **Depende de**, abre **Agregar un workflow…**. La lista tiene un grupo **De este archivo** y un grupo por cada otro archivo Arazzo, por ejemplo **De auth.arazzo.yaml**.
+3. Elige el workflow del otro archivo.
+</Steps>
+
+Luvin agrega el otro archivo a `sourceDescriptions` como una fuente de `type: arazzo`, una sola vez, y escribe la referencia. La tarjeta **Depende de** muestra el nombre del workflow y su archivo.
+
+Para llamarlo como paso, abre la paleta **Operaciones**. El grupo **De otros archivos Arazzo** lista esos workflows, cada uno marcado **FLOW**. Arrastra uno al lienzo. Luvin agrega la fuente de la misma manera.
+
+  </TabItem>
+  <TabItem label="En el YAML">
+
+```yaml title="profile.arazzo.yaml" {3,7,16}
+sourceDescriptions:
+  - { name: dummyjson, url: ./dummyjson.openapi.yaml, type: openapi }
+  - { name: auth, url: ./auth.arazzo.yaml, type: arazzo }
+workflows:
+  - workflowId: myProfile
+    summary: Read my profile after logging in (another document)
+    dependsOn: [$sourceDescriptions.auth.login]
+    steps:
+      - stepId: getMe
+        operationId: getMe
+        parameters:
+          - { name: Authorization, in: header, value: 'Bearer {$workflows.login.outputs.token}' }
+  - workflowId: loginAsStep
+    steps:
+      - stepId: auth
+        workflowId: $sourceDescriptions.auth.login
+        outputs: { token: $outputs.token }
+```
+
+  </TabItem>
+</Tabs>
+
+Los workflows de una fuente `arazzo` se llaman `$sourceDescriptions.<fuente>.<workflowId>`. Puedes usar ese nombre en:
+
+| Dónde | Qué hace Luvin |
+|---|---|
+| `dependsOn` de un workflow | Lo ejecuta primero, una sola vez, junto con los workflows de los que depende en su propio archivo. Lee sus outputs como `$workflows.<workflowId>.outputs.<nombre>`, solo con el id del workflow. |
+| `workflowId` de un paso | Lo llama en ese punto. Lee sus outputs como `$outputs.<nombre>` en los `outputs` del paso. |
+| `workflowId` de una acción `goto` o `retry` | Lo ejecuta cuando la acción se activa. Mira [Éxito y errores](/es/design/success-and-errors/). |
+
+Un workflow llamado como paso usa su propio valor por defecto o de ejemplo para cada input que el paso no pasa.
+
+:::note
+El otro archivo se encuentra por su nombre de archivo, así que tiene que estar en la misma colección. Una fuente de tipo `arazzo` no aparece en la lista de contratos. El análisis muestra una nota informativa: **La fuente "auth" es otro documento Arazzo (auth.arazzo.yaml): sus workflows se pueden usar como `$sourceDescriptions.auth.<workflowId>`.**
+:::
+
+Ejemplo ejecutable: [Usa un workflow de otro archivo Arazzo](/es/recipes/cross-document/).
+
+## Cuál usar
+
+| | Llamar como un paso | Depende de |
+|---|---|---|
+| Cuándo se ejecuta | En ese punto de los pasos, en cada caso. | Una vez, antes de los casos de la ejecución. |
+| Inputs | Los conectas como parámetros del paso. | Los valores de la pestaña **Inputs** de ese workflow. |
+| Dónde lees los outputs | Los outputs del paso. | `$workflows.<workflow>.outputs.<nombre>` |
+| Si falla | El paso falla, y el motivo nombra el paso donde se detuvo el otro workflow. | Los casos no se ejecutan. Cada uno termina como no concluyente, con el motivo: **No se pudo preparar el workflow: el workflow «…» del que depende falló.** |
+
+## Qué se ejecuta primero
+
+Cuando pulsas **Ejecutar**, Luvin ejecuta los workflows de los que dependes, en el orden que necesitan, antes de los casos. Un workflow que depende de otros se ejecuta después de ellos. En **Simulación** también se simulan, y contra la **API real** llaman a la API. Los resultados abren con un bloque **Preparación** que los muestra. Consulta [Resultados](/es/test/results/).
+
+Define los inputs de una dependencia en su propia pestaña **Inputs**. **Type explorer** tiene el input `type` con el valor por defecto `fire`, y **Battle matchup** no tiene inputs propios.
+
+## Límites
+
+- **Los otros archivos deben estar en la colección.** Si el archivo de una fuente `arazzo` no está cargado, o el workflow no existe en él, el análisis lo dice y los casos terminan como no concluyentes.
+- **Sin círculos**, tampoco entre archivos. Si A depende de B y B de A, Luvin no los ejecuta y lo dice con un mensaje como **Los workflows dependen unos de otros en círculo**.
+- **Cinco niveles.** Los workflows llamados como pasos se pueden anidar hasta cinco niveles. Más allá, el paso falla con **Demasiados niveles de sub-workflows anidados.**
+- **Un workflow que falta es un error.** Si un workflow depende de uno que no existe, la tarjeta muestra **no existe** y los casos terminan como no concluyentes, con el motivo.
+
+<Aside type="note">
+Eliminar un workflow que otros usan es posible, pero quedan con errores hasta que los ajustes. Consulta [Organizar un workflow](/es/design/organize/).
+</Aside>
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Usa un workflow de otro archivo" href="/es/recipes/cross-document/" />
+  <LinkCard title="Outputs" href="/es/design/outputs/" />
+  <LinkCard title="Ejecutar casos" href="/es/test/run/" />
+  <LinkCard title="Resultados" href="/es/test/results/" />
+  <LinkCard title="Crear un workflow" href="/es/design/create/" />
+</CardGrid>

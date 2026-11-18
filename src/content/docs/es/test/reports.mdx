@@ -1,0 +1,107 @@
+---
+title: Reportes
+description: Exporta los resultados de una ejecución como un reporte HTML autocontenido o como JSON, y compártelos con alguien que no tiene Luvin.
+sidebar:
+  order: 9
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Un reporte es una copia de tus resultados en un archivo. Úsalo para mostrar que un workflow funciona, para enviar una falla a quien construye la API, o para guardar un registro de una ejecución. La persona que lo recibe no necesita Luvin.
+
+![El reporte HTML exportado, abierto en un navegador](/media/es/report.webp)
+
+## Ejemplo: reporte de una ejecución de Pokemon card
+
+<Tabs>
+  <TabItem label="Reporte HTML">
+
+El archivo `reporte-<título>-<fecha>.html` se abre en cualquier navegador. Empieza con el resumen en palabras simples, por ejemplo *El camino feliz funciona, con puntos para revisar.*, y los contadores **Pasaron**, **No pasaron**, **Advertencias**, **No concluyentes** y **Simulados**.
+
+![El reporte HTML exportado, abierto en un navegador](/media/es/report.webp)
+
+  </TabItem>
+  <TabItem label="JSON">
+
+El archivo `reporte-<título>-<fecha>.json` tiene los mismos resultados para otra herramienta. Los nombres de sus campos están en español en los dos idiomas de la app.
+
+```json title="Nombres de campos" {2-4}
+{
+  "casos": [],
+  "resultado": "",
+  "pasos": []
+}
+```
+
+  </TabItem>
+</Tabs>
+
+## Exporta el reporte HTML
+
+<Steps>
+1. Ejecuta los casos. Mira [Ejecutar](/es/test/run/).
+2. En el encabezado de los resultados, pulsa **Reporte**.
+3. Tu navegador o la app de escritorio descarga un archivo llamado `reporte-<título>-<fecha>.html`.
+</Steps>
+
+**Reporte** se oculta mientras una ejecución está en curso y mientras los resultados están plegados.
+
+El reporte incluye los últimos resultados de cada workflow que hayas ejecutado, no solo el que ves en pantalla. Está escrito en el idioma que usa la app.
+
+## Qué contiene el reporte
+
+| Parte | Qué muestra |
+|---|---|
+| Encabezado | El título, la fecha, el archivo Arazzo, cuántos workflows y casos cubre, y la duración total. |
+| Resumen en palabras simples | La misma frase que en los resultados, por ejemplo *El camino feliz funciona, con puntos para revisar.* |
+| Contadores | **Pasaron**, **No pasaron**, **Advertencias**, **No concluyentes** y **Simulados**. |
+| **Ambiente** | El nombre del ambiente y la URL base de cada API. |
+| **Resumen de casos** | Una tabla con cada caso: su tipo, si se simuló o corrió contra la API real, sus inputs y su veredicto. Haz clic en un caso para saltar a su detalle. |
+| **Detalle por caso** | Qué se esperaba, el resultado, los **Valores enviados**, y cada paso con su petición, respuesta, criterios, comprobación del contrato y outputs. |
+
+Los pasos están cerrados al principio, salvo los que fallaron. Los botones de arriba son **Expandir todo**, **Contraer todo** e **Imprimir / guardar como PDF**.
+
+## Un archivo, nada más
+
+El reporte es un único archivo HTML con sus estilos adentro. No necesita conexión a internet ni otro archivo. Quien lo recibe lo abre en cualquier navegador.
+
+Para enviar un PDF, abre el reporte y pulsa **Imprimir / guardar como PDF**. Cada paso se expande antes de imprimir.
+
+## Los secretos van ocultos
+
+El reporte está hecho para compartirse:
+
+- Los secretos y credenciales del ambiente aparecen como `••••`.
+- Los valores de campos y headers cuyo nombre parece sensible (`token`, `password`, `secret`, `authorization`, `api key`) también se ocultan.
+- El pie recuerda al lector que los valores de las credenciales están ocultos y que los casos simulados usan los ejemplos del contrato, no la API real.
+
+<Aside type="caution">
+La ocultación cubre los secretos y los campos con nombres sensibles. Otros datos de los requests y las respuestas, como nombres o emails de clientes de prueba, quedan en el reporte tal como se enviaron y se recibieron. Léelo antes de enviarlo fuera de tu equipo.
+</Aside>
+
+## Exporta como JSON
+
+<Steps>
+1. En el encabezado de los resultados, pulsa **JSON**.
+2. Se descarga un archivo llamado `reporte-<título>-<fecha>.json`.
+</Steps>
+
+El JSON tiene los mismos resultados en una forma que otra herramienta puede leer: cuándo se generó, el ambiente y, para cada caso, su id, título, inputs, resultado esperado, veredicto, explicación, pasos y outputs. Las credenciales se ocultan de la misma manera.
+
+Los nombres de los campos están en español en los dos idiomas de la app, por ejemplo `casos`, `resultado` y `pasos`. El veredicto es uno de `passed`, `failed`, `warning` o `inconclusive`.
+
+## Comparte con alguien que no tiene Luvin
+
+| Necesita | Envía |
+|---|---|
+| Leer qué pasó | El reporte HTML, o su PDF |
+| Reproducir un request | El texto de **Copiar como cURL** en el paso. Mira [Lee el resultado de un paso](/es/test/step-results/). |
+| Procesar los resultados con una herramienta | El archivo JSON |
+| Ejecutar el workflow por su cuenta | El archivo Arazzo y sus contratos. Mira [Archivos de un workspace](/es/workspaces/files/). |
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Lee los resultados" href="/es/test/results/" />
+  <LinkCard title="Privacidad" href="/es/reference/privacy/" />
+</CardGrid>

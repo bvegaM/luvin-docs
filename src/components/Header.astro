@@ -1,0 +1,41 @@
+---
+// La cabecera de Starlight (logo, buscador, tema, idioma) más una fila de pestañas con las secciones
+// de la documentación, como un menú horizontal. Las secciones son los grupos de la barra lateral:
+// cada pestaña lleva a la primera página de su sección y se marca la sección en la que estás.
+import Default from '@astrojs/starlight/components/Header.astro'
+
+const { sidebar, lang, entry } = Astro.locals.starlightRoute
+type Entry = (typeof sidebar)[number]
+const holds = (e: Entry): boolean => (e.type === 'link' ? e.isCurrent : e.entries.some(holds))
+const first = (e: Entry): string | undefined => (e.type === 'link' ? e.href : e.entries.map(first).find(Boolean))
+const sections = sidebar.filter((e) => e.type === 'group')
+const es = lang === 'es'
+const home = es ? '/es/' : '/'
+const isHome = ['', 'index', 'es', 'es/index'].includes(entry.id) || Astro.url.pathname === home
+---
+
+<div class="lv-header">
+  <div class="lv-top">
+    <Default />
+  </div>
+  <nav class="lv-tabs print:hidden" aria-label={es ? 'Secciones' : 'Sections'}>
+    <div class="lv-tabs-scroll">
+      <a href={home} aria-current={isHome ? 'page' : undefined}>{es ? 'Inicio' : 'Home'}</a>
+      {
+        sections.map((s) => (
+          <a href={first(s)} aria-current={holds(s) ? 'page' : undefined}>
+            {s.label}
+          </a>
+        ))
+      }
+    </div>
+    <a class="lv-site" href="https://lu-vin.com" rel="noopener">
+      lu-vin.com <span aria-hidden="true">↗</span>
+    </a>
+  </nav>
+</div>
+
+<script>
+  // La pestaña de la sección actual queda a la vista cuando el menú no cabe (pantallas angostas).
+  document.querySelector('.lv-tabs [aria-current="page"]')?.scrollIntoView({ block: 'nearest', inline: 'center' })
+</script>

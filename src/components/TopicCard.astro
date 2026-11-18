@@ -1,0 +1,95 @@
+---
+// Una tarjeta de tema de la portada: icono, título y una línea; toda la tarjeta es el enlace.
+interface Props {
+  title: string
+  href: string
+  icon: keyof typeof ICONS
+}
+// Iconos de trazo, 24×24 (dibujados para esta página).
+const ICONS = {
+  rocket: 'M5 15c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2.1-.1-2.9a2.1 2.1 0 0 0-2.9-.1Z M12 15l-3-3a22 22 0 0 1 2-4A12.9 12.9 0 0 1 22 2c0 2.7-.8 7.5-6 11a22 22 0 0 1-4 2Z M9 12H4s.5-3 2-4c1.6-1.1 5 0 5 0 M12 15v5s3-.5 4-2c1.1-1.6 0-5 0-5',
+  workflow: 'M5 3a2 2 0 1 0 0 4a2 2 0 1 0 0-4Z M19 17a2 2 0 1 0 0 4a2 2 0 1 0 0-4Z M5 7v7a5 5 0 0 0 5 5h7 M19 3a2 2 0 1 0 0 4a2 2 0 1 0 0-4Z M19 7v3a2 2 0 0 1-2 2h-5',
+  flask: 'M9 3h6 M10 3v6.5L4.6 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.4-2.5L14 9.5V3 M7.5 15h9',
+  send: 'M22 2 11 13 M22 2l-7 20-4-9-9-4 20-7Z',
+  file: 'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z M14 3v5h5 M9 13h6 M9 17h4',
+  layers: 'm12 3 9 5-9 5-9-5 9-5Z M3 13l9 5 9-5 M3 17.5l9 5 9-5',
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z',
+  terminal: 'm5 8 4 4-4 4 M12 16h7 M3 4h18v16H3Z',
+  book: 'M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2Z M4 19a2 2 0 0 0 2 2h13 M9 7h6',
+  list: 'M8 6h13 M8 12h13 M8 18h13 M3.5 6h.01 M3.5 12h.01 M3.5 18h.01',
+  play: 'M6 4l14 8-14 8Z',
+  question: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3 M12 17h.01',
+  sparkle: 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8Z M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8Z',
+  key: 'M15.5 7.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z M12 11v10 M12 15h3 M12 18h2',
+  shield: 'M12 3 4 6v6c0 5 3.4 8 8 9 4.6-1 8-4 8-9V6Z m-3.5 9 2.5 2.5 4.5-4.5',
+}
+const { title, href, icon } = Astro.props
+---
+
+<a class="topic-card" href={href}>
+  <span class="icon"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d={ICONS[icon]} /></svg></span>
+  <span class="title">{title} <span class="go" aria-hidden="true">→</span></span>
+  <span class="desc"><slot /></span>
+</a>
+
+<style>
+  .topic-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    height: 100%;
+    padding: 1.35rem 1.35rem 1.5rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 1rem;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--sl-color-gray-6) 55%, var(--sl-color-black)), var(--sl-color-black));
+    color: var(--sl-color-gray-2);
+    text-decoration: none;
+    transition:
+      border-color 0.18s,
+      box-shadow 0.18s,
+      transform 0.18s;
+  }
+  .topic-card:hover,
+  .topic-card:focus-visible {
+    border-color: color-mix(in srgb, var(--sl-color-accent) 70%, var(--sl-color-gray-5));
+    box-shadow: 0 18px 40px -22px color-mix(in srgb, var(--sl-color-accent) 55%, rgba(0, 0, 0, 0.6));
+    transform: translateY(-2px);
+  }
+  .icon {
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    margin-bottom: 0.55rem;
+    border: 1px solid color-mix(in srgb, var(--sl-color-accent) 35%, transparent);
+    border-radius: 0.7rem;
+    background: color-mix(in srgb, var(--sl-color-accent) 14%, var(--sl-color-black));
+    color: var(--sl-color-text-accent);
+  }
+  .title {
+    font-size: var(--sl-text-lg);
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+    color: var(--sl-color-white);
+  }
+  .go {
+    display: inline-block;
+    color: var(--sl-color-text-accent);
+    opacity: 0;
+    transform: translateX(-4px);
+    transition:
+      opacity 0.18s,
+      transform 0.18s;
+  }
+  .topic-card:hover .go,
+  .topic-card:focus-visible .go {
+    opacity: 1;
+    transform: none;
+  }
+  .desc {
+    font-size: var(--sl-text-sm);
+    line-height: 1.6;
+  }
+</style>

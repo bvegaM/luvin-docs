@@ -1,0 +1,112 @@
+---
+title: Expect an error
+description: A workflow that logs in with a wrong password and passes only if the API answers 400, and the same check as a rejection case.
+sidebar:
+  order: 6
+---
+
+import { Steps, LinkButton, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+**What it tests:** a login with a wrong password must be rejected with a 400 and the message `Invalid credentials`.
+
+<LinkButton href="/recipes/expected-error/dummyjson.openapi.yaml" variant="primary" icon="download" download>Download the contract</LinkButton>
+<LinkButton href="/recipes/expected-error/expected-error.arazzo.yaml" variant="secondary" icon="download" download>Download the Arazzo</LinkButton>
+
+## Open it in Luvin
+
+<Steps>
+
+1. Download the files with the buttons above.
+2. In Luvin, create a collection with **New collection** on the workspace home, or open one you already have.
+3. Under **Quick actions**, click **Import Arazzo or contracts** and choose the downloaded `.yaml` files together.
+4. In the sidebar, open the workflow **Wrong password**.
+5. In the run bar, choose **Real API**.
+6. Press **Run**. The results open at the bottom.
+
+</Steps>
+
+## The key lines
+
+```yaml title="expected-error.arazzo.yaml" {27-28}
+arazzo: 1.0.1
+info:
+  title: The API rejects a wrong password
+  version: 1.0.0
+sourceDescriptions:
+  - name: dummyjson
+    url: ./dummyjson.openapi.yaml
+    type: openapi
+workflows:
+  - workflowId: wrongPassword
+    summary: Log in with a wrong password and expect the 400
+    inputs:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string, example: emilys }
+        password: { type: string, example: not-the-password }
+    steps:
+      - stepId: loginRejected
+        operationId: login
+        requestBody:
+          contentType: application/json
+          payload:
+            username: $inputs.username
+            password: $inputs.password
+        successCriteria:
+          - condition: $statusCode == 400
+          - condition: $response.body#/message == 'Invalid credentials'
+        outputs:
+          message: $response.body#/message
+    outputs:
+      message: $steps.loginRejected.outputs.message
+```
+
+| Line | What it does |
+|---|---|
+| 27 | `$statusCode == 400`: the step passes only if the API answers 400. A 200 here would fail it. |
+| 28 | The body must carry the documented message, `Invalid credentials`. Text is compared without distinguishing capitals. |
+| 24-25 | The username and password come from the inputs. The default password in the file is `not-the-password`, which is wrong on purpose. |
+
+## What you get
+
+The API answers **400** with `{"message":"Invalid credentials"}`. The step counts as successful because that is the answer the criteria ask for.
+
+| Step | HTTP status | Output |
+|---|---|---|
+| `loginRejected` | 400 | `message` = `Invalid credentials` |
+
+Verdict of the workflow: **Passed**. The workflow output `message` is `Invalid credentials`.
+
+If you change the password to `emilyspass`, the API logs you in and answers 200. The step then fails with the reason *Expected $statusCode equal to 400, but it is 200*.
+
+## The same check as a rejection case
+
+You can also leave a workflow written for success, such as the login of [Log in and use the token](/recipes/login-token/), and test the rejection from the **Cases** tab.
+
+<Steps>
+
+1. Open the workflow and click the **Cases** tab.
+2. In the group **Custom data cases**, press **+ New data case**.
+3. In **Case name**, type `Wrong password`. In **Step to check**, choose `login`.
+4. In **Expected status**, type `400`.
+5. Under **Case inputs**, type `not-the-password` in `password`.
+6. Press **Add case**, then **Run** with **Real API**.
+
+</Steps>
+
+The case ends as **Passed**. The step `login` shows **Responded 400 (expected)** and the note **This is what the case tests**, because here the error is what the case wants.
+
+## Try this
+
+- Change `password` to `emilyspass` and run again. The workflow ends **Failed** with *Expected $statusCode equal to 400, but it is 200*. That is how you notice that the API stopped rejecting.
+- Remove line 28 and keep only the status. The step passes on any 400, with whatever message.
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Prove your API rejects bad data" href="/tutorials/negative-cases/" description="The rejection cases Luvin generates, step by step." />
+  <LinkCard title="Cases" href="/test/cases/" description="The Cases tab and the groups of cases." />
+  <LinkCard title="Custom data cases" href="/test/custom-cases/" description="Add a case with your own data and expected status." />
+  <LinkCard title="Success criteria" href="/reference/criteria/" description="Every kind of criterion." />
+</CardGrid>

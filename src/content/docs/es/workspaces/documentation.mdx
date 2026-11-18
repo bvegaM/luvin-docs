@@ -1,0 +1,152 @@
+---
+title: Escribir documentación
+description: Escribe el README de un workspace y de una colección, genéralo desde tus archivos Arazzo, edítalo y regéneralo, y lee la documentación de un contrato.
+sidebar:
+  order: 5
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Luvin tiene tres tipos de documentación: el README del workspace, el README de cada colección y la vista de documentación de cada contrato. Los dos primeros son archivos Markdown que escribes en la app. Tus compañeros y partners los leen en Luvin o en git.
+
+## El README del workspace
+
+Explica todo el workspace: para qué sirve, cómo preparar los ambientes, a quién preguntar.
+
+<Steps>
+
+1. Haz clic en el ícono de casa, arriba a la izquierda, para abrir el **Inicio**.
+2. A la derecha, busca el panel **Documentación**. Cuando está vacío es una pestaña delgada en el borde: haz clic para abrirlo.
+3. Haz clic en **Agregar documentación**. El cuadro se llena con este esquema, con el nombre de tu workspace como título:
+
+   ```md
+   # Pruebas de la tienda
+
+   De qué trata este workspace y para quién es.
+
+   ## Ambientes
+
+   - **local**: …
+   - **intg**: …
+
+   ## Workflows clave
+
+   - …
+
+   ## Contactos
+
+   - …
+   ```
+4. Reemplaza el texto por el tuyo. Bajo el cuadro dice **Markdown · se guarda como README.md en la carpeta del workspace**.
+5. Haz clic en **Guardar**. **Cancelar** sale sin guardar.
+
+</Steps>
+
+Ahora el panel muestra el texto con formato. Haz clic en **Editar** para cambiarlo. El archivo es `README.md` en la carpeta del workspace.
+
+## El README de la colección
+
+Abre el [resumen de la colección](/es/workspaces/collection-overview/): el panel **Documentación** está a la derecha. El README de una colección se puede escribir a mano o generar.
+
+![El resumen de la colección con el panel de documentación en modo edición, lleno por Generar documentación](/media/es/collection-docs-edit.webp)
+
+### Generarlo desde los archivos Arazzo
+
+<Steps>
+
+1. Abre el resumen de la colección.
+2. En **Documentación**, haz clic en **Generar documentación** (o **Agregar documentación**: en una colección hacen lo mismo).
+3. Lee el texto del cuadro. Es Markdown.
+4. Cambia lo que necesites y haz clic en **Guardar**.
+
+</Steps>
+
+El texto generado lista cada workflow con su archivo, inputs, outputs y pasos, y luego los contratos y los ambientes. Este es un extracto real del ejemplo Pokédex:
+
+````md
+# Pokédex
+
+4 workflow(s) en 1 archivo(s) Arazzo, sobre 2 contrato(s).
+
+## Workflows
+
+### Pokemon card
+
+Ficha de un Pokémon
+
+Consulta un Pokémon y, con sus datos, su especie, a qué tipo es débil y qué hace su habilidad.
+
+- **Archivo:** `pokemon.arazzo.yaml` · workflowId `pokemonCard`
+- **Inputs:** `pokemon`*
+- **Outputs:** `name`, `mainType`, `weakTo`, `isLegendary`, `captureRate`, `abilityEffect`
+
+**Pasos**
+
+1. **getPokemon** — GET `/pokemon/{idOrName}`: Consulta el Pokémon por nombre o número.
+2. **getSpecies** — GET `/pokemon-species/{idOrName}`: Consulta su especie (legendario, tasa de captura, generación).
+3. **getWeakness** — GET `/type/{idOrName}`: Consulta su tipo principal para saber a qué es débil.
+4. **getAbility** — GET `/ability/{idOrName}`: Consulta qué hace su primera habilidad (en inglés).
+
+## Contratos
+
+- **pokeapi** (openapi) — `pokeapi.openapi.yaml`
+- **pokedexEvents** (asyncapi) — `pokedex-events.asyncapi.yaml`
+
+---
+
+*Generado con Luvin a partir de los Arazzo de la colección. Edítalo libremente.*
+````
+
+Un `*` después de un input significa que es obligatorio. Si definiste una versión, la línea `Versión: 1.2.0` sigue al título. Un workflow que depende de otros también lista `dependsOn`. La sección **Ambientes** lista cada ambiente con sus URLs, y dice que las credenciales y los secretos no están en el repositorio.
+
+### Editar y regenerar
+
+- Haz clic en **Editar** para cambiar el texto guardado.
+- En el cuadro, **Generar documentación** reemplaza el texto por uno generado nuevo. No se pierde nada hasta que haces clic en **Guardar**: **Cancelar** trae de vuelta el texto guardado.
+- Cuando agregues o cambies workflows, genera de nuevo.
+
+<Aside type="tip">
+Generar siempre parte de cero. Copia tus propias notas antes de regenerar y pégalas de nuevo debajo de la parte generada.
+</Aside>
+
+### Qué entiende el panel
+
+Títulos, párrafos, listas, bloques de código, **negrita**, *cursiva*, `código`, enlaces que empiezan con `https` e imágenes con una dirección `https`. No dibuja tablas. Si guardas un texto vacío, el archivo `README.md` se elimina.
+
+Arrastra el divisor entre la página y el panel para cambiar su ancho. Luvin recuerda el ancho en este computador, para ambos paneles.
+
+## La documentación de un contrato
+
+Cada contrato se documenta solo: ábrelo desde **Contratos** en la barra lateral. Junto al YAML ves su documentación, que sigue lo que escribes.
+
+![Un contrato abierto: el editor YAML junto a su documentación](/media/es/contract.webp)
+
+<Steps>
+
+1. Abre el contrato. En OpenAPI la vista es Swagger UI; en AsyncAPI es la vista propia de Luvin.
+2. Lee el título, la versión y los **Servidores**.
+3. Expande una operación para ver sus **Parámetros**, su **Request body** y sus **Respuestas**, con sus códigos y ejemplos.
+4. Haz clic en **Try it out** para llamar la operación desde aquí. Mira [Probar una operación](/es/contracts/try-it-out/).
+5. En la vista propia de Luvin, haz clic en **Ver en el YAML** para saltar a la operación en el editor.
+
+</Steps>
+
+Cuando el contrato declara credenciales, arriba hay un botón **Autorizar**, y las credenciales salen del ambiente activo. Mira [Editar un contrato](/es/contracts/edit/) y [Contratos AsyncAPI](/es/contracts/asyncapi/).
+
+Para describir mejor una operación, escríbelo en el contrato: sus campos `summary`, `description` y `example` aparecen aquí.
+
+## Quién la lee
+
+| Lector | Dónde |
+|---|---|
+| Un compañero que abre el workspace | Los paneles **Documentación**, en Luvin |
+| Un partner que recibe la carpeta | Los archivos `README.md` y los contratos |
+| Quien revisa un pull request | El diff del `README.md`, en [git](/es/workspaces/git/) |
+
+## Siguiente
+
+<CardGrid>
+  <LinkCard title="El resumen de la colección" href="/es/workspaces/collection-overview/" />
+  <LinkCard title="Llevar un workspace en git" href="/es/workspaces/git/" />
+  <LinkCard title="Contratos" href="/es/contracts/overview/" />
+</CardGrid>

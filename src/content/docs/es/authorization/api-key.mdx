@@ -1,0 +1,76 @@
+---
+title: API Key
+description: Envía una clave fija en un header o en el query de la URL, con los campos exactos y lo que envía Luvin.
+sidebar:
+  order: 10
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Usa **API Key** cuando la documentación de la API dice "envía tu clave en el header `X-API-Key`" o "agrega `?api_key=` a la URL".
+
+![La pestaña Autorización con los campos de API Key](/media/es/auth-apikey.webp)
+
+## Ejemplo
+
+Request `GET https://httpbin.org/get`, que devuelve lo que recibe.
+
+<Tabs>
+  <TabItem label="En un header">
+    **Tipo** `API Key`, **Nombre** `X-API-Key`, **Valor** `k-123`, **Enviar en** **Header**.
+
+    Luvin envía:
+
+    ```text
+    X-API-Key: k-123
+    ```
+
+    httpbin lo devuelve en `headers`:
+
+    ```json
+    "X-Api-Key": "k-123"
+    ```
+  </TabItem>
+  <TabItem label="En el query">
+    **Tipo** `API Key`, **Nombre** `api_key`, **Valor** `k-456`, **Enviar en** **Query**.
+
+    Luvin envía:
+
+    ```text
+    https://httpbin.org/get?api_key=k-456
+    ```
+
+    httpbin responde:
+
+    ```json
+    {
+      "args": { "api_key": "k-456" },
+      "url": "https://httpbin.org/get?api_key=k-456"
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+## Campos
+
+| Campo | Qué escribir |
+|---|---|
+| **Nombre** | El nombre del header o del parámetro de query, por ejemplo `X-API-Key`. |
+| **Valor** | La clave. Es un campo secreto: va oculto, haz clic en el ojo (**Mostrar**) para verlo. |
+| **Enviar en** | **Header** (por defecto) o **Query**. |
+
+## Reglas
+
+- Un header que escribiste tú en **Headers** con el mismo nombre que **Nombre** se respeta tal como lo escribiste.
+- Con **Query**, el parámetro se agrega a la URL.
+- Con **Nombre** vacío, no se agrega nada.
+- Funciona en requests, en la colección y en un workflow, en la app de escritorio y en el navegador.
+
+## Secretos
+
+**Valor** es un secreto. Escrito tal cual se guarda cifrado en tu equipo y no va al archivo del request. Escribe `{{apiKey}}` y guarda la clave en tu ambiente para compartir la configuración. Mira [Secretos](/es/authorization/secrets/).
+
+## Relacionado
+
+- [Credenciales del contrato](/es/authorization/contract-credentials/): un esquema `apiKey` del contrato, en un header, query o cookie.
+- [Resumen de la autorización](/es/authorization/overview/)

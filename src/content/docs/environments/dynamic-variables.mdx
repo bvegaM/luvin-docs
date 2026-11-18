@@ -1,0 +1,178 @@
+---
+title: Dynamic variables
+description: The complete list of generators that produce a new value on every run, and where you can use them.
+sidebar:
+  order: 3
+---
+
+import { Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A dynamic variable is a `{{name}}` that Luvin fills with a freshly generated value: a new email, a new UUID, a valid tax ID. Use one when a case must be repeatable, for example when the API rejects an email that already exists.
+
+## Example
+
+A body for a "create customer" request, with three generators:
+
+```json title="Request body"
+{
+  "name": "{{$randomFullName}}",
+  "email": "{{$randomEmail}}",
+  "externalId": "{{$guid}}"
+}
+```
+
+Each run sends new values. This is one possible run:
+
+```json title="What one run sends"
+{
+  "name": "Daniela Rojas",
+  "email": "Daniela.Rojas42@yahoo.com",
+  "externalId": "9b2f4c1e-6a37-4d0b-8c55-3e1f7a9d2b64"
+}
+```
+
+The next run sends other values, so the API never sees the same email twice. See the recipe [Build the body with generated data](/recipes/generated-data/).
+
+## How they work
+
+- Write the name between double braces, like any [variable](/environments/variables-and-secrets/): `{{$randomEmail}}`.
+- **Every occurrence produces a new value.** Two `{{$guid}}` in the same body give two different UUIDs.
+- Names that start with `$` are the same ones Postman and Bruno use, so imported requests keep working.
+- Names, cities and other texts come out in the language of the interface: English, or Latin American Spanish.
+- When you type `{{` in a field, Luvin suggests them. Type `{{$` to see all the `$` ones, each with an example value.
+
+<Aside type="tip" title="The same value in several steps">
+To reuse one generated value across steps, put the generator in an input and wire the steps to that input. The input is generated once per case. The Pokédex example does this: the `correlationId` input of **Register sighting** is `{{$guid}}`, and both the step that publishes and the step that waits use `$inputs.correlationId`.
+</Aside>
+
+## Where you can use them
+
+- In the **Inputs** tab and in the data of each case, in the **Cases** tab.
+- In the value of a parameter or a body field of a step, and in the Arazzo YAML.
+- In single requests: URL, params, headers and body.
+- In the base URLs, credentials and authorization fields.
+
+A real fragment from the PayPal example, which sends a new idempotency key on every run:
+
+```yaml
+requestId:
+  name: PayPal-Request-Id
+  in: header
+  value: '{{$randomUUID}}'
+```
+
+## Luvin's own generators
+
+| Name | What it produces |
+|---|---|
+| `{{email}}` | A unique email at `example.com`. |
+| `{{cpf}}` | A valid Brazilian CPF: 11 digits with correct check digits. |
+| `{{rut}}` | A valid Chilean RUT, with its check digit and no dots or dash. |
+| `{{uuid}}` | A UUID v4. |
+| `{{number:8}}` | Random digits. The number after the colon is how many, from 1 to 32. `{{number}}` gives 6. |
+| `{{date}}` | Today's date, as `YYYY-MM-DD`. |
+| `{{timestamp}}` | The current time in milliseconds. |
+
+`{{numero:8}}` and `{{fecha}}` are the Spanish names of `{{number:8}}` and `{{date}}`. Both spellings work in both languages.
+
+<Aside type="note" title="A variable with the same name wins">
+If the active environment has a variable called `email`, `{{email}}` uses the variable, not the generator. The environment warns you: *Shadows the `{{email}}` generator: the variable value is used instead.*
+</Aside>
+
+## Postman-compatible variables
+
+### Identifiers, time and basic values
+
+| Name | What it produces |
+|---|---|
+| `{{$guid}}` | UUID v4 |
+| `{{$randomUUID}}` | UUID v4 |
+| `{{$timestamp}}` | Seconds since 1970 (Unix) |
+| `{{$isoTimestamp}}` | Current date and time (ISO 8601) |
+| `{{$randomAlphaNumeric}}` | One alphanumeric character |
+| `{{$randomBoolean}}` | `true` or `false` |
+| `{{$randomInt}}` | Number between 0 and 1000 |
+| `{{$randomColor}}` | A color name |
+| `{{$randomHexColor}}` | Hex color |
+| `{{$randomAbbreviation}}` | Abbreviation (API, JSON…) |
+
+<Aside type="caution">
+`{{$timestamp}}` is in seconds. `{{timestamp}}`, without `$`, is in milliseconds.
+</Aside>
+
+### Internet and systems
+
+| Name | What it produces |
+|---|---|
+| `{{$randomIP}}` | IPv4 address |
+| `{{$randomIPV6}}` | IPv6 address |
+| `{{$randomMACAddress}}` | MAC address |
+| `{{$randomPassword}}` | 15-character password |
+| `{{$randomLocale}}` | Language code (en, es…) |
+| `{{$randomUserAgent}}` | Browser User-Agent |
+| `{{$randomProtocol}}` | `http` or `https` |
+| `{{$randomSemver}}` | Semantic version (1.4.2) |
+| `{{$randomDomainName}}` | Domain name |
+| `{{$randomEmail}}` | Email |
+| `{{$randomExampleEmail}}` | `@example.com` email |
+| `{{$randomUserName}}` | Username |
+| `{{$randomUrl}}` | URL |
+
+### People
+
+| Name | What it produces |
+|---|---|
+| `{{$randomFirstName}}` | First name |
+| `{{$randomLastName}}` | Last name |
+| `{{$randomFullName}}` | Full name |
+| `{{$randomNamePrefix}}` | Name prefix (Mr., Dr.…) |
+| `{{$randomJobTitle}}` | Job title |
+| `{{$randomPhoneNumber}}` | Phone number |
+
+### Places
+
+| Name | What it produces |
+|---|---|
+| `{{$randomCity}}` | City |
+| `{{$randomStreetName}}` | Street name |
+| `{{$randomStreetAddress}}` | Street address |
+| `{{$randomCountry}}` | Country |
+| `{{$randomCountryCode}}` | Country code (ISO) |
+| `{{$randomLatitude}}` | Latitude |
+| `{{$randomLongitude}}` | Longitude |
+
+### Business and money
+
+| Name | What it produces |
+|---|---|
+| `{{$randomBankAccount}}` | Bank account number |
+| `{{$randomCurrencyCode}}` | Currency code (USD, EUR…) |
+| `{{$randomPrice}}` | Price with two decimals |
+| `{{$randomCreditCardMask}}` | Last 4 digits of a card |
+| `{{$randomCompanyName}}` | Company name |
+
+### Text
+
+| Name | What it produces |
+|---|---|
+| `{{$randomWord}}` | One word |
+| `{{$randomWords}}` | A few words |
+| `{{$randomLoremSentence}}` | A sentence |
+
+### Dates
+
+| Name | What it produces |
+|---|---|
+| `{{$randomDatePast}}` | Date within the past year (ISO 8601) |
+| `{{$randomDateFuture}}` | Date within the next year (ISO 8601) |
+| `{{$randomDateRecent}}` | Date within the last few days (ISO 8601) |
+
+These 47 names are all the `$` variables Luvin has. Any other `{{$name}}` is left as written.
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Base URLs, variables and secrets" href="/environments/variables-and-secrets/" />
+  <LinkCard title="Your own cases" href="/test/custom-cases/" />
+  <LinkCard title="Inputs" href="/test/inputs/" />
+</CardGrid>

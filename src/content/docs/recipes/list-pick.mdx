@@ -1,0 +1,121 @@
+---
+title: Choose an item from a list
+description: List five users, choose one and use its id in the next two steps.
+sidebar:
+  order: 3
+---
+
+import { Steps, CardGrid, LinkCard, LinkButton, Aside } from '@astrojs/starlight/components'
+
+Many APIs return a list and the next call needs one item of it. This recipe lists five users and then reads one user and their carts, with the id of the item you choose.
+
+**What it tests:** that data picked from a list travels to two later steps, in a path parameter.
+
+## Download the files
+
+<LinkButton href="/recipes/list-pick/list-pick.arazzo.yaml" icon="download" download>list-pick.arazzo.yaml</LinkButton>
+<LinkButton href="/recipes/list-pick/dummyjson.openapi.yaml" icon="download" variant="secondary" download>dummyjson.openapi.yaml</LinkButton>
+
+## Open it in Luvin
+
+<Steps>
+
+1. Download the two files above into one folder.
+2. In Luvin, press **New collection**, or open a collection you already have.
+3. On the collection home, press **Import Arazzo or contracts** and pick both downloaded files.
+4. In the sidebar, open the workflow `userFromList`.
+5. In the run bar, choose **Real API**.
+6. Press **Run**. The results open at the bottom.
+
+</Steps>
+
+## The Arazzo file
+
+```yaml title="list-pick.arazzo.yaml" {21,25,31,42}
+arazzo: 1.0.1
+info:
+  title: Choose a user from a list
+  version: 1.0.0
+sourceDescriptions:
+  - name: dummyjson
+    url: ./dummyjson.openapi.yaml
+    type: openapi
+workflows:
+  - workflowId: userFromList
+    summary: List five users, continue with one and read their carts
+    steps:
+      - stepId: listUsers
+        operationId: listUsers
+        parameters:
+          - name: limit
+            in: query
+            value: 5
+          - name: select
+            in: query
+            value: id,firstName,lastName
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          userId: $response.body#/users/0/id
+      - stepId: getUser
+        operationId: getUser
+        parameters:
+          - name: id
+            in: path
+            value: $steps.listUsers.outputs.userId
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          firstName: $response.body#/firstName
+          email: $response.body#/email
+      - stepId: getUserCarts
+        operationId: getUserCarts
+        parameters:
+          - name: userId
+            in: path
+            value: $steps.listUsers.outputs.userId
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          carts: $response.body#/total
+    outputs:
+      firstName: $steps.getUser.outputs.firstName
+      email: $steps.getUser.outputs.email
+      carts: $steps.getUserCarts.outputs.carts
+```
+
+| Line | What it does |
+|---|---|
+| `outputs: userId: $response.body#/users/0/id` (25) | Saves the `id` of an item of the list `users`. The `0` is the item the workflow was designed with. |
+| `value: $steps.listUsers.outputs.userId` (31) | `getUser` puts that id in the path `/users/{id}`. |
+| `value: $steps.listUsers.outputs.userId` (42) | `getUserCarts` uses the same id in `/carts/user/{userId}`. Both steps get the item you choose. |
+| `select: id,firstName,lastName` (21) | A query parameter that asks DummyJSON for only these fields of each user. |
+
+## What you get
+
+Because later steps use a field of the list, Luvin pauses after `listUsers`. A dialog titled **Which item of the list do you want to test with?** shows the five users. Click a row and press **Continue with this item**. See [Choose an item from a list](/test/lists/) for the whole dialog.
+
+| Step | HTTP status | Outputs |
+|---|---|---|
+| `listUsers` | 200 | `userId`, from the item you choose (the list is `/users`) |
+| `getUser` | 200 | `firstName` = Emily, `email` = emily.johnson@x.dummyjson.com |
+| `getUserCarts` | 200 | `carts` = 1 |
+
+The values above are for the first item (user 1, Emily). Another item gives its own user and carts. The verdict is **Passed** when all three steps answer 200.
+
+:::note[In the harness]
+The tool that verified this recipe has no one to click, so it continues with the designed item (the first one). In Luvin you choose.
+:::
+
+## Try this
+
+- **Pick another user.** Run again and click another row, for example the third. `getUser` and `getUserCarts` receive that row's id, not the first one's.
+- **A list of one item.** Change `limit` to `1` in the YAML. Against the real API the dialog still appears, with a single row, so you see what the service returned.
+
+## Related
+
+<CardGrid>
+<LinkCard title="Choose an item from a list" description="The dialog in detail, and what it offers for each design." href="/test/lists/" />
+<LinkCard title="Wire data between steps" description="Connect a field of a list to a parameter." href="/design/wire-data/" />
+<LinkCard title="Page through a list" description="Query parameters and paging." href="/recipes/pagination-query/" />
+</CardGrid>

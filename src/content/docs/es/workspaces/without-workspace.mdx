@@ -1,0 +1,107 @@
+---
+title: Usar Luvin sin workspace
+description: Cómo abrir archivos o una carpeta para una prueba rápida, qué guarda y qué deja fuera la sesión guardada, y cómo continuarla o descartarla.
+sidebar:
+  order: 9
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Puedes usar Luvin sin crear un workspace. Abre unos archivos, prueba un workflow y cierra la app. Sirve para una prueba rápida o para mirar un contrato que alguien te mandó. No se escribe nada en tu disco, salvo que guardes un archivo tú mismo.
+
+## Ejemplo: prueba los archivos de la Pokédex
+
+Para mirar el contrato de la PokéAPI y ejecutar un workflow sin crear nada, abre estos archivos de `examples/pokemon/`:
+
+| Archivo | Qué es |
+|---|---|
+| `pokeapi.openapi.yaml` | El contrato de la PokéAPI pública |
+| `pokedex-events.asyncapi.yaml` | El contrato de mensajería |
+| `pokemon.arazzo.yaml` | Los cuatro workflows |
+
+Los workflows aparecen en la barra lateral. Ejecuta **Pokemon card** con **API real** como en el [Inicio rápido](/es/get-started/quick-start/). Las ediciones no se escriben en el disco.
+
+## Abrir archivos o una carpeta
+
+En la pantalla de bienvenida, abajo, haz clic en **Abrir archivos sin workspace**.
+
+- **App de escritorio:** se abre un diálogo de carpetas. Luvin carga todos los YAML y JSON de la carpeta y sus subcarpetas, como una sola colección.
+- **Navegador:** se abre un selector de archivos. Elige tus contratos OpenAPI o AsyncAPI, tus Arazzo si ya tienes, y los archivos a los que apuntan sus `$ref`.
+
+Si cerraste la bienvenida con **Prefiero explorar por mi cuenta**, la pantalla **No hay ninguna colección abierta** tiene las mismas opciones: **Abrir carpeta** (app de escritorio), **Abrir archivos** y **Ver la bienvenida**.
+
+También puedes soltar archivos `.yaml`, `.yml` o `.json` sobre la ventana. La ventana dice **Suelta los archivos para abrirlos.**
+
+Al cargar, los workflows aparecen en la barra lateral y puedes diseñarlos, editarlos y ejecutarlos como siempre.
+
+<Aside type="note" title="Los ejemplos">
+Los ejemplos de la Pokédex y de PayPal no son una sesión. Se abren como colecciones de un workspace llamado **Ejemplos**, guardado dentro de Luvin, así que se comportan como cualquier colección.
+</Aside>
+
+## Qué cambia sin workspace
+
+| | Con workspace | Sin workspace |
+|---|---|---|
+| Adónde van los cambios | A archivos, automáticamente. | A ninguna parte del disco. Los editores muestran **Sin guardar**. |
+| Ediciones del Arazzo | Las guarda el guardado automático. | Solo se guardan cuando guardas el archivo desde la pestaña **YAML**. La app de escritorio lo escribe sobre su archivo si abriste una carpeta, o te pregunta dónde guardarlo. El navegador lo descarga. |
+| Secretos | Se guardan cifrados en este equipo. | No se guardan. Los escribes de nuevo. |
+| Varias colecciones | Sí. | Una, formada por los archivos que abriste. |
+
+## La sesión guardada
+
+Para que cerrar la pestaña no te cueste el trabajo, Luvin guarda una **sesión** en este dispositivo medio segundo después de cada cambio. La próxima vez que abras la app, te ofrece continuarla.
+
+La sesión guarda:
+
+- Los archivos que abriste, como están ahora (contratos y Arazzo, con tus ediciones).
+- Los contratos que adjuntaste a mano y las fuentes que Luvin descargó desde una URL (se descargan de nuevo al continuar).
+- Los inputs y los casos.
+- El workflow seleccionado, y si estabas en **API real** o en **Simulación**.
+- Los ambientes, con sus URLs base, variables y colores, y cuál estaba activo.
+
+La sesión deja fuera:
+
+- **Las credenciales**, como tokens, contraseñas y API keys. Las pegas de nuevo.
+- **Los valores de los secretos.** Solo se guardan sus nombres.
+- **Cualquier input cuyo nombre parezca sensible**, como `token`, `password`, `secret`, `authorization`, `api_key` o `client_secret`.
+- Los requests guardados, la autorización de los workflows, los resultados de las ejecuciones y el registro de Dev Tools.
+
+<Aside type="caution">
+La sesión vive en el almacenamiento del navegador o de la app de este computador, no en una carpeta que puedas ver. Si borras los datos del sitio en tu navegador, desaparece. Para conservar tu trabajo de verdad, [crea un workspace](/es/workspaces/create-and-open/).
+</Aside>
+
+## Continuar o descartar
+
+Cuando existe una sesión, la pantalla de bienvenida muestra una tarjeta con el título de esa sesión:
+
+<Steps>
+
+1. Haz clic en **Continuar donde quedaste**. La misma tarjeta aparece en la pantalla vacía **No hay ninguna colección abierta**.
+2. Luvin reconstruye la colección con los archivos guardados y recupera tus inputs, casos y ambientes.
+3. Pega tus credenciales de nuevo. Si ejecutas contra la API real sin ellas, las llamadas que las necesitan responden 401.
+
+</Steps>
+
+Para tirarla, haz clic en **Descartar**, abajo en la pantalla de bienvenida. La sesión se borra.
+
+Abrir otros archivos empieza una sesión nueva y reemplaza la anterior. Mientras hay un workspace abierto no se guarda ninguna sesión: el workspace tiene sus propios archivos.
+
+## Pasar a un workspace
+
+Crea un workspace y trae tus archivos:
+
+<Steps>
+
+1. Crea el workspace y una colección (mira [Crear y abrir un workspace](/es/workspaces/create-and-open/) y [Colecciones](/es/workspaces/collections/)).
+2. Haz clic en **Importar Arazzo o contratos** en el **Inicio**, o suelta los archivos sobre la ventana.
+3. Completa los ambientes de nuevo. Los valores de los secretos no estaban en la sesión.
+
+</Steps>
+
+## Siguiente
+
+<CardGrid>
+  <LinkCard title="Crear y abrir un workspace" href="/es/workspaces/create-and-open/" />
+  <LinkCard title="Privacidad y seguridad" href="/es/reference/privacy/" />
+  <LinkCard title="Ejecutar un workflow" href="/es/test/run/" />
+</CardGrid>

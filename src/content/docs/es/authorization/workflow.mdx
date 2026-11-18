@@ -1,0 +1,100 @@
+---
+title: Autorización de un workflow
+description: Elige, por API y por workflow, cómo se autoriza cada llamada, inicia sesión antes de ejecutar y encuentra el archivo flow-auth.yaml.
+sidebar:
+  order: 22
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+La pestaña **Autorización** de un workflow decide cómo se autoriza cada API que el workflow llama: con las credenciales del contrato, con OAuth 2.0, con una API key, etc. Úsala cuando pegar un token en el ambiente no alcanza, por ejemplo cuando el token vence y hay que pedirlo de nuevo.
+
+Arazzo no tiene un concepto de autorización. Esta configuración es de Luvin y el archivo Arazzo no se modifica.
+
+![La pestaña Autorización de un workflow, con una tarjeta por API](/media/es/workflow-auth.webp)
+
+## Ejemplo: la configuración de PayPal, como se guarda
+
+La configuración se guarda en `flow-auth.yaml`, en la carpeta de la colección. Este es el archivo del ejemplo de PayPal:
+
+```yaml title="flow-auth.yaml"
+apis:
+  paypal:
+    type: oauth2
+    grantType: client_credentials
+    accessTokenUrl: https://api-m.sandbox.paypal.com/v1/oauth2/token
+    clientId: '{{clientId}}'
+    clientSecret: '{{clientSecret}}'
+    credentialsIn: header
+    tokenIn: header
+    headerPrefix: Bearer
+```
+
+La configuración de un solo workflow va bajo una segunda clave, `journeys`, por archivo Arazzo e id del workflow (`archivo.arazzo.yaml#workflowId`). Si renombras el archivo Arazzo en Luvin, la configuración lo sigue. El archivo se escribe solo cuando configuras algo.
+
+## Abrir la pestaña
+
+<Steps>
+
+1. Abre un workflow desde la barra lateral.
+2. Haz clic en la pestaña **Autorización**, junto a **Casos**.
+
+</Steps>
+
+Ves una tarjeta por cada API HTTP que llama el workflow. Si no llama a ninguna, muestra *Este workflow no llama APIs HTTP.* Cada tarjeta muestra qué se usa ahora y dónde se definió, por ejemplo **Se usa: OAuth 2.0 · definida para todos los workflows**. Los otros orígenes son *definida en este workflow*, *heredada de la colección* y *credenciales del ambiente*.
+
+## Dos niveles: todos los workflows o solo este
+
+Cada tarjeta tiene un selector.
+
+| Posición | Qué configura |
+|---|---|
+| **Todos los workflows** | La autorización de esta API para todos los workflows de la colección que la llaman, salvo los que definan la suya. |
+| **Solo este workflow** | La autorización de esta API para el workflow abierto. |
+
+Gana lo más específico: **Solo este workflow**, luego **Todos los workflows**, luego las credenciales del contrato. La tarjeta se abre en el nivel que decide hoy.
+
+## Los tipos
+
+Bajo **Todos los workflows**, en **Tipo**:
+
+| Opción | Qué pasa |
+|---|---|
+| **Del contrato** | El valor por defecto. Usa los `securitySchemes` del contrato con los valores de **Credenciales** del ambiente activo. **Abrir el ambiente** lleva allí. Mira [Credenciales del contrato](/es/authorization/contract-credentials/). |
+| **Heredar de la colección** | Usa la autorización del resumen de la colección. Si no tiene ninguna, las llamadas van sin autorización. |
+| **AWS Sig v4**, **Basic Auth**, **Bearer Token**, **Digest Auth**, **NTLM Auth**, **OAuth 1.0**, **OAuth 2.0**, **WSSE Auth**, **API Key**, **Akamai EdgeGrid** | Luvin la aplica en cada paso de esa API. Mismos campos que en un request. NTLM necesita la app de escritorio. |
+| **Sin autorización** | Las llamadas van sin autorización. |
+
+Bajo **Solo este workflow**, la primera opción es **Como en todos los workflows** (el valor por defecto), luego los mismos tipos y **Sin autorización**. **Editar para todos los workflows** cambia la tarjeta al otro nivel.
+
+## Configurarla
+
+<Steps>
+
+1. Abre un workflow que llame a la API y haz clic en **Autorización**.
+2. En la tarjeta de la API, elige **Todos los workflows**.
+3. En **Tipo**, elige **OAuth 2.0** y completa los campos. Usa variables para lo que cambia por ambiente o es secreto: `{{clientId}}`, `{{clientSecret}}`.
+4. Ejecuta el workflow contra la **API real**.
+
+</Steps>
+
+La pestaña **Autorización** muestra un número: las APIs de este workflow con una autorización propia.
+
+## Iniciar sesión antes de ejecutar
+
+Con **OAuth 2.0** y **Authorization Code** nadie puede iniciar sesión en silencio. Un aviso sobre las pestañas dice *Este workflow inicia sesión con OAuth 2.0 en:* y la API. Pulsa **Iniciar sesión**, o pulsa **Ejecutar** contra la API real: primero se abre el inicio de sesión. Si lo cierras o falla, la ejecución no empieza y el aviso dice por qué.
+
+En la tarjeta, **Obtener token nuevo** hace lo mismo para una API. Con **Client Credentials** y **Password Credentials** el token se pide solo en el primer paso.
+
+## Bueno saber
+
+- Con cualquier opción distinta de **Del contrato**, los pasos de esa API dejan de usar las credenciales del contrato.
+- Los casos que prueban una llamada *sin credenciales* siguen yendo sin autorización.
+- Se aplica contra la API real. En [simulación](/es/test/simulation/) ninguna llamada sale de tu computadora.
+- Un secreto escrito tal cual no se escribe en `flow-auth.yaml`: se guarda cifrado en tu equipo. Usa `{{clientSecret}}` para compartir la configuración.
+
+## Relacionado
+
+- [OAuth 2.0](/es/authorization/oauth2/)
+- [Dónde se aplica la autorización](/es/authorization/where-it-applies/)
+- [Secretos](/es/authorization/secrets/)

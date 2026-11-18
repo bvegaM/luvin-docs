@@ -1,0 +1,43 @@
+---
+title: Privacidad y seguridad
+description: Dónde viven tus datos, cómo se guardan los secretos y a qué puede y a qué no puede llegar la app de escritorio.
+sidebar:
+  order: 5
+---
+
+Luvin corre en tu equipo. Esta página dice dónde vive cada tipo de dato y qué lo protege.
+
+- Todo corre **en tu equipo**, en el navegador o en la app de escritorio. No hay backend ni cuenta.
+- **Los secretos nunca van a los archivos del workspace.** Los archivos de ambiente solo guardan los nombres de los secretos. Los valores quedan **cifrados en este equipo**: con el llavero del sistema operativo en la app de escritorio y con WebCrypto en el navegador.
+- Los tokens, contraseñas y API keys van **tapados** en resultados, reportes, exportaciones, Dev Tools y cada cURL.
+- La app de escritorio solo lee y escribe dentro de las carpetas que elegiste, y su interfaz no tiene acceso directo al sistema de archivos. La terminal abre tu propio shell, solo en una carpeta del workspace o en tu carpeta personal.
+- Sin workspace, la sesión guardada deja fuera las credenciales y cualquier input cuyo nombre parezca sensible (`token`, `password`, `secret`…).
+
+## Dónde vive cada tipo de dato
+
+| Dato | Dónde | ¿En los archivos? |
+|---|---|---|
+| Contratos, archivos Arazzo, casos, requests | La carpeta del workspace (o este navegador, en un workspace guardado en el navegador). | Sí. |
+| Nombres de secretos, URLs base, variables | `environments/*.yaml`. | Sí. |
+| Valores de secretos y credenciales | Cifrados en este equipo. | No. |
+| La sesión sin workspace | El almacenamiento del navegador o de la app, en este equipo. | No. |
+| Preferencias como el tema, la interfaz y el tamaño de los paneles | Este equipo. | No. |
+| Las listas de Console y de Network | La memoria. Desaparecen cuando cierras la app. | No. |
+
+Si el llavero del sistema operativo no está disponible, la app de escritorio no guarda los valores de los secretos, en vez de guardarlos a la vista. Los vuelves a escribir.
+
+## Qué conviene seguir cuidando
+
+:::caution[Los inputs se escriben tal como los tecleas]
+Los valores que escribes en **Inputs** y en los casos se guardan en los archivos `scenarios/` del workspace, tal cual. No pongas ahí una contraseña real. Usa un secreto y escribe `{{clientSecret}}`.
+:::
+
+:::tip[Compartir un workspace]
+Como los valores secretos no están en los archivos, puedes subir un workspace a git. Cada persona agrega sus propios secretos en su equipo. Mira [Llevar un workspace en git](/es/workspaces/git/).
+:::
+
+## Relacionado
+
+- [URLs base, variables y secretos](/es/environments/variables-and-secrets/)
+- [Qué hay en el disco](/es/workspaces/files/)
+- [Usar Luvin sin workspace](/es/workspaces/without-workspace/)

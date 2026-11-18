@@ -1,0 +1,78 @@
+---
+title: Dev Tools
+description: El panel inferior con las pestañas Console, Network, Performance y Terminal, cómo abrirlo y cómo lo oculta la interfaz Simple.
+sidebar:
+  order: 1
+---
+
+import { Steps, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Dev Tools es un panel para mirar lo que hizo Luvin: qué requests envió, qué respondieron, qué pasó en cada ejecución y cuánto tardó cada paso. Lo necesitas cuando un caso falla y el resultado solo no te dice por qué.
+
+## Ejemplo: un paso que falla
+
+Un caso falla en el paso `createOrder`. En **Network**, la fila muestra el status en rojo, el método `POST` y la URL; haz clic en ella y **Petición** muestra el body que envió Luvin y **Respuesta** lo que respondió la API. **Copiar como cURL** te da la misma llamada para una terminal. Mira [Network](/es/dev-tools/network/).
+
+## Abrir Dev Tools
+
+<Steps>
+
+1. Mira la barra inferior de la ventana.
+2. Haz clic en **Dev Tools**. El panel se abre sobre la barra.
+3. Haz clic otra vez en **Dev Tools**, o en la **×** del panel (**Cerrar**), para ocultarlo.
+
+</Steps>
+
+Cuando el panel está cerrado y algo salió mal, aparece un número rojo en el botón **Dev Tools**. Cuenta los errores de la Console.
+
+Para cambiar la altura, arrastra la línea del borde superior del panel. Luvin recuerda la altura en este equipo. El panel puede ocupar hasta tres cuartos de la ventana.
+
+## Las pestañas
+
+| Pestaña | Para qué sirve | Página |
+|---|---|---|
+| **Console** | Un registro de lo que pasa: cargas, guardados, ejecuciones, casos y pasos, con avisos y errores. | [Console y Performance](/es/dev-tools/console-and-performance/) |
+| **Network** | Cada request HTTP y cada mensaje de tus ejecuciones, con el detalle de cada uno y **Copiar como cURL**. | [Network](/es/dev-tools/network/) |
+| **Performance** | Cuánto usa la app y cuánto tarda cada paso. | [Console y Performance](/es/dev-tools/console-and-performance/) |
+| **Terminal** | Tu propia shell, dentro de la app. Solo en la app de escritorio. | [Terminal](/es/dev-tools/terminal/) |
+
+A la derecha de las pestañas hay algunos botones:
+
+| Botón | Qué hace |
+|---|---|
+| Selector de nivel (Console) | Muestra **Todo**, **Info**, **Avisos** o **Errores**. |
+| Campo de filtro (Network), **Filtrar por URL, paso o status…** | Deja los requests que coinciden con el texto que escribes. |
+| **Nueva terminal** (Terminal) | Abre otra sesión de terminal. |
+| **Limpiar** | Vacía la Console o la lista de Network, o limpia la pantalla de la terminal. No está en **Performance**. |
+| **Inspeccionar (Chromium)** | Abre las herramientas de desarrollo del navegador de la app. Solo en la app de escritorio. |
+| **Cerrar** | Oculta el panel. |
+
+## Qué conserva Dev Tools
+
+- Las listas de Console y de Network viven solo en memoria. No se guardan en ningún archivo y se vacían cuando cierras o recargas la app.
+- Cada lista conserva las últimas 500 entradas.
+- Los secretos ya vienen tapados (`••••`) en todo lo que ves. Mira [Privacidad y seguridad](/es/reference/privacy/).
+
+## La interfaz Simple oculta Dev Tools
+
+Dev Tools es una herramienta técnica. Quienes solo ejecutan workflows pueden apagarla con la interfaz **Simple**:
+
+<Steps>
+
+1. Haz clic en el engranaje de abajo a la izquierda, **Preferencias**.
+2. Junto a **Interfaz**, elige **Simple (producto)**. La otra opción es **Completa (desarrollo)**.
+
+</Steps>
+
+En Simple, el botón **Dev Tools** desaparece de la barra inferior, el panel se oculta y las acciones **Abrir en terminal** quedan deshabilitadas con la pista **no en modo simple**. Luvin recuerda la elección en este equipo. Cambiar tu rol en **Preferencias** también ajusta la interfaz.
+
+![Dev Tools con la pestaña Network abierta y un request seleccionado](/media/es/devtools-network.webp)
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Network" href="/es/dev-tools/network/" />
+  <LinkCard title="Console y Performance" href="/es/dev-tools/console-and-performance/" />
+  <LinkCard title="Terminal" href="/es/dev-tools/terminal/" />
+  <LinkCard title="El panel de ayuda de conexión" href="/es/dev-tools/connection-help/" />
+</CardGrid>

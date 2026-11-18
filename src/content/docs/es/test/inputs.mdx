@@ -1,0 +1,110 @@
+---
+title: Inputs
+description: Qué es un input de un workflow, de dónde salen y cómo fijar sus valores por defecto en la pestaña Inputs.
+sidebar:
+  order: 1
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Un **input** es un valor con el que empieza un workflow, por ejemplo el id de un cliente o un término de búsqueda. Cada caso parte de los valores que fijas en la pestaña **Inputs**, así que defínelos antes de ejecutar.
+
+## Ejemplo: el input de Pokemon card
+
+**Pokemon card** tiene un input, `pokemon`, con el ejemplo `pikachu`.
+
+<Tabs>
+  <TabItem label="En la app">
+
+La pestaña **Inputs** muestra un campo bajo **Obligatorios**: `pokemon *`, de tipo **texto**, con la pista *ej. pikachu*. La insignia de arriba dice **Obligatorios completos** cuando lo llenas.
+
+![La pestaña Inputs de un workflow, con sus inputs obligatorios y sus valores por defecto](/media/es/inputs.webp)
+
+  </TabItem>
+  <TabItem label="En el YAML">
+
+```yaml title="pokemon.arazzo.yaml" {2,5-8}
+inputs:
+  type: object
+  required: [pokemon]
+  properties:
+    pokemon:
+      type: string
+      description: Nombre en minúsculas o número de Pokédex.
+      example: pikachu
+```
+
+  </TabItem>
+</Tabs>
+
+Para inputs con datos aleatorios, mira [Datos generados](/es/recipes/generated-data/).
+
+## De dónde salen los inputs
+
+Rara vez los creas a mano. Aparecen de tres maneras:
+
+| Cómo | Qué pasa |
+|---|---|
+| Un paso necesita un valor que nadie entrega | Cuando agregas un paso en **Diseño**, cada valor obligatorio que ningún paso anterior devuelve se vuelve un input por sí solo. |
+| Conviertes un valor fijo en input | En **Diseño**, un valor fijo de un paso muestra un botón **→ input**. El valor queda como valor por defecto y los casos ahora pueden cambiarlo. |
+| Eliges datos para variar | En **Casos**, **Elegir datos para variar** lista los valores fijos de todos los pasos. Marca los que quieras y pulsa **Convertir en inputs**. |
+
+La tercera forma es para los workflows armados con requests guardados. Sus valores están fijos en los pasos, así que al principio un caso no tiene nada que cambiar. Cada valor que eliges se vuelve un input que conserva su valor actual por defecto, de modo que el camino feliz sigue igual. Si el mismo valor se usa en varios pasos, un solo input los alimenta a todos. Puedes deshacerlo en **Diseño** (**Deshacer**) o en el YAML.
+
+También puedes agregar un input tú mismo: en **Diseño**, haz clic en el nodo **Inicio**, escribe un nombre bajo **Inputs** y pulsa **Crear**. La casilla **obligatorio** junto a cada input dice si el workflow necesita ese valor.
+
+## Fija los valores por defecto
+
+<Steps>
+1. Abre el workflow y haz clic en la pestaña **Inputs**.
+2. Completa cada campo bajo **Obligatorios**. La etiqueta de arriba dice **Obligatorios completos** cuando no falta nada, o cuántos faltan.
+3. Haz clic en **Mostrar opcionales** para ver los inputs con los que el workflow puede correr sin ellos. Completa solo los que quieras enviar.
+</Steps>
+
+Un input que dejas vacío no se envía. Un input que tiene un ejemplo o un valor por defecto en el workflow empieza con ese valor.
+
+Si un valor no coincide con su tipo o formato (por ejemplo, un texto que no es un email válido), el campo muestra un aviso en palabras simples y la etiqueta de arriba dice cuántos valores hay **por revisar**.
+
+En un workspace, estos valores se guardan con la colección. Mira [Archivos de un workspace](/es/workspaces/files/).
+
+<Aside type="note" title="A este workflow le faltan datos">
+Si la pestaña muestra este aviso, un paso usa un input que el workflow no declara, o el contrato pide datos que un paso no envía. **Completar** declara los inputs que faltan o los conecta con un paso anterior. Se puede deshacer.
+</Aside>
+
+## Tipos de input
+
+Cada campo dice su tipo junto a su nombre. Un `*` después del nombre marca un input obligatorio.
+
+| El campo dice | Cómo se edita |
+|---|---|
+| **texto** | Una caja de texto. Si el contrato tiene un ejemplo, aparece como pista: *ej. pikachu*. |
+| **número**, **número entero** | Una caja de texto para dígitos. |
+| **sí / no** | Tres botones: **—** (sin valor), **Sí** y **No**. |
+| **opciones** | Un menú desplegable con los valores permitidos. |
+| **grupo** | Un bloque que abres y cierras, con un campo por propiedad. Su etiqueta dice cuántos campos obligatorios faltan, **Listo** u **Opcional · vacío**. |
+| **lista** | Un bloque con una fila por elemento. **+ Agregar a …** agrega un elemento y la ✕ lo quita. |
+| **JSON libre** | Una caja donde escribes JSON. Aparece **JSON inválido** si no se puede leer. |
+
+Un formato, cuando existe, va después del tipo: **texto · email**.
+
+## Generadores y variables como valores
+
+Los campos de texto y de número aceptan valores entre llaves dobles:
+
+- Una **variable** del ambiente activo, como `{{partnerCode}}`.
+- Un **generador**, que produce un valor nuevo en cada ejecución, como `{{$randomEmail}}` o `{{uuid}}`.
+
+Escribe `{{` en un campo para ver las sugerencias. Un valor con llaves no se comprueba contra su formato: se resuelve cuando el caso se ejecuta.
+
+Mira [Variables y secretos](/es/environments/variables-and-secrets/) y la lista completa de [variables dinámicas](/es/environments/dynamic-variables/).
+
+## Cambia un valor solo en un caso
+
+La pestaña **Inputs** guarda los valores por defecto de todos los casos. Para cambiar u omitir un valor en un solo caso, usa **Inputs** en ese caso. Mira [Ajusta un caso](/es/test/adjust-cases/).
+
+## Siguiente
+
+<CardGrid>
+  <LinkCard title="Casos" description="los casos que Luvin genera a partir de estos inputs." href="/es/test/cases/" />
+  <LinkCard title="Casos con datos propios" description="tus propias combinaciones de inputs." href="/es/test/custom-cases/" />
+</CardGrid>

@@ -1,0 +1,125 @@
+---
+title: La vista del archivo Arazzo
+description: Mira todos los workflows de un archivo Arazzo a la vez, ejecútalos uno tras otro, agrega un workflow y renombra o elimina el archivo.
+sidebar:
+  order: 14
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Un archivo Arazzo puede tener varios workflows. La vista del archivo los muestra juntos, con el resultado de su última ejecución, y te deja ejecutarlos todos con un clic. Úsala cuando quieras revisar un archivo completo antes de compartirlo, o después de cambiar un contrato.
+
+## Ejemplo: pokemon.arazzo.yaml
+
+La vista del archivo del ejemplo de la Pokédex lista sus cuatro workflows.
+
+| **Workflow** | **Pasos** | **Inputs** |
+|---|---|---|
+| Pokemon card | 4 | 1 |
+| Type explorer | 3 | 1 |
+| Battle matchup | 2 | 0 |
+| Register sighting | 3 | 3 |
+
+El botón de arriba a la derecha dice **▶ Ejecutar todos**, con el número de workflows y de casos activos.
+
+![La vista del archivo pokemon.arazzo.yaml: sus workflows con sus pasos, inputs, casos activos y último resultado, y el botón de ejecutar todo](/media/es/arazzo-file.webp)
+
+## Abre la vista del archivo
+
+<Steps>
+1. En la barra lateral, busca el archivo Arazzo bajo tu colección. Tiene un ícono **⧉** y el nombre del archivo, por ejemplo `pokemon.arazzo.yaml`.
+2. Haz clic en la fila del archivo.
+</Steps>
+
+El archivo se abre en su propia pestaña y sus workflows se despliegan debajo, en la barra lateral. La flecha a la izquierda de la fila solo pliega o despliega los workflows. No abre la vista.
+
+## Qué muestra la vista
+
+Arriba ves la etiqueta **Archivo Arazzo**, el título del archivo (el `info.title` del Arazzo, o el nombre del archivo si no tiene), su versión, el nombre del archivo y su descripción.
+
+Debajo del título hay una línea que dice cómo se van a ejecutar los workflows, por ejemplo **Simulado · ambiente local**. Muestra el modo (**API real** o **Simulado**) y el ambiente que están activos ahora. Son los que elegiste en la barra de ejecución. Mira [Ejecutar](/es/test/run/).
+
+Luego viene una tabla con una fila por workflow:
+
+| Columna | Qué muestra |
+|---|---|
+| **Workflow** | El nombre del workflow. Haz clic para abrirlo. Si tiene errores, una insignia roja dice cuántos (**2 error(es)**). Su resumen aparece debajo del nombre. |
+| **Pasos** | Cuántos pasos tiene. |
+| **Inputs** | Cuántos inputs declara. |
+| **Casos activos** | Cuántos casos se ejecutarían ahora. Un caso cuenta solo si está activado y se puede ejecutar en el modo actual. |
+| **Último resultado** | Los veredictos de la última ejecución: **✓ Pasó**, **✕ No pasó**, **! Advertencia** y **? No concluyente**, cada uno con su cantidad. Un workflow que no se ha ejecutado dice **Sin ejecutar**. |
+
+Cuando se ejecutó al menos un caso, una línea sobre la tabla los suma: **Última corrida: 12 casos**, seguida de una insignia por veredicto.
+
+## Ejecuta todos los workflows
+
+El botón de arriba a la derecha dice **▶ Ejecutar todos (4 workflows · 12 casos)**. Los números son los workflows que tienen casos activos y los casos activos que tienen.
+
+<Steps>
+1. Haz clic en **▶ Ejecutar todos**.
+2. Luvin ejecuta los workflows uno tras otro, en el orden de la tabla. Cada uno usa sus casos activos, el ambiente y el modo que se ven bajo el título.
+3. La fila que se está ejecutando dice **Ejecutando**. Las demás se completan a medida que termina cada workflow.
+4. Para detener, haz clic en **Cancelar**. El workflow en curso se cancela y los siguientes no empiezan.
+</Steps>
+
+El atajo ⌘ + Enter (Ctrl + Enter) hace lo mismo mientras la vista del archivo está abierta.
+
+Si ningún workflow tiene casos activos, el botón está apagado y dice **Ningún workflow tiene casos activos para ejecutar.** Abre un workflow y revisa sus [Casos](/es/test/cases/).
+
+Para ejecutar solo uno, haz clic en **▶** al final de su fila (**Ejecutar solo este workflow**). El botón está apagado mientras algo se ejecuta.
+
+### Pasos que modifican datos
+
+Contra la **API real**, algunos pasos envían llamadas POST, PUT, PATCH o DELETE. Antes de la primera llamada, Luvin te pide confirmar: **Hay pasos que modifican datos.** Te dice qué workflows los tienen y a qué ambiente van a llegar. Haz clic en **Ejecutar igual** para seguir, o en **Cancelar**.
+
+En modo **Simulado** esta pregunta no aparece, porque nada sale de tu computador. Mira [Simulación](/es/test/simulation/).
+
+### Workflows que necesitan iniciar sesión
+
+Si un workflow usa una API que necesita que inicies sesión, y lo ejecutas contra la API real, el login se abre antes de que ese workflow empiece. Si el login falla, la ejecución se detiene y el mensaje nombra el workflow. Mira [Autorización de un workflow](/es/authorization/workflow/).
+
+### Dónde leer los resultados
+
+La tabla solo da una cantidad por veredicto. Para ver cada caso y cada paso, abre el workflow y lee sus resultados. Mira [Lee los resultados](/es/test/results/).
+
+## Agrega un workflow al archivo
+
+- Cuando el archivo no tiene ningún workflow, la vista dice **Este archivo todavía no tiene workflows.** Haz clic en **Crear uno**.
+- Cuando ya tiene workflows, abre el **+** (**Crear o importar**) junto a las pestañas y elige **Nuevo workflow en este archivo**, o haz clic en **+ Workflow** en la pestaña **Diseño**.
+
+El workflow nuevo se abre en la pestaña **Diseño**. Mira [Crear un workflow](/es/design/create/).
+
+## Renombra o elimina el archivo
+
+Estas acciones están en el menú **⋯** de la fila del archivo, en la barra lateral. El menú aparece cuando trabajas en un workspace. Sin workspace, el archivo no tiene **⋯**.
+
+### Renombrar
+
+<Steps>
+1. Abre el menú **⋯** del archivo y elige **Renombrar**. El nombre se convierte en un campo de texto.
+2. Escribe el nombre nuevo y pulsa Enter. Pulsa Esc para cancelar.
+</Steps>
+
+Si no escribes una extensión, Luvin conserva la que tenía el archivo, por ejemplo `.arazzo.yaml`. Los workflows de adentro no cambian.
+
+### Eliminar
+
+<Steps>
+1. Abre el menú **⋯** del archivo y elige **Eliminar archivo…**.
+2. Lee la pregunta: **¿Eliminar «pokemon.arazzo.yaml» y sus casos? Los contratos se quedan. No se puede deshacer.**
+3. Haz clic en **Eliminar**, o en **Cancelar** para conservar el archivo.
+</Steps>
+
+Luvin elimina el archivo Arazzo y los inputs y casos guardados para él. Los contratos se quedan en la colección.
+
+<Aside type="caution">
+Eliminar un archivo no forma parte de **Deshacer**. Si solo quieres quitar un workflow, mira [Organizar un workflow](/es/design/organize/).
+</Aside>
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Crear un workflow" href="/es/design/create/" />
+  <LinkCard title="Ejecutar" href="/es/test/run/" />
+  <LinkCard title="Qué hay en el disco" href="/es/workspaces/files/" />
+</CardGrid>

@@ -1,0 +1,202 @@
+---
+// La ilustración de la portada: una cadena de tres llamadas (A → B → C) por la que viajan los datos
+// hasta un veredicto. Es lo que hace Luvin: probar la cadena, no solo la llamada.
+const { es = false } = Astro.props
+const steps = es
+  ? [
+      { m: 'POST', p: '/login', d: 'token' },
+      { m: 'GET', p: '/customers/{id}', d: 'customerId' },
+      { m: 'GET', p: '/accounts', d: '' },
+    ]
+  : [
+      { m: 'POST', p: '/login', d: 'token' },
+      { m: 'GET', p: '/customers/{id}', d: 'customerId' },
+      { m: 'GET', p: '/accounts', d: '' },
+    ]
+const verdict = es ? 'Pasó · 3 pasos' : 'Passed · 3 steps'
+---
+
+<div class="chain-art" aria-hidden="true">
+  <svg class="chain-wire" viewBox="0 0 40 300" preserveAspectRatio="none">
+    <path d="M20 22 V278" />
+    <path class="flow" d="M20 22 V278" />
+  </svg>
+  {
+    steps.map((s, i) => (
+      <div class="chain-step" style={`--i:${i}`}>
+        <span class="node" />
+        <div class="card">
+          <span class:list={['method', s.m.toLowerCase()]}>{s.m}</span>
+          <code>{s.p}</code>
+          <span class="ok">200</span>
+        </div>
+        {s.d && <span class="data">{s.d} →</span>}
+      </div>
+    ))
+  }
+  <div class="chain-verdict">
+    <span class="check">✓</span>
+    {verdict}
+  </div>
+</div>
+
+<style>
+  .chain-art {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 1.45rem;
+    width: 100%;
+    max-width: 25rem;
+    padding: 0.25rem 0 0.25rem 0;
+  }
+  .chain-wire {
+    position: absolute;
+    left: 0;
+    top: 0.6rem;
+    width: 2.5rem;
+    height: calc(100% - 3.4rem);
+    overflow: visible;
+  }
+  .chain-wire path {
+    fill: none;
+    stroke: var(--sl-color-gray-5);
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+  }
+  .chain-wire .flow {
+    stroke: var(--sl-color-accent);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 18 260;
+    animation: chain-flow 3.2s cubic-bezier(0.55, 0.1, 0.35, 0.9) infinite;
+  }
+  @keyframes chain-flow {
+    from {
+      stroke-dashoffset: 20;
+    }
+    to {
+      stroke-dashoffset: -260;
+    }
+  }
+  .chain-step {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding-left: 0.6rem;
+    animation: chain-in 0.6s ease-out both;
+    animation-delay: calc(var(--i) * 0.18s);
+  }
+  @keyframes chain-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+  .node {
+    position: relative;
+    z-index: 1;
+    flex: none;
+    width: 1.05rem;
+    height: 1.05rem;
+    border-radius: 50%;
+    border: 3px solid var(--sl-color-accent);
+    background: var(--sl-color-black);
+    animation: node-hit 3.2s infinite;
+    animation-delay: calc(var(--i) * 0.95s);
+  }
+  @keyframes node-hit {
+    0%,
+    12% {
+      background: var(--sl-color-accent);
+      box-shadow: 0 0 0 6px color-mix(in srgb, var(--sl-color-accent) 22%, transparent);
+    }
+    30%,
+    100% {
+      background: var(--sl-color-black);
+      box-shadow: 0 0 0 0 transparent;
+    }
+  }
+  .card {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-width: 0;
+    padding: 0.65rem 0.95rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.6rem;
+    background: var(--sl-color-black);
+    box-shadow: var(--sl-shadow-sm);
+    font-size: 0.92rem;
+  }
+  .card code {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--sl-color-white);
+    background: none;
+    padding: 0;
+    font-size: 0.9rem;
+  }
+  .method {
+    flex: none;
+    padding: 0.08rem 0.4rem;
+    border-radius: 0.3rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #fff;
+    background: #1f5fa8;
+  }
+  .method.post {
+    background: #157f3c;
+  }
+  .ok {
+    margin-left: auto;
+    font-family: var(--__sl-font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--sl-color-text-accent);
+  }
+  .data {
+    position: absolute;
+    left: 2.35rem;
+    bottom: -1.25rem;
+    font-family: var(--__sl-font-mono);
+    font-size: 0.76rem;
+    color: var(--sl-color-text-accent);
+    opacity: 0.9;
+  }
+  .chain-verdict {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    align-self: flex-start;
+    margin-left: 2.1rem;
+    padding: 0.45rem 0.85rem;
+    border-radius: 999px;
+    background: var(--sl-color-accent);
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    animation: chain-in 0.6s ease-out both 0.6s;
+  }
+  .check {
+    display: grid;
+    place-items: center;
+    width: 1.1rem;
+    height: 1.1rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.25);
+    font-size: 0.7rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .chain-wire .flow,
+    .node,
+    .chain-step,
+    .chain-verdict {
+      animation: none;
+    }
+  }
+</style>

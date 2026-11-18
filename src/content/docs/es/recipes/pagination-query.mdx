@@ -1,0 +1,149 @@
+---
+title: Recorre una lista por páginas
+description: Usa parámetros query para leer una página, pedir la siguiente y buscar, y lee lo que la API devuelve sobre el total.
+sidebar:
+  order: 4
+---
+
+import { Steps, CardGrid, LinkCard, LinkButton, Aside } from '@astrojs/starlight/components'
+
+Las listas de una API llegan por páginas. Pides una página con parámetros query como `limit` y `skip`, y la respuesta dice cuántos elementos existen en total.
+
+**Qué prueba:** que los parámetros query modelan la respuesta (tamaño de página, inicio, campos, búsqueda) y que un paso posterior puede comparar contra un output anterior.
+
+## Descarga los archivos
+
+<LinkButton href="/recipes/pagination-query/pagination-query.arazzo.yaml" icon="download" download>pagination-query.arazzo.yaml</LinkButton>
+<LinkButton href="/recipes/pagination-query/dummyjson.openapi.yaml" icon="download" variant="secondary" download>dummyjson.openapi.yaml</LinkButton>
+
+## Ábrelo en Luvin
+
+<Steps>
+
+1. Descarga los dos archivos de arriba en una misma carpeta.
+2. En Luvin, pulsa **Nueva colección**, o abre una colección que ya tengas.
+3. En el inicio de la colección, pulsa **Importar Arazzo o contratos** y elige los dos archivos descargados.
+4. En la barra lateral, abre el workflow `pageThroughProducts`.
+5. En la barra de ejecución, elige **API real**.
+6. Pulsa **Ejecutar**. Los resultados se abren abajo.
+
+</Steps>
+
+## El archivo Arazzo
+
+```yaml title="pagination-query.arazzo.yaml" {15-17,24,27,33,35-36,45,51,60}
+arazzo: 1.0.1
+info:
+  title: Page through a product list
+  version: 1.0.0
+sourceDescriptions:
+  - name: dummyjson
+    url: ./dummyjson.openapi.yaml
+    type: openapi
+workflows:
+  - workflowId: pageThroughProducts
+    summary: Read the first page, the next page and a search
+    inputs:
+      type: object
+      properties:
+        pageSize: { type: integer, example: 5 }
+        nextSkip: { type: integer, example: 5 }
+        search: { type: string, example: phone }
+    steps:
+      - stepId: firstPage
+        operationId: listProducts
+        parameters:
+          - name: limit
+            in: query
+            value: $inputs.pageSize
+          - name: skip
+            in: query
+            value: 0
+          - name: select
+            in: query
+            value: title,price
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.body#/skip == 0
+        outputs:
+          total: $response.body#/total
+          firstTitle: $response.body#/products/0/title
+      - stepId: nextPage
+        operationId: listProducts
+        parameters:
+          - name: limit
+            in: query
+            value: $inputs.pageSize
+          - name: skip
+            in: query
+            value: $inputs.nextSkip
+          - name: select
+            in: query
+            value: title,price
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.body#/total == $steps.firstPage.outputs.total
+        outputs:
+          skip: $response.body#/skip
+          firstTitle: $response.body#/products/0/title
+      - stepId: searchProducts
+        operationId: searchProducts
+        parameters:
+          - name: q
+            in: query
+            value: $inputs.search
+          - name: limit
+            in: query
+            value: $inputs.pageSize
+          - name: select
+            in: query
+            value: title,price
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.body#/total > 0
+        outputs:
+          matches: $response.body#/total
+    outputs:
+      total: $steps.firstPage.outputs.total
+      firstTitle: $steps.firstPage.outputs.firstTitle
+      secondPageFirstTitle: $steps.nextPage.outputs.firstTitle
+      matches: $steps.searchProducts.outputs.matches
+```
+
+| Línea | Qué hace |
+|---|---|
+| `pageSize`, `nextSkip`, `search` (15-17) | Tres inputs, con valores de ejemplo, para que los cambies sin editar los pasos. |
+| `limit` `$inputs.pageSize` / `skip` `0` (24-27) | Parámetros query de la primera página: cuántos elementos y desde dónde. |
+| `$response.body#/skip == 0` (33) | Un criterio de éxito sobre un valor del body de la respuesta. |
+| `total` y `firstTitle` (35-36) | Outputs tomados de la respuesta. `products/0/title` es el título del primer elemento de la página. |
+| `skip` `$inputs.nextSkip` (45) | La página siguiente empieza donde dice este input. Mira la nota de abajo. |
+| `$response.body#/total == $steps.firstPage.outputs.total` (51) | Un criterio que compara esta respuesta con un output del primer paso: el total no debe cambiar entre páginas. |
+| `q` `$inputs.search` (60) | El texto de búsqueda va en el parámetro query `q`. |
+
+## Qué obtienes
+
+| Paso | Estado HTTP | Outputs |
+|---|---|---|
+| `firstPage` | 200 | `total` = 194, `firstTitle` = Essence Mascara Lash Princess |
+| `nextPage` | 200 | `skip` = 5, `firstTitle` = Calvin Klein CK One |
+| `searchProducts` | 200 | `matches` = 23 |
+
+Los outputs del workflow son `total` = 194, `firstTitle`, `secondPageFirstTitle` y `matches` = 23. El veredicto es **Pasó**. Los totales vienen del catálogo en vivo de DummyJSON y pueden cambiar si él cambia.
+
+:::caution[Lo que una expresión no puede hacer]
+Las expresiones de Arazzo leen valores; no calculan. No puedes escribir `skip` = `skip` anterior + `limit`. Por eso `nextSkip` es un input: tú decides dónde empieza la página siguiente. Para recorrer una lista completa repetirías el paso con un `skip` nuevo cada vez.
+:::
+
+## Pruébalo
+
+- **Una página cerca del final.** Pon `nextSkip` en `190` (el catálogo tiene 194 productos). `nextPage` sigue respondiendo 200 y su `firstTitle` ahora es *Rolex Cellini Moonphase*.
+- **Una búsqueda sin resultados.** Pon `search` en `zzzzqq`. DummyJSON responde 200 con `total` 0, así que el criterio `$response.body#/total > 0` falla: `searchProducts` falla y el workflow termina **No pasó**. Un resultado vacío es una respuesta válida para la API, y tus criterios deciden si te sirve.
+- **Páginas más chicas.** Pon `pageSize` en `2` y `nextSkip` en `2`: la segunda página ahora empieza en el tercer producto, *Powder Canister*.
+
+## Relacionado
+
+<CardGrid>
+<LinkCard title="Parámetros y body" description="De dónde vienen los valores de query, ruta y header." href="/es/design/parameters-and-body/" />
+<LinkCard title="Criterios de éxito" description="Las condiciones que deciden si un paso pasó." href="/es/reference/criteria/" />
+<LinkCard title="Elige un elemento de una lista" description="Cuando la lista alimenta un paso posterior." href="/es/recipes/list-pick/" />
+</CardGrid>

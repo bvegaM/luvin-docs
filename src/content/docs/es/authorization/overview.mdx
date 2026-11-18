@@ -1,0 +1,81 @@
+---
+title: Resumen de la autorización
+description: El mapa de todo lo que hay sobre autorización en Luvin - los cuatro lugares donde vive, cuál usar y qué gana cuando se superponen.
+sidebar:
+  order: 1
+---
+
+import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
+
+La autorización es la forma en que Luvin demuestra quién es ante una API: una clave, una contraseña, un token o una firma. Luvin tiene doce maneras de hacerlo y cuatro lugares donde configurarla. Esta página es el mapa.
+
+![La pestaña Autorización de un request, con el selector Tipo y sus campos](/media/es/request-auth.webp)
+
+## Ejemplo: el mismo token en dos lugares
+
+Supón que la API de tu tienda pide `Authorization: Bearer abc123`.
+
+- Para **un request**, abre su pestaña **Autorización**, elige **Bearer Token** y escribe `abc123` en **Token**.
+- Para **todos los requests de una colección**, configura **Bearer Token** una vez en el resumen de la colección y deja los requests en **Heredar de la colección**.
+- Para un **workflow**, configúralo una vez por API en la pestaña **Autorización** del workflow.
+
+Los tres usan los mismos tipos y los mismos campos. Solo cambia el lugar.
+
+## Los cuatro lugares
+
+| Lugar | Qué cubre | Dónde se configura |
+|---|---|---|
+| Un request | Ese request | Pestaña **Autorización** del request |
+| La colección | Todos los requests con **Heredar de la colección** | Tarjeta **Autorización** del resumen de la colección |
+| Un workflow | Los pasos de un workflow, API por API | Pestaña **Autorización** del workflow |
+| El ambiente | Las credenciales que pide el contrato, que los pasos de un workflow usan por defecto | Sección **Credenciales** del ambiente |
+
+Detalles y recorrido de clics: [Dónde se aplica la autorización](/es/authorization/where-it-applies/).
+
+## Quiero... uso...
+
+| Quiero... | Uso | Página |
+|---|---|---|
+| Enviar una clave fija en un header o en la URL | **API Key** | [API Key](/es/authorization/api-key/) |
+| Enviar usuario y contraseña | **Basic Auth** | [Basic Auth](/es/authorization/basic/) |
+| Enviar un token que ya tengo | **Bearer Token** | [Bearer Token](/es/authorization/bearer/) |
+| Obtener un token de un servidor de autorización y renovarlo | **OAuth 2.0** | [OAuth 2.0](/es/authorization/oauth2/) |
+| Firmar cada request con claves de consumidor y de token | **OAuth 1.0** | [OAuth 1.0](/es/authorization/oauth1/) |
+| Responder a un desafío Digest con `401` | **Digest Auth** | [Digest Auth](/es/authorization/digest/) |
+| Llamar a un servidor Windows o de intranet | **NTLM Auth** (app de escritorio) | [NTLM Auth](/es/authorization/ntlm/) |
+| Llamar a una API en AWS con claves IAM | **AWS Sig v4** | [AWS Sig v4](/es/authorization/aws-sigv4/) |
+| Llamar a una API detrás de Akamai | **Akamai EdgeGrid** | [Akamai EdgeGrid](/es/authorization/akamai/) |
+| Llamar a un servicio SOAP o legado | **WSSE Auth** | [WSSE Auth](/es/authorization/wsse/) |
+| Usar la misma autorización en todos los requests de una colección | **Heredar de la colección** | [Heredar y Sin autorización](/es/authorization/inherit-and-none/) |
+| Enviar un request sin credenciales | **Sin autorización** | [Heredar y Sin autorización](/es/authorization/inherit-and-none/) |
+| Que un workflow use lo que declara el contrato | **Del contrato** | [Credenciales del contrato](/es/authorization/contract-credentials/) |
+
+## Qué gana cuando se superponen
+
+**En un request**, de lo más específico a lo menos:
+
+1. Un header que escribiste tú en la pestaña **Headers**. En **Basic Auth**, **Bearer Token** y **OAuth 2.0**, tu header `Authorization` se respeta y Luvin no agrega nada. En **API Key** en un header, se respeta tu header del mismo nombre.
+2. El **Tipo** del request. Si es **Heredar de la colección**, se usa el tipo de la colección. Si la colección no tiene ninguno, el request va sin autorización.
+
+**En un paso de un workflow**, de lo más específico a lo menos:
+
+1. **Solo este workflow**, si lo configuraste para esa API.
+2. **Todos los workflows**, si lo configuraste para esa API. Si dice **Heredar de la colección**, se usa la autorización de la colección.
+3. Las credenciales del contrato, tomadas del ambiente activo.
+
+Un caso que prueba una llamada *sin credenciales* siempre va sin autorización, configures lo que configures.
+
+<Aside type="note">
+Los tipos que firman (**AWS Sig v4**, **OAuth 1.0**, **WSSE Auth**, **Akamai EdgeGrid**) reemplazan un header `Authorization` que hayas escrito tú. La firma cubre el request final, así que Luvin la calcula al enviar.
+</Aside>
+
+## Dónde van los secretos
+
+Una contraseña, un token o una clave escritos tal cual se guardan cifrados en tu equipo y no van a los archivos ni a git. Usa `{{variables}}` para compartir la configuración. Mira [Secretos y qué va a los archivos](/es/authorization/secrets/).
+
+## Siguiente
+
+<CardGrid>
+  <LinkCard title="Dónde se aplica la autorización" href="/es/authorization/where-it-applies/" description="Request, colección, workflow y ambiente lado a lado." />
+  <LinkCard title="Solución de problemas" href="/es/authorization/troubleshooting/" description="401, 403, tokens vencidos y problemas al iniciar sesión." />
+</CardGrid>

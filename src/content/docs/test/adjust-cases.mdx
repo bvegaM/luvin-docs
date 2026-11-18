@@ -1,0 +1,118 @@
+---
+title: Adjust a case
+description: Change the inputs of one case, choose the status a rejection must return, run a response case against the real API, and import or export cases.
+sidebar:
+  order: 3
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+The generated cases work as they are. Adjust one when it needs other data, when your API behaves differently from its contract, or when you want to move cases to another computer.
+
+## Example: a Pokémon that does not exist
+
+The case `getPokemon responds 404 → pokemonNotFound` is simulated. To try it against your API, switch it to **Real API** and change one input.
+
+| Input | State | Value |
+|---|---|---|
+| `pokemon` | **Changed** | `missingno` (the default, `pikachu`, shows below) |
+
+The case now sends `missingno`, and `getPokemon` must answer 404 so that the action `pokemonNotFound` fires.
+
+## Change the inputs of one case
+
+<Steps>
+1. In the **Cases** tab, press **Inputs** on the case. **Inputs of this case** opens with one row per input.
+2. Type a new value. The row goes from **Default** to **Changed** and shows the default below.
+3. To leave an input out, press **Omit**. The row says **Not sent in this case**.
+4. To go back, press **Reset** on the row, or **Reset all** at the top.
+5. Press **Close inputs**.
+</Steps>
+
+The change applies to this case only. The case then shows how many inputs it changes.
+
+| State | Meaning |
+|---|---|
+| **Default** | The case uses the value from the **Inputs** tab. |
+| **Changed** | The case uses its own value. |
+| **Omitted** | The case does not send this input. |
+| **Set by the case** | The value is what the case tests, for example the invalid value. You cannot edit it. |
+
+Inputs that are a group or a list show a summary; **Edit fields** opens them. Values accept variables and generators, such as `{{uuid}}`. See [Custom data cases](/test/custom-cases/).
+
+If the workflow has no inputs yet, the editor offers **Choose data to vary**. See [Inputs](/test/inputs/).
+
+## Choose the status a rejection case must return
+
+**Data validation** and **Security** cases expect a step to reject the request. Under the case, **Status «…» must respond:** shows the accepted statuses.
+
+Luvin suggests 400 or 422 when the contract documents them for that step, or else the other 4xx statuses it documents. For **Without credentials** it suggests 401 and 403. With no status chosen, any 4xx counts.
+
+<Steps>
+1. Click a status to add or remove it. A dot marks the statuses documented in the contract.
+2. For a status that is not in the list, type it in **Other (Enter)** and press Enter.
+3. To undo your choice, press **Back to the suggestion**.
+</Steps>
+
+What happens when the API answers something else depends on who chose the status. The case says it: **If it responds otherwise: warning** or **If it responds otherwise: error**.
+
+| Status | If the API answers something else |
+|---|---|
+| Suggested by Luvin, in a **Data validation** case | **Warning**. APIs are often more permissive than their contract, and the workflow still works. |
+| Chosen by you | **Failed**. It is what you state about your API. |
+| **Without credentials** | **Failed**. |
+
+<Aside type="tip">
+If your API accepts a request that the contract says it should reject, and that is fine, add `200` and remove the others. The case shows **Expects 200** and passes when the API answers 200.
+</Aside>
+
+## Run a response case against the real API
+
+Response cases are simulated: Luvin makes the step answer the response that triggers the action. To check the same thing against your API, give the case data that causes that response.
+
+<Steps>
+1. On the case, switch **Simulated** to **Real API**. Its inputs open.
+2. Change the inputs. For `getPokemon responds 404 → pokemonNotFound`, set `pokemon` to a name that does not exist.
+3. Run the case.
+</Steps>
+
+Until you change at least one input, the case shows **Will not run**. Message cases have no switch: they are always simulated.
+
+<Aside type="note">
+A response case set to **Real API** calls the API even when the run bar is on **Simulation**.
+</Aside>
+
+## Import and export cases
+
+At the top right of the **Cases** tab, the **⋯** menu has two actions:
+
+- **Export cases** downloads a YAML file named after the Arazzo file, ending in `.escenarios.yaml`. It holds the default inputs of each workflow in that file, your custom data cases, and the inputs you changed in generated cases.
+- **Import cases** reads a `.yaml`, `.yml` or `.json` file in that format. It replaces the custom data cases of this Arazzo file and the default inputs of the workflows named in the file. A message then says how many were added and updated, and lists what could not be applied.
+
+```yaml
+version: 1
+bases:
+  pokemonCard:
+    pokemon: pikachu
+casos:
+  - workflow: pokemonCard
+    nombre: Unknown Pokémon
+    inputs:
+      pokemon: missingno
+    espera:
+      paso: getPokemon
+      status: [404]
+      accion: pokemonNotFound
+```
+
+The field names are in Spanish in both languages of the app.
+
+In a workspace you do not need to export to keep your cases: Luvin saves this same information in the collection, under `scenarios/`. See [Files of a workspace](/workspaces/files/).
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Cases" href="/test/cases/" />
+  <LinkCard title="Custom data cases" href="/test/custom-cases/" />
+  <LinkCard title="Read the results" href="/test/results/" />
+</CardGrid>

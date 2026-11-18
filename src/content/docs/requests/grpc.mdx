@@ -1,0 +1,113 @@
+---
+title: gRPC requests
+description: How to call a gRPC method from its .proto file in the desktop app, and the limits with streaming methods.
+sidebar:
+  order: 21
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A gRPC request calls one method of a gRPC service. You give Luvin the `.proto` file that describes the service, choose the method and write the message as JSON.
+
+:::caution[Desktop app only]
+Browsers cannot open gRPC connections. In the browser version, the **gRPC** option is marked **Desktop only**, and a gRPC request shows *gRPC needs the desktop app*. Open the workspace in the desktop app to call the service.
+:::
+
+## Example
+
+A call to the method `SayHello` of the service `helloworld.Greeter`, with the message `{"name": "Ana"}` and a token as metadata, is saved like this:
+
+```yaml title="requests/say-hello.request.yaml"
+name: Say hello
+kind: grpc
+url: localhost:50051
+metadata:
+  - key: authorization
+    value: Bearer {{token}}
+proto: protos/helloworld.proto
+service: helloworld.Greeter
+rpc: SayHello
+message: |-
+  {
+    "name": "Ana"
+  }
+```
+
+The `.proto` was imported into the `protos/` folder of the collection. Press **Invoke** and the response shows the status `0 OK` and the message the server returned.
+
+## Create a gRPC request
+
+<Steps>
+
+1. In the sidebar, click **New request** under your collection.
+2. In the **New request** dialog, choose **gRPC**.
+3. The request opens with the name **New gRPC call** and the address `localhost:50051`.
+
+</Steps>
+
+## Call a method
+
+<Steps>
+
+1. Write the address of the server as `host:port`, for example `localhost:50051`.
+2. If the server uses a secure connection, tick **TLS**.
+3. In the **.proto** selector, choose **Import .proto…** and pick the file. If the file imports other `.proto` files, select them all at once.
+4. In the **Method** selector, pick the method. Methods are grouped by service.
+5. In the **Message** tab, write the message as JSON. When you pick a method and the message is still empty, Luvin fills in a sample message with every field. **Use sample message** puts the sample back at any time.
+6. Press **Invoke**. The response appears below.
+
+</Steps>
+
+The **Invoke** button stays disabled until the request has an address and a method.
+
+## The .proto file
+
+Luvin needs the `.proto` to know the services, the methods and the shape of the messages. It does not ask the server for them: there is no server reflection.
+
+- Imported files are saved in the collection, in a `protos/` folder. They travel with the collection like any other file.
+- Once imported, a `.proto` appears in the **.proto** selector of every gRPC request of the collection.
+- If the file cannot be read, the error appears under the selectors.
+
+## Message and metadata
+
+| Tab | What it holds |
+|---|---|
+| **Message** | The request message, as JSON. Field names are the ones in the `.proto`. |
+| **Metadata** | A key and value table, sent as gRPC metadata. |
+
+A gRPC request has no **Authorization** tab. If the service needs a token, add it as metadata, for example the key `authorization` with the value `Bearer {{token}}`.
+
+Environment `{{variables}}` work in the address, the message and the metadata.
+
+## The response
+
+The response shows:
+
+- The gRPC status code and its name, for example `0 OK` or `5 NOT_FOUND`, and the time it took.
+- **Response**: each message the server returned, as JSON. If there are several, they are numbered and the header says how many.
+- **Metadata** and **Trailers**: what the server sent before and after the messages.
+
+When the status is not `0`, the details the server gave appear under the status. **Copy** copies the messages.
+
+## Streaming limits
+
+Methods that stream are marked in the **Method** selector as `client stream`, `server stream` or both.
+
+| Method type | What Luvin does |
+|---|---|
+| Unary | Sends the message and shows the one response. |
+| Server streaming | Sends the message and shows every response that arrives. |
+| Client streaming | Sends a single message, closes sending and shows the response. |
+| Bidirectional | Sends a single message, closes sending and shows every response that arrives. |
+
+Other limits:
+
+- You cannot send several messages on a client stream.
+- Luvin keeps up to 500 response messages of a stream.
+- A call has 30 seconds to finish. After that it ends with the status `DEADLINE_EXCEEDED`.
+- A gRPC request cannot be used as a workflow step.
+
+## Related
+
+- [Single requests](/requests/overview/)
+- [Limitations](/reference/limitations/)

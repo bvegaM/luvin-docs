@@ -1,0 +1,100 @@
+---
+title: El tour guiado
+description: Qué recorre el tour guiado, cómo empezarlo, el workspace que crea y qué hacer con ese workspace cuando termina.
+sidebar:
+  order: 5
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+El tour guiado te lleva por Luvin sobre un ejemplo real, resaltando una zona de la pantalla cada vez. Dura unos 6 minutos. Hazlo después del [inicio rápido](/es/get-started/quick-start/) si quieres ver cada función una vez.
+
+![El tour guiado resaltando los resultados de una ejecución, con una tarjeta de explicación al lado](/media/es/tour.webp)
+
+## Qué recorre el tour
+
+Usa el ejemplo de la Pokédex contra la PokéAPI pública, que no pide credenciales. Al final muestra un cobro con PayPal, para explicar la autorización y los reutilizables. En orden, recorre:
+
+- El workspace, **Inicio** y la barra lateral con colecciones, workflows y pasos.
+- El diagrama de un workflow, sus inputs y sus ambientes.
+- Los casos generados y una ejecución contra la API real.
+- Un paso en detalle, el editor YAML y un contrato abierto junto a su vista previa.
+- Un workflow que depende de otro, y un workflow que mezcla una llamada HTTP con pasos de mensajería.
+- El ejemplo de PayPal: reutilizables, autorización por API y una ejecución en **Simulación**.
+- La pestaña **Diseño**, los requests sueltos, Dev Tools, la búsqueda, el resumen de la colección y las Preferencias.
+
+Puedes usar la app en cualquier momento mientras el tour está abierto. El tour no la bloquea.
+
+## Empieza el tour
+
+Usa cualquiera de estas opciones:
+
+| Dónde | Qué hacer clic |
+|---|---|
+| Pantalla de bienvenida | La tarjeta **Tour guiado** |
+| Barra de estado, abajo | **Tour** |
+| Preferencias (el ícono de engranaje de la barra de estado) | **Empezar el tour** |
+| El aviso **Estás viendo un ejemplo** | **Empezar el tour** |
+
+Consulta [Recorrido por la interfaz](/es/get-started/interface/) para la barra de estado y las Preferencias.
+
+## El aviso que ofrece el tour
+
+Cuando abres un ejemplo, aparece un aviso arriba de la pantalla: **Estás viendo un ejemplo.** *¿Te lo mostramos paso a paso? El tour recorre todas las funciones en unos 6 minutos.*
+
+- Haz clic en **Empezar el tour** para comenzar.
+- Haz clic en la **✕** para cerrarlo. Su tooltip dice **No volver a mostrar**. Luvin lo recuerda en este equipo, así que el aviso no vuelve en ningún ejemplo.
+- El aviso no aparece mientras el tour está en marcha.
+
+El tour sigue disponible desde los otros lugares de la tabla anterior.
+
+## Qué crea el tour
+
+Al empezar, el tour muestra **Preparando…** y arma su propio workspace:
+
+<Steps>
+
+1. Si tienes un workspace abierto, Luvin lo cierra.
+2. Luvin crea un workspace llamado **Pokédex (tour)**. Se guarda en el almacenamiento del navegador (o de la app de escritorio), no en una carpeta del disco.
+3. Agrega una colección, **Pokédex**, con los archivos del ejemplo.
+
+</Steps>
+
+Más adelante, el tour agrega una segunda colección, **PayPal**. El tour trabaja dentro de **Pokédex (tour)**.
+
+<Aside type="note">
+El tour ejecuta el ejemplo por sí solo, como lo harías tú: abre un workflow, una pestaña y pulsa **Ejecutar**. La ejecución del paso **Ejecutar contra la API real** llama a pokeapi.co, así que necesitas conexión a internet.
+</Aside>
+
+## Muévete por el tour
+
+| Acción | Cómo |
+|---|---|
+| Paso siguiente | **Siguiente** o la tecla → |
+| Paso anterior | **Atrás** o la tecla ← |
+| Salir del tour | **Salir del tour** |
+
+La tarjeta muestra **Paso 3 de N** y una barra de progreso. Mientras un paso prepara la pantalla, la tarjeta dice **Preparando…**.
+
+## Cuando termina el tour
+
+La última tarjeta se titula **¡Listo!** y pregunta qué hacer con el workspace **Pokédex (tour)**:
+
+| Botón | Qué pasa |
+|---|---|
+| **Quedármelo** | El workspace se queda. Lo encuentras después en **Abrir un workspace**, en la pantalla de bienvenida |
+| **Eliminarlo** | Se elimina el workspace, con sus colecciones y sus secretos. No se puede deshacer |
+
+Puedes repetir el tour cuando quieras. Cada vez arma un workspace **Pokédex (tour)** nuevo.
+
+<Aside type="caution">
+**Salir del tour** cierra el tour al instante. No pregunta por el workspace, así que **Pokédex (tour)** se queda. Para quitarlo después, abre su menú en la barra superior y elige **Eliminar workspace…**.
+</Aside>
+
+## Sigue con
+
+<CardGrid>
+  <LinkCard title="Recorrido por la interfaz" href="/es/get-started/interface/" />
+  <LinkCard title="Diseñar un workflow" href="/es/design/overview/" />
+  <LinkCard title="Trae tus propios archivos y requests" href="/es/get-started/import/" />
+</CardGrid>

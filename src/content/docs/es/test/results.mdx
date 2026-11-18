@@ -1,0 +1,123 @@
+---
+title: Lee los resultados
+description: La barra de resultados, el resumen en palabras simples, la lista de casos, qué significa cada veredicto y el detalle de un caso.
+sidebar:
+  order: 7
+---
+
+import { Steps, Tabs, TabItem, Aside, Badge, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Los resultados de una ejecución muestran, para cada caso, si hizo lo esperado y por qué. Se abren solos al ejecutar, abajo del workflow.
+
+## Ejemplo: Pokemon card
+
+Después de ejecutar **Pokemon card** en **Simulación**, los resultados muestran un resumen y una fila por caso.
+
+<Tabs>
+  <TabItem label="Lo que ves">
+
+```text title="Resultados de Pokemon card"
+El camino feliz funciona y todas las comprobaciones salieron como se esperaba.
+
+● Camino feliz                                  Pasó
+● getPokemon responde 404 → pokemonNotFound     Pasó   Sim
+```
+
+El punto tiene el color del veredicto. **Sim** marca un caso simulado. Haz clic en una fila para ver sus pasos a la derecha.
+
+![Los resultados de una ejecución: la lista de casos a la izquierda y los pasos de un caso que pasó a la derecha](/media/es/results.webp)
+
+  </TabItem>
+  <TabItem label="Cuando un caso falla">
+
+La fila **Resultado** del detalle da el motivo, en palabras simples:
+
+```text title="Resultado"
+Falló en el paso "getSpecies": …
+```
+
+![Un caso que no pasó, con el motivo en palabras simples](/media/es/results-failed.webp)
+
+  </TabItem>
+</Tabs>
+
+## La barra de resultados
+
+Antes de la primera ejecución, la barra dice *Todavía no se ejecuta este workflow*. Después de una ejecución, su encabezado contiene:
+
+| Elemento | Qué hace |
+|---|---|
+| **Resultado**, con una flecha | Pliega los resultados en una barra, o los muestra de nuevo. Se abren otra vez cada vez que ejecutas. |
+| ✓ ✕ ! ? con un número | Cuántos casos pasaron, no pasaron, terminaron en advertencia o fueron no concluyentes. |
+| *3 de 5 casos ejecutados.* | El avance de la ejecución. |
+| **Repetir** | Vuelve a ejecutar los casos seleccionados, igual que el botón **Ejecutar**. |
+| **JSON** y **Reporte** | Exportan los resultados. Mira [Reportes](/es/test/reports/). |
+| El botón del extremo derecho | **Ver los resultados a la derecha** o **Ver los resultados abajo**. En la pestaña **Diseño** los resultados siempre van abajo. |
+
+Arrastra el borde entre el workflow y los resultados para cambiar su tamaño.
+
+Cada workflow guarda los resultados de su última ejecución. Una ejecución nueva de ese workflow los reemplaza.
+
+## El resumen
+
+Cuando termina la ejecución, una línea dice en palabras simples si el workflow funciona:
+
+- *El camino feliz funciona y todas las comprobaciones salieron como se esperaba.*
+- *El camino feliz funciona, con puntos para revisar.*
+- *El camino feliz funciona, pero fallaron otros casos.*
+- *El camino feliz no funciona: se detiene en el paso «get species».*
+- *No se pudo comprobar el camino feliz (la API no respondió o faltan datos).*
+
+Debajo, puntos breves nombran las comprobaciones que fallaron, las advertencias y las comprobaciones que no se pudieron completar.
+
+Si no se pudo llegar a la API, un panel titulado **No se pudo conectar con la API** explica qué revisar y ofrece **Probar en simulación**. Mira [Ayuda de conexión](/es/dev-tools/connection-help/).
+
+## La lista de casos
+
+La lista de la izquierda tiene una fila por caso, con un punto del color de su veredicto. **Sim** marca un caso simulado.
+
+- Haz clic en un caso para ver su detalle a la derecha.
+- Con más de tres casos, aparecen filtros sobre la lista: **Todos**, **No pasaron**, **Advertencias**, **No concluyentes** y **Pasaron**, cada uno con su cantidad.
+- Durante una ejecución, el detalle sigue al caso que se está ejecutando hasta que hagas clic en otro.
+
+## Veredictos
+
+Cada caso termina con un [veredicto](/es/reference/glossary/) y un motivo.
+
+| Veredicto | Significado |
+|---|---|
+| **Pasó** | El caso hizo lo que esperaba. Para un caso de rechazo, significa que la API rechazó el request. |
+| **No pasó** | Un paso no cumplió sus criterios, la acción esperada no se activó, o la API respondió algo distinto del status que elegiste. |
+| **Advertencia** | Solo para casos de **Validación de datos** con el status que sugirió Luvin: la API respondió otra cosa, normalmente aceptando datos que según el contrato debería rechazar. El workflow igual funciona. Revísalo con quien construye la API. |
+| **No concluyente** | El caso no se pudo juzgar: la API no respondió, el workflow se detuvo antes del paso que el caso comprueba, o falló un workflow del que depende. |
+
+Un camino feliz puede pasar con pasos que tienen advertencias, por ejemplo una respuesta que no coincide con el contrato. El motivo nombra esos pasos.
+
+## El detalle de un caso
+
+La parte de arriba del detalle tiene el nombre del caso, su veredicto y estas filas:
+
+| Fila | Qué dice |
+|---|---|
+| **Qué prueba** | Qué hace distinto el caso. El camino feliz no tiene esta fila. |
+| **Esperado** | El resultado esperado. |
+| **Resultado** | El motivo del veredicto, por ejemplo *Falló en el paso "getSpecies": …* |
+| **Inputs** | `valores por defecto`, o lo que cambia el caso. **Ver valores enviados** lista cada input con el valor que se envió: generadores resueltos, secretos ocultos. |
+| **Outputs** | Los outputs del workflow, cuando los tiene. |
+
+Debajo de las filas, cada paso del caso es una tarjeta. Mira [Lee el resultado de un paso](/es/test/step-results/).
+
+### Un caso que está bien así
+
+Cuando un caso generado distinto del camino feliz termina en **Advertencia** o **No pasó**, y el comportamiento de la API es aceptable, pulsa **Está bien así: no volver a probarlo**. El caso queda desmarcado. Márcalo de nuevo en la pestaña **Casos**. Para aceptar otro status en su lugar, mira [Ajusta un caso](/es/test/adjust-cases/).
+
+<Aside type="note">
+En la interfaz **Simple (producto)**, los pasos muestran nombres legibles y las expresiones técnicas se ocultan. Mira [La interfaz](/es/get-started/interface/).
+</Aside>
+
+## Siguiente
+
+<CardGrid>
+  <LinkCard title="Lee el resultado de un paso" description="Request, respuesta, criterios y fallas." href="/es/test/step-results/" />
+  <LinkCard title="Reportes" description="Comparte los resultados." href="/es/test/reports/" />
+</CardGrid>

@@ -1,0 +1,61 @@
+---
+title: AWS Sig v4
+description: Firma requests a servicios de AWS con claves IAM, con los campos, los headers que agrega Luvin y qué revisar cuando la firma no coincide.
+sidebar:
+  order: 17
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Usa **AWS Sig v4** cuando la API corre en AWS (API Gateway con autorización IAM, S3 y otros) y pide una firma hecha con una access key.
+
+![La pestaña Autorización con los campos de AWS Sig v4](/media/es/auth-awsv4.webp)
+
+## Ejemplo
+
+Un endpoint de API Gateway en `us-east-1`:
+
+```text
+GET https://abc123.execute-api.us-east-1.amazonaws.com/prod/pets
+```
+
+Con **Servicio** `execute-api` y **Región** `us-east-1`, Luvin agrega:
+
+```text
+X-Amz-Date: 20261117T140322Z
+Authorization: AWS4-HMAC-SHA256 Credential=<Access Key ID>/20261117/us-east-1/execute-api/aws4_request, SignedHeaders=host;x-amz-date, Signature=<64 caracteres hexadecimales>
+```
+
+## Campos
+
+| Campo | Qué escribir |
+|---|---|
+| **Access Key ID** | El access key ID de IAM. |
+| **Secret Access Key** | La clave secreta. Es un campo secreto. |
+| **Session Token** | Opcional. Para credenciales temporales. Es un campo secreto. |
+| **Servicio** | El servicio de AWS. `execute-api` si está vacío. |
+| **Región** | La región. `us-east-1` si está vacía. |
+
+## Qué firma Luvin
+
+| Qué | Detalle |
+|---|---|
+| Se firma | El método, la ruta, los parámetros del query en orden, los headers `host`, `content-type` y todos los `x-amz-*`, y el SHA-256 del body. |
+| `X-Amz-Security-Token` | Se agrega cuando completas **Session Token**. |
+| `X-Amz-Content-Sha256` | Se agrega cuando **Servicio** es `s3`. |
+| Alcance | El día, la **Región**, el **Servicio** y `aws4_request`. |
+
+La fecha cambia en cada envío, así que una firma de un envío anterior no sirve. Reemplaza un header `Authorization` que hayas escrito tú. En **Headers** la fila dice *Luvin la calcula al enviar (AWS Sig v4)*.
+
+<Aside type="tip">
+Si la API responde `403` con *signature does not match*, revisa primero **Región** y **Servicio**, y luego el reloj de tu computadora.
+</Aside>
+
+## Secretos
+
+**Secret Access Key** y **Session Token** son secretos: escritos tal cual se guardan cifrados en tu equipo. **Access Key ID** va al archivo tal como lo escribes; usa `{{awsAccessKeyId}}` si compartes la colección. Mira [Secretos](/es/authorization/secrets/).
+
+## Relacionado
+
+- [Solución de problemas](/es/authorization/troubleshooting/)
+- [Resumen de la autorización](/es/authorization/overview/)

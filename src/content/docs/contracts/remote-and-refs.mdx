@@ -1,0 +1,85 @@
+---
+title: Remote contracts and references
+description: How Luvin loads a contract from a URL, how a contract can reference other files with $ref, what missing references mean and how to fix them.
+sidebar:
+  order: 5
+---
+
+import { Steps, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A contract does not always live in one file in your collection. A workflow can point to a contract published at a URL, and a contract can split its schemas into other files. This page explains both cases and what to do when a piece is missing.
+
+## Example: references between files
+
+Large contracts often keep their schemas in other files. A **reference** is a `$ref` that points to another file instead of to a place in the same one:
+
+```yaml
+components:
+  schemas:
+    Member:
+      $ref: 'schemas.yaml#/Member'
+```
+
+The part before `#` is the file. The part after it is the path inside that file.
+
+Luvin joins the pieces for you, if all the files are in the collection:
+
+- It finds the files by their name. `./common/errors.yaml` and `errors.yaml` are the same file for Luvin.
+- It reads a reference to another file as if the content were written where the `$ref` is.
+- The editor shows a **$ref: file** button for each referenced file. Click it to open that file.
+- A file of schemas that no workflow uses yet shows in the **Contracts** list as `schemas`, with the ○ mark.
+
+To add the files, drag them together onto Luvin, or use **Import contract…**. See [Contracts](/contracts/overview/).
+
+A reference that stays inside the same document, such as `#/components/schemas/Member`, is a normal `$ref`. If it points to nothing, the editor shows *The $ref “…” doesn’t point to anything in the contract.*
+
+## Contracts at a URL
+
+A workflow file lists the contracts it uses, each with an address. That address can be a file next to it (`./pokeapi.openapi.yaml`) or a URL (`https://example.com/openapi.yaml`). When it is a URL and the file is not in the collection, the row in the **Contracts** list shows ✕ and a **Download** button.
+
+<Steps>
+
+1. Click **Download** on the row.
+2. Luvin downloads the file from the URL and loads it. The mark changes to ✓.
+
+</Steps>
+
+The downloaded contract opens as **Read-only**, because it belongs to the URL, not to your collection. To edit it, click **Make a local copy**. See [Edit a contract](/contracts/edit/).
+
+If the download fails, the row stays ✕ and the message tells why:
+
+| Message | What it means |
+|---|---|
+| *Could not download: the server does not allow CORS or is unreachable. Download it and upload it manually.* | In the browser version, the server that publishes the file must allow CORS. Otherwise, download the file yourself and use **Attach**. |
+| *Could not download: HTTP 404* (or another code) | The server answered with an error. Check the address. |
+
+**Attach** is the fallback for any contract that did not load: it opens a file picker so you choose the file from your computer.
+
+## Missing references
+
+A contract can be loaded and still miss some of its files. The row then shows ✕ and, when you move the mouse over it, the message:
+
+*Files referenced with $ref are missing: names. Drop them into the upload area.*
+
+It means the contract points to files that are not in the collection. The parts that come from those files are not validated and are not used in simulation. You can keep working, but those parts are not available.
+
+To fix it:
+
+<Steps>
+
+1. Read the names in the message.
+2. Find those files. They are usually next to the contract.
+3. Add them: drag them onto Luvin, or choose **Import contract…**. You do not have to do anything else: Luvin loads them and the mark changes to ✓.
+4. If the message names a file *and* a path, as in `schemas.yaml#/Member`, the file is there but that path is not. Open the file and check the name.
+
+</Steps>
+
+For a contract you downloaded from a URL, Luvin looks for the referenced files next to it, on the same server, and loads the ones it finds. It repeats this up to three times, in case the files it finds reference more files. The ones it cannot find stay in the message, and you add them by hand.
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Contracts" href="/contracts/overview/" />
+  <LinkCard title="Edit a contract" href="/contracts/edit/" />
+  <LinkCard title="Troubleshooting" href="/get-started/troubleshooting/" />
+</CardGrid>

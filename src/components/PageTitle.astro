@@ -1,0 +1,113 @@
+---
+// El título de cada página, con su sección encima ("Empieza aquí", "Diseñar workflows"…), para saber
+// siempre dónde estás. La sección es el grupo de la barra lateral que contiene la página.
+// El id que Starlight da al título de la página (lo usa el índice "En esta página").
+const PAGE_TITLE_ID = '_top'
+
+const { entry, sidebar } = Astro.locals.starlightRoute
+type Entry = (typeof sidebar)[number]
+const holds = (e: Entry): boolean => (e.type === 'link' ? e.isCurrent : e.entries.some(holds))
+const section = sidebar.find((e) => e.type === 'group' && holds(e))?.label
+const es = Astro.locals.starlightRoute.lang === 'es'
+// Minutos de lectura, a 200 palabras por minuto, sin contar los bloques de código.
+const words = (entry.body ?? '').replace(/```[\s\S]*?```/g, '').split(/\s+/).filter(Boolean).length
+const minutes = Math.max(1, Math.round(words / 200))
+---
+
+{section && <p class="section">{section}</p>}
+<h1 id={PAGE_TITLE_ID}>{entry.data.title}</h1>
+{entry.data.description && <p class="lead">{entry.data.description}</p>}
+<div class="page-actions print:hidden">
+  <button type="button" data-copy-page data-done={es ? 'Copiado' : 'Copied'}>
+    <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2" /><path d="M5 15V5a2 2 0 0 1 2-2h10" /></svg>
+    <span>{es ? 'Copiar página' : 'Copy page'}</span>
+  </button>
+  <button type="button" data-copy-link data-done={es ? 'Enlace copiado' : 'Link copied'}>
+    <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1" /><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1" /></svg>
+    <span>{es ? 'Copiar enlace' : 'Copy link'}</span>
+  </button>
+  {minutes > 0 && <span class="read-time">{es ? `${minutes} min de lectura` : `${minutes} min read`}</span>}
+  <template data-page-markdown set:text={`# ${entry.data.title}\n\n${entry.body ?? ''}`} />
+</div>
+
+<script>
+  // Copiar la página (en Markdown, para pegarla en un ticket o en una IA) o su enlace.
+  const done = (btn: HTMLElement) => {
+    const label = btn.querySelector('span')!
+    const before = label.textContent
+    label.textContent = btn.dataset.done ?? ''
+    btn.classList.add('done')
+    setTimeout(() => {
+      label.textContent = before
+      btn.classList.remove('done')
+    }, 1600)
+  }
+  document.querySelector<HTMLElement>('[data-copy-page]')?.addEventListener('click', async (e) => {
+    const md = document.querySelector<HTMLTemplateElement>('template[data-page-markdown]')?.innerHTML ?? ''
+    const text = new DOMParser().parseFromString(md, 'text/html').documentElement.textContent ?? ''
+    await navigator.clipboard.writeText(text)
+    done(e.currentTarget as HTMLElement)
+  })
+  document.querySelector<HTMLElement>('[data-copy-link]')?.addEventListener('click', async (e) => {
+    await navigator.clipboard.writeText(location.href.split('#')[0])
+    done(e.currentTarget as HTMLElement)
+  })
+</script>
+
+<style>
+  .section {
+    margin-top: 1rem;
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
+    color: var(--sl-color-text-accent);
+  }
+  .lead {
+    margin-top: 0.6rem;
+    max-width: 44rem;
+    font-size: var(--sl-text-lg);
+    line-height: 1.5;
+    color: var(--sl-color-gray-2);
+  }
+  .page-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.5rem;
+    margin-top: 1.1rem;
+    padding-bottom: 0.2rem;
+  }
+  .page-actions button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.7rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--sl-color-gray-2);
+    font: inherit;
+    font-size: var(--sl-text-xs);
+    cursor: pointer;
+  }
+  .page-actions button:hover {
+    border-color: var(--sl-color-accent);
+    color: var(--sl-color-white);
+  }
+  .page-actions button.done {
+    border-color: var(--sl-color-accent);
+    color: var(--sl-color-text-accent);
+  }
+  .read-time {
+    margin-left: 0.3rem;
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-3);
+  }
+  h1 {
+    margin-top: 0.25rem;
+    font-size: var(--sl-text-h1);
+    line-height: var(--sl-line-height-headings);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--sl-color-white);
+  }
+</style>

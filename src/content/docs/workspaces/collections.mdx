@@ -1,0 +1,169 @@
+---
+title: Collections
+description: Create a collection, add files to it, import one from Postman or Bruno, set its version, rename it, remove it from the workspace or delete it from disk.
+sidebar:
+  order: 3
+---
+
+import { Steps, FileTree, Aside, Badge, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A collection is a folder inside the workspace with everything about one topic: contracts, Arazzo files, environments, cases and requests. You create one per partner, product or family of APIs. This page covers every action on a collection.
+
+![The workspace home with its collections and the Quick actions](/media/en/home.webp)
+
+## Create a collection
+
+You need an open workspace. See [Create and open a workspace](/workspaces/create-and-open/).
+
+<Steps>
+
+1. Open **Home** (the house icon at the top left). Under **Quick actions**, click **New collection**.
+   - Or, in the sidebar, click **+** next to **Collections**.
+   - On a new workspace, the screen **Create your first collection** has the same box.
+2. Type the name in **Collection name (e.g. Cobrand)**. For example: `Partners`.
+3. Read the line under the box: **Creates the folder** `…/partners`. The folder name comes from the name you typed, in lower case and with dashes.
+4. Click **Create**.
+
+</Steps>
+
+The collection opens. It already has an environment called **local**:
+
+<FileTree>
+
+- my-workspace/
+  - luvin.yaml `partners` is added to its `collections` list
+  - partners/
+    - collection.yaml
+    - environments/
+      - local.yaml
+
+</FileTree>
+
+If another collection already uses that folder name, Luvin adds a number: `partners-2`. The empty collection says **“Partners” is still empty**: add files next.
+
+## Add files to a collection
+
+Accepted files: `.yaml`, `.yml` and `.json`. They can be OpenAPI or AsyncAPI contracts, and Arazzo files. Luvin tells them apart by their content.
+
+<Steps>
+
+1. Open the collection.
+2. Use one of these:
+   - On **Home**, under **Quick actions**, click **Import Arazzo or contracts**. It appears when a collection is open.
+   - In the sidebar, open the **⋯** menu of the collection and choose **Add files to the collection**.
+   - At the bottom of the open collection in the sidebar, click **Add files to the collection**.
+3. Pick the files in the dialog.
+
+</Steps>
+
+The workflows appear in the sidebar and the files are saved in the collection folder. Add the contracts the Arazzo files point to, or Luvin cannot find their operations.
+
+### Drag and drop
+
+You can drop files anywhere on the window. While you drag, an overlay says **Drop to add to “Partners”** and **OpenAPI or AsyncAPI contracts and Arazzo files (.yaml, .yml or .json)**. When you release, a note says **Added 3 file(s) to the collection**.
+
+| Case | What you see |
+|---|---|
+| Some files are not `.yaml`, `.yml` or `.json` | **Added 2 file(s); 1 were not .yaml, .yml or .json**. The others are added. |
+| None of the files is valid | **Only .yaml, .yml or .json files can be added** |
+| No collection is open | **Open or create a collection to add files to it** |
+
+## Import from Postman or Bruno
+
+Each Postman or Bruno collection becomes a new Luvin collection, with its folders, requests, saved examples, authorization and environments.
+
+<Steps>
+
+1. Click **Import from Postman or Bruno**. It is under **Quick actions** on **Home**, and in the **⋯** menu of **Collections** in the sidebar.
+2. For Postman, click **Choose .json files** and pick the collection export (v2.0 or v2.1). Pick the environment files too if you want their variables.
+3. For Bruno, click **Choose folder** and pick the folder of the collection, or click **Choose .json**. You can also drop the files on the dialog.
+4. Read the summary: requests, folders, examples and environments, plus warnings. Change the **Collection name** if you want.
+5. Click **Import (12 requests)**.
+
+</Steps>
+
+![The dialog to import from Postman or Bruno](/media/en/import-postman.webp)
+
+Scripts are not imported, and an authorization or body type without an equivalent is left empty. The warnings in the dialog say which. The full walkthrough is in [Import](/get-started/import/) and [From Postman](/tutorials/from-postman/).
+
+## Open a collection
+
+Only one collection is open at a time.
+
+- On **Home**, click its name. The open one has the badge **Open**.
+- In the sidebar, click its name: the [collection overview](/workspaces/collection-overview/) opens and the collection expands.
+- Click the arrow before the name to expand or collapse it. **Collapse all** in **Collection options** collapses everything.
+
+There is no “close” for one collection inside a workspace. Open another collection, or close the workspace.
+
+## Rename a collection
+
+1. Open the **⋯** menu of the collection, on **Home** or in the sidebar, and choose **Rename**.
+2. Type the new name and press Enter.
+
+Only the visible name changes. The folder keeps its name.
+
+## The ⋯ menu of a collection
+
+![The ⋯ menu of a row in the sidebar](/media/en/sidebar-menu.webp)
+
+The menu of a collection in the sidebar also creates things inside it:
+
+| Item | What it does |
+|---|---|
+| **Collection overview** | Opens the summary page. |
+| **New request**, **Import from cURL**, **New folder** | Create requests and folders of requests. |
+| **New Arazzo file**, **New OpenAPI contract**, **New AsyncAPI contract** | Create a file in the collection. |
+| **Add files to the collection** | Adds files from your disk. |
+| **Rename** | Changes the visible name. |
+| **Show in Finder** (**Show in file explorer**) <Badge text="Desktop only" variant="caution" /> | Opens the folder in your file manager. |
+| **Open in Terminal** <Badge text="Desktop only" variant="caution" /> | Opens a terminal in the folder. |
+| **Remove from workspace** | Takes it out of the workspace. The files stay. |
+| **Delete folder…** | Deletes the folder and its files. |
+
+The menu on **Home** has **Open**, **Rename**, **Show in Finder**, **Remove from workspace** and **Delete folder…**.
+
+## Remove or delete a collection
+
+| | **Remove from workspace** | **Delete folder…** |
+|---|---|---|
+| Folder and files | Stay on disk. | Deleted. |
+| `luvin.yaml` | The collection leaves the list. | The collection leaves the list. |
+| Secrets of its environments | Stay on this computer. | Deleted. |
+| Can you undo it? | Yes. Add the folder name to `collections` in `luvin.yaml`. | No. |
+
+Both ask first. **Remove from workspace** asks **Remove “Partners” from the workspace? Its folder stays on disk and you can open it again.** Click **Remove**. **Delete folder…** asks **Delete “Partners” and its folder “partners”? Its Arazzo files, contracts, environments, cases and secrets are deleted. This can’t be undone.** Click **Delete**.
+
+<Aside type="caution">
+If you remove or delete the collection that is open, Luvin opens the first one that is left.
+</Aside>
+
+## Set the version
+
+The collection version is a label your team chooses, such as `1.2.0`. It is not the version of an API.
+
+<Steps>
+
+1. Open the [collection overview](/workspaces/collection-overview/).
+2. In the card **Version**, click **Set version**. If there is one, click **Change**.
+3. Type it, for example `1.2.0`, and click **Save**.
+
+</Steps>
+
+It is saved as `collectionVersion` in `collection.yaml`. Empty text removes it. The generated documentation shows it.
+
+## Copy the path and share
+
+In the card **Share** of the overview, click **Copy path**. The button says **Copied**. A collection is a folder of text files: send the path, or share it with [git](/workspaces/git/). Secrets are never in it.
+
+## Order the collections
+
+In the sidebar, open **Collection options** (the **⋯** next to **Collections**) and choose **Sort A-Z**. The order is saved in `luvin.yaml`.
+
+## Next
+
+<CardGrid>
+  <LinkCard title="Collection authorization" href="/workspaces/collection-authorization/" />
+  <LinkCard title="Write documentation" href="/workspaces/documentation/" />
+  <LinkCard title="Collection overview" href="/workspaces/collection-overview/" />
+</CardGrid>

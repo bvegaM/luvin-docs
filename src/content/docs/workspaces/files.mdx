@@ -1,0 +1,143 @@
+---
+title: What is on disk
+description: The folders and files Luvin writes in a workspace, what each one is for, and which ones are safe to edit by hand.
+sidebar:
+  order: 6
+---
+
+import { Tabs, TabItem, FileTree, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Luvin stores a workspace as plain text files. You can open them with any editor, compare them and keep them in git. This page lists every file Luvin writes and tells you which ones you can edit yourself.
+
+## Example: the Pokédex collection on disk
+
+A workspace with the Pokédex example looks like this:
+
+<FileTree>
+
+- my-workspace/
+  - luvin.yaml **workspace manifest**
+  - pokedex/ a collection
+    - collection.yaml collection manifest
+    - pokeapi.openapi.yaml contract
+    - pokedex-events.asyncapi.yaml contract
+    - pokemon.arazzo.yaml Arazzo file with the four workflows
+    - environments/
+      - local.yaml
+    - scenarios/
+      - pokemon.arazzo.yaml inputs and cases of `pokemon.arazzo.yaml`
+
+</FileTree>
+
+Files and folders that start with a dot, like `.git`, and folders called `node_modules` are ignored. A collection that uses them also has `requests/`, `flow-auth.yaml` and `README.md`: see the table below.
+
+<Tabs>
+<TabItem label="luvin.yaml">
+
+```yaml title="my-workspace/luvin.yaml"
+# Workspace de Luvin. Cada colección es una carpeta con su collection.yaml.
+version: 1
+id: 4f0c6a3e-2b1d-4c58-9a77-0d3a5e9b1c22
+name: My workspace
+collections:
+  - pokedex
+```
+
+</TabItem>
+<TabItem label="collection.yaml">
+
+```yaml title="my-workspace/pokedex/collection.yaml"
+# Colección de Luvin: los Arazzo y contratos de esta carpeta, sus ambientes y sus casos.
+version: 1
+name: Pokédex
+```
+
+</TabItem>
+<TabItem label="environments/local.yaml">
+
+```yaml title="my-workspace/pokedex/environments/local.yaml"
+# Ambiente de Luvin. Los valores de secretos y credenciales no se guardan aquí: viven cifrados en cada equipo.
+name: local
+servers:
+  pokeapi: https://pokeapi.co/api/v2
+```
+
+</TabItem>
+</Tabs>
+
+The comment on the first line is written in Spanish whatever language the app is in. If you set a version in the collection overview, `collectionVersion` is added to `collection.yaml`.
+
+## What each file is
+
+| File | What it holds |
+|---|---|
+| `luvin.yaml` | The workspace: its name, a stable `id` and the list of collection folders. |
+| `README.md` in the workspace folder | The text of the documentation panel on **Home**. |
+| `collection.yaml` | The visible name of the collection, its optional version and, if you set one, its collection-level authorization (without secret values). |
+| `README.md` in a collection folder | The documentation of the collection. See [Write documentation](/workspaces/documentation/). |
+| Contracts (`*.openapi.yaml`, `*.asyncapi.yaml`) | The OpenAPI and AsyncAPI files, exactly as you imported or edited them. |
+| Arazzo files (`*.arazzo.yaml`) | The workflows. One file can hold several workflows. |
+| `environments/*.yaml` | One file per environment: base URLs, variables, color and the **names** of its secrets. See [Base URLs, variables and secrets](/environments/variables-and-secrets/). |
+| `scenarios/<arazzo file>` | The inputs and the cases of each Arazzo file. It has the same name as its Arazzo file. |
+| `requests/*.request.yaml` | One saved [request](/requests/overview/) per file. Subfolders of `requests/` are the folders you see in the sidebar. |
+| `requests/**/_folder.request.yaml` | Marks a folder of requests and keeps its visible name. |
+| `flow-auth.yaml` | The [authorization of workflows](/authorization/workflow/), per API and per workflow. Written only when you configure one. |
+| `.proto` files | The definitions that gRPC requests use. |
+
+Luvin loads, as contracts or Arazzo files, every `.yaml`, `.yml` and `.json` file of the collection folder, except the ones above that belong to Luvin. Other kinds of file are left alone.
+
+The `scenarios/` files use Spanish keys (`bases` for the starting inputs of each workflow, `casos` for the cases), whatever language the app is in:
+
+```yaml
+version: 1
+bases:
+  placeOrder:
+    customerId: C-1001
+casos:
+  - workflow: placeOrder
+    nombre: Customer without credit
+    inputs:
+      customerId: C-0000
+    espera:
+      paso: createOrder
+      status: [402]
+```
+
+## What is not on disk
+
+Some data never goes into the files:
+
+- **Values of secrets and credentials.** They are stored encrypted on the computer. See [Privacy and security](/reference/privacy/).
+- **Results of runs.** They live in the app until you export a [report](/test/reports/).
+- **The Dev Tools log.** It lives in memory only.
+
+<Aside type="caution" title="Type inputs with care">
+The values you type in **Inputs** and in the cases are written as you typed them in `scenarios/`. If a value is a password or a token, use a secret instead and write `{{clientSecret}}`, so the real value stays out of git.
+</Aside>
+
+## Which files are safe to edit by hand
+
+| File | By hand? |
+|---|---|
+| Arazzo files | Yes. The YAML is the source of truth: Luvin keeps what you write. The **YAML** tab does the same with live validation. |
+| Contracts | Yes, in the contract editor or in any editor. |
+| `README.md` files | Yes. It is Markdown. |
+| `environments/*.yaml` | Yes for URLs, variables and color. Never write a secret value there: only its name goes under `secrets`. To rename an environment, do it in the app, because the file name follows the name. |
+| `luvin.yaml` | Carefully. You can change `name` and the order or content of `collections`. Do not change `id`: the secrets stored on each computer are tied to it, and they would not be found. |
+| `collection.yaml` | You can change `name` and `collectionVersion`. Set authorization in the app. |
+| `scenarios/*`, `requests/*`, `flow-auth.yaml` | Better in the app. They have a fixed shape and Luvin rewrites them when you change something. |
+
+<Aside type="note" title="Luvin does not watch the folder">
+Luvin reads the files when you open a collection. If you edit a file with another program while the collection is open, close the workspace (**Close and switch workspace**) and open it again to see the change.
+</Aside>
+
+To rename an Arazzo file, use the app: it renames the file in `scenarios/` too.
+
+## Next
+
+<CardGrid>
+  <LinkCard title="Keep a workspace in git" href="/workspaces/git/" />
+  <LinkCard title="Workspaces and collections" href="/workspaces/overview/" />
+  <LinkCard title="Write documentation" href="/workspaces/documentation/" />
+  <LinkCard title="Privacy and security" href="/reference/privacy/" />
+</CardGrid>

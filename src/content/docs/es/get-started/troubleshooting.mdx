@@ -1,0 +1,147 @@
+---
+title: Solución de problemas
+description: Los problemas que más probablemente encontrarás, qué causa cada uno y qué hacer, desde una API que no responde hasta una app que no abre.
+sidebar:
+  order: 7
+---
+
+import { Steps, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Busca tu problema en la lista, lee qué lo causa y sigue los pasos. Cada sección es independiente.
+
+| Problema | Ir a |
+|---|---|
+| Una ejecución dice que no pudo conectar con la API | [La API no responde](#la-api-no-responde) |
+| La app de escritorio no abre | [La app no abre](#la-app-no-abre) |
+| Un contrato tiene una ✕ en la barra lateral | [Un contrato muestra ✕](#un-contrato-muestra-) |
+| Un workflow muestra errores después de eliminar un contrato | [Errores después de eliminar un contrato](#errores-después-de-eliminar-un-contrato) |
+| Un secreto no tiene valor en otro equipo | [Faltan los secretos en otro equipo](#faltan-los-secretos-en-otro-equipo) |
+| Un paso necesita cookies y el navegador las omite | [Las cookies no se envían](#las-cookies-no-se-envían-en-el-navegador) |
+| gRPC o NTLM no funcionan | [gRPC y NTLM necesitan la app de escritorio](#grpc-y-ntlm-necesitan-la-app-de-escritorio) |
+
+## La API no responde
+
+Cuando los casos no obtienen respuesta, se abre en los resultados un panel con el título **No se pudo conectar con la API**. Dice cuántos casos no obtuvieron respuesta y de qué dirección. Suele ser una de tres causas.
+
+<Steps>
+
+1. **La URL es incorrecta o el servidor está apagado.** El panel tiene un enlace por cada dirección, **Abrir …**. Ábrelo en otra pestaña. Si no carga, el problema no es Luvin. Revisa la URL base en el ambiente (haz clic en **Revisar ambiente**).
+2. **La página es https y la API es http.** El navegador bloquea esas llamadas. Este punto solo aparece cuando corresponde. Usa la API por https, o abre Luvin en http.
+3. **La API no permite llamadas desde esta página (CORS).** Si la URL abre bien, esta es la causa más probable.
+
+</Steps>
+
+### Qué es CORS
+
+CORS es una regla del navegador. Una página web puede llamar a una API de otra dirección solo si esa API dice que lo permite. En la versión de navegador, Luvin es una página web, así que la regla se aplica a todas las llamadas. La app de escritorio envía los requests ella misma, así que ahí CORS no aplica.
+
+### Soluciona CORS
+
+<Steps>
+
+1. En el panel, busca el bloque de código bajo **¿La API permite llamadas desde esta página (CORS)?**
+2. Haz clic en **Copiar headers**.
+3. Envíaselos a quien administra la API y pide que la API responda con estos headers.
+
+</Steps>
+
+El bloque lista lo que necesitan los requests que fallaron. Por ejemplo, si Luvin está abierto en `http://localhost:5173` y un paso envía `POST` con un header `Authorization`, dice:
+
+```text
+Access-Control-Allow-Origin: http://localhost:5173
+Access-Control-Allow-Methods: POST, OPTIONS
+Access-Control-Allow-Headers: Authorization
+```
+
+`Accept`, `Accept-Language` y `Content-Language` nunca aparecen en la lista: el navegador los envía sin pedir permiso.
+
+### Otras salidas
+
+| Botón o consejo | Qué hace |
+|---|---|
+| **Probar en simulación** | Ejecuta los casos sin llamar a la API |
+| **Revisar ambiente** | Abre el ambiente, para revisar las URL |
+| El consejo de cURL | Copia un paso como cURL y pruébalo en tu terminal, donde CORS no aplica |
+
+La solución más directa es usar la app de escritorio. Consulta [Instalar y abrir Luvin](/es/get-started/install/).
+
+![El panel que aparece cuando la API no responde, con las cabeceras de CORS exactas](/media/es/connection-help.webp)
+
+## La app no abre
+
+Los instaladores de escritorio todavía no están firmados, así que macOS y Windows te avisan la primera vez.
+
+- **macOS.** Intenta abrir la app una vez, luego ve a **Ajustes del Sistema → Privacidad y seguridad**, busca el mensaje sobre Luvin en **Seguridad** y haz clic en **Abrir igualmente**. Solo lo haces una vez.
+- **Windows.** Ejecuta el instalador. En la advertencia, haz clic en **Más información** y luego en **Ejecutar de todas formas**.
+
+Los instaladores se probaron en macOS. Las versiones de Windows y Linux todavía no se han probado en esos sistemas. Consulta [Instalar y abrir Luvin](/es/get-started/install/).
+
+## Un contrato muestra ✕
+
+En la sección **Contratos** de la barra lateral, ✓ significa que un contrato está cargado y ✕ que no lo está. Pasa el cursor sobre la fila para leer el motivo. Un contrato puede mostrar ✕ por tres motivos:
+
+- **Falta su archivo.** El Arazzo menciona el contrato, pero nunca se agregó su archivo.
+- **No se pudo leer.** El texto emergente muestra el error.
+- **Faltan archivos a los que apunta.** El contrato usa `$ref` hacia otros archivos que no se agregaron. El texto emergente dice **Faltan archivos referenciados con $ref** y los lista.
+
+Para solucionarlo:
+
+<Steps>
+
+1. En la barra lateral, haz clic en **Adjuntar** en la fila y elige el archivo del contrato. Para los archivos de `$ref` que faltan, agrégalos también a la colección. Consulta [Trae tus propios archivos y requests](/es/get-started/import/).
+2. Si el contrato venía de una dirección web, haz clic en **Descargar** en la fila.
+
+</Steps>
+
+La fila pasa a ✓ cuando todo está cargado. Mientras tanto, los pasos que usan ese contrato no se pueden ejecutar.
+
+## Errores después de eliminar un contrato
+
+Cuando eliminas un contrato que usan algunos pasos, Luvin te avisa antes: esos pasos quedarán sin contrato hasta que adjuntes otro. Si seguiste adelante, el workflow muestra errores. Su punto en la barra lateral se pone rojo e indica cuántos errores hay, y la pestaña **Resumen** los lista.
+
+<Steps>
+
+1. En la sección **Contratos**, busca el contrato. Sigue en la lista con una ✕, porque el Arazzo todavía lo menciona.
+2. Haz clic en **Adjuntar** y elige otra vez el archivo, o el archivo del contrato que lo reemplaza.
+
+</Steps>
+
+Si ya no quieres esos pasos, elimínalos. Un contrato que no tiene archivo y que ningún paso usa se puede quitar con **Quitar contrato…**.
+
+## Faltan los secretos en otro equipo
+
+Los secretos nunca están en los archivos del workspace. Los archivos de ambiente solo guardan los nombres de los secretos. Los valores se guardan cifrados en el equipo donde los escribiste, con el llavero del sistema operativo en la app de escritorio y con WebCrypto en el navegador.
+
+Por eso, cuando copias un workspace a otro equipo, o lo clonas desde git, sus secretos no tienen valor ahí.
+
+<Steps>
+
+1. Abre el ambiente en la barra lateral.
+2. Escribe de nuevo el valor de cada secreto.
+
+</Steps>
+
+Comparte los valores con tu equipo por un canal seguro, no a través de los archivos.
+
+## Las cookies no se envían en el navegador
+
+Los navegadores no pueden enviar cookies desde una página web. Si un paso usa un parámetro de cookie o una API key puesta en una cookie, la versión de navegador la omite. Los resultados lo explican: **Este paso necesita las cookies … que el navegador no permite enviar: pruébalo en la app de escritorio.**
+
+Abre el mismo workspace en la app de escritorio. Ahí Luvin envía las cookies, guarda las que ponen tus APIs y las muestra en **Cookies**. En el navegador, el propio navegador maneja las cookies y Luvin no puede leerlas.
+
+## gRPC y NTLM necesitan la app de escritorio
+
+Los navegadores no pueden abrir conexiones gRPC, y NTLM necesita un intercambio por una sola conexión, que los navegadores no permiten. En la versión de navegador:
+
+- Un request gRPC muestra **gRPC necesita la app de escritorio** y, al crearlo, lleva la etiqueta **Solo escritorio**.
+- La autorización NTLM indica que necesita la app de escritorio.
+
+Abre el workspace en la app de escritorio para usarlos. Consulta [Limitaciones](/es/reference/limitations/) para la lista completa.
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Instalar y abrir Luvin" href="/es/get-started/install/" />
+  <LinkCard title="Ayuda de conexión en Dev Tools" href="/es/dev-tools/connection-help/" />
+  <LinkCard title="Soporte" href="/es/reference/support/" />
+</CardGrid>

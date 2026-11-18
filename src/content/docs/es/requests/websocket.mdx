@@ -1,0 +1,112 @@
+---
+title: Requests WebSocket
+description: Cómo conectarte a un WebSocket, enviar mensajes, leer el registro de mensajes, y lo que un request WebSocket no puede hacer.
+sidebar:
+  order: 22
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Un request WebSocket abre una conexión en vivo con un servidor. Mientras está abierta, envías mensajes y ves lo que llega, en el orden en que ocurre.
+
+## Ejemplo
+
+`echo.websocket.org` es un servidor público que devuelve cada mensaje que recibe.
+
+<Steps>
+
+1. Crea un request **WebSocket**, escribe la URL `wss://echo.websocket.org` y pulsa **Conectar**.
+2. El servidor te saluda con una línea que empieza con `Request served by`. Aparece en el registro con ↓.
+3. Pulsa **Enviar** (⌘/Ctrl + Enter) con el primer mensaje, **Mensaje 1**, con el que empieza un request nuevo:
+
+   ```json
+   {
+     "type": "ping"
+   }
+   ```
+
+</Steps>
+
+El registro muestra tu mensaje con ↑, y el mismo mensaje que vuelve con ↓.
+
+## Crear un request WebSocket
+
+<Steps>
+
+1. En la barra lateral, haz clic en **Nuevo request** debajo de tu colección.
+2. En el diálogo **Nuevo request**, elige **WebSocket**.
+3. El request se abre con el nombre **Nuevo WebSocket**. En la barra lateral tiene una insignia **WS**.
+
+</Steps>
+
+## Conectar
+
+<Steps>
+
+1. Escribe la URL. Debe empezar con `ws://` o `wss://`, por ejemplo `wss://echo.websocket.org`.
+2. Pulsa **Conectar**. El estado de la derecha pasa a **Conectando…** y luego a **Conectado**, con la hora en que se abrió la conexión.
+3. Para cerrar la conexión, pulsa **Desconectar**.
+
+</Steps>
+
+Las `{{variables}}` del ambiente en la URL se reemplazan al conectar.
+
+La conexión sigue abierta cuando cambias a otra pestaña de Luvin. Se cierra cuando pulsas **Desconectar**, cuando la cierra el servidor, o cuando renombras o eliminas el request.
+
+## Enviar mensajes
+
+El lado izquierdo guarda los mensajes que quieres enviar. Un request nuevo empieza con **Mensaje 1**.
+
+<Steps>
+
+1. Haz clic en un mensaje de la lista, o en **Nuevo mensaje** para agregar uno.
+2. Dale un nombre en el campo que está sobre el editor, por ejemplo `Subscribe to prices`.
+3. Escribe el texto. El JSON se colorea mientras escribes.
+4. Pulsa **Enviar** (⌘/Ctrl + Enter).
+
+</Steps>
+
+**Enviar** funciona solo mientras el estado es **Conectado** y el mensaje tiene texto. Las `{{variables}}` del mensaje se reemplazan al enviarlo.
+
+Los mensajes se guardan con el request, así que puedes enviarlos de nuevo más tarde. Para quitar uno, selecciónalo y haz clic en **Eliminar** junto a su nombre.
+
+Por ejemplo, un mensaje que se suscribe a un canal:
+
+```json
+{
+  "type": "subscribe",
+  "channel": "prices",
+  "symbol": "{{symbol}}"
+}
+```
+
+## El registro de mensajes
+
+El lado derecho muestra todo lo que pasó en la conexión, lo más nuevo primero. Cada línea tiene una marca, el texto y la hora.
+
+| Marca | Significado |
+|---|---|
+| ↑ | Un mensaje que enviaste. |
+| ↓ | Un mensaje que llegó. |
+| • | Un evento de la conexión: conectando, abierta o cerrada, con el código de cierre. |
+| ! | Un error. |
+
+- Haz clic en un mensaje que sea JSON para verlo con formato. Haz clic otra vez para plegarlo.
+- **Filtrar mensajes** muestra solo las líneas que contienen el texto que escribas.
+- **Limpiar** vacía el registro.
+
+El registro conserva las últimas 1.000 líneas. Vive en memoria: no se guarda con el request.
+
+## Límites
+
+- **Sin headers propios.** Los navegadores no permiten headers propios en un WebSocket, y Luvin se conecta de la misma forma en la app de escritorio. Pon lo que el servidor necesita en la URL, por ejemplo `wss://api.example.com/stream?token={{token}}`.
+- **Sin pestaña de autorización.** Por el mismo motivo, envía el token en la URL o en el primer mensaje, como lo espere el servidor.
+- **Sin subprotocolos.** La conexión se abre sin uno.
+- **Mensajes de texto.** Lo que envías se envía como texto. Un mensaje binario que llega se muestra como texto.
+- Un request WebSocket no se puede usar como paso de un workflow.
+
+## Relacionado
+
+- [Requests sueltos](/es/requests/overview/)
+- [Variables y secretos](/es/environments/variables-and-secrets/)
+- [Limitaciones](/es/reference/limitations/)

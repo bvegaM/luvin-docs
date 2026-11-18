@@ -1,0 +1,151 @@
+---
+title: Ambientes
+description: Qué es un ambiente, cómo crear, renombrar, colorear y eliminar uno, y cómo elegir el ambiente activo.
+sidebar:
+  order: 1
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Un ambiente guarda lo que cambia entre los lugares donde corre tu API, como local y producción. Lo necesitas en cuanto ejecutas un workflow o envías un request contra una API real.
+
+Cada ambiente es un archivo pequeño. El mismo request, `{{baseUrl}}/customers`, va a un lugar distinto en cada uno:
+
+<Tabs>
+<TabItem label="local">
+
+```yaml title="environments/local.yaml"
+name: local
+color: green
+servers:
+  baseUrl: http://localhost:8080
+```
+
+`{{baseUrl}}/customers` se convierte en `http://localhost:8080/customers`.
+
+</TabItem>
+<TabItem label="producción">
+
+```yaml title="environments/production.yaml"
+name: production
+color: red
+servers:
+  baseUrl: https://api.shop.test
+```
+
+`{{baseUrl}}/customers` se convierte en `https://api.shop.test/customers`.
+
+</TabItem>
+</Tabs>
+
+<video controls muted playsinline preload="metadata" poster="/media/es/environments.webp" src="/media/es/environments.mp4"></video>
+
+## Qué guarda un ambiente
+
+| Parte | Qué es |
+|---|---|
+| **URLs base** | La dirección de cada API en este ambiente, por ejemplo `https://api.tienda.test`. |
+| **Credenciales** | Los valores que piden los contratos: un token, un usuario y contraseña, una API key. |
+| **Variables** | Valores que reutilizas como `{{nombre}}`, por ejemplo un ID de cliente. |
+| **Secretos** | Variables para claves y tokens. Sus valores nunca van a los archivos del workspace. |
+| **Color de la etiqueta** | Un color para distinguir los ambientes de un vistazo. |
+
+Los ambientes son de la [colección](/es/reference/glossary/) abierta. Cada colección tiene su propia lista y siempre tiene al menos un ambiente.
+
+![Un ambiente abierto, con sus URLs base, credenciales, variables y secretos](/media/es/environment.webp)
+
+## Dónde están los ambientes
+
+| Lugar | Qué encuentras |
+|---|---|
+| Barra lateral | La sección **Ambientes**, al final, con el nombre de la colección abierta. El activo tiene su punto relleno |
+| Barra de ejecución de un workflow | El selector **Ambiente**, junto a **API real** y **Simulación** |
+| Barra inferior | El nombre del ambiente activo, a la derecha. Haz clic en él para abrir el ambiente |
+
+## Elige el ambiente activo
+
+El ambiente activo es el que Luvin usa en cada ejecución, en cada request y en **Try it out** de un contrato.
+
+<Steps>
+
+1. En la barra lateral, en **Ambientes**, haz clic en un ambiente.
+2. Queda activo y se abre en una pestaña con el título **Ambiente «nombre»**.
+
+</Steps>
+
+Para cambiar sin salir de un workflow, usa el selector **Ambiente** de la barra de ejecución. Su última opción, **Configurar ambiente…**, abre el ambiente activo. Luvin recuerda en este equipo el ambiente activo de cada colección.
+
+## Crea un ambiente
+
+<Steps>
+
+1. En la barra lateral, haz clic en **+** (**Nuevo ambiente**) en **Ambientes**. Dentro de un ambiente abierto también puedes hacer clic en **+ Nuevo**.
+2. Se agrega un ambiente llamado **Nuevo ambiente**, que queda activo.
+3. Escribe su nombre y pulsa **Enter**.
+
+</Steps>
+
+El ambiente nuevo es una copia del activo: las mismas URLs base y variables. De los secretos copia solo los nombres. Las credenciales no se copian. Solo cambias lo que difiere.
+
+## Renombra un ambiente
+
+<Steps>
+
+1. Abre el ambiente.
+2. Haz doble clic en su nombre, en la fila de ambientes de arriba, o haz clic en **Renombrar**.
+3. Escribe el nombre nuevo y pulsa **Enter**. Pulsa **Esc** para cancelar.
+
+</Steps>
+
+## Ponle un color
+
+<Steps>
+
+1. Abre el ambiente.
+2. Junto a **Color de la etiqueta**, haz clic en un color: gris, verde, azul, morado, amarillo, naranja o rojo. La primera opción quita el color.
+
+</Steps>
+
+El color se ve en la barra lateral, en el selector **Ambiente** y en la barra inferior. Una elección común: local en verde, integración en amarillo, producción en rojo.
+
+## Elimina un ambiente
+
+<Tabs>
+<TabItem label="Desde la barra lateral">
+
+<Steps>
+
+1. Pasa el mouse sobre el ambiente y abre su menú **⋯**.
+2. Elige **Eliminar ambiente…**.
+3. Confirma con **Eliminar**.
+
+</Steps>
+
+</TabItem>
+<TabItem label="Desde el ambiente">
+
+<Steps>
+
+1. Abre el ambiente.
+2. Haz clic en **Eliminar**, a la derecha de la fila de ambientes.
+3. Confirma con **Eliminar**.
+
+</Steps>
+
+</TabItem>
+</Tabs>
+
+Al eliminar un ambiente también se borran de este equipo sus credenciales y sus secretos.
+
+<Aside type="note" title="Siempre hay un ambiente">
+Si eliminas el único ambiente, Luvin deja uno nuevo y vacío en su lugar, con las URLs base de los contratos. La confirmación lo dice antes de eliminar.
+</Aside>
+
+## Sigue con
+
+<CardGrid>
+  <LinkCard title="URLs base, variables y secretos" href="/es/environments/variables-and-secrets/" />
+  <LinkCard title="Variables dinámicas" href="/es/environments/dynamic-variables/" />
+  <LinkCard title="Autorización de un workflow" href="/es/authorization/workflow/" />
+  <LinkCard title="Ejecutar un workflow" href="/es/test/run/" />
+</CardGrid>

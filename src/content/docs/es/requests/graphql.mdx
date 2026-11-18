@@ -1,0 +1,130 @@
+---
+title: Requests GraphQL
+description: Cómo escribir una consulta GraphQL con sus variables y qué envía Luvin al servidor.
+sidebar:
+  order: 20
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Un request GraphQL envía una consulta (query) o una mutación a un endpoint GraphQL. Úsalo cuando la API que pruebas habla GraphQL en lugar de REST.
+
+## Ejemplo
+
+Una API GraphQL pública de países. Crea un request **GraphQL**, escribe la URL `https://countries.trevorblades.com/graphql` y esto en la pestaña **Query**:
+
+```graphql
+query Country($code: ID!) {
+  country(code: $code) {
+    name
+    capital
+    currency
+  }
+}
+```
+
+En **Variables**:
+
+```json
+{
+  "code": "CL"
+}
+```
+
+Pulsa **Enviar**. El status es `200 OK` y el **Body** es:
+
+```json
+{"data":{"country":{"capital":"Santiago","currency":"CLF,CLP","name":"Chile"}}}
+```
+
+## Crear un request GraphQL
+
+<Steps>
+
+1. En la barra lateral, haz clic en **Nuevo request** debajo de tu colección.
+2. En el diálogo **Nuevo request**, elige **GraphQL**.
+3. El request se abre con el nombre **Nueva consulta GraphQL**. En la barra lateral tiene una insignia **GQL**.
+
+</Steps>
+
+## Escribir la consulta
+
+<Steps>
+
+1. Escribe la URL del endpoint GraphQL, por ejemplo `https://api.example.com/graphql`.
+2. En la pestaña **Query**, escribe la consulta o la mutación.
+3. En la pestaña **Variables**, escribe las variables como JSON.
+4. Pulsa **Enviar** (⌘/Ctrl + Enter). La respuesta aparece debajo, igual que en cualquier request HTTP.
+
+</Steps>
+
+Una consulta con una variable:
+
+```graphql
+query Country($code: ID!) {
+  country(code: $code) {
+    name
+    capital
+    currency
+  }
+}
+```
+
+Y sus variables:
+
+```json
+{
+  "code": "CL"
+}
+```
+
+La pantalla del request tiene cuatro pestañas:
+
+| Pestaña | Qué contiene |
+|---|---|
+| **Query** | La consulta o la mutación. |
+| **Variables** | Un objeto JSON con las variables de la consulta. Un request nuevo empieza con `{}`. |
+| **Headers** | La misma tabla que en un request HTTP, con los headers automáticos. |
+| **Autorización** | Las mismas opciones que en un request HTTP. Un request GraphQL nuevo hereda la autorización de la colección. |
+
+No hay pestaña **Params** ni pestaña **Body**: el body se arma a partir de la consulta y las variables.
+
+## Qué envía Luvin
+
+Luvin envía un `POST` a la URL, con un body JSON que contiene la consulta y las variables:
+
+```json
+{
+  "query": "query Country($code: ID!) { country(code: $code) { name capital currency } }",
+  "variables": { "code": "CL" }
+}
+```
+
+- El header `Content-Type` es `application/json`, salvo que escribas el tuyo en **Headers**.
+- Si la pestaña **Variables** está vacía, el body no lleva `variables`.
+- Las `{{variables}}` del ambiente y los generadores se reemplazan en la URL, la consulta, las variables y los headers antes de enviar.
+
+Para ver exactamente qué salió, abre **Request enviado** en la respuesta.
+
+:::caution
+La pestaña **Variables** debe contener JSON válido. Si no, no se envía nada y el área de la respuesta dice *Las variables de GraphQL no son JSON válido.*
+:::
+
+## Leer la respuesta
+
+El área de la respuesta es la misma que en un request HTTP: status, tiempo y tamaño, y luego **Body**, **Headers**, **Cookies** y **Request enviado**.
+
+:::tip
+Muchos servidores GraphQL responden `200` incluso cuando la consulta falla. Busca un campo `errors` en el body, no solo el status. Si escribes mal un campo, por ejemplo `countryy`, esta API responde `Cannot query field "countryy" on type "Query". Did you mean "country" or "countries"?` dentro de `errors`.
+:::
+
+## Límites
+
+- Un request GraphQL no se puede arrastrar a un workflow como paso. Solo los requests HTTP pueden.
+- Pegar un comando cURL en el campo de la URL no lo convierte. Usa un request HTTP para eso.
+
+## Relacionado
+
+- [Params, headers y body](/es/requests/params-headers-body/)
+- [Autorización](/es/authorization/overview/)
+- [Cookies y ejemplos guardados](/es/requests/cookies-and-examples/)

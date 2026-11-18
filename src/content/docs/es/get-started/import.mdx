@@ -1,0 +1,191 @@
+---
+title: Trae tus propios archivos y requests
+description: Importa archivos Arazzo y contratos, colecciones de Postman o Bruno y un comando cURL a Luvin, o abre archivos sin crear un workspace.
+sidebar:
+  order: 6
+---
+
+import { Steps, Tabs, TabItem, FileTree, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+No tienes que empezar de cero. Puedes traer archivos Arazzo y contratos, colecciones de Postman o Bruno y un comando copiado como cURL.
+
+Un archivo Arazzo describe un workflow. Un contrato es un archivo OpenAPI o AsyncAPI. Una **colección** es una carpeta de proyecto dentro de un workspace. Consulta el [glosario](/es/reference/glossary/).
+
+## Ejemplo: una colección de Postman
+
+Una colección pequeña exportada de Postman:
+
+```json title="shop-api.postman_collection.json"
+{
+  "info": {
+    "name": "Shop API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Customers",
+      "item": [
+        {
+          "name": "Get customer",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/customers/42",
+            "header": [{ "key": "Accept", "value": "application/json" }]
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+Impórtala con un archivo de ambiente que defina `baseUrl` y Luvin crea una colección llamada **Shop API**:
+
+<FileTree>
+
+- shop-api/
+  - collection.yaml
+  - requests/
+    - customers/
+      - _folder.request.yaml
+      - get-customer.request.yaml
+  - environments/
+    - sandbox.yaml
+
+</FileTree>
+
+En la barra lateral, **Customers** es una carpeta y **Get customer** un request que envía `GET {{baseUrl}}/customers/42`. Las variables del ambiente de Postman llegan a un ambiente de Luvin. Consulta [Qué hay en disco](/es/workspaces/files/).
+
+![El diálogo Importar de Postman o Bruno con una tarjeta para Postman y una para Bruno](/media/es/import-postman.webp)
+
+### Impórtala
+
+Necesitas un workspace abierto. Si no hay ninguno, Luvin dice **Abre o crea un workspace para importar.** Mira [Crear y abrir un workspace](/es/workspaces/create-and-open/).
+
+<Steps>
+
+1. Haz clic en **+** de las pestañas (**Crear o importar**) y luego en **Importar de Postman o Bruno**. La misma acción está en el menú ⋯ de **Colecciones** en la barra lateral y en el inicio del workspace, en **Acciones rápidas**.
+2. Elige qué importar:
+
+   | Herramienta | Qué elegir |
+   |---|---|
+   | Postman | **Elegir archivos .json**: la colección exportada (v2.0 o v2.1). Elige también los archivos de ambiente para traer sus variables |
+   | Bruno | **Elegir carpeta**: la carpeta de la colección, como Bruno la guarda en git (con archivos `.bru`). O **Elegir .json** para el archivo que exporta Bruno |
+
+   También puedes soltar los archivos sobre el diálogo.
+3. Lee el resumen. Para cada colección muestra la cantidad de requests, carpetas, ejemplos y ambientes, y la autorización de la colección si la hay.
+4. Cambia el nombre de la colección si quieres.
+5. Haz clic en **Importar (N requests)**.
+
+</Steps>
+
+Para elegir otros archivos, haz clic en **Elegir otros archivos**.
+
+### Qué se importa y qué no
+
+| Se importa | No se importa (el resumen lo lista antes de importar) |
+|---|---|
+| Carpetas y requests, con sus descripciones | **Scripts** (pre-request y tests). Luvin revisa las respuestas con criterios de éxito |
+| Ejemplos guardados | Tipos de autorización sin equivalente: esos requests quedan sin autorización |
+| Autorización de la colección, la carpeta y el request | Tipos de body sin equivalente: el body queda vacío |
+| Ambientes y sus variables | Variables con un nombre no válido, y variables desactivadas |
+| Variables de la colección | |
+
+- Una variable marcada como secreta sigue siendo secreta. Bruno no guarda el valor de sus secretos, así que llegan vacíos: escríbelos de nuevo en el ambiente.
+- Las variables de la colección se agregan a cada ambiente que no las define. Si no llegó ningún ambiente, Luvin crea uno llamado `local`.
+
+<Aside>
+Si eliges solo archivos de ambiente, Luvin dice **Eso son solo ambientes: elige también la colección.** Si no encuentra ninguna colección, dice **No encontré una colección de Postman ni de Bruno en lo que elegiste.**
+</Aside>
+
+## Archivos Arazzo y contratos
+
+Primero necesitas una colección abierta. Luvin agrega los archivos a ella. Los archivos pueden ser `.yaml`, `.yml` o `.json`.
+
+<Tabs>
+<TabItem label="Botón">
+
+<Steps>
+
+1. Abre el inicio del workspace con el ícono de la casa de la barra superior.
+2. En **Acciones rápidas**, haz clic en **Importar Arazzo o contratos**.
+3. Elige uno o más archivos.
+
+</Steps>
+
+El botón solo aparece cuando hay una colección abierta. Una colección sin Arazzo muestra el mismo consejo.
+
+</TabItem>
+<TabItem label="Contrato, desde la barra lateral">
+
+<Steps>
+
+1. En **Contratos**, haz clic en **+** (**Agregar contrato**).
+2. Haz clic en **Importar contrato…**.
+3. Elige el archivo.
+
+</Steps>
+
+</TabItem>
+<TabItem label="Arrastrar y soltar">
+
+<Steps>
+
+1. Arrastra los archivos desde tu explorador de archivos hasta la ventana de Luvin. Dice **Suelta para agregar a «nombre de la colección»**.
+2. Suéltalos. Un mensaje dice cuántos se agregaron, por ejemplo **Se agregaron 3 archivo(s) a la colección**.
+
+</Steps>
+
+Si no hay una colección que los reciba, el mensaje es **Abre o crea una colección para agregarle archivos**. Los otros tipos de archivo se omiten y Luvin dice cuántos.
+
+</TabItem>
+</Tabs>
+
+<Aside type="tip">
+Si un contrato apunta a otros archivos con `$ref`, agrégalos también. Suelta juntos el Arazzo, sus contratos y los archivos de `$ref`. Cuando falta alguno, el contrato muestra ✕ en la barra lateral. Consulta [Solución de problemas](/es/get-started/troubleshooting/).
+</Aside>
+
+## Un comando cURL
+
+Un comando cURL es un request escrito como texto, como los que Chrome, Postman o la documentación de una API te dejan copiar.
+
+```bash
+curl -X POST 'https://api.shop.test/customers' \
+  -H 'Content-Type: application/json' \
+  --data-raw '{"name":"Ana"}'
+```
+
+![El diálogo Importar desde cURL con un comando pegado](/media/es/import-curl.webp)
+
+<Steps>
+
+1. Haz clic en **+** de las pestañas (**Crear o importar**) y luego en **Nuevo request**.
+2. Haz clic en **Importar desde cURL**.
+3. Pega el comando. Se convierten el método, la URL, los headers, la autorización y el body.
+4. Haz clic en **Importar**.
+
+</Steps>
+
+El comando debe empezar con `curl` e incluir una URL. Si no, Luvin dice que no parece un comando cURL válido. Los menús de requests de la barra lateral también ofrecen **Importar desde cURL**. Para copiar un paso como cURL, consulta [cURL](/es/requests/curl/).
+
+## Abrir archivos sin workspace
+
+Para probar algo rápido, abre archivos sin workspace.
+
+<Steps>
+
+1. En la pantalla de bienvenida, haz clic en **Abrir archivos sin workspace**, abajo. El navegador abre un selector de archivos; la app de escritorio abre un selector de carpetas.
+2. Elige tus contratos, tus archivos Arazzo y los archivos a los que apuntan sus `$ref`. También puedes soltarlos sobre la pantalla de bienvenida.
+
+</Steps>
+
+Si cierras la bienvenida con **Prefiero explorar por mi cuenta**, la pantalla vacía ofrece **Abrir archivos** y, en la app de escritorio, **Abrir carpeta**. De una carpeta se cargan todos los archivos YAML y JSON que tenga, con sus subcarpetas. Si tiene muchos archivos, solo se cargan los primeros 300, y Luvin lo avisa.
+
+## Sigue con
+
+<CardGrid>
+  <LinkCard title="Sin workspace" href="/es/workspaces/without-workspace/" />
+  <LinkCard title="El tour guiado" href="/es/get-started/guided-tour/" />
+  <LinkCard title="Requests" href="/es/requests/overview/" />
+  <LinkCard title="Solución de problemas" href="/es/get-started/troubleshooting/" />
+</CardGrid>

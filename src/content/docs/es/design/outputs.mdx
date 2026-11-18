@@ -1,0 +1,120 @@
+---
+title: Outputs
+description: Elige qué valores guarda un paso de su respuesta, cómo funcionan las listas y qué devuelve el workflow al terminar.
+sidebar:
+  order: 6
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Un output es un valor que un paso toma de su respuesta y al que le da un nombre, para que los pasos siguientes lo usen. En la Pokédex, el paso `getPokemon` tiene los outputs `id`, `name` y `mainType`, y los pasos siguientes los leen. Esta página muestra cómo agregar outputs a un paso y al workflow.
+
+## Ejemplo: los outputs de getPokemon
+
+En **Pokemon card**, `getPokemon` guarda cinco valores. Los pasos siguientes leen `id`, `mainType` y `firstAbility`.
+
+<Tabs>
+  <TabItem label="En la app">
+
+Bajo **Outputs** en el panel del paso, los campos `id`, `name`, `types/type/name`, `abilities/ability/name` y `base_experience` están marcados. En la tarjeta, cada output tiene un punto que puedes arrastrar a un parámetro posterior.
+
+![El panel de un paso con los campos de la respuesta marcados como outputs y la acción elegida para cada error](/media/es/step-outputs.webp)
+
+  </TabItem>
+  <TabItem label="En el YAML">
+
+```yaml title="pokemon.arazzo.yaml" {2-6}
+outputs:
+  id: $response.body#/id
+  name: $response.body#/name
+  mainType: $response.body#/types/0/type/name
+  firstAbility: $response.body#/abilities/0/ability/name
+  baseExperience: $response.body#/base_experience
+```
+
+  </TabItem>
+</Tabs>
+
+## Cuándo necesitas agregar uno
+
+Muchas veces no hace falta. Cuando conectas un parámetro con un campo de una respuesta anterior, Luvin agrega el output a ese paso por ti. Consulta [Conectar datos entre pasos](/es/design/wire-data/).
+
+Agrega uno a mano cuando quieras que el workflow devuelva el valor al final, o tenerlo listo antes de agregar el paso que lo va a usar.
+
+## Marca los campos que expone un paso
+
+<Steps>
+1. En la pestaña **Diseño**, haz clic en el paso.
+2. Ve a **Outputs**, al final del panel. Dice **Lo que este paso expone para los siguientes (de su respuesta).**
+3. Marca un campo.
+</Steps>
+
+![El panel de un paso con los campos de la respuesta marcados como outputs y la acción elegida para cada error](/media/es/step-outputs.webp)
+
+El output aparece en la tarjeta, bajo **Outputs**, con un punto a su derecha que puedes arrastrar hasta un parámetro de un paso posterior. Desmarca el campo para quitar el output.
+
+El panel lista los campos de la respuesta de éxito que documenta el contrato: primero las listas, después los valores simples como textos, números y sí/no. El nombre del output sale de la ruta del campo:
+
+| Campo | Nombre del output |
+|---|---|
+| `id` | `id` |
+| `customer/id` | `customerId` |
+| `types/type/name` | `typesTypeName` |
+
+Si el panel dice **El contrato no documenta la respuesta: agrega outputs en el YAML.**, Luvin no tiene campos que ofrecer. Escribe el output a mano como se muestra más abajo.
+
+<Aside type="caution">
+Si desmarcas un output que usa un paso posterior, ese paso pierde su valor y muestra un error. Dale otro origen, o haz clic en **Deshacer**.
+</Aside>
+
+## Campos que son listas
+
+Las respuestas suelen contener listas: las tarjetas de un cliente, los ítems de un pedido. El panel ofrece tres clases de campos para ellas.
+
+| Qué marcas | Etiqueta | Qué contiene el output |
+|---|---|---|
+| La lista misma, por ejemplo `cards` | **lista completa** | Todos los elementos. |
+| Un campo de los elementos, por ejemplo `cards/bank` | Ninguna | El valor de un elemento. Eliges qué elemento al ejecutar. |
+| Un valor de una lista de valores simples, por ejemplo `tags` | **un elemento** | Uno de los valores. Eliges cuál al ejecutar. |
+
+Los campos de los elementos de una lista se muestran sin posición: `cards/bank`, no `cards/0/bank`. Cuando un paso tiene outputs de esta clase, el panel agrega una nota, **Estos outputs salen de un elemento de «cards»: al ejecutar eliges cuál.**, con el botón **Exponer la lista «cards» completa** por si prefieres todos los elementos.
+
+La elección ocurre durante la ejecución: Luvin hace una pausa y muestra lo que llegó. Consulta [Elegir un elemento de una lista](/es/test/lists/).
+
+## Outputs escritos en el YAML
+
+El panel cubre los campos elegidos por su ruta. Un output también puede ser una búsqueda dentro de la respuesta, escrita en la [pestaña YAML](/es/design/arazzo-editor/). En **Pokemon card**, el paso `getAbility` guarda la descripción en inglés de una habilidad con una búsqueda JSONPath:
+
+```yaml
+outputs:
+  effect:
+    context: $response.body
+    selector: $.effect_entries[?(@.language.name == 'en')].short_effect
+    type: jsonpath
+```
+
+Un output así aparece en el panel debajo de los campos, con su nombre, su expresión y **Eliminar**. Funciona como cualquier otro output: los pasos posteriores pueden usarlo y tiene un punto en la tarjeta.
+
+## Qué devuelve el workflow
+
+Un workflow tiene sus propios outputs: lo que devuelve al terminar. Los leen los otros workflows que dependen de él y también el reporte. Los defines en la tarjeta **Fin del workflow**, la última del lienzo.
+
+<Steps>
+1. Haz clic en **Fin del workflow**. El panel muestra **Outputs del workflow**.
+2. Marca lo que el workflow debe devolver. Puedes elegir entre los outputs de sus pasos (que se muestran como `getPokemon › name`), los outputs de los workflows de los que depende y sus inputs (que se muestran como `input · pokemon`).
+3. Cada uno que marcas aparece en la lista de abajo con un nombre. Para cambiarlo, haz clic en él, escribe y pulsa Enter. La papelera lo quita.
+</Steps>
+
+También puedes arrastrar desde el punto de cualquier output hasta la tarjeta **Fin del workflow**.
+
+Si el panel dice **Todavía no hay nada que exponer: declara outputs en los pasos.**, agrega primero outputs a un paso.
+
+Por ejemplo, **Pokemon card** devuelve seis valores tomados de sus cuatro pasos, entre ellos `name` y `mainType` de `getPokemon` y `weakTo` de `getWeakness`. En el lienzo, una línea punteada va desde cada uno de esos outputs hasta **Fin del workflow**.
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Éxito y errores" href="/es/design/success-and-errors/" />
+  <LinkCard title="Workflows que usan otros workflows" href="/es/design/dependencies/" />
+  <LinkCard title="Resultados" href="/es/test/results/" />
+</CardGrid>

@@ -1,0 +1,124 @@
+---
+title: La pestaña YAML
+description: Lee y edita el archivo Arazzo que hay detrás de un workflow, con validación mientras escribes, autocompletado y una lista de problemas.
+sidebar:
+  order: 13
+---
+
+import { Steps, Tabs, TabItem, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Cada workflow que diseñas se guarda en un archivo Arazzo. La pestaña **YAML** muestra ese archivo como texto y te deja editarlo. Úsala para lo que el lienzo no edita, para revisar lo que escribió Luvin o para arreglar un archivo que recibiste.
+
+[Arazzo](https://spec.openapis.org/arazzo/latest.html) es un estándar abierto de la OpenAPI Initiative para describir secuencias de llamadas a APIs. YAML es un formato de texto donde la sangría indica la estructura.
+
+## Ejemplo: un valor que apunta a un paso
+
+En la pestaña YAML, escribe `$steps.` después de `value:` en `getSpecies`. El editor sugiere los pasos y luego los outputs del que elijas.
+
+<Tabs>
+  <TabItem label="Lo que escribes">
+
+```yaml title="pokemon.arazzo.yaml" {3}
+parameters:
+  - name: idOrName
+    value: $steps.getPokemon.outputs.id
+```
+
+  </TabItem>
+  <TabItem label="Si el paso no existe">
+
+Cambia `getPokemon` por `getPokemn`. La línea se subraya y **Problemas** lista:
+
+```text
+Usa $steps.getPokemn.outputs.id, pero el paso "getPokemn" no existe.
+```
+
+  </TabItem>
+</Tabs>
+
+## El YAML es la fuente de verdad
+
+El lienzo y el YAML son dos vistas del mismo archivo. Cada cambio que haces en el lienzo se escribe en el YAML, y cada cambio que escribes en el YAML se ve en el lienzo. No se guarda nada aparte, así que lo que escribes a mano se conserva.
+
+![La pestaña YAML con el archivo Arazzo y una lista de problemas debajo](/media/es/yaml-editor.webp)
+
+<Steps>
+1. Abre un workflow y haz clic en la pestaña **YAML**.
+2. Edita el texto.
+</Steps>
+
+La pestaña muestra el archivo completo, no solo el workflow que tenías abierto: todos los workflows del archivo, sus contratos (`sourceDescriptions`) y sus reutilizables (`components`). El nombre del archivo está sobre el texto.
+
+## Validación mientras escribes
+
+Un momento después de que dejas de escribir, Luvin vuelve a leer el archivo y lo revisa. La barra sobre el texto muestra el resultado:
+
+| Insignia | Significado |
+|---|---|
+| **Sin errores ni advertencias** | El archivo está bien. |
+| **2 error(es)** / **1 advertencia(s)** | Hay problemas. Cada uno aparece subrayado en el texto. |
+| **YAML inválido** | No se puede leer el texto, por ejemplo por una sangría incorrecta. |
+
+Mientras el YAML es inválido, el lienzo no puede mostrarlo. La pestaña **Diseño** dice **El YAML no se puede leer** y ofrece **Ver el YAML**. Corrige la línea y el lienzo vuelve.
+
+Cuando hay algo que informar, aparece bajo el texto una lista llamada **Problemas**. Haz clic en un problema y el cursor va al lugar del texto. Cuando la lista solo tiene información, se llama **Notas** y empieza plegada. Una nota no es un error, por ejemplo **Paso receive sin "timeout"**.
+
+## Autocompletado
+
+Mientras escribes, el editor sugiere valores. Pulsa Enter para aceptar uno.
+
+| Cuando escribes | Sugiere |
+|---|---|
+| `$` | Las expresiones que Luvin entiende: `$inputs`, `$steps`, `$workflows`, `$sourceDescriptions`, `$components`, `$statusCode`, `$response.body`, `$message.payload` y más. |
+| `$steps.` | Los pasos del workflow en el que estás y, después, los outputs del que elegiste. |
+| `$inputs.` | Los inputs de ese workflow. |
+| `operationId:` | Las operaciones de los contratos cargados, con su método y ruta. |
+| `channelPath:` | Los canales de los contratos AsyncAPI cargados. |
+| `workflowId:` en un paso | Los otros workflows del archivo. |
+| `stepId:` en un salto (`goto`) | Los pasos del workflow. |
+| `action:`, `in:`, `type:` | Los valores válidos, como `send`, `receive`, `header`, `end`, `retry`. |
+
+## Qué revisa el análisis
+
+Luvin resuelve cada paso a su operación OpenAPI o a su canal AsyncAPI y lo revisa contra el contrato. Entre otras cosas, marca:
+
+- Operaciones o canales que no existen en los contratos.
+- Parámetros o bodies obligatorios que un paso nunca envía.
+- Referencias a un paso, un output o un input que no existe, o a un output de un paso que se ejecuta después.
+- `workflowId` o `stepId` duplicados.
+- Una acción que salta a un paso que no existe.
+- Criterios de éxito que esperan una respuesta que el contrato no documenta.
+- Workflows que dependen de uno que no existe.
+
+Cada mensaje dice qué está mal y dónde. Para las respuestas que maneja un workflow, mira **Cobertura de respuestas** en la pestaña **Resumen**, explicada en [Éxito y errores](/es/design/success-and-errors/).
+
+## Guardar
+
+En un workspace, el archivo se guarda solo y la barra muestra el estado del guardado. Fuera de un workspace, la barra muestra **Cambios sin guardar en un archivo**, con **Guardar archivo**, que guarda o descarga el archivo, y **Descartar cambios**, que vuelve al archivo como estaba al abrir el editor.
+
+## Cuándo usar el YAML
+
+El lienzo cubre el trabajo común. Prefiere el YAML para:
+
+- Criterios que miran dentro de la respuesta, como `$response.body#/capture_rate >= 0`.
+- Acciones que dependen de un campo de la respuesta, no solo del estado.
+- Pasos de mensajería. Consulta [Pasos de mensajería](/es/design/messaging/).
+- Varios cambios a la vez: renombrar, copiar pasos de otro archivo o mover un bloque.
+- Leer exactamente lo que escribió Luvin, o arreglar un archivo que escribió otra persona.
+
+Cuando un paso usa algo que el lienzo no edita, su panel lo dice y ofrece **Editar en el YAML**.
+
+## Lleva el archivo a otras herramientas
+
+El archivo es un archivo Arazzo 1.0 o 1.1 estándar. Cualquier herramienta que lea Arazzo puede usarlo, por ejemplo en un trabajo de CI. Luvin agrega algunos campos que empiezan con `x-`, que el estándar permite y otras herramientas ignoran. Por ejemplo, `x-luvin-name` guarda el nombre de un workflow con mayúsculas o tildes. Los inputs y los casos se guardan en un archivo aparte, en `scenarios/`.
+
+El archivo está en la carpeta de tu colección, junto a sus contratos. Consulta [Qué hay en el disco](/es/workspaces/files/). Para saber qué soporta Luvin de Arazzo, consulta [Soporte de especificaciones](/es/reference/support/).
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Crear un workflow" href="/es/design/create/" />
+  <LinkCard title="Éxito y errores" href="/es/design/success-and-errors/" />
+  <LinkCard title="Soporte de especificaciones" href="/es/reference/support/" />
+  <LinkCard title="Qué hay en el disco" href="/es/workspaces/files/" />
+</CardGrid>

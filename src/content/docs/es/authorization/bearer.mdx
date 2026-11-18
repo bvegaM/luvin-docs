@@ -1,0 +1,57 @@
+---
+title: Bearer Token
+description: Envía en el header Authorization un token que ya tienes, con los campos y un ejemplo verificado.
+sidebar:
+  order: 12
+---
+
+import { LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Usa **Bearer Token** cuando ya tienes un token y la API dice "envía un bearer token". Para obtener un token de un servidor de autorización, usa [OAuth 2.0](/es/authorization/oauth2/). Para usar un token que devuelve un paso de login, mira la [receta de login y token](/es/recipes/login-token/).
+
+## Ejemplo
+
+Request `GET https://httpbin.org/bearer`.
+
+**Tipo** `Bearer Token`, **Token** `abc123`, **Prefijo del header** `Bearer`. Luvin envía:
+
+```text
+Authorization: Bearer abc123
+```
+
+La respuesta es `200`:
+
+```json
+{
+  "authenticated": true,
+  "token": "abc123"
+}
+```
+
+Sin el token, el mismo request responde `401`.
+
+## Campos
+
+| Campo | Qué escribir |
+|---|---|
+| **Token** | El token. Es un campo secreto. |
+| **Prefijo del header** | La palabra antes del token. `Bearer` mientras no lo cambies. |
+
+Otro prefijo, por ejemplo `Token`, da `Authorization: Token abc123`. Si escribes un prefijo y luego lo borras, solo se envía el token.
+
+## Reglas
+
+- Si escribiste un header `Authorization` en **Headers**, el tuyo gana.
+- Con **Token** vacío, no se envía nada.
+- Funciona en requests, en la colección y en un workflow.
+
+## Secretos
+
+**Token** es un secreto. Escrito tal cual se guarda cifrado en tu equipo. Escribe `{{token}}` y guarda el valor en el ambiente para compartir la configuración. Mira [Secretos](/es/authorization/secrets/).
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="OAuth 2.0" href="/es/authorization/oauth2/" description="Obtén el token de un proveedor y renuévalo." />
+  <LinkCard title="Solución de problemas" href="/es/authorization/troubleshooting/" description="Cuando la API responde 401 o 403." />
+</CardGrid>

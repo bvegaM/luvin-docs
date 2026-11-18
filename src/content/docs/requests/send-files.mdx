@@ -1,0 +1,135 @@
+---
+title: Send a file
+description: Upload a file in a request, either as the whole body (File / Binary) or as one field of a Multipart Form, and fix the errors when Luvin cannot read it.
+sidebar:
+  order: 15
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Some APIs take a file: an avatar, a PDF, a CSV. Luvin sends a file in two ways. As the **whole body** (**File / Binary**), or as **one field among others** (**Multipart Form**). Use the first when the API wants only the file, and the second when it wants the file plus data such as a name.
+
+## Example: upload an avatar
+
+A shop API has `POST {{baseUrl}}/avatars`. It wants a text field `name` and a file field `avatar`. The request file stores the path of the file, not its content:
+
+```yaml title="requests/uploads/upload-avatar.request.yaml" {8-18}
+name: Upload avatar
+kind: http
+method: POST
+url: "{{baseUrl}}/avatars"
+auth:
+  type: inherit
+body:
+  mode: formdata
+  form:
+    - key: name
+      value: Ana
+    - key: avatar
+      type: file
+      file:
+        path: /Users/ana/pics/ana.png
+        name: ana.png
+        contentType: image/png
+```
+
+## Send a file as a field (Multipart Form)
+
+<Steps>
+
+1. Open the request and click the **Body** tab.
+2. In the menu at the top, choose **Multipart Form**, under **Form**.
+3. In the empty row at the end, type the **Key**, for example `name`, and its **Value**, for example `Ana`.
+4. In the next row, type the key `avatar`. In the menu at the right of the **Value**, **Field type**, change **Text** to **File**.
+5. The value cell becomes **Choose file** and **No file selected**. Click **Choose file** and pick `ana.png`.
+6. The row now shows the name of the file and its size, and the button reads **Change file**.
+7. Press **Send** (⌘/Ctrl + Enter).
+
+</Steps>
+
+Luvin builds the multipart body and sets `Content-Type: multipart/form-data` with its boundary. Open **Sent request** in the response to see it. The file appears as its name between angle brackets, because Luvin does not print its bytes:
+
+```text
+------Luvin3f9a1c
+Content-Disposition: form-data; name="name"
+
+Ana
+------Luvin3f9a1c
+Content-Disposition: form-data; name="avatar"; filename="ana.png"
+Content-Type: image/png
+
+<ana.png>
+------Luvin3f9a1c--
+```
+
+Notes:
+
+- A **Text** field accepts `{{variables}}` and generators. A **File** field does not.
+- Change **File** back to **Text** and Luvin forgets the chosen file.
+- A **File** row with no file chosen is not sent. Untick a row to leave it out without deleting it. The ✕ (**Remove row**) deletes it.
+- The `Content-Type` of the file comes from its extension: `json`, `xml`, `txt`, `csv`, `html`, `pdf`, `zip`, `png`, `jpg`, `jpeg`, `gif`, `webp` or `svg`. For another extension, the browser version uses the type the browser reports, and the desktop app sends `application/octet-stream`.
+
+## Send a file as the whole body (File / Binary)
+
+<Steps>
+
+1. Open the **Body** tab and choose **File / Binary**, under **Other**.
+2. Click **Choose file** and pick the file.
+3. Read the note: *The file is sent as-is. The Content-Type comes from its extension; change it in Headers if needed.*
+4. Press **Send**.
+
+</Steps>
+
+To send the file with another type, write your own `Content-Type` in **Headers**. See [Headers that Luvin adds](/requests/auto-headers/).
+
+<Aside type="caution">
+A body is not sent with GET or HEAD. Use POST, PUT or PATCH.
+</Aside>
+
+## Copy it as cURL
+
+**Copy as cURL** writes the form with `-F`, and a binary body with `--data-binary`:
+
+```bash
+curl -X POST 'https://api.shop.test/avatars' \
+  -F 'name=Ana' \
+  -F 'avatar=@/Users/ana/pics/ana.png'
+```
+
+In the browser version the path is not known, so the command uses the name of the file: `avatar=@ana.png`. See [Copy as cURL](/requests/curl/).
+
+## Desktop app and browser
+
+<Tabs>
+  <TabItem label="Desktop app">
+
+  Luvin keeps the path of the file and reads it each time you send. If you edit the file, the next **Send** uses the new content.
+
+  - A file larger than 50 MB is not sent.
+  - Luvin only reads files that you chose with **Choose file**, or that are inside an open workspace.
+
+  </TabItem>
+  <TabItem label="Browser">
+
+  A page cannot read a path again, so the file stays in memory while the app is open. After you reload the page, choose it again.
+
+  </TabItem>
+</Tabs>
+
+## When it fails
+
+The response area says why, and nothing is sent.
+
+| Message | What to do |
+|---|---|
+| **Choose “ana.png” again** | Luvin cannot read the file. In the browser, it happens after a reload. In the desktop app, it happens when the request came from another computer or from a teammate: the path was never chosen here. Click **Choose file** and pick it. |
+| **“ana.png” is no longer at that location** | The file was moved or deleted. Click **Change file** and pick it. |
+| **“ana.png” is larger than 50 MB** | Use a smaller file. |
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Params, headers and body" href="/requests/params-headers-body/" />
+  <LinkCard title="How a request is saved" href="/requests/files/" />
+  <LinkCard title="Headers that Luvin adds" href="/requests/auto-headers/" />
+</CardGrid>

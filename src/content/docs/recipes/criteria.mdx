@@ -1,0 +1,139 @@
+---
+title: Check more than the status
+description: "Success criteria beyond the status: a condition on the body, a regex on a header and a JSONPath on the body, plus one that fails on purpose."
+sidebar:
+  order: 7
+---
+
+import { Steps, LinkButton, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+**What it tests:** a product search answers 200, finds results, returns JSON and has at least one product with a price above 0. A second workflow fails on purpose.
+
+<LinkButton href="/recipes/criteria/dummyjson.openapi.yaml" variant="primary" icon="download" download>Download the contract</LinkButton>
+<LinkButton href="/recipes/criteria/criteria.arazzo.yaml" variant="secondary" icon="download" download>Download the Arazzo</LinkButton>
+
+## Open it in Luvin
+
+<Steps>
+
+1. Download the files with the buttons above.
+2. In Luvin, create a collection with **New collection** on the workspace home, or open one you already have.
+3. Under **Quick actions**, click **Import Arazzo or contracts** and choose the downloaded `.yaml` files together.
+4. In the sidebar, open the workflow **Search phones**.
+5. In the run bar, choose **Real API**.
+6. Press **Run**. The results open at the bottom.
+
+</Steps>
+
+## The key lines
+
+```yaml title="criteria.arazzo.yaml" {30-37}
+arazzo: 1.0.1
+info:
+  title: Success criteria beyond the status
+  version: 1.0.0
+sourceDescriptions:
+  - name: dummyjson
+    url: ./dummyjson.openapi.yaml
+    type: openapi
+workflows:
+  - workflowId: searchPhones
+    summary: Search products and check the status, a number, a header and a price
+    inputs:
+      type: object
+      properties:
+        q: { type: string, example: phone }
+    steps:
+      - stepId: search
+        operationId: searchProducts
+        parameters:
+          - name: q
+            in: query
+            value: $inputs.q
+          - name: limit
+            in: query
+            value: 3
+          - name: select
+            in: query
+            value: title,price
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.body#/total > 0
+          - context: $response.header.Content-Type
+            condition: ^application/json
+            type: regex
+          - context: $response.body
+            condition: $.products[?(@.price > 0)]
+            type: jsonpath
+        outputs:
+          total: $response.body#/total
+          firstTitle: $response.body#/products/0/title
+    outputs:
+      total: $steps.search.outputs.total
+
+  - workflowId: impossiblePrice
+    summary: Fails on purpose - no phone costs more than 100000
+    steps:
+      - stepId: search
+        operationId: searchProducts
+        parameters:
+          - name: q
+            in: query
+            value: phone
+          - name: limit
+            in: query
+            value: 3
+          - name: select
+            in: query
+            value: title,price
+        successCriteria:
+          - condition: $statusCode == 200
+          - context: $response.body
+            condition: $.products[?(@.price > 100000)]
+            type: jsonpath
+```
+
+| Line | What it does |
+|---|---|
+| 30 | A simple condition on the status. Simple is the default type. |
+| 31 | A simple condition on a value of the body: the search found at least one product. |
+| 32-34 | A `regex` criterion. Its `context` is the header `Content-Type`, which must start with `application/json`. |
+| 35-37 | A `jsonpath` criterion on the whole body. It passes when the path finds at least one match: here, a product with a price above 0. |
+| 44-60 | The second workflow, `impossiblePrice`, asks for a price above 100000. No phone costs that much, so it fails on purpose. |
+
+## What you get
+
+Both workflows call `GET /products/search?q=phone&limit=3&select=title,price`.
+
+| Workflow | Step | HTTP status | Result |
+|---|---|---|---|
+| `searchPhones` | `search` | 200 | All four criteria hold. Output `total` = `23`. **Passed**. |
+| `impossiblePrice` | `search` | 200 | The API answered 200, but the JSONPath criterion does not hold. **Failed**. |
+
+The reason Luvin prints for `impossiblePrice` is:
+
+```text
+JSONPath found no matches in $response.body.
+```
+
+A status of 200 is not enough: the step fails because a criterion fails. The workflow stops there and its outputs stay empty. In `expect.json` of the recipe this workflow is marked `failed`, because failing is what it should do.
+
+A criterion of type `regex` explains itself too. With `condition: ^text/html` on the same header, the reason reads:
+
+```text
+$response.header.Content-Type = "application/json; charset=utf-8" does not match /^text/html/
+```
+
+## Try this
+
+- Change `q` to `laptop` in the **Inputs** tab and run `searchPhones` again. The total becomes `5` and the criteria still hold.
+- In `impossiblePrice`, change `100000` to `100`. The criterion now finds the products that cost more than 100 and the workflow passes.
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Success criteria" href="/reference/criteria/" description="Simple, regex, JSONPath and XPath, and how a failure is explained." />
+  <LinkCard title="Expressions" href="/reference/expressions/" description="`$statusCode`, `$response.body` and the rest." />
+  <LinkCard title="Success and errors" href="/design/success-and-errors/" description="Criteria and actions in the step panel." />
+  <LinkCard title="Expect an error" href="/recipes/expected-error/" description="Make a 400 the expected answer." />
+</CardGrid>

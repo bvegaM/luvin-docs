@@ -1,0 +1,51 @@
+---
+title: OAuth 1.0
+description: Firma cada request con claves de consumidor y de token usando HMAC-SHA1, HMAC-SHA256 o PLAINTEXT, y mira el header Authorization que arma Luvin.
+sidebar:
+  order: 14
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Usa **OAuth 1.0** cuando la API pide firmar cada request con una clave y un secret de consumidor, y normalmente con el token y el secret de un usuario. A diferencia de OAuth 2.0, Luvin no pide un token por ti: escribes las claves que ya tienes.
+
+## Ejemplo
+
+Campos: **Consumer Key** `ckey`, **Consumer Secret** `csecret`, **Access Token** `tkey`, **Token Secret** `tsecret`, **Método de firma** `HMAC-SHA1`, **Realm** `Example`, **Agregar en** **Header**. Luvin envía:
+
+```text
+Authorization: OAuth realm="Example", oauth_consumer_key="ckey", oauth_nonce="…", oauth_signature_method="HMAC-SHA1", oauth_timestamp="…", oauth_version="1.0", oauth_token="tkey", oauth_signature="…"
+```
+
+`oauth_nonce` y `oauth_timestamp` cambian en cada envío, así que cada request tiene su propia firma.
+
+## Campos
+
+| Campo | Qué es |
+|---|---|
+| **Consumer Key**, **Consumer Secret** | La identidad y el secret de tu app. |
+| **Access Token**, **Token Secret** | La identidad y el secret del usuario. Si los dejas vacíos, no se usan. |
+| **Método de firma** | **HMAC-SHA1** (por defecto), **HMAC-SHA256** o **PLAINTEXT**. |
+| **Realm** | Opcional. Se agrega al header. |
+| **Agregar en** | **Header** (por defecto) o **Query**. |
+
+## Qué firma Luvin
+
+El método, la URL sin su query, los parámetros del query, los valores `oauth_*` y, si el body es `application/x-www-form-urlencoded`, sus campos. La clave de firma une los dos secrets.
+
+- Con **Agregar en** **Query**, los valores `oauth_*` van en la URL y no se usa el header `Authorization`.
+- **PLAINTEXT** no calcula un hash: la firma son los dos secrets unidos. Úsalo solo con `https`.
+- Reemplaza un header `Authorization` que hayas escrito tú.
+
+<Aside type="note">
+En la pestaña **Headers** la fila `Authorization` dice *Luvin la calcula al enviar (OAuth 1.0)*. **Request enviado** muestra el valor real.
+</Aside>
+
+## Secretos
+
+**Consumer Secret**, **Access Token** y **Token Secret** son secretos: escritos tal cual se guardan cifrados en tu equipo y no en el archivo. **Consumer Key** y **Realm** van al archivo tal como los escribes. Mira [Secretos](/es/authorization/secrets/).
+
+## Relacionado
+
+- [OAuth 2.0](/es/authorization/oauth2/)
+- [Resumen de la autorización](/es/authorization/overview/)

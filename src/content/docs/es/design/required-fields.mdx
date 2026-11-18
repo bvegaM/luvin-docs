@@ -1,0 +1,106 @@
+---
+title: Marca los campos obligatorios de un request
+description: Dile a Luvin qué campos exige la API en un request que usas como paso, qué cambia eso en el workflow y sus casos, y dónde se guarda.
+sidebar:
+  order: 16
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Un request que guardaste no tiene un contrato que diga qué campos exige la API. Tú lo sabes, así que se lo dices a Luvin. Hazlo cuando armes un workflow a partir de requests guardados. Tu respuesta decide qué datos pide el workflow y qué casos negativos genera Luvin.
+
+## Ejemplo: Create order
+
+Agregas el request **Create order** a un workflow. Se abre el diálogo **¿Qué exige la API en «Create order»?** Marcas lo que la API exige y haces clic en **Guardar**.
+
+<Tabs>
+  <TabItem label="En el diálogo">
+
+| Grupo | Fila | Estado |
+|---|---|---|
+| **Query params** | `bank` | **obligatorio** |
+| **Headers** | `x-api-key` | **obligatorio** |
+| **Body** | `address/city` | **obligatorio** |
+
+  </TabItem>
+  <TabItem label="En el archivo del request">
+
+```yaml title="requests/create-order.request.yaml" {1-4}
+requiredFields:
+  - query:bank
+  - header:x-api-key
+  - body:address/city
+```
+
+  </TabItem>
+</Tabs>
+
+## Por qué importa
+
+Una operación de un contrato trae esta información: el contrato dice que `bank` es obligatorio. Un request guardado es solo una llamada que funcionó una vez, así que no dice si `bank` es obligatorio o simplemente estaba presente.
+
+Lo que marcas tiene dos efectos:
+
+- **Datos obligatorios.** Cuando conviertes un valor fijo en un input, ese input es obligatorio solo si marcaste su campo como obligatorio. Mira [Armar desde requests guardados](/es/design/from-requests/).
+- **Casos negativos.** Para cada input obligatorio, Luvin genera un caso que lo omite, **Sin el input obligatorio "…"**, y comprueba que la API lo rechace. Mira [Casos](/es/test/cases/).
+
+Lo que no marques queda como opcional.
+
+<Aside type="note">
+Esto vale para los pasos que vienen de **Requests de la colección**. Un paso de una operación de un contrato nunca pregunta, porque el contrato ya dice qué es obligatorio. Un request generado desde un contrato también viene con sus campos obligatorios marcados. Mira [Generar requests desde un contrato](/es/requests/generate-from-contract/).
+</Aside>
+
+## Marca los campos obligatorios
+
+### La primera vez que usas un request
+
+<Steps>
+1. En la pestaña **Diseño**, arrastra un request desde **Requests de la colección** hasta el lienzo.
+2. Se abre el diálogo **¿Qué exige la API en «Create order»?**
+</Steps>
+
+### Después, desde el paso
+
+<Steps>
+1. Haz clic en el paso que viene de un request. Su panel empieza con **Del request «Create order»**.
+2. A la derecha de esa línea, haz clic en **Marcar campos obligatorios**. Después de responder una vez, el enlace dice **Campos obligatorios (3)**, con la cantidad que marcaste. Al apuntarlo aparece *Qué campos de este request exige la API*.
+</Steps>
+
+El diálogo es el mismo en ambos casos.
+
+## El diálogo
+
+Bajo la introducción, el diálogo lista todos los campos del request en cuatro grupos:
+
+| Grupo | Qué lista |
+|---|---|
+| **Ruta** | Los parámetros de la ruta, como `{id}`. Siempre son obligatorios y no puedes desmarcarlos: sin ellos la URL apunta a otro recurso. |
+| **Query params** | Los parámetros de query del request. |
+| **Headers** | Los headers del request, salvo los que Luvin agrega desde otras pestañas: `Content-Type`, `Authorization`, `Content-Length` y `Host`. |
+| **Body** | Los campos simples del body (texto, número, verdadero/falso), escritos como su ruta, por ejemplo `bank` o `address/city`. |
+
+Cada fila tiene una casilla, el nombre del campo, el valor que el request envía ahora y la palabra **obligatorio** u **opcional**.
+
+<Steps>
+1. Marca los campos que la API exige.
+2. Para cambiarlos todos a la vez, haz clic en **Marcar todos** o en **Ninguno**.
+3. Haz clic en **Guardar**.
+</Steps>
+
+La primera vez, el otro botón dice **Ahora no**: cierra el diálogo sin una respuesta, y Luvin vuelve a preguntar la próxima vez que agregues ese request a un workflow. Después, el botón dice **Cancelar**. Esc también cierra el diálogo.
+
+Guardar sin ninguna casilla marcada también es una respuesta: dice que nada es obligatorio además de los parámetros de la ruta.
+
+## Dónde se guarda
+
+Al pie del diálogo: **Se guarda en el request: vale para todos los workflows que lo usen.** La respuesta se guarda en el archivo del request, no en el workflow, así que respondes una vez por request. En un workspace, la lista está en `requests/<nombre>.request.yaml`, bajo `requiredFields`, como en el ejemplo del comienzo. Cada elemento lleva el lugar del campo (`query`, `header` o `body`) y su nombre. Los nombres de los headers van en minúsculas. Los parámetros de la ruta no se listan, porque siempre son obligatorios.
+
+El workflow no cambia al guardar. Luvin reconstruye el contrato que mantiene para tus requests, y los pasos leen ahí la respuesta nueva. Mira [Armar desde requests guardados](/es/design/from-requests/).
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Armar desde requests guardados" href="/es/design/from-requests/" />
+  <LinkCard title="Parámetros y body" href="/es/design/parameters-and-body/" />
+  <LinkCard title="Casos" href="/es/test/cases/" />
+</CardGrid>

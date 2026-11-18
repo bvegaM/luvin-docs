@@ -1,0 +1,109 @@
+---
+title: Casos
+description: Qué es un caso, los casos que Luvin genera para un workflow, cuáles se simulan y cómo elegir los que se ejecutan.
+sidebar:
+  order: 2
+---
+
+import { Steps, Tabs, TabItem, Aside, Badge, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Un **caso** es una ejecución de un workflow con unos inputs dados y un resultado esperado. Luvin genera los casos a partir de los contratos y del diseño, así que partes con un plan de pruebas sin escribir nada. Abre la pestaña **Casos** para verlos, elegir cuáles se ejecutan y agregar los tuyos.
+
+## Ejemplo: los casos de Pokemon card
+
+**Pokemon card** recibe dos casos, porque su único input, `pokemon`, va en la ruta y no tiene lista de valores permitidos.
+
+<Tabs>
+  <TabItem label="En la app">
+
+  | Grupo | Caso | Espera |
+  |---|---|---|
+  | **Camino feliz** | **Camino feliz** | **Se espera éxito** |
+  | **Casos por respuesta** | `getPokemon responde 404 → pokemonNotFound` | **Se espera éxito**, **Simulado** |
+
+  ![La pestaña Casos con los casos generados en sus grupos](/media/es/cases.webp)
+
+  </TabItem>
+  <TabItem label="De dónde sale el caso 404">
+
+```yaml title="pokemon.arazzo.yaml" {1-5}
+onFailure:
+  - name: pokemonNotFound
+    type: end
+    criteria:
+      - condition: $statusCode == 404
+```
+
+  Cada acción con criterios se vuelve un caso por respuesta. El paso responde 404 y Luvin comprueba que se activa `pokemonNotFound`.
+
+  </TabItem>
+</Tabs>
+
+**Type explorer**, cuyo input `type` solo admite una lista de valores, recibe además `"type" con un valor fuera del enum`.
+
+## La pestaña Casos
+
+La línea de arriba dice qué hará el botón **Ejecutar**: cuántos casos están seleccionados, cuántos van **contra la API real**, cuántos son **simulados** y cuántos **no se ejecutarán**.
+
+Debajo, los casos están en grupos. Haz clic en un grupo para abrirlo o cerrarlo.
+
+| Grupo | Qué contiene | Dónde se ejecuta |
+|---|---|---|
+| **Camino feliz** | El workflow normal, de principio a fin. | API real o simulación, según elijas en la barra de ejecución |
+| **Casos con datos propios** | Los casos que agregas con tus propios inputs. Mira [Casos con datos propios](/es/test/custom-cases/). | <Badge text="Solo API real" variant="caution" /> |
+| **Validación de datos** | Qué pasa cuando un input falta o viene mal. | <Badge text="Solo API real" variant="caution" /> |
+| **Seguridad** | Qué pasa sin credenciales. | <Badge text="Solo API real" variant="caution" /> |
+| **Casos por respuesta** | Qué hace el workflow cuando un paso responde una respuesta dada o recibe un mensaje dado. | Simulados, o la API real si les das datos |
+
+Cada caso muestra:
+
+- su nombre y lo que espera (**Se espera éxito** o **Se espera rechazo**),
+- si será **Simulado** o irá a la **API real**,
+- una frase con el resultado esperado,
+- los inputs con los que corre (`valores por defecto`, o lo que cambia).
+
+## Los casos que Luvin genera
+
+| Caso | Qué hace | Para qué |
+|---|---|---|
+| **Camino feliz** | Ejecuta todos los pasos con los inputs por defecto. Cada paso debe cumplir sus criterios de éxito. | Comprueba que la cadena funciona de principio a fin. |
+| **Sin el input obligatorio "…"** | Omite un input obligatorio. El primer paso que lo usa debe rechazar el request. | Comprueba que la API valida lo que dice que es obligatorio. |
+| **"…" con …** | Envía un valor incorrecto en un input: un valor fuera de las opciones permitidas, un texto en lugar de un número, un texto en lugar de sí/no, o un valor que no cumple el patrón. | Comprueba que la API rechaza datos malos. |
+| **Sin credenciales** | Se ejecuta sin enviar credenciales. El primer paso protegido debe responder 401 o 403. | Comprueba que las operaciones protegidas están protegidas. |
+| **… responde 404 → …** | Un caso por respuesta: uno por cada acción de éxito o de falla que tiene criterios. El paso responde la respuesta que activa la acción. | Comprueba que se activa la acción correcta: terminar, reintentar o ir a otro paso. |
+| **…: llega un mensaje … → …** y **…: no llega ningún mensaje → …** | Casos de mensaje, para un paso que recibe un mensaje: un mensaje por cada acción, y ningún mensaje antes del timeout. | Comprueba qué hace el workflow con cada mensaje, y sin ninguno. |
+
+Algunos casos se omiten a propósito:
+
+- Un input que va en la ruta no tiene caso "sin el input". Sin él la URL apunta a otro recurso (`/pokemon/` en lugar de `/pokemon/pikachu`), que normalmente existe.
+- El caso de valor inválido existe solo para inputs con opciones permitidas, de tipo número o sí/no, o con un patrón.
+- **Sin credenciales** existe solo si un contrato protege al menos un paso.
+
+## Elige qué casos se ejecutan
+
+- Marca o desmarca la casilla de un caso.
+- La casilla del encabezado de un grupo marca o desmarca todo el grupo.
+- **Todos** y **Ninguno**, arriba a la derecha, marcan o desmarcan todos los casos.
+
+El número en la pestaña **Casos** es cuántos casos están listos para ejecutar. El botón **Ejecutar** muestra el mismo número. Para ejecutar un caso solo, pulsa ▶ en su fila. Mira [Ejecutar](/es/test/run/).
+
+## Listos para ejecutar
+
+Cada grupo dice cuántos de sus casos están **listos para ejecutar**. Un caso seleccionado que no puede ejecutarse muestra **No se ejecutará** y el motivo:
+
+| Motivo | Qué hacer |
+|---|---|
+| *Necesita la API real: la simulación no valida los datos enviados.* | Es un caso de **Validación de datos** o de **Seguridad**. Cambia la barra de ejecución a **API real**. |
+| *Los casos con datos propios solo tienen sentido contra la API real.* | Cambia la barra de ejecución a **API real**. |
+| *Para probarlo contra la API real, cambia en los inputs del caso los valores que provocan esta respuesta.* | Es un caso por respuesta puesto en **API real** sin ningún input cambiado. Cambia sus inputs o vuelve a ponerlo en **Simulado**. Mira [Ajusta un caso](/es/test/adjust-cases/). |
+
+Los casos que no pueden ejecutarse se omiten. Los demás se ejecutan.
+
+## Siguiente
+
+<CardGrid>
+  <LinkCard title="Ajusta un caso" description="Cambia sus inputs, elige el status que debe devolver un rechazo, importa y exporta casos." href="/es/test/adjust-cases/" />
+  <LinkCard title="Casos con datos propios" description="Agrega los tuyos." href="/es/test/custom-cases/" />
+  <LinkCard title="Ejecutar" description="Ejecuta los casos que elegiste." href="/es/test/run/" />
+  <LinkCard title="Demostrar que la API rechaza datos inválidos" href="/es/recipes/expected-error/" />
+</CardGrid>

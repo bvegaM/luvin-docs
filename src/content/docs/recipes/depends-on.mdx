@@ -1,0 +1,119 @@
+---
+title: Reuse a login with dependsOn
+description: One workflow logs in and exposes the token; another declares dependsOn and uses that token.
+sidebar:
+  order: 8
+---
+
+import { Steps, LinkButton, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+**What it tests:** a workflow `myProfile` that depends on `auth` reads the logged-in user with the token that `auth` produced.
+
+<LinkButton href="/recipes/depends-on/dummyjson.openapi.yaml" variant="primary" icon="download" download>Download the contract</LinkButton>
+<LinkButton href="/recipes/depends-on/depends-on.arazzo.yaml" variant="secondary" icon="download" download>Download the Arazzo</LinkButton>
+
+## Open it in Luvin
+
+<Steps>
+
+1. Download the files with the buttons above.
+2. In Luvin, create a collection with **New collection** on the workspace home, or open one you already have.
+3. Under **Quick actions**, click **Import Arazzo or contracts** and choose the downloaded `.yaml` files together.
+4. In the sidebar, open the workflow **My profile**.
+5. In the run bar, choose **Real API**.
+6. Press **Run**. The results open at the bottom.
+
+</Steps>
+
+## The key lines
+
+```yaml title="depends-on.arazzo.yaml" {30-31,35,42}
+arazzo: 1.0.1
+info:
+  title: One workflow logs in, another reuses its token
+  version: 1.0.0
+sourceDescriptions:
+  - name: dummyjson
+    url: ./dummyjson.openapi.yaml
+    type: openapi
+workflows:
+  - workflowId: auth
+    summary: Log in and expose the token
+    inputs:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string, example: emilys }
+        password: { type: string, example: emilyspass }
+    steps:
+      - stepId: login
+        operationId: login
+        requestBody:
+          contentType: application/json
+          payload:
+            username: $inputs.username
+            password: $inputs.password
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          token: $response.body#/accessToken
+    outputs:
+      token: $steps.login.outputs.token
+
+  - workflowId: myProfile
+    summary: Read the logged-in user with the token of auth
+    dependsOn: [auth]
+    steps:
+      - stepId: getMe
+        operationId: getMe
+        parameters:
+          - name: Authorization
+            in: header
+            value: Bearer {$workflows.auth.outputs.token}
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          firstName: $response.body#/firstName
+          email: $response.body#/email
+    outputs:
+      firstName: $steps.getMe.outputs.firstName
+```
+
+| Line | What it does |
+|---|---|
+| 30-31 | `auth` exposes the token as a workflow output. This is what other workflows can read. |
+| 35 | `dependsOn: [auth]`: before `myProfile`, Luvin runs `auth`. |
+| 42 | `$workflows.auth.outputs.token` reads the output of `auth`. No step of `myProfile` logs in. |
+
+## What you get
+
+Run `myProfile`. Luvin runs `auth` first, once, and then `myProfile`.
+
+| Workflow | Step | HTTP status | Output |
+|---|---|---|---|
+| `auth` | `login` | 200 | `token` = a long text that starts with `eyJhbGciOi…` |
+| `myProfile` | `getMe` | 200 | `firstName` = `Emily`, `email` = the email of the user |
+
+Verdict: **Passed** for both. If you run `auth` alone, it runs without `myProfile`.
+
+## What runs first
+
+1. The workflows in `dependsOn`, in order, and each only once. If `auth` itself depended on another workflow, that one would run before.
+2. Each dependency gets the outputs of the ones before it, and then the workflow you chose runs with all their outputs available as `$workflows.<id>.outputs.<name>`.
+3. If a dependency fails, the workflow does not start. Luvin says so with a reason.
+
+:::note
+`dependsOn` is about workflows. Inside one workflow, a step can also have `dependsOn` with step ids. See [Workflows that use other workflows](/design/dependencies/).
+:::
+
+## Try this
+
+- In the **Inputs** tab of `auth`, change `password` to `wrong` and run `myProfile`. `auth` fails with *The API responded 400 Bad Request: "Invalid credentials"*, and `myProfile` does not run: *The workflow could not be prepared: the workflow "auth" it depends on failed.*
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Workflows that use other workflows" href="/design/dependencies/" description="dependsOn, outputs and what Luvin runs first." />
+  <LinkCard title="Log in and use the token" href="/recipes/login-token/" description="The same login inside one workflow." />
+  <LinkCard title="Expressions" href="/reference/expressions/" description="`$workflows` and the other runtime expressions." />
+</CardGrid>

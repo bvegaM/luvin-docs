@@ -1,0 +1,144 @@
+---
+title: Requests sueltos
+description: Qué es un request, cómo crearlo, qué muestra la pantalla del request y cómo se guardan y se ordenan los requests en carpetas.
+sidebar:
+  order: 1
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Un request es una llamada a una API que se guarda por sí sola, fuera de un workflow. Úsalo para probar un endpoint, para mirar de cerca un paso que falla o para conservar una llamada que repites seguido.
+
+<video controls muted playsinline preload="metadata" poster="/media/es/request-from-curl.webp" src="/media/es/request-from-curl.mp4"></video>
+
+## Un request de un vistazo
+
+Escribes un método y una URL, pulsas **Enviar** y lees la respuesta:
+
+```text
+GET https://jsonplaceholder.typicode.com/posts/1   →   200 OK
+```
+
+```json
+{
+  "userId": 1,
+  "id": 1,
+  "title": "sunt aut facere repellat provident occaecati excepturi optio reprehenderit",
+  "body": "quia et suscipit\nsuscipit recusandae consequuntur expedita et cum\nreprehenderit molestiae ut ut quas totam\nnostrum rerum est autem sunt rem eveniet architecto"
+}
+```
+
+Luvin lo guarda como este archivo, así que está ahí la próxima vez:
+
+```yaml title="requests/get-post.request.yaml"
+name: Get post
+kind: http
+method: GET
+url: https://jsonplaceholder.typicode.com/posts/1
+headers:
+  - key: Accept
+    value: application/json
+auth:
+  type: inherit
+```
+
+Pruébalo tú mismo en [Requests HTTP](/es/requests/http/).
+
+## Request o workflow
+
+| Quieres | Usa |
+|---|---|
+| Llamar a un endpoint y leer lo que responde | Un request |
+| Llamar a varios endpoints en orden, pasando datos de uno al siguiente | Un [workflow](/es/design/overview/) |
+| Obtener casos de prueba y un veredicto para cada uno | Un workflow |
+
+Un request no tiene casos ni veredicto: lo envías y lees la respuesta.
+
+## Crear un request
+
+<Steps>
+
+1. En la barra lateral, abre tu colección y haz clic en **Nuevo request** (la fila con un **+** debajo de la colección). También puedes usar el **+** al final de las pestañas (**Crear o importar**) y elegir **Nuevo request**.
+2. Se abre el diálogo **Nuevo request**. Elige un tipo.
+3. El request se abre en su propia pestaña, listo para completar.
+
+</Steps>
+
+| Opción | Qué crea |
+|---|---|
+| **HTTP** | Una llamada REST: GET, POST, PUT, PATCH, DELETE, HEAD u OPTIONS. |
+| **GraphQL** | Una consulta o mutación con variables. Mira [GraphQL](/es/requests/graphql/). |
+| **gRPC** | Una llamada a un método de un `.proto`. Solo en la app de escritorio. Mira [gRPC](/es/requests/grpc/). |
+| **WebSocket** | Una conexión en vivo para enviar y recibir mensajes. Mira [WebSocket](/es/requests/websocket/). |
+| **Workflow (Arazzo)** | No es un request: es un workflow vacío, que se abre en **Diseño**. |
+| **Importar desde cURL** | Un request HTTP armado a partir de un comando pegado. Mira [cURL](/es/requests/curl/). |
+
+## La pantalla del request
+
+![Un request con su método, URL, pestañas y la respuesta debajo](/media/es/request.webp)
+
+De arriba hacia abajo:
+
+- **Nombre.** Haz clic para renombrar el request. A su derecha ves el estado del guardado y el ambiente activo. Haz clic en el ambiente para abrirlo.
+- **Método, URL y Enviar.** Elige el método, escribe la URL y pulsa **Enviar** (⌘/Ctrl + Enter). Mientras el request va en camino, el botón pasa a ser **Cancelar**.
+- **Pestañas del request.** **Params**, **Autorización**, **Headers** y **Body**. A la derecha de las pestañas, **Cookies** abre el almacén de cookies y **Copiar como cURL** muestra el request como un comando de terminal.
+- **Respuesta.** El status, el tiempo y el tamaño, y cuatro pestañas: **Body**, **Headers**, **Cookies** y **Request enviado**. **Request enviado** muestra lo que Luvin envió de verdad: la URL final, todos los headers y el body.
+
+En la pestaña **Body** de la respuesta, **Pretty** da formato y color a la respuesta, **Raw** la muestra exactamente como la envió el servidor, y **Preview** muestra el JSON como una tabla que puedes expandir o dibuja una página HTML.
+
+Arrastra la línea entre el request y la respuesta para cambiar su tamaño. Haz doble clic en ella para volver al tamaño original.
+
+:::note
+Si el request no se puede completar, el área de la respuesta dice **No se pudo completar el request** y da el motivo. En la versión de navegador la API debe permitir CORS; la app de escritorio no tiene esa limitación. Mira [Ayuda de conexión](/es/dev-tools/connection-help/).
+:::
+
+## Guardado
+
+Luvin guarda cada cambio solo. El encabezado del request dice **Guardado automáticamente**; ⌘S (Ctrl+S) guarda al instante.
+
+En un workspace, cada request es un archivo YAML dentro de la carpeta de la colección, bajo `requests/` (el archivo de arriba). Los secretos que escribes en la pestaña **Autorización** nunca se escriben en él. Mira [Cómo se guarda un request](/es/requests/files/) y [Autorización](/es/authorization/overview/).
+
+Sin un workspace, el encabezado dice **Sin guardar**: abre o crea un workspace para conservar tus cambios.
+
+## Autorización
+
+La pestaña **Autorización** define cómo se identifica Luvin ante la API: una API key, Basic Auth, un token Bearer, OAuth 2.0 y más. Un request puede tener la suya o heredar la de la colección. Mira el [resumen de la autorización](/es/authorization/overview/).
+
+## Carpetas
+
+Las carpetas son subcarpetas reales de `requests/`, así que se ven igual en el disco y en git.
+
+<Steps>
+
+1. Abre el menú **⋯** de la colección, del grupo **Requests** o de otra carpeta.
+2. Elige **Nueva carpeta**. La carpeta aparece con su nombre listo para escribir.
+3. Escribe el nombre y pulsa Enter.
+
+</Steps>
+
+| Para | Haz esto |
+|---|---|
+| Mover un request | Arrástralo sobre una carpeta, o abre su menú **⋯** y elige **Mover a «carpeta»**. **Sacar de la carpeta** lo devuelve al nivel superior. |
+| Renombrar una carpeta | **⋯** → **Renombrar**. |
+| Eliminar una carpeta | **⋯** → **Eliminar**. Luvin pregunta antes, porque los requests de dentro también se eliminan. |
+
+## Renombrar, duplicar o eliminar un request
+
+Abre el menú **⋯** del request en la barra lateral:
+
+- **Renombrar** cambia el nombre y el nombre del archivo. Editar el nombre arriba de la pantalla del request hace lo mismo.
+- **Duplicar** crea «nombre (copia)» en la misma carpeta y la abre.
+- **Eliminar** pide confirmación y borra el archivo.
+
+## Usar un request como paso de un workflow
+
+En la pestaña **Diseño** de un workflow, la paleta tiene un grupo **Requests de la colección**. Arrastra un request al lienzo y se convierte en un paso, que se envía exactamente como el request. Solo los requests HTTP con una URL pueden ser pasos. Mira [Workflows desde requests](/es/design/from-requests/).
+
+## Siguiente
+
+<CardGrid>
+  <LinkCard title="Requests HTTP" href="/es/requests/http/" description="Envía un GET y un POST paso a paso." />
+  <LinkCard title="Params, headers y body" href="/es/requests/params-headers-body/" description="Completa cada pestaña." />
+  <LinkCard title="Autorización" href="/es/authorization/overview/" description="Identifícate ante la API." />
+  <LinkCard title="Generar requests desde un contrato" href="/es/requests/generate-from-contract/" description="Un request por operación." />
+</CardGrid>

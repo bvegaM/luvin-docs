@@ -1,0 +1,41 @@
+---
+// "En esta página" dibujado como un workflow: cada título es un paso en un riel, los ya leídos quedan
+// en verde, el actual se ilumina y un punto de datos recorre la cadena hasta él.
+import Default from '@astrojs/starlight/components/TableOfContents.astro'
+---
+
+<div class="lv-toc"><Default /></div>
+
+<script>
+  const setup = () => {
+    const toc = document.querySelector<HTMLElement>('.lv-toc starlight-toc')
+    const list = toc?.querySelector<HTMLElement>(':scope > nav > ul')
+    if (!toc || !list || list.dataset.lvReady) return
+    list.dataset.lvReady = '1'
+    const packet = document.createElement('span')
+    packet.className = 'lv-packet'
+    packet.setAttribute('aria-hidden', 'true')
+    list.append(packet)
+    const links = [...list.querySelectorAll<HTMLAnchorElement>('a')]
+    const update = () => {
+      const active = links.findIndex((a) => a.getAttribute('aria-current') === 'true')
+      links.forEach((a, i) => a.toggleAttribute('data-passed', active >= 0 && i < active))
+      const target = links[Math.max(active, 0)]
+      if (!target) return
+      const top = list.getBoundingClientRect().top
+      const r = target.getBoundingClientRect()
+      // Del centro del primer nodo al centro del nodo actual.
+      const start = links[0].getBoundingClientRect()
+      const from = start.top + start.height / 2 - top
+      const to = r.top + r.height / 2 - top
+      list.style.setProperty('--lv-from', `${from}px`)
+      list.style.setProperty('--lv-fill', `${Math.max(0, to - from)}px`)
+      list.toggleAttribute('data-moving', active > 0)
+    }
+    new MutationObserver(update).observe(list, { subtree: true, attributes: true, attributeFilter: ['aria-current'] })
+    window.addEventListener('resize', update)
+    update()
+  }
+  setup()
+  document.addEventListener('astro:page-load', setup)
+</script>

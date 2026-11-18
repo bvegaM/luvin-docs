@@ -1,0 +1,106 @@
+---
+title: Mark the required fields of a request
+description: Tell Luvin which fields the API requires in a request you use as a step, what that changes in the workflow and its cases, and where the answer is saved.
+sidebar:
+  order: 16
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A request you saved has no contract that says which fields the API requires. You know it, so you tell Luvin. Do this when you build a workflow from saved requests. The answer decides which data the workflow asks for and which negative cases Luvin generates.
+
+## Example: Create order
+
+You add the request **Create order** to a workflow. The dialog **What does the API require in «Create order»?** opens. You tick what the API requires and click **Save**.
+
+<Tabs>
+  <TabItem label="In the dialog">
+
+| Group | Row | State |
+|---|---|---|
+| **Query params** | `bank` | **required** |
+| **Headers** | `x-api-key` | **required** |
+| **Body** | `address/city` | **required** |
+
+  </TabItem>
+  <TabItem label="In the request file">
+
+```yaml title="requests/create-order.request.yaml" {1-4}
+requiredFields:
+  - query:bank
+  - header:x-api-key
+  - body:address/city
+```
+
+  </TabItem>
+</Tabs>
+
+## Why it matters
+
+An operation from a contract carries this information: the contract says that `bank` is required. A saved request is only a call that worked once, so it does not say whether `bank` is required or just present.
+
+What you mark has two effects:
+
+- **Required data.** When you turn a fixed value into an input, that input is required only if you marked its field as required. See [Build from saved requests](/design/from-requests/).
+- **Negative cases.** For each required input, Luvin generates a case that leaves it out, **Without the required input "…"**, and checks that the API rejects it. See [Cases](/test/cases/).
+
+Anything you leave unmarked is optional.
+
+<Aside type="note">
+This applies to steps that come from **Collection requests**. A step from a contract operation never asks, because the contract already says what is required. A request generated from a contract also comes with its required fields marked. See [Generate requests from a contract](/requests/generate-from-contract/).
+</Aside>
+
+## Mark the required fields
+
+### The first time you use a request
+
+<Steps>
+1. In the **Design** tab, drag a request from **Collection requests** onto the canvas.
+2. The dialog **What does the API require in «Create order»?** opens.
+</Steps>
+
+### Later, from the step
+
+<Steps>
+1. Click the step that comes from a request. Its panel starts with **From the request “Create order”**.
+2. On the right of that line, click **Mark required fields**. After you have answered once, the link reads **Required fields (3)**, with the number you marked. Pointing at it shows *Which fields of this request the API requires*.
+</Steps>
+
+The dialog is the same in both cases.
+
+## The dialog
+
+Under the intro, the dialog lists every field of the request in four groups:
+
+| Group | What it lists |
+|---|---|
+| **Path** | The parameters of the path, such as `{id}`. They are always required and you cannot untick them: without them the URL points to another resource. |
+| **Query params** | The query parameters of the request. |
+| **Headers** | The headers of the request, except the ones Luvin adds from other tabs: `Content-Type`, `Authorization`, `Content-Length` and `Host`. |
+| **Body** | The simple fields of the body (text, number, true/false), written as their path, for example `bank` or `address/city`. |
+
+Each row has a box, the name of the field, the value the request sends now and the word **required** or **optional**.
+
+<Steps>
+1. Tick the fields the API requires.
+2. To change them all at once, click **Mark all** or **None**.
+3. Click **Save**.
+</Steps>
+
+The first time, the other button reads **Not now**: it closes the dialog without an answer, and Luvin asks again the next time you add that request to a workflow. Later, the button reads **Cancel**. Esc also closes the dialog.
+
+Saving with no box ticked is an answer too: it says that nothing is required beyond the path parameters.
+
+## Where it is saved
+
+At the bottom of the dialog: **Saved in the request: it applies to every workflow that uses it.** The answer is saved in the request file, not in the workflow, so you answer once for each request. In a workspace the list is in `requests/<name>.request.yaml`, under `requiredFields`, as in the example at the top. Each item has the place of the field (`query`, `header` or `body`) and its name. Header names are written in lower case. Path parameters are not listed, because they are always required.
+
+The workflow does not change when you save. Luvin rebuilds the contract it keeps for your requests, and the steps read the new answer from there. See [Build from saved requests](/design/from-requests/).
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Build from saved requests" href="/design/from-requests/" />
+  <LinkCard title="Parameters and body" href="/design/parameters-and-body/" />
+  <LinkCard title="Cases" href="/test/cases/" />
+</CardGrid>

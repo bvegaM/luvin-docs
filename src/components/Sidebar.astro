@@ -1,0 +1,19 @@
+---
+// La barra lateral muestra solo la sección actual (las demás están en el menú horizontal de arriba),
+// con su nombre como título. Si la página no está en ninguna sección, se muestran todas.
+import MobileMenuFooter from 'virtual:starlight/components/MobileMenuFooter'
+import SidebarPersister from '@astrojs/starlight/components/SidebarPersister.astro'
+import SidebarSublist from '@astrojs/starlight/components/SidebarSublist.astro'
+
+const { sidebar } = Astro.locals.starlightRoute
+type Entry = (typeof sidebar)[number]
+const holds = (e: Entry): boolean => (e.type === 'link' ? e.isCurrent : e.entries.some(holds))
+const current = sidebar.find((e) => e.type === 'group' && holds(e))
+---
+
+{current && current.type === 'group' && <p class="lv-sidebar-title">{current.label}</p>}
+<SidebarPersister>
+  <SidebarSublist sublist={current && current.type === 'group' ? current.entries : sidebar} />
+</SidebarPersister>
+
+<div class="md:sl-hidden"><MobileMenuFooter /></div>

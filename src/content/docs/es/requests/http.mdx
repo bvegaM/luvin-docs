@@ -1,0 +1,151 @@
+---
+title: Requests HTTP
+description: Envía tu primer request HTTP con un GET y un POST contra una API pública, y aprende los métodos, la barra de la URL y cómo leer la respuesta.
+sidebar:
+  order: 2
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Un request HTTP es el request de todos los días: una llamada a una API REST con un método y una URL. Sigue los dos ejemplos de abajo para enviar uno tú mismo en pocos minutos. No necesitas una cuenta ni un contrato.
+
+<video controls muted playsinline preload="metadata" poster="/media/es/request-from-curl.webp" src="/media/es/request-from-curl.mp4"></video>
+
+## Ejemplo 1: leer un post con GET
+
+[JSONPlaceholder](https://jsonplaceholder.typicode.com) es una API gratuita para practicar. Este request lee el post número 1.
+
+<Steps>
+
+1. En la barra lateral, abre tu colección y haz clic en **Nuevo request**. Se abre el diálogo **Nuevo request**.
+2. Elige **HTTP**. Se abre en su propia pestaña un request llamado **Nuevo request**, con el método **GET**.
+3. Haz clic en el campo de la URL y escribe `https://jsonplaceholder.typicode.com/posts/1`.
+4. Pulsa **Enviar** (⌘/Ctrl + Enter). La respuesta se abre debajo del request.
+
+</Steps>
+
+![Un request con su método, URL, pestañas y la respuesta debajo](/media/es/request.webp)
+
+La barra de estado dice `200 OK`, seguido del tiempo y el tamaño. La pestaña **Body** tiene la respuesta:
+
+```json
+{
+  "userId": 1,
+  "id": 1,
+  "title": "sunt aut facere repellat provident occaecati excepturi optio reprehenderit",
+  "body": "quia et suscipit\nsuscipit recusandae consequuntur expedita et cum\nreprehenderit molestiae ut ut quas totam\nnostrum rerum est autem sunt rem eveniet architecto"
+}
+```
+
+La misma llamada en una terminal, para comparar:
+
+```bash
+curl https://jsonplaceholder.typicode.com/posts/1
+```
+
+## Ejemplo 2: crear un post con POST
+
+Un POST envía datos a la API. Este crea un post.
+
+<Steps>
+
+1. Haz clic en **Nuevo request** y elige **HTTP**, como antes.
+2. Abre el menú del método (dice **GET**) y elige **POST**.
+3. Escribe la URL `https://jsonplaceholder.typicode.com/posts`.
+4. Abre la pestaña **Body** y elige **JSON** en el menú de arriba.
+5. Escribe el body en el editor:
+
+   ```json
+   {
+     "title": "Hello Luvin",
+     "body": "My first post",
+     "userId": 1
+   }
+   ```
+
+6. Pulsa **Enviar** (⌘/Ctrl + Enter).
+
+</Steps>
+
+El status es `201 Created`, y el body devuelve tu post con un `id` que le dio la API:
+
+```json
+{
+  "title": "Hello Luvin",
+  "body": "My first post",
+  "userId": 1,
+  "id": 101
+}
+```
+
+Luvin agregó por ti el header `Content-Type: application/json`, porque el tipo de body es **JSON**. Abre **Request enviado** en la respuesta para ver todos los headers que salieron.
+
+<Aside type="note">
+JSONPlaceholder solo finge guardar: el `id` siempre es `101` y el post no se almacena. Una API real lo conservaría.
+</Aside>
+
+<Tabs>
+  <TabItem label="En la app">
+    Método **POST**, URL `https://jsonplaceholder.typicode.com/posts`, **Body** → **JSON** con el texto de arriba.
+  </TabItem>
+  <TabItem label="Como cURL">
+    ```bash
+    curl -X POST 'https://jsonplaceholder.typicode.com/posts' \
+      -H 'Content-Type: application/json' \
+      --data-raw '{
+      "title": "Hello Luvin",
+      "body": "My first post",
+      "userId": 1
+    }'
+    ```
+  </TabItem>
+</Tabs>
+
+## Los métodos
+
+El método le dice a la API qué quieres hacer. Elígelo en el menú a la izquierda de la URL.
+
+| Método | Uso típico |
+|---|---|
+| **GET** | Leer datos. No se envía body. |
+| **POST** | Crear algo, o enviar datos para procesar. |
+| **PUT** | Reemplazar algo que existe. |
+| **PATCH** | Cambiar una parte de algo que existe. |
+| **DELETE** | Eliminar algo. |
+| **HEAD** | Como GET, pero la API responde solo con los headers. No se envía body. |
+| **OPTIONS** | Preguntar qué permite la API. |
+
+:::caution
+Con GET o HEAD no se envía body. Mira [Params, headers y body](/es/requests/params-headers-body/).
+:::
+
+## La barra de la URL
+
+| Escribes | Qué hace Luvin |
+|---|---|
+| `{{baseUrl}}/posts/1` | Reemplaza `{{baseUrl}}` con el valor del ambiente activo al enviar. Cambia de ambiente y el mismo request va a otro servidor. |
+| `https://api.example.com/posts?userId=1` | Pasa lo que sigue a `?` a la pestaña **Params**, y mantiene ambos sincronizados. |
+| `api.example.com/posts` | Agrega `http://` al inicio cuando omites el esquema. |
+| `https://api.example.com//posts` | Reduce a una las barras repetidas de la ruta. |
+| Un comando cURL pegado | Completa todo el request. Mira [cURL](/es/requests/curl/). |
+
+Escribe `{{` en el campo para elegir una variable. Mira [Variables y secretos](/es/environments/variables-and-secrets/).
+
+**Enviar** queda deshabilitado mientras la URL está vacía. Mientras un request va en camino, el botón pasa a ser **Cancelar**.
+
+## Lee la respuesta
+
+- **Status.** `2xx` significa éxito, `4xx` significa que el request tiene un problema, `5xx` significa que el servidor falló. Luvin colorea cada familia.
+- **Body.** La respuesta. **Pretty** le da formato, **Raw** la muestra tal como llegó.
+- **Headers** y **Cookies.** Lo que la API envió además del body.
+- **Request enviado.** Lo que Luvin envió de verdad, para revisar tu lado.
+
+Cada parte de la respuesta se explica en [Lee una respuesta en detalle](/es/requests/response-details/).
+
+## Siguiente
+
+<CardGrid>
+  <LinkCard title="Params, headers y body" href="/es/requests/params-headers-body/" description="Completa cada pestaña del request." />
+  <LinkCard title="Autorización" href="/es/authorization/overview/" description="Identifícate ante una API protegida." />
+  <LinkCard title="Cómo se guarda un request" href="/es/requests/files/" description="El archivo YAML que escribe Luvin." />
+</CardGrid>

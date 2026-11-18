@@ -1,0 +1,88 @@
+---
+title: Try one operation
+description: How to call a single operation of a contract on its own, with the credentials of the active environment, and where the call shows up in Dev Tools.
+sidebar:
+  order: 3
+---
+
+import { Steps, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+You do not need a workflow to check an operation. Luvin lets you call one operation of a contract on its own, with the data you write, and shows whether the answer matches the contract. Use it to see that an API is up, to learn what it answers or to prepare the data for a workflow.
+
+## Example: call `getPokemon` on its own
+
+With the PokéAPI contract and the `local` environment:
+
+| You do | Luvin does |
+|---|---|
+| Expand `GET /pokemon/{idOrName}`, click **Try it out**, type `pikachu` in `idOrName` and click **Execute** | Sends `GET https://pokeapi.co/api/v2/pokemon/pikachu` with the server of the active environment |
+| Read the response in Swagger UI | Shows the status `200` and the JSON body |
+| Open **Dev Tools**, **Network** | Records the call: **Case** *Try it out*, **Step** `/pokemon/{idOrName}`, labelled **Swagger UI** |
+
+## Try it from the contract
+
+<Steps>
+
+1. Open an OpenAPI contract from the **Contracts** list.
+2. In the preview on the right, click an operation to expand it.
+3. Click **Try it out**, fill the parameters and the body, and click **Execute**.
+
+</Steps>
+
+The Swagger UI shows the response below.
+
+What Luvin does for you:
+
+- **The server comes from the active environment.** The address of the environment is the first one in **Servers**, labelled *“name” environment (Luvin)*. Change the active environment and the call goes to another server.
+- **The credentials come from the environment too.** For each security scheme of the contract, Luvin authorizes the call with the values you set in the environment. You do not have to type them. See [Variables and secrets](/environments/variables-and-secrets/).
+- **The call goes out from Luvin, not from the preview.** In the desktop app there is no CORS restriction. In the browser version the API must allow CORS.
+- **Secrets are hidden.** The cURL command that Swagger UI shows hides the values of the environment secrets with `••••`.
+
+This call is always against the real API. Nothing is simulated here.
+
+## Try it from a step
+
+If a step of a workflow calls the operation, you can test it without leaving the workflow.
+
+<Steps>
+
+1. Open the step in a workflow.
+2. Click **▶ Try alone**. The tooltip says *Call this operation on its own, outside the workflow, with the active environment*.
+3. A tab opens with the operation. At the top, choose **Real API** or **Simulated**, check the environment, and press **Send** (⌘/Ctrl + Enter).
+
+</Steps>
+
+The form lists the parameters by place (**Path parameters**, **Query**, **Headers**, **Cookies**) and the **Body**. Required parameters have a `*`. Values start from the examples of the contract and accept `{{variables}}` of the environment and generators such as `{{$randomEmail}}`. **Contract example** puts the example body back.
+
+Messages above the form warn you before you send:
+
+| Message | What to do |
+|---|---|
+| *The environment has no URL for “name” and the contract defines no servers: set it in the environment or use simulation.* | Add the base URL to the environment, or choose **Simulated**. |
+| *Credentials are missing in “env”: the API will probably answer 401.* | Click **Configure** and fill the credentials. |
+| *The environment credentials are sent (names).* | Nothing: the credentials were found. |
+| *No value (required): names. You can still send it to see what the API answers.* | Optional. You can send anyway. |
+
+Under **Response** you see the status, the time and one of two verdicts: **Matches the contract**, or *N difference(s) from the contract*. Open the card to read the request and the response.
+
+With **Simulated**, Luvin answers from the examples of the contract and sends nothing to the network.
+
+## Where the call shows up
+
+Every call from **Try it out** and **Try alone** is recorded in **Dev Tools**, in the **Network** tab, with secrets masked.
+
+| Where you tried it | In the Network row |
+|---|---|
+| **Try it out** in the contract | **Case**: *Try it out*. **Step**: the path of the operation. The call is labelled **Swagger UI**. |
+| **Try alone** in a step | **Case**: the method and the path, for example `GET /pokemon/{name}`. **Step**: the `operationId` (or `request` when it has none). The call is labelled **Try operation**. |
+
+Open the row to see the headers, the body and the response. See [Network](/dev-tools/network/).
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Contracts" href="/contracts/overview/" />
+  <LinkCard title="Edit a contract" href="/contracts/edit/" />
+  <LinkCard title="Environments" href="/environments/overview/" />
+  <LinkCard title="Simulation" href="/test/simulation/" />
+</CardGrid>

@@ -1,0 +1,51 @@
+---
+title: OAuth 1.0
+description: Sign each request with consumer and token keys using HMAC-SHA1, HMAC-SHA256 or PLAINTEXT, and see the Authorization header Luvin builds.
+sidebar:
+  order: 14
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Use **OAuth 1.0** when the API asks you to sign every request with a consumer key and secret, and usually a user's token and secret. Unlike OAuth 2.0, Luvin does not request a token for you: you type the keys you already have.
+
+## Example
+
+Fields: **Consumer Key** `ckey`, **Consumer Secret** `csecret`, **Access Token** `tkey`, **Token Secret** `tsecret`, **Signature method** `HMAC-SHA1`, **Realm** `Example`, **Add to** **Header**. Luvin sends:
+
+```text
+Authorization: OAuth realm="Example", oauth_consumer_key="ckey", oauth_nonce="…", oauth_signature_method="HMAC-SHA1", oauth_timestamp="…", oauth_version="1.0", oauth_token="tkey", oauth_signature="…"
+```
+
+`oauth_nonce` and `oauth_timestamp` change on every send, so each request has its own signature.
+
+## Fields
+
+| Field | What it is |
+|---|---|
+| **Consumer Key**, **Consumer Secret** | Identity and secret of your app. |
+| **Access Token**, **Token Secret** | Identity and secret of the user. Left empty, they are not used. |
+| **Signature method** | **HMAC-SHA1** (default), **HMAC-SHA256** or **PLAINTEXT**. |
+| **Realm** | Optional. Added to the header. |
+| **Add to** | **Header** (default) or **Query**. |
+
+## What Luvin signs
+
+The method, the URL without its query, the query parameters, the `oauth_*` values and, for an `application/x-www-form-urlencoded` body, its fields. The signing key joins the two secrets.
+
+- With **Add to** **Query**, the `oauth_*` values go in the URL and the `Authorization` header is not used.
+- **PLAINTEXT** does not hash: the signature is the two secrets joined. Use it only over `https`.
+- It replaces an `Authorization` header you wrote yourself.
+
+<Aside type="note">
+In the **Headers** tab the `Authorization` row shows *Luvin calculates it when sending (OAuth 1.0)*. **Sent request** shows the real value.
+</Aside>
+
+## Secrets
+
+**Consumer Secret**, **Access Token** and **Token Secret** are secrets: typed as-is, they are stored encrypted on your computer and not in the file. **Consumer Key** and **Realm** go to the file as typed. See [Secrets](/authorization/secrets/).
+
+## Related
+
+- [OAuth 2.0](/authorization/oauth2/)
+- [Authorization overview](/authorization/overview/)

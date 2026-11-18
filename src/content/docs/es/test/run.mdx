@@ -1,0 +1,102 @@
+---
+title: Ejecutar
+description: Ejecuta los casos de un workflow contra la API real o en simulación, ejecuta un solo caso, confirma los pasos que modifican datos y detén una ejecución.
+sidebar:
+  order: 5
+---
+
+import { Steps, Tabs, TabItem, Aside, Badge, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Ejecutar un workflow corre sus casos seleccionados, uno tras otro, y le da un veredicto a cada uno. Tú eliges dónde se ejecutan, contra qué ambiente, y pulsas **Ejecutar**.
+
+<video controls muted playsinline preload="metadata" poster="/media/es/run-cases.webp" src="/media/es/run-cases.mp4"></video>
+
+## Ejemplo: ejecuta Pokemon card
+
+El ejemplo de la Pokédex no necesita credenciales, así que puedes ejecutarlo de inmediato.
+
+<Steps>
+1. Abre **Pokemon card**. En la pestaña **Casos**, sus dos casos están marcados.
+2. En la barra de ejecución, elige **Simulación**. El botón dice **Ejecutar 2 casos**.
+3. Pulsa **Ejecutar**. Los resultados se abren abajo: *Ejecutando caso 2 de 2*, y luego un veredicto por caso.
+4. Cambia a **API real** y pulsa **Ejecutar** otra vez. La ejecución se pausa para que elijas de una lista. Mira [Elige un elemento de una lista](/es/test/lists/).
+</Steps>
+
+## La barra de ejecución
+
+La barra de ejecución está arriba de un workflow abierto, sobre sus pestañas. El nombre del workflow queda a la izquierda y los controles de ejecución a la derecha.
+
+![Un workflow abierto, con la barra de ejecución arriba y la barra de resultados abajo](/media/es/interface.webp)
+
+| Control | Qué hace |
+|---|---|
+| **API real** / **Simulación** | Dónde se ejecutan los casos. **API real** envía los requests a las URLs base del ambiente. **Simulación** responde desde el contrato, sin llamadas de red. Mira [Simulación](/es/test/simulation/). |
+| **Ambiente** | El ambiente cuyas URLs base, variables y credenciales se usan. **Configurar ambiente…**, al final de la lista, lo abre. |
+| **Ejecutar** | Ejecuta los casos seleccionados que están listos. Su texto dice cuántos: **Ejecutar 3 casos**, **Ejecutar 1 caso**. Sin ninguno listo dice **Ejecutar** y no se puede pulsar. |
+
+## Ejecuta los casos
+
+<Steps>
+1. Abre el workflow.
+2. En la pestaña **Casos**, marca los casos que quieres. Mira [Casos](/es/test/cases/).
+3. En la barra de ejecución, elige **API real** o **Simulación**.
+4. Elige el **Ambiente**.
+5. Pulsa **Ejecutar**. También puedes pulsar ⌘ + Enter en macOS, o Ctrl + Enter en Windows y Linux.
+</Steps>
+
+Los resultados se abren abajo. Mientras la ejecución avanza muestran qué caso corre, por ejemplo *Ejecutando caso 2 de 5*, y cada caso recibe su veredicto al terminar.
+
+## Ejecuta un caso
+
+<Steps>
+1. En la pestaña **Casos**, busca el caso.
+2. Pulsa ▶ en su fila. Su tooltip dice **Ejecutar solo este caso**.
+</Steps>
+
+El caso se ejecuta aunque no esté marcado. Los resultados muestran entonces solo ese caso. Si ▶ no se puede pulsar, el caso no puede ejecutarse: deja el puntero sobre el botón para leer por qué.
+
+<Aside type="caution">
+▶ empieza de inmediato. No muestra la confirmación para pasos que modifican datos, descrita abajo.
+</Aside>
+
+## Pasos que modifican datos
+
+Un paso que usa `POST`, `PUT`, `PATCH` o `DELETE` crea, cambia o elimina datos. Cuando un caso va contra la API real y el workflow tiene esos pasos, **Ejecutar** muestra primero un aviso: *Estos pasos modifican datos en el ambiente «…»*, con el método y la URL de cada paso.
+
+| Botón | Qué hace |
+|---|---|
+| **Ejecutar igual** | Ejecuta los casos. Luvin no vuelve a preguntar hasta que cambies de ambiente o modifiques una URL base. |
+| **Usar simulación** | Cambia a **Simulación** y ejecuta ahí. No se envía nada a la API. |
+| **Cancelar** | Cierra el aviso sin ejecutar. |
+
+Lee el nombre del ambiente en el aviso antes de confirmar.
+
+## Otros avisos antes de ejecutar
+
+- *Faltan credenciales en «…»: las llamadas que las necesitan responderán 401.* **Completar** abre el ambiente.
+- *Este workflow inicia sesión con OAuth 2.0 en: …* Pulsa **Iniciar sesión**, o pulsa **Ejecutar** y primero se abre el inicio de sesión. Si lo cancelas, el workflow no se ejecuta. Mira [OAuth 2.0](/es/authorization/oauth2/).
+- *N paso(s) de mensajería se simulan*, junto al nombre del workflow. Los pasos de mensajería se simulan incluso contra la API real. Mira [Simulación](/es/test/simulation/).
+
+## Detén una ejecución
+
+Mientras los casos se ejecutan, el botón **Ejecutar** se convierte en **Cancelar**. Los resultados también muestran un botón **Cancelar**. La ejecución se detiene en el paso actual y los casos que no habían empezado quedan **Pendientes**.
+
+## Cuando un workflow depende de otro
+
+Algunos workflows necesitan que otro corra primero: por ejemplo, **Battle matchup** en la Pokédex corre después de **Type explorer** y usa sus outputs.
+
+- Los workflows de los que depende corren primero, en orden, una vez por ejecución, antes de los casos.
+- Cada uno usa sus propios valores por defecto, de su propia pestaña **Inputs**.
+- En **Simulación** también se simulan.
+- Los resultados los muestran bajo **Preparación**. Haz clic en uno para ver sus pasos.
+- Si uno de ellos falla, los casos no se pueden probar. Cada caso termina como **No concluyente** y dice qué workflow falló.
+
+Mira [Dependencias](/es/design/dependencies/) y la receta [Un workflow inicia sesión, otros reutilizan su token](/es/recipes/depends-on/).
+
+## Siguiente
+
+<CardGrid>
+  <LinkCard title="Elige un elemento de una lista" description="Cuando la ejecución se pausa para preguntarte." href="/es/test/lists/" />
+  <LinkCard title="Lee los resultados" href="/es/test/results/" />
+  <LinkCard title="Atajos de teclado" href="/es/reference/shortcuts/" />
+</CardGrid>

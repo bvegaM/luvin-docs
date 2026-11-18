@@ -1,0 +1,169 @@
+---
+title: Colecciones
+description: Crea una colección, agrégale archivos, importa una de Postman o Bruno, define su versión, renómbrala, quítala del workspace o elimínala del disco.
+sidebar:
+  order: 3
+---
+
+import { Steps, FileTree, Aside, Badge, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Una colección es una carpeta dentro del workspace con todo lo de un tema: contratos, archivos Arazzo, ambientes, casos y requests. Creas una por partner, producto o familia de APIs. Esta página cubre cada acción sobre una colección.
+
+![El inicio del workspace con sus colecciones y las Acciones rápidas](/media/es/home.webp)
+
+## Crear una colección
+
+Necesitas un workspace abierto. Mira [Crear y abrir un workspace](/es/workspaces/create-and-open/).
+
+<Steps>
+
+1. Abre el **Inicio** (el ícono de casa, arriba a la izquierda). En **Acciones rápidas**, haz clic en **Nueva colección**.
+   - O, en la barra lateral, haz clic en **+** junto a **Colecciones**.
+   - En un workspace nuevo, la pantalla **Crea tu primera colección** tiene el mismo cuadro.
+2. Escribe el nombre en **Nombre de la colección (p. ej. Cobrand)**. Por ejemplo: `Partners`.
+3. Lee la línea bajo el cuadro: **Se creará la carpeta** `…/partners`. El nombre de la carpeta sale del nombre que escribiste, en minúsculas y con guiones.
+4. Haz clic en **Crear**.
+
+</Steps>
+
+La colección se abre. Ya tiene un ambiente llamado **local**:
+
+<FileTree>
+
+- mi-workspace/
+  - luvin.yaml `partners` se agrega a su lista `collections`
+  - partners/
+    - collection.yaml
+    - environments/
+      - local.yaml
+
+</FileTree>
+
+Si otra colección ya usa ese nombre de carpeta, Luvin agrega un número: `partners-2`. La colección vacía dice **«Partners» todavía está vacía**: agrega archivos a continuación.
+
+## Agregar archivos a una colección
+
+Archivos aceptados: `.yaml`, `.yml` y `.json`. Pueden ser contratos OpenAPI o AsyncAPI, y archivos Arazzo. Luvin los distingue por su contenido.
+
+<Steps>
+
+1. Abre la colección.
+2. Usa una de estas opciones:
+   - En el **Inicio**, en **Acciones rápidas**, haz clic en **Importar Arazzo o contratos**. Aparece cuando hay una colección abierta.
+   - En la barra lateral, abre el menú **⋯** de la colección y elige **Agregar archivos a la colección**.
+   - Al final de la colección abierta en la barra lateral, haz clic en **Agregar archivos a la colección**.
+3. Elige los archivos en el diálogo.
+
+</Steps>
+
+Los workflows aparecen en la barra lateral y los archivos se guardan en la carpeta de la colección. Agrega también los contratos a los que apuntan los Arazzo, o Luvin no encuentra sus operaciones.
+
+### Arrastrar y soltar
+
+Puedes soltar archivos en cualquier parte de la ventana. Mientras arrastras, una capa dice **Suelta para agregar a «Partners»** y **Contratos OpenAPI o AsyncAPI y archivos Arazzo (.yaml, .yml o .json)**. Al soltar, un aviso dice **Se agregaron 3 archivo(s) a la colección**.
+
+| Caso | Qué ves |
+|---|---|
+| Algunos archivos no son `.yaml`, `.yml` ni `.json` | **Se agregaron 2 archivo(s); 1 no eran .yaml, .yml ni .json**. Los demás se agregan. |
+| Ningún archivo es válido | **Solo se pueden agregar archivos .yaml, .yml o .json** |
+| No hay colección abierta | **Abre o crea una colección para agregarle archivos** |
+
+## Importar de Postman o Bruno
+
+Cada colección de Postman o Bruno se convierte en una colección nueva de Luvin, con sus carpetas, requests, ejemplos guardados, autorización y ambientes.
+
+<Steps>
+
+1. Haz clic en **Importar de Postman o Bruno**. Está en **Acciones rápidas** del **Inicio**, y en el menú **⋯** de **Colecciones** en la barra lateral.
+2. Para Postman, haz clic en **Elegir archivos .json** y elige la colección exportada (v2.0 o v2.1). Elige también los archivos de ambiente si quieres traer sus variables.
+3. Para Bruno, haz clic en **Elegir carpeta** y elige la carpeta de la colección, o haz clic en **Elegir .json**. También puedes soltar los archivos en el diálogo.
+4. Lee el resumen: requests, carpetas, ejemplos y ambientes, y las advertencias. Cambia el **Nombre de la colección** si quieres.
+5. Haz clic en **Importar (12 requests)**.
+
+</Steps>
+
+![El diálogo para importar de Postman o Bruno](/media/es/import-postman.webp)
+
+Los scripts no se importan, y una autorización o un body sin equivalente queda vacío. Las advertencias del diálogo dicen cuáles. El recorrido completo está en [Importar](/es/get-started/import/) y [Desde Postman](/es/tutorials/from-postman/).
+
+## Abrir una colección
+
+Solo hay una colección abierta a la vez.
+
+- En el **Inicio**, haz clic en su nombre. La abierta tiene la insignia **Abierta**.
+- En la barra lateral, haz clic en su nombre: se abre el [resumen de la colección](/es/workspaces/collection-overview/) y la colección se expande.
+- Haz clic en la flecha antes del nombre para expandirla o contraerla. **Contraer todo** en **Opciones de las colecciones** contrae todo.
+
+Dentro de un workspace no hay «cerrar» una sola colección. Abre otra colección, o cierra el workspace.
+
+## Renombrar una colección
+
+1. Abre el menú **⋯** de la colección, en el **Inicio** o en la barra lateral, y elige **Renombrar**.
+2. Escribe el nuevo nombre y presiona Enter.
+
+Solo cambia el nombre visible. La carpeta conserva su nombre.
+
+## El menú ⋯ de una colección
+
+![El menú ⋯ de una fila de la barra lateral](/media/es/sidebar-menu.webp)
+
+El menú de una colección en la barra lateral también crea cosas dentro de ella:
+
+| Opción | Qué hace |
+|---|---|
+| **Resumen de la colección** | Abre la página resumen. |
+| **Nuevo request**, **Importar desde cURL**, **Nueva carpeta** | Crean requests y carpetas de requests. |
+| **Nuevo archivo Arazzo**, **Nuevo contrato OpenAPI**, **Nuevo contrato AsyncAPI** | Crean un archivo en la colección. |
+| **Agregar archivos a la colección** | Agrega archivos de tu disco. |
+| **Renombrar** | Cambia el nombre visible. |
+| **Mostrar en Finder** (**Mostrar en el explorador**) <Badge text="Solo escritorio" variant="caution" /> | Abre la carpeta en tu explorador de archivos. |
+| **Abrir en terminal** <Badge text="Solo escritorio" variant="caution" /> | Abre una terminal en la carpeta. |
+| **Quitar del workspace** | La saca del workspace. Los archivos quedan. |
+| **Eliminar carpeta…** | Elimina la carpeta y sus archivos. |
+
+El menú del **Inicio** tiene **Abrir**, **Renombrar**, **Mostrar en Finder**, **Quitar del workspace** y **Eliminar carpeta…**.
+
+## Quitar o eliminar una colección
+
+| | **Quitar del workspace** | **Eliminar carpeta…** |
+|---|---|---|
+| Carpeta y archivos | Quedan en el disco. | Se eliminan. |
+| `luvin.yaml` | La colección sale de la lista. | La colección sale de la lista. |
+| Secretos de sus ambientes | Quedan en este equipo. | Se eliminan. |
+| ¿Se puede deshacer? | Sí. Agrega el nombre de la carpeta a `collections` en `luvin.yaml`. | No. |
+
+Las dos preguntan antes. **Quitar del workspace** pregunta **¿Quitar «Partners» del workspace? Su carpeta queda en el disco y puedes volver a abrirla.** Haz clic en **Quitar**. **Eliminar carpeta…** pregunta **¿Eliminar «Partners» y su carpeta «partners»? Se borran sus Arazzo, contratos, ambientes, casos y secretos. No se puede deshacer.** Haz clic en **Eliminar**.
+
+<Aside type="caution">
+Si quitas o eliminas la colección que está abierta, Luvin abre la primera que queda.
+</Aside>
+
+## Definir la versión
+
+La versión de la colección es una etiqueta que elige tu equipo, como `1.2.0`. No es la versión de una API.
+
+<Steps>
+
+1. Abre el [resumen de la colección](/es/workspaces/collection-overview/).
+2. En la tarjeta **Versión**, haz clic en **Definir versión**. Si ya hay una, haz clic en **Cambiar**.
+3. Escríbela, por ejemplo `1.2.0`, y haz clic en **Guardar**.
+
+</Steps>
+
+Se guarda como `collectionVersion` en `collection.yaml`. Un texto vacío la quita. La documentación generada la muestra.
+
+## Copiar la ruta y compartir
+
+En la tarjeta **Compartir** del resumen, haz clic en **Copiar la ruta**. El botón dice **Copiado**. Una colección es una carpeta de archivos de texto: envía la ruta, o compártela con [git](/es/workspaces/git/). Los secretos nunca están en ella.
+
+## Ordenar las colecciones
+
+En la barra lateral, abre **Opciones de las colecciones** (el **⋯** junto a **Colecciones**) y elige **Ordenar A-Z**. El orden se guarda en `luvin.yaml`.
+
+## Siguiente
+
+<CardGrid>
+  <LinkCard title="Autorización de la colección" href="/es/workspaces/collection-authorization/" />
+  <LinkCard title="Escribir documentación" href="/es/workspaces/documentation/" />
+  <LinkCard title="Resumen de la colección" href="/es/workspaces/collection-overview/" />
+</CardGrid>

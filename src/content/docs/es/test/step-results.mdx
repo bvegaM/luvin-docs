@@ -1,0 +1,115 @@
+---
+title: Lee el resultado de un paso
+description: La tarjeta de cada paso en los resultados, sus pestañas, las fallas en palabras simples, los avisos del contrato, los errores esperados y los secretos ocultos.
+sidebar:
+  order: 8
+---
+
+import { LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+En el detalle de un caso, cada paso del workflow es una tarjeta. Cerrada, te dice cómo terminó el paso. Abierta, muestra el request que se envió, la respuesta que llegó y por qué el paso pasó o falló.
+
+![Un caso que no pasó, con el paso fallido abierto y el motivo en palabras simples](/media/es/results-failed.webp)
+
+## Ejemplo: un criterio que no se cumplió
+
+Un paso fallido explica qué esperaba y qué recibió:
+
+```text
+status
+Esperado   "ACTIVE"
+Recibido   "INACTIVE"
+```
+
+Pulsa **Ver en la respuesta** para abrir la pestaña **Respuesta** con ese campo resaltado en el body.
+
+## La tarjeta del paso
+
+De izquierda a derecha, una tarjeta muestra el número del paso, su estado, su nombre, el método y la ruta, y el status HTTP con el tiempo y el tamaño de la respuesta.
+
+| Estado | Significado |
+|---|---|
+| **Exitoso** | El paso cumplió todos sus criterios. |
+| **Exitoso con advertencias** | Los criterios se cumplieron, con algo para revisar: la respuesta no coincide con el contrato, no se encontró un output que usan pasos posteriores, o se simuló un paso de mensajería. |
+| **Falló** | El paso no cumplió sus criterios, o no hubo respuesta. |
+| **No ejecutado** | El workflow se detuvo o terminó antes de este paso. |
+
+Pueden aparecer dos etiquetas más: **Simulado**, e **Intento 2** cuando el paso se reintentó. Un paso de mensajería muestra **Enviado**, **Mensaje recibido** o **Sin mensaje** en lugar del status HTTP.
+
+Haz clic en una tarjeta para abrirla o cerrarla. Los pasos fallidos y los que tienen advertencias se abren solos.
+
+Bajo el encabezado, unas notas dicen por qué falló el paso, qué acción se activó (por ejemplo *↪ Fin del workflow (acción "pokemonNotFound")*) y qué elegiste de una lista.
+
+## Las pestañas dentro de un paso
+
+| Pestaña | Qué muestra |
+|---|---|
+| **Criterios** | Cada criterio de éxito en palabras simples, con la expresión técnica debajo, si **Se cumple** o **No se cumple**, y el detalle. |
+| **Petición** | El método, la URL, los headers y el body que se enviaron. **Copiar como cURL** copia el request para tu terminal. |
+| **Respuesta** | El body, con una caja de búsqueda, y **Status y headers**. Para un paso de mensajería la pestaña es **Mensaje**. |
+| **Contrato** | **La respuesta cumple el contrato**, o la lista de diferencias. |
+| **Outputs** | Los valores que el paso expone a los pasos siguientes. **No vino en la respuesta** marca uno que no se encontró. |
+
+## Lee la respuesta de un paso
+
+Abre la pestaña **Respuesta** de un paso. Bajo el titular, de arriba hacia abajo:
+
+| Parte | Qué hace |
+|---|---|
+| Un recuadro amarillo, **1 aviso(s) del contrato** | Aparece cuando la respuesta difiere del contrato. Muestra la diferencia, por ejemplo el campo que tiene el tipo equivocado. |
+| ‹ y › | **Aviso anterior** y **Aviso siguiente**. Recorren los avisos, con un contador como `1/3`. Los dos se desactivan cuando hay uno solo. El body se desplaza al campo de cada aviso. |
+| **Buscar en el body…** | Escribe un texto para encontrarlo en el body. Junto al cuadro, Luvin dice cuántas líneas coinciden, por ejemplo **2 línea(s)**. |
+| El body | El JSON, con colores. Los campos que hicieron fallar un criterio se marcan en rojo, y los que difieren del contrato en amarillo. Puedes plegar objetos y listas. |
+| **Status y headers** | Una lista plegada. Haz clic para leer los headers de la respuesta en una tabla. El número es cuántos hay. |
+
+**Ejemplo.** Imagina que `getPokemon` responde `id` como texto cuando el contrato dice número. La pestaña **Contrato** lista la diferencia, y **Ver en el body** abre la pestaña **Respuesta** con ese aviso seleccionado. Escribe `species` en el cuadro de búsqueda para encontrar todas las líneas que tienen esa palabra.
+
+## Fallas en palabras simples
+
+Un paso fallido nombra el tipo de problema y lo explica:
+
+| Etiqueta | Qué pasó |
+|---|---|
+| **Criterio no cumplido** | Un valor no era el esperado. La nota muestra el campo, el valor **Esperado** y el valor **Recibido**. |
+| **Error devuelto por la API** | La API respondió un error. La nota incluye su status y su mensaje. |
+| **Autenticación** | La API respondió 401 o 403. Revisa la credencial. |
+| **Dato no disponible** | Faltaba un valor de un input o de un paso anterior, así que el request se envió incompleto. |
+| **Red o CORS** | La API no respondió, o no respondió a tiempo. Mira [Ayuda de conexión](/es/dev-tools/connection-help/). |
+| **Operación no encontrada** | La operación del paso no está en los contratos cargados. |
+
+## Avisos del contrato
+
+Luvin compara cada respuesta con el contrato: un status que no está documentado, una propiedad obligatoria que falta, un tipo equivocado, un valor fuera de los permitidos, una propiedad que el contrato no define.
+
+Una diferencia no hace fallar el paso. Termina como **Exitoso con advertencias**, con la etiqueta **Respuesta fuera de contrato**. En la pestaña **Contrato**, **Ver en el body** salta al campo. En la pestaña **Respuesta**, los botones ‹ y › pasan de un aviso al siguiente.
+
+## Un paso que responde el error esperado
+
+Algunos casos esperan un error: un caso de rechazo, un caso por respuesta, o un caso con datos propios que espera un 404. El paso que responde ese error es lo que el caso prueba, así que se muestra como aprobado:
+
+- Una etiqueta, **Respondió 404 (esperado)**.
+- Una nota, **Es lo que prueba el caso**, con lo que el caso hizo a propósito y, después de **La API dijo:**, el mensaje de la API.
+- La acción que activó el error.
+- En los pasos posteriores: *No se ejecutó: el workflow se detuvo en «…», que respondió con el error que esperaba este caso.*
+
+Si el paso responde otra cosa, la nota dice **No respondió lo que espera el caso**.
+
+## Elegido al ejecutar
+
+Cuando la ejecución se pausó para que [eligieras un elemento de una lista](/es/test/lists/), el paso que devolvió la lista tiene una nota, **Elegido al ejecutar**, con el elemento y el valor que recibió cada parámetro. **De la lista** significa que la lista tenía un solo elemento y se usó sin preguntar.
+
+## Los secretos van ocultos
+
+- Los secretos y credenciales del ambiente aparecen como `••••` en requests, respuestas y outputs.
+- Los headers como `Authorization`, los tokens, las API keys, las contraseñas y las cookies muestran solo su primer y último carácter: `Bearer ey••••9Q`.
+- **Copiar como cURL** escribe los secretos como `<secret>`, para que puedas compartirlo. **Copiar con credenciales** incluye los valores reales: no lo compartas.
+
+Mira [Privacidad](/es/reference/privacy/).
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Lee los resultados" href="/es/test/results/" />
+  <LinkCard title="Reportes" href="/es/test/reports/" />
+  <LinkCard title="Éxito y errores" href="/es/design/success-and-errors/" />
+</CardGrid>

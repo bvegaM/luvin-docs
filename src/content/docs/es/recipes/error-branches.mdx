@@ -1,0 +1,137 @@
+---
+title: Reintenta, salta y termina ante errores
+description: "Qué pasa ante cada error: un 503 que reintenta y termina, y un 404 que salta a un paso de respaldo."
+sidebar:
+  order: 9
+---
+
+import { Steps, LinkButton, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+**Qué prueba:** un 503 se reintenta dos veces y luego el workflow termina como fallido; un 404 salta a un paso de respaldo y el workflow pasa.
+
+<LinkButton href="/recipes/error-branches/dummyjson.openapi.yaml" variant="primary" icon="download" download>Descargar el contrato</LinkButton>
+<LinkButton href="/recipes/error-branches/error-branches.arazzo.yaml" variant="secondary" icon="download" download>Descargar el Arazzo</LinkButton>
+
+## Ábrelo en Luvin
+
+<Steps>
+
+1. Descarga los archivos con los botones de arriba.
+2. En Luvin, crea una colección con **Nueva colección** en el inicio del workspace, o abre una que ya tengas.
+3. En **Acciones rápidas**, haz clic en **Importar Arazzo o contratos** y elige juntos los archivos `.yaml` descargados.
+4. En la barra lateral, abre el workflow **Retry then end**.
+5. En la barra de ejecución, elige **API real**.
+6. Pulsa **Ejecutar**. Los resultados se abren abajo.
+
+</Steps>
+
+## Las líneas clave
+
+```yaml title="error-branches.arazzo.yaml" {21-29,42-50}
+arazzo: 1.0.1
+info:
+  title: What happens on each error
+  version: 1.0.0
+sourceDescriptions:
+  - name: dummyjson
+    url: ./dummyjson.openapi.yaml
+    type: openapi
+workflows:
+  - workflowId: retryThenEnd
+    summary: Retry a 503 twice, then end as failed
+    steps:
+      - stepId: callService
+        operationId: getStatus
+        parameters:
+          - name: status
+            in: path
+            value: 503
+        successCriteria:
+          - condition: $statusCode == 200
+        onFailure:
+          - name: retryUnavailable
+            type: retry
+            retryAfter: 1
+            retryLimit: 2
+            criteria:
+              - condition: $statusCode == 503
+          - name: stopOnAnyOtherError
+            type: end
+
+  - workflowId: fallbackOnNotFound
+    summary: A 404 jumps to a fallback step
+    steps:
+      - stepId: findItem
+        operationId: getStatus
+        parameters:
+          - name: status
+            in: path
+            value: 404
+        successCriteria:
+          - condition: $statusCode == 200
+        onSuccess:
+          - name: done
+            type: end
+        onFailure:
+          - name: useFallback
+            type: goto
+            stepId: fallback
+            criteria:
+              - condition: $statusCode == 404
+      - stepId: fallback
+        operationId: getStatus
+        parameters:
+          - name: status
+            in: path
+            value: 200
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          message: $response.body#/message
+    outputs:
+      message: $steps.fallback.outputs.message
+```
+
+| Línea | Qué hace |
+|---|---|
+| 21-27 | Ante un 503, reintenta. `retryAfter: 1` espera un segundo antes de cada reintento y `retryLimit: 2` permite dos reintentos. Los `criteria` limitan esta acción al 503. |
+| 28-29 | Cualquier otro error: `end`, el workflow se detiene como fallido. |
+| 42-44 | Cuando `findItem` pasa, `end` detiene el workflow sin ejecutar el respaldo. |
+| 45-50 | Cuando `findItem` responde 404, `goto` salta al paso `fallback`. |
+
+## Qué obtienes
+
+`GET https://dummyjson.com/http/{status}` responde con el status que le pides, así que puedes provocar cada error.
+
+| Workflow | Paso | Status HTTP | Qué pasa | Veredicto |
+|---|---|---|---|---|
+| `retryThenEnd` | `callService` (intento 1) | 503 | Reintento 1 de 2, tras 1 segundo | |
+| | `callService` (intento 2) | 503 | Reintento 2 de 2, tras 1 segundo | |
+| | `callService` (intento 3) | 503 | Se agotaron los 2 reintentos: el workflow termina | **No pasó** |
+| `fallbackOnNotFound` | `findItem` | 404 | Va al paso `fallback` | |
+| | `fallback` | 200 | Output `message` = `OK` | **Pasó** |
+
+`retryThenEnd` tarda unos 3 segundos: 3 llamadas y 2 esperas. La razón que muestra es:
+
+```text
+La API respondió 503 Service Unavailable: "Service Unavailable". Se esperaba $statusCode igual a 200, pero vale 503
+```
+
+`fallbackOnNotFound` pasa aunque `findItem` falló: su fallo tenía una acción que llevó el workflow a un paso que sí funcionó. En los resultados, `findItem` sigue mostrando el 404. En la receta, `expect.json` marca `retryThenEnd` como `failed`, porque ese es el final diseñado.
+
+:::note
+Luvin espera como máximo 10 segundos por cada `retryAfter`, aunque escribas más.
+:::
+
+## Pruébalo
+
+- Cambia `retryLimit` a `3`. El paso se llama cuatro veces y la ejecución tarda unos 4 segundos.
+- Cambia el `status` de `findItem` de `404` a `200`. El paso pasa, `end` detiene el workflow y `fallback` no se ejecuta.
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Éxito y errores" href="/es/design/success-and-errors/" description="Acciones al éxito y al fallo, una por una." />
+  <LinkCard title="Razones de fallo" href="/es/reference/failure-reasons/" description="Qué significa cada razón en los resultados." />
+  <LinkCard title="Espera un error" href="/es/recipes/expected-error/" description="Cuando el error es la respuesta correcta." />
+</CardGrid>

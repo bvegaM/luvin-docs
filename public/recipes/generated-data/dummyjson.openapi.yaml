@@ -1,0 +1,36 @@
+openapi: 3.0.3
+info:
+  title: DummyJSON users (subset)
+  version: 1.0.0
+  description: One operation of the public DummyJSON API (https://dummyjson.com), for the Luvin recipes.
+servers:
+  - url: https://dummyjson.com
+paths:
+  /users/add:
+    post:
+      operationId: addUser
+      summary: Add a user (the API echoes it and does not save it)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName: { type: string, example: Emily }
+                lastName: { type: string, example: Johnson }
+                email: { type: string, example: emily.johnson@example.com }
+                age: { type: integer, example: 29 }
+      responses:
+        '201':
+          description: The user as the API received it
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: integer, example: 209 }
+                  firstName: { type: string, example: Emily }
+                  lastName: { type: string, example: Johnson }
+                  email: { type: string, example: emily.johnson@example.com }
+                  age: { type: integer, example: 29 }

@@ -1,0 +1,79 @@
+---
+title: Qué es Luvin
+description: El problema que resuelve Luvin, cómo funciona en cuatro pasos, para quién es y qué no es.
+sidebar:
+  order: 1
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Luvin prueba cadenas de llamadas a APIs y muestra cómo viajan los datos de una llamada a la siguiente. Lee esta página para decidir si te sirve y después sigue el [inicio rápido](/es/get-started/quick-start/).
+
+## El problema
+
+Una sola pantalla de una app suele depender de varias APIs llamadas en orden. Piensa en una tienda:
+
+<Steps>
+
+1. Inicias sesión en la API **A** y obtienes un token.
+2. Llamas a la API **B** con ese token y obtienes el cliente.
+3. Llamas a la API **C** con el id del cliente y obtienes sus pedidos.
+
+</Steps>
+
+Para probar **C**, primero llamas a **A** y a **B** a mano y copias valores de una respuesta al siguiente request. Cada vez. Y nadie puede decir rápido de qué APIs depende esa pantalla ni cómo pasan los datos entre ellas.
+
+Luvin elimina esas llamadas manuales. Describes la cadena una sola vez, como un **workflow**: una secuencia de llamadas a APIs en la que cada **paso** puede usar datos de los anteriores. Después Luvin ejecuta toda la cadena por ti y te dice, en palabras simples, si funcionó.
+
+![La pestaña Diseño con las operaciones de un contrato a la izquierda, los pasos conectados en el lienzo y el detalle de un paso a la derecha](/media/es/builder.webp)
+
+## Ejemplo: la ficha de un Pokémon
+
+El workflow de la Pokédex incluida encadena cuatro llamadas a la PokéAPI pública. Cada flecha es un dato que Luvin conecta por ti:
+
+```text
+getPokemon ── id ─────────────▶ getSpecies
+           ── mainType ───────▶ getWeakness
+           ── firstAbility ───▶ getAbility
+```
+
+Escribes un solo valor, `pokemon: pikachu`. Luvin ejecuta los cuatro pasos, pasa cada resultado al siguiente y te dice si la cadena funcionó. Pruébalo en el [inicio rápido](/es/get-started/quick-start/).
+
+## Cómo funciona
+
+<Steps>
+
+1. **Trae tus contratos.** Un contrato es el archivo OpenAPI o AsyncAPI que describe una API. Agrega los contratos de las APIs que participan.
+2. **Dibuja el workflow.** Arrastra las operaciones de esos contratos a un lienzo. Luvin conecta los datos entre los pasos con reglas, sin IA. Por ejemplo, un parámetro `customerId` se conecta con el `id` que devolvió el paso "crear cliente".
+3. **Obtén el Arazzo.** El lienzo escribe un archivo [Arazzo](https://spec.openapis.org/arazzo/latest.html) estándar, el formato abierto de la OpenAPI Initiative para secuencias de llamadas a APIs. El archivo es tuyo y se puede leer como YAML.
+4. **Prueba la cadena.** Luvin genera **casos** (un caso es una ejecución del workflow con unos inputs dados) y tú agregas los tuyos. Ejecútalos contra la API real o en **simulación**, donde Luvin responde con los ejemplos del contrato sin llamar a nada.
+
+</Steps>
+
+<Aside type="tip" title="¿Sin contratos, o ya tienes archivos Arazzo?">
+Si ya tienes archivos Arazzo, ábrelos y funcionan igual. Si no tienes contratos, importa tu colección de Postman o Bruno y arrastra sus requests al lienzo. Consulta [Importar tu trabajo existente](/es/get-started/import/).
+</Aside>
+
+## Para quién es
+
+| Eres | Luvin te ayuda a |
+|---|---|
+| Ingeniero de integración o de QA | Dejar de llamar a cada API a mano. Tienes casos negativos generados, un veredicto claro por caso y cada request en Dev Tools. |
+| Parte de un equipo de producto o de partners de APIs | Demostrar que un workflow de varias APIs funciona de punta a punta, con un reporte para compartir. |
+| Product manager o rol de negocio | Probar un workflow con tus propios datos en una interfaz simple, sin línea de comandos ni código de pruebas. |
+| Diseñador de APIs | Ver cómo se conectan tus APIs y revisar los workflows contra los contratos reales. |
+
+## Qué no es Luvin
+
+- **No es una herramienta de automatización ni de orquestación.** Luvin sirve para diseñar, depurar y demostrar workflows de APIs. No ejecuta integraciones en producción.
+- **No es un runner de CI.** Lo que llevas a tu pipeline son los archivos Arazzo que escribe.
+- **No reemplaza a tu cliente de APIs.** Luvin puede enviar requests sueltos, y lo hace para ayudarte a depurar un paso. Conserva tu cliente de APIs para los requests sueltos y usa Luvin para la cadena.
+- **No es un servicio en la nube.** Todo corre en tu equipo, en el navegador o en la app de escritorio. No hay backend ni cuenta.
+
+## Sigue con
+
+<CardGrid>
+  <LinkCard title="Inicio rápido" description="ejecuta el ejemplo incluido en pocos minutos" href="/es/get-started/quick-start/" />
+  <LinkCard title="Instalar y abrir Luvin" description="la versión de navegador y la app de escritorio" href="/es/get-started/install/" />
+  <LinkCard title="Glosario" description="las palabras que usa Luvin, una por concepto" href="/es/reference/glossary/" />
+</CardGrid>

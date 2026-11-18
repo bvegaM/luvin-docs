@@ -1,0 +1,144 @@
+---
+title: OAuth 2.0
+description: Obtén un access token con Client Credentials, Password Credentials o Authorization Code (con PKCE), reutilízalo, refréscalo y envíalo, en requests, colecciones y workflows.
+sidebar:
+  order: 13
+---
+
+import { Steps, Tabs, TabItem, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Con OAuth 2.0 la API no acepta una clave fija. Primero le pides a un servidor de autorización un **access token** de corta duración y luego lo envías. Luvin pide el token, lo reutiliza mientras sea vigente y lo renueva cuando vence.
+
+![La pestaña Autorización de un request con OAuth 2.0 y Client Credentials](/media/es/auth-oauth2.webp)
+
+## Ejemplo: PayPal sandbox
+
+El ejemplo de PayPal incluido usa Client Credentials. Este es un request que lo usa:
+
+```yaml title="requests/orders.request.yaml" {5-13}
+name: List orders
+kind: http
+method: GET
+url: "{{baseUrl}}/v2/checkout/orders/{{orderId}}"
+auth:
+  type: oauth2
+  grantType: client_credentials
+  accessTokenUrl: https://api-m.sandbox.paypal.com/v1/oauth2/token
+  clientId: "{{clientId}}"
+  clientSecret: "{{clientSecret}}"
+  credentialsIn: header
+  tokenIn: header
+  headerPrefix: Bearer
+```
+
+Al pulsar **Enviar**, Luvin hace dos llamadas:
+
+<Steps>
+
+1. El pedido del token: `POST https://api-m.sandbox.paypal.com/v1/oauth2/token` con `Authorization: Basic <clientId:clientSecret en base64>`, `Content-Type: application/x-www-form-urlencoded`, `Accept: application/json` y el body `grant_type=client_credentials`.
+2. Tu request, con `Authorization: Bearer <access_token>`.
+
+</Steps>
+
+Los envíos siguientes reutilizan el token hasta que vence. En un workflow, la misma configuración es el `flow-auth.yaml` del ejemplo de PayPal: mira [Autorización de un workflow](/es/authorization/workflow/).
+
+## Elige el tipo de grant
+
+**Tipo de grant** decide cómo se obtiene el token. Los demás campos cambian con él.
+
+| Tipo de grant | Cuándo usarlo | Campos | ¿Una persona inicia sesión? |
+|---|---|---|---|
+| **Client Credentials** (por defecto) | Tu app se identifica con un client ID y un secret. | **URL del token**, **Client ID**, **Client Secret** | No |
+| **Password Credentials** | La API da un token a cambio de usuario y contraseña. | Los mismos, más **Usuario** y **Contraseña** | No |
+| **Authorization Code** | Una persona inicia sesión en la página del proveedor y aprueba. | **URL de autorización**, **URL del token**, **URL de callback**, **Client ID**, **Client Secret** (opcional), **PKCE (S256)** | Sí |
+
+## Campos de todos los grants
+
+| Campo | Significado |
+|---|---|
+| **Scope** | Permisos que se piden, separados por espacios: `read write`. |
+| **Audience** | La API a la que va dirigido el token. Opcional; algunos proveedores lo exigen. |
+| **Enviar credenciales del cliente en** | **Basic Auth header** (por defecto) o **Body**. En el body Luvin envía `client_id` y `client_secret`. Sin Client Secret siempre envía `client_id` en el body. |
+| **Enviar el token en** | **Header** (por defecto) o **Query**. En el query Luvin agrega `access_token=<token>`. |
+| **Prefijo del header** | La palabra antes del token. `Bearer` por defecto. Solo con **Header**. |
+
+Todos los campos aceptan `{{variables}}`.
+
+## Authorization Code y PKCE
+
+Con **Authorization Code** una persona inicia sesión. **PKCE (S256)** viene activado: Luvin crea un secreto aleatorio, envía al proveedor solo su hash SHA-256 y envía el secreto al canjear el código. Déjalo activado salvo que tu proveedor no lo soporte.
+
+<Steps>
+
+1. Completa los campos y pulsa **Obtener token nuevo**, o pulsa **Enviar**. Se abre una ventana con la página de inicio de sesión del proveedor. Luvin envía `response_type=code`, **Client ID**, la **URL de callback**, **Scope**, **Audience**, un `state` aleatorio y, con PKCE, `code_challenge` y `code_challenge_method=S256`.
+2. Inicia sesión y acepta. La ventana se cierra sola cuando el proveedor redirige al callback.
+3. Luvin toma el `code` y lo canjea en la **URL del token** (`grant_type=authorization_code`, `code`, `redirect_uri` y, con PKCE, `code_verifier`). El token queda listo.
+
+</Steps>
+
+Si el proveedor devuelve un error o un `state` distinto, Luvin no toma el código.
+
+<Tabs>
+  <TabItem label="App de escritorio">
+    En **URL de callback** escribe la que registraste en el proveedor. La app intercepta la redirección, así que esa dirección no necesita existir. El inicio de sesión se abre en su propia ventana, con su propia sesión, separada del resto de la app. El campo es obligatorio: sin él ves *Falta la URL de callback.*
+  </TabItem>
+  <TabItem label="Versión web">
+    Registra en el proveedor la dirección que se muestra bajo el campo: la dirección de la app seguida de `/oauth2/callback`. Si lo dejas vacío, Luvin usa esa dirección. El inicio de sesión se abre en una ventana emergente: permite las ventanas emergentes para la página.
+  </TabItem>
+</Tabs>
+
+## El token: obtener, reutilizar, refrescar, borrar
+
+Bajo los campos, una línea muestra el estado del token y sus primeros seis caracteres.
+
+| Ves | Significa |
+|---|---|
+| **Sin token** | Todavía no hay. |
+| **Token vigente hasta las** una hora, o **Token vigente** | Se puede usar. Si el proveedor no dio vencimiento, sigue vigente. |
+| **Token vencido** | Se renueva en el próximo envío. |
+
+- **Client Credentials** y **Password Credentials**: Luvin pide el token solo al enviar si no hay uno vigente.
+- **Obtener token nuevo** siempre pide uno nuevo. **Borrar token** lo olvida. Cambiar la autorización también lo olvida.
+- Un token cuenta como vencido 30 segundos antes.
+- Si el proveedor dio un `refresh_token`, Luvin renueva con él un token vencido (`grant_type=refresh_token`). Si falla, pide uno nuevo.
+- Cuando varios pasos necesitan el token a la vez, se pide una sola vez.
+- Los tokens viven en memoria mientras la colección está abierta. Nunca se escriben en disco.
+- Si escribiste un header `Authorization` en **Headers**, Luvin no agrega el token.
+
+### Quién comparte un token
+
+| Dónde se configura | Lo comparte |
+|---|---|
+| Un request con OAuth 2.0 propio | Solo ese request. |
+| La colección | Todos los requests que la heredan. |
+| Un workflow, **Todos los workflows** | Todos los workflows que llaman a esa API. |
+| Un workflow, **Solo este workflow** | Ese workflow. |
+
+## En un workflow
+
+Configura OAuth 2.0 en la pestaña **Autorización** del workflow. Con **Authorization Code**, un aviso sobre las pestañas dice *Este workflow inicia sesión con OAuth 2.0 en:* y la API. Pulsa **Iniciar sesión**, o pulsa **Ejecutar** contra la API real: primero se abre el inicio de sesión. Si lo cierras, la ejecución no empieza. Mira [Autorización de un workflow](/es/authorization/workflow/).
+
+## Cuando falla
+
+| Mensaje | Qué hacer |
+|---|---|
+| Falta la URL del token. | Completa **URL del token**. Igual con la URL de autorización y la de callback. |
+| No se pudo obtener el token: … | El proveedor lo rechazó y dice por qué. Revisa client ID, secret, scope y **Enviar credenciales del cliente en**. |
+| El proveedor no autorizó: … | La persona no aprobó, o el proveedor devolvió un error. |
+| Se cerró la ventana de autorización antes de terminar. | Pulsa **Obtener token nuevo** y termina el inicio de sesión. |
+| El navegador bloqueó la ventana de autorización: permite las ventanas emergentes para esta página. | Permite las ventanas emergentes. |
+| Este request usa OAuth 2.0 con Authorization Code: pulsa «Obtener token nuevo»… | Inicia sesión primero desde la pestaña **Autorización**. |
+
+Más en [Solución de problemas](/es/authorization/troubleshooting/).
+
+## Secretos
+
+**Client Secret** y **Contraseña** son secretos. Escritos tal cual se guardan cifrados en tu equipo; con `{{clientSecret}}` solo el nombre va al archivo. **Client ID**, **Usuario** y las URLs se escriben tal como las pones. Mira [Secretos](/es/authorization/secrets/).
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Autorización de un workflow" href="/es/authorization/workflow/" description="Por API, con inicio de sesión antes de ejecutar." />
+  <LinkCard title="Receta de login y token" href="/es/recipes/login-token/" description="Usa en cambio el token de un paso de login." />
+  <LinkCard title="Tutorial de PayPal" href="/es/tutorials/oauth-payment/" description="El flujo completo con el sandbox." />
+</CardGrid>

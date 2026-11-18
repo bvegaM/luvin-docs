@@ -1,0 +1,191 @@
+---
+title: Bring your own files and requests
+description: Import Arazzo files and contracts, collections from Postman or Bruno, and a cURL command into Luvin, or open files without creating a workspace.
+sidebar:
+  order: 6
+---
+
+import { Steps, Tabs, TabItem, FileTree, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+You do not have to start from nothing. You can bring Arazzo files and contracts, collections from Postman or Bruno, and a command copied as cURL.
+
+An Arazzo file describes a workflow. A contract is an OpenAPI or AsyncAPI file. A **collection** is a project folder inside a workspace. See the [glossary](/reference/glossary/).
+
+## Example: a Postman collection
+
+A small collection exported from Postman:
+
+```json title="shop-api.postman_collection.json"
+{
+  "info": {
+    "name": "Shop API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Customers",
+      "item": [
+        {
+          "name": "Get customer",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/customers/42",
+            "header": [{ "key": "Accept", "value": "application/json" }]
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+Import it with an environment file that defines `baseUrl`, and Luvin creates a collection called **Shop API**:
+
+<FileTree>
+
+- shop-api/
+  - collection.yaml
+  - requests/
+    - customers/
+      - _folder.request.yaml
+      - get-customer.request.yaml
+  - environments/
+    - sandbox.yaml
+
+</FileTree>
+
+In the sidebar, **Customers** is a folder and **Get customer** a request that sends `GET {{baseUrl}}/customers/42`. The variables of the Postman environment arrive in a Luvin environment. See [What is on disk](/workspaces/files/).
+
+![The Import from Postman or Bruno dialog with a card for Postman and a card for Bruno](/media/en/import-postman.webp)
+
+### Import it
+
+You need a workspace open. If none is, Luvin says **Open or create a workspace to import.** See [Create and open a workspace](/workspaces/create-and-open/).
+
+<Steps>
+
+1. Click **+** in the tabs (**Create or import**), then **Import from Postman or Bruno**. The same action is in the ⋯ menu of **Collections** in the sidebar and on the workspace home under **Quick actions**.
+2. Choose what to import:
+
+   | Tool | What to choose |
+   |---|---|
+   | Postman | **Choose .json files**: the exported collection (v2.0 or v2.1). Choose the environment files too, to bring their variables |
+   | Bruno | **Choose folder**: the collection folder as Bruno keeps it in git (with `.bru` files). Or **Choose .json** for the file Bruno exports |
+
+   You can also drop the files on the dialog.
+3. Read the summary. For each collection it shows the number of requests, folders, examples and environments, and the collection authorization if there is one.
+4. Change the collection name if you want.
+5. Click **Import (N requests)**.
+
+</Steps>
+
+To pick other files, click **Choose other files**.
+
+### What is imported and what is not
+
+| Imported | Not imported (the summary lists it before you import) |
+|---|---|
+| Folders and requests, with descriptions | **Scripts** (pre-request and tests). Luvin checks responses with success criteria |
+| Saved examples | Authorization types with no equivalent: those requests have no authorization |
+| Authorization of the collection, folder and request | Body types with no equivalent: the body is left empty |
+| Environments and their variables | Variables with an invalid name, and disabled variables |
+| Collection variables | |
+
+- A variable marked as secret stays a secret. Bruno does not save its secrets' values, so they arrive empty: type them again in the environment.
+- Collection variables are added to every environment that does not define them. If no environment came, Luvin creates one called `local`.
+
+<Aside>
+If you choose only environment files, Luvin says **Those are only environments: choose the collection too.** If it finds no collection, it says **No Postman or Bruno collection was found in what you chose.**
+</Aside>
+
+## Arazzo files and contracts
+
+You need a collection open first. Luvin adds the files to it. Files can be `.yaml`, `.yml` or `.json`.
+
+<Tabs>
+<TabItem label="Button">
+
+<Steps>
+
+1. Open the workspace home with the house icon in the top bar.
+2. Under **Quick actions**, click **Import Arazzo or contracts**.
+3. Choose one or more files.
+
+</Steps>
+
+The button only appears when a collection is open. A collection with no Arazzo shows the same advice.
+
+</TabItem>
+<TabItem label="Contract, from the sidebar">
+
+<Steps>
+
+1. In **Contracts**, click **+** (**Add contract**).
+2. Click **Import contract…**.
+3. Choose the file.
+
+</Steps>
+
+</TabItem>
+<TabItem label="Drag and drop">
+
+<Steps>
+
+1. Drag the files from your file explorer onto the Luvin window. It says **Drop to add to “collection name”**.
+2. Drop them. A message says how many were added, for example **Added 3 file(s) to the collection**.
+
+</Steps>
+
+With no collection to receive them, the message is **Open or create a collection to add files to it**. Other file types are skipped and Luvin says how many.
+
+</TabItem>
+</Tabs>
+
+<Aside type="tip">
+If a contract points to other files with `$ref`, add those too. Drop the Arazzo, its contracts and the `$ref` files together. When some are missing, the contract shows ✕ in the sidebar. See [Troubleshooting](/get-started/troubleshooting/).
+</Aside>
+
+## A cURL command
+
+A cURL command is a request written as text, like the ones Chrome, Postman or an API's documentation let you copy.
+
+```bash
+curl -X POST 'https://api.shop.test/customers' \
+  -H 'Content-Type: application/json' \
+  --data-raw '{"name":"Ana"}'
+```
+
+![The Import from cURL dialog with a command pasted in](/media/en/import-curl.webp)
+
+<Steps>
+
+1. Click **+** in the tabs (**Create or import**), then **New request**.
+2. Click **Import from cURL**.
+3. Paste the command. The method, URL, headers, authorization and body are converted.
+4. Click **Import**.
+
+</Steps>
+
+The command must start with `curl` and include a URL. Otherwise Luvin says it does not look like a valid cURL command. The sidebar menus for requests also offer **Import from cURL**. To copy a step as cURL, see [cURL](/requests/curl/).
+
+## Open files without a workspace
+
+To try something quickly, open files with no workspace.
+
+<Steps>
+
+1. On the welcome screen, click **Open files without a workspace**, at the bottom. The browser opens a file picker; the desktop app opens a folder picker.
+2. Choose your contracts, your Arazzo files and the files their `$ref` point to. You can also drop them on the welcome screen.
+
+</Steps>
+
+If you close the welcome screen with **I’ll explore on my own**, the empty screen offers **Open files** and, in the desktop app, **Open folder**. A folder loads every YAML and JSON file inside it and its subfolders. If it has many files, only the first 300 load, and Luvin says so.
+
+## Next
+
+<CardGrid>
+  <LinkCard title="Without a workspace" href="/workspaces/without-workspace/" />
+  <LinkCard title="The guided tour" href="/get-started/guided-tour/" />
+  <LinkCard title="Requests" href="/requests/overview/" />
+  <LinkCard title="Troubleshooting" href="/get-started/troubleshooting/" />
+</CardGrid>

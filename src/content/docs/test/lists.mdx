@@ -1,0 +1,99 @@
+---
+title: Choose an item from a list
+description: When a step returns a list and the next steps depend on it, the run pauses so you choose what to test with.
+sidebar:
+  order: 6
+---
+
+import { Steps, Tabs, TabItem, Aside, Badge, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Many APIs return lists: the cards of a customer, the products of a catalog. When a later step needs data from that list, Luvin pauses the run and shows you what came back, so you choose what to test with.
+
+<video controls muted playsinline preload="metadata" poster="/media/en/list-pick.webp" src="/media/en/list-pick.mp4"></video>
+
+## Example: Pokemon card against the real API
+
+The first step of **Pokemon card** returns two lists that later steps use: `types` (1 item) and `abilities` (2 items). The run pauses twice, one dialog after the other.
+
+<Steps>
+1. Choose **Real API** and press **Run**.
+2. In the first dialog, `types` has one item. Press **Continue with this item**.
+3. In the second dialog, `abilities` has two items. Click the one you want and press **Continue with this item**.
+</Steps>
+
+In **Simulation** the dialog only appears when the list has more than one item. For a step-by-step version, see the recipe [Choose an item from a list](/recipes/list-pick/).
+
+## Choose and continue
+
+<Steps>
+1. Run the case. After the step that returns the list, a dialog opens with the title **Which item of the list do you want to test with?**
+2. Read the top of the dialog: which step returned the list and how many items, the **Case** that is running, and **Goes to**, the later steps and parameters that receive the data.
+3. Click the row of the item you want.
+4. Press **Continue with this item**. The next steps run with it.
+</Steps>
+
+![The dialog to choose one item from the list a step returned](/media/en/list-pick.webp)
+
+The table shows the real items of the list:
+
+- Columns marked **used** hold the values that go to the next steps.
+- With more than 8 items there is a search box, **Search the list…**. It also searches the fields that are not shown as columns.
+- If the items have more fields than fit in the table, the header says how many, for example **+4 fields**. **See all** on a row opens the complete item.
+- <Badge text="Max 200 items" variant="caution" /> The table shows up to 200 items. Search to find the rest.
+
+## What you can choose depends on the design
+
+| How the workflow uses the list | What the dialog offers |
+|---|---|
+| A value of one item goes to a path, query or header parameter | One item |
+| A value of one item goes inside a list of the next request's body | Several items, or **Send the whole list**. The body gets one entry per item |
+| The whole list goes to a step that takes lists | **Send the whole list**, or **Choose items** to send only some |
+| The whole list is connected to single-value parameters | One item. Each parameter receives a field of that item |
+
+![The dialog offering to send the whole list or to choose items](/media/en/list-pick-many.webp)
+
+When you tick several items, the button says **Continue with N chosen**. If a later step takes a single value, it gets the first of the chosen ones, and the dialog says so.
+
+In the last case of the table, the dialog adds **What each step receives from the item you choose**. Luvin matches each parameter to the field with a similar name: `bank` takes the item's `bank`. To use another field, change it in the dropdown next to the parameter.
+
+## Set it up in the design
+
+<Steps>
+1. In the **Design** tab, click the step that needs the data.
+2. Under **Parameters**, open the source of the parameter and choose the field of the list from the previous step, for example `activeCreditCards/bank`. It says *from a list: you choose which at run time*.
+3. Run the case. The dialog appears after the step that returns the list.
+</Steps>
+
+A field that comes from a list is named without its position: `activeCreditCards/bank`, not `activeCreditCards/0/bank`. See [Wire data between steps](/design/wire-data/).
+
+## Several cases at once
+
+When you run several cases, the dialog offers **Use this choice for the other cases in this run**. Leave it ticked to be asked once. Untick it to choose in every case. If a later case gets a list without the items you chose, the dialog asks again.
+
+Luvin remembers your last choice and proposes it the next time you run.
+
+## What is recorded
+
+The step that returned the list keeps a note, **Chosen at run time**. For example: *From the list activeCreditCards, the run continued with "Banco Sur" (item 2 of 3).* Below it, the note says which value each parameter received.
+
+## When the dialog does not appear
+
+- In **Simulation**, if the example has a single item. The response is made up from the contract, so there is nothing to review.
+- If the list comes back empty.
+- If no later step uses data from the list.
+- If the step that returns the list failed.
+
+<Aside type="note">
+Against the real API the dialog always appears, also with a single item, so you can see what the service returned.
+</Aside>
+
+**Stop run**, in the dialog, cancels the run.
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Run" href="/test/run/" />
+  <LinkCard title="Read a step result" href="/test/step-results/" />
+  <LinkCard title="Simulation" href="/test/simulation/" />
+  <LinkCard title="Choose an item from a list (recipe)" href="/recipes/list-pick/" />
+</CardGrid>

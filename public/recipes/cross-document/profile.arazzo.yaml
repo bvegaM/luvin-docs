@@ -1,0 +1,27 @@
+arazzo: 1.0.1
+info: { title: Profile, version: 1.0.0 }
+sourceDescriptions:
+  - { name: dummyjson, url: ./dummyjson.openapi.yaml, type: openapi }
+  - { name: auth, url: ./auth.arazzo.yaml, type: arazzo }
+workflows:
+  - workflowId: myProfile
+    summary: Read my profile after logging in (another document)
+    dependsOn: [$sourceDescriptions.auth.login]
+    steps:
+      - stepId: getMe
+        operationId: getMe
+        parameters:
+          - { name: Authorization, in: header, value: 'Bearer {$workflows.login.outputs.token}' }
+        successCriteria: [{ condition: $statusCode == 200 }]
+        outputs: { firstName: $response.body#/firstName }
+  - workflowId: loginAsStep
+    summary: Call the login of another document as a step
+    steps:
+      - stepId: auth
+        workflowId: $sourceDescriptions.auth.login
+        outputs: { token: $outputs.token }
+      - stepId: getMe
+        operationId: getMe
+        parameters:
+          - { name: Authorization, in: header, value: 'Bearer {$steps.auth.outputs.token}' }
+        successCriteria: [{ condition: $statusCode == 200 }]

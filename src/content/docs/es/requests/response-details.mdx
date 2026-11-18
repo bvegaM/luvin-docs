@@ -1,0 +1,128 @@
+---
+title: Lee una respuesta en detalle
+description: "Todo lo que hay en el área de respuesta de un request: estado, tiempo y tamaño con sus detalles, las vistas del body, headers, cookies, el request que se envió y cómo copiar o guardar la respuesta."
+sidebar:
+  order: 4
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Después de enviar un request, el área de respuesta muestra lo que contestó la API y cómo fue la llamada. Esta página explica cada parte, en el orden en que las ves. Úsala cuando necesites saber por qué una llamada fue lenta, qué volvió exactamente o qué envió realmente Luvin.
+
+![Un request suelto con su método, su URL, sus pestañas y la respuesta debajo](/media/es/request.webp)
+
+## Ejemplo
+
+Envías `POST https://jsonplaceholder.typicode.com/posts` con un body JSON (mira [Requests HTTP](/es/requests/http/)). El área de respuesta muestra:
+
+| Dónde | Qué ves |
+|---|---|
+| Barra sobre la respuesta | `201 Created`, el tiempo, el tamaño y, a la derecha, **Copiar** y **Guardar respuesta**. |
+| Pestaña **Body** | El JSON del nuevo post, que termina con `"id": 101`. |
+| Pestaña **Headers** | Los headers de la respuesta, por ejemplo `content-type: application/json; charset=utf-8` y `location: https://jsonplaceholder.typicode.com/posts/101`. |
+| Pestaña **Request enviado** | `POST`, la URL final y todos los headers que salieron, incluido `Content-Type: application/json`, que Luvin agregó porque el body es JSON. |
+
+El resto de la página explica cada parte.
+
+## Antes y durante la llamada
+
+| Lo que ves | Qué significa |
+|---|---|
+| **Todavía no hay respuesta** | Aún no enviaste el request. Pulsa **Enviar** (⌘/Ctrl + Enter). |
+| **Enviando…** con un indicador de carga | El request va en camino. |
+| **No se pudo completar el request** | La API no respondió, y debajo va el motivo. En la versión del navegador, la API debe permitir CORS. La app de escritorio no tiene esa limitación. |
+
+Cuando una llamada falla así, un desplegable **Request enviado** bajo el mensaje muestra la URL y los headers que se enviaron. Mira [Ayuda de conexión](/es/dev-tools/connection-help/).
+
+## La barra sobre la respuesta
+
+Cuando la API responde, una barra muestra, de izquierda a derecha:
+
+- **El estado**, por ejemplo `200 OK` o `404 Not Found`. Luvin lo colorea por familia: 2xx, 3xx, 4xx y 5xx.
+- **El tiempo**, por ejemplo `985 ms`.
+- **El tamaño**, por ejemplo `1.26 KB`.
+- **Un ícono de globo**, cuando Luvin conoce la dirección del servidor.
+- **Copiar** y **Guardar respuesta**, a la derecha.
+
+Pasa el mouse sobre el tiempo, el tamaño o el globo, o llega a ellos con el teclado, para abrir una tarjeta con el detalle.
+
+### El tiempo
+
+La tarjeta **Tiempo de respuesta** muestra el total y cada fase como una barra en una línea de tiempo. La fase más larga está marcada, porque es la primera que conviene mirar. Casi siempre es la espera del servidor.
+
+| Fase | Qué es |
+|---|---|
+| **Preparación** | Luvin deja listo el request. |
+| **Inicio del socket** | Luvin inicia la conexión de red por la que viaja el request. |
+| **Búsqueda DNS** | El nombre del servidor, como `pokeapi.co`, se convierte en una dirección numérica. |
+| **Conexión TCP** | Se abre la conexión a esa dirección. |
+| **Negociación SSL** | En `https`, las dos partes acuerdan cómo cifrar el tráfico. |
+| **Espera (TTFB)** | Tiempo hasta el primer byte: desde que se envía el request hasta que el servidor empieza a responder. Es el tiempo de trabajo del servidor. |
+| **Descarga** | Llega la respuesta. |
+| **Proceso** | Luvin lee la respuesta. |
+
+Unas notas bajo las fases te avisan cuando corresponden:
+
+- **Conexión reutilizada: esta vez no hubo DNS, TCP ni SSL.** El request usó una conexión que ya estaba abierta, así que esas fases valen 0.
+- **Siguió N redirección(es); los tiempos son de la última.**
+- En el navegador, un servidor puede no compartir sus tiempos detallados con la página (`Timing-Allow-Origin`). La tarjeta lo dice. La app de escritorio mide cada fase.
+
+Si Luvin no tiene las fases, solo ves el tiempo total.
+
+### El tamaño
+
+La tarjeta **Tamaño de la respuesta** muestra el total y sus partes: **Headers** y **Body**. Si el servidor comprimió el body, una línea extra, **Body descomprimido**, da su tamaño ya descomprimido. Debajo, **Tamaño del request** muestra lo que enviaste, también dividido en **Headers** y **Body**.
+
+### La red
+
+El globo muestra **Versión HTTP**, **Dirección remota**, **Dirección local**, **Protocolo TLS**, **Cifrado**, **Emisor del certificado** y **Certificado válido hasta**. Las filas que Luvin no conoce se omiten. Es el primer lugar donde mirar cuando una llamada falla por un certificado.
+
+## Las cuatro pestañas
+
+| Pestaña | Qué muestra |
+|---|---|
+| **Body** | El contenido de la respuesta. Mira más abajo. |
+| **Headers** | Una tabla con todos los headers de la respuesta. El número es cuántos hay. |
+| **Cookies** | Las cookies que puso la respuesta, con **Nombre**, **Valor**, **Dominio**, **Path**, **Vence** y **Atributos**. El número es cuántas hay. Si no hay ninguna: **Esta respuesta no puso cookies.** Mira [Cookies y ejemplos guardados](/es/requests/cookies-and-examples/). |
+| **Request enviado** | Lo que Luvin envió realmente. Mira más abajo. |
+
+## El body
+
+Sobre el body, **Pretty**, **Raw** y **Preview** cambian cómo se muestra. Una etiqueta dice qué detectó Luvin: **JSON**, **HTML**, **XML** o **Texto**. Luvin recuerda tu elección en este computador.
+
+| Vista | Qué ves |
+|---|---|
+| **Pretty** | El body formateado y con colores, y puedes plegar los bloques. JSON, HTML y XML se muestran con sangría. Cualquier otro texto se muestra como llegó. |
+| **Raw** | Tal cual lo envió el servidor. |
+| **Preview** | El JSON como una tabla que se expande, o una página HTML ya dibujada. Solo se ofrece para JSON y HTML. |
+
+Si la respuesta no tiene body, el área dice **La respuesta no tiene body.**
+
+### Busca en el body
+
+Haz clic dentro del body y pulsa ⌘ + F (Ctrl + F). Se abre un cuadro de búsqueda. Úsalo para encontrar un campo o un valor en una respuesta larga. Funciona en **Pretty** y en **Raw**.
+
+### La tabla que se expande
+
+En **Preview**, una respuesta JSON es una tabla de **clave** y **valor**. Los objetos y las listas tienen una flecha. Haz clic en una fila para abrirla y ver qué contiene. La insignia dice cuánto tiene: `{3}` es un objeto con tres campos y `[2]` es una lista con dos elementos. Los vacíos dicen **vacío**.
+
+### Una página dibujada
+
+Para HTML, **Preview** dibuja la página en un marco aislado. Los scripts no se ejecutan ahí. Es una forma de leer la página, no de probarla.
+
+## Request enviado
+
+La pestaña **Request enviado** responde «¿qué envié?». Muestra el método, la URL final, con cada `{{variable}}` ya reemplazada, y **Copiar URL**. Luego lista todos los headers, incluso los que Luvin agrega por su cuenta, como `Host` y `Content-Length`, y el body.
+
+Si el request debería llevar una `Authorization` pero no salió ninguna, un aviso dice **No se envió ninguna Authorization. Revisa la pestaña Autorización del request o de la colección.** Mira [Autorización de un request](/es/authorization/overview/).
+
+## Copia y guarda
+
+- **Copiar** pone en el portapapeles el body de la respuesta, tal como llegó. El botón dice **✓ Copiado** por un momento.
+- **Guardar respuesta** abre **Guardar respuesta como ejemplo**, que guarda la respuesta con su request bajo el request, en la barra lateral. **Descargar como archivo**, en el mismo diálogo, guarda solo el body en un archivo. Mira [Cookies y ejemplos guardados](/es/requests/cookies-and-examples/).
+
+## Relacionado
+
+- [Requests sueltos](/es/requests/overview/)
+- [Dev Tools: Network](/es/dev-tools/network/)
+- [Lee los resultados](/es/test/results/)

@@ -1,0 +1,102 @@
+---
+title: Armar desde requests guardados
+description: Arma un workflow sin contratos arrastrando requests guardados al lienzo, y deja que Luvin sugiera cómo conectarlos.
+sidebar:
+  order: 11
+---
+
+import { Steps, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+No necesitas un contrato OpenAPI para armar un workflow. Si tienes requests guardados, por ejemplo importados de Postman o Bruno, arrástralos al lienzo y cada uno se vuelve un paso. Úsalo cuando la API no tiene contrato, o cuando solo tienes una colección de requests.
+
+Un *request* es una llamada a una API guardada: un método, una URL, headers y un body. Consulta [Requests](/es/requests/overview/) e [Importar desde Postman o Bruno](/es/get-started/import/).
+
+## Ejemplo: Create order y Get order
+
+Guardaste dos requests, **Create order** y **Get order**. Los arrastras al lienzo.
+
+| Arrastras | Luvin crea | Qué conserva |
+|---|---|---|
+| El request **Create order** | El paso `createOrder` | La misma URL, headers y body, con las `{{variables}}` del ambiente |
+| El request **Get order** | El paso `getOrder` | La ruta con `{{order_id}}` |
+
+Después de una ejecución, Luvin ve que **Create order** devuelve un `id` que usa **Get order**. Aparece una barra sobre el lienzo:
+
+```text
+Luvin encontró 1 conexión(es) entre pasos
+```
+
+Haz clic en **Conectar** y `{{order_id}}` pasa a ser el output del primer paso. Mira [Sugerencias de conexión](#acepta-las-conexiones-sugeridas).
+
+## Agrega un request como un paso
+
+<Steps>
+1. Abre el workflow y ve a la pestaña **Diseño**.
+2. En la paleta **Operaciones**, abre **Requests de la colección**. Lista los requests HTTP de la colección, agrupados por carpeta. Escribe en **Buscar operación…** para filtrar.
+3. Arrastra un request al lienzo, o haz clic en **+** de su fila para agregarlo al final.
+</Steps>
+
+El paso se envía exactamente como el request: la misma URL, parámetros, headers y body, y se conservan las `{{variables}}` del ambiente. Los únicos valores que Luvin reemplaza son los que devuelve un paso anterior. Luvin no crea inputs, así que lo que no viene de un paso conserva el valor del request.
+
+El paso lleva el nombre del request: **Create order** se vuelve `createOrder`. Su criterio de éxito es el menor estado 2xx que Luvin conoce para él, o `$statusCode < 400` si no conoce ninguno.
+
+Solo se pueden agregar requests HTTP con una URL. Para cualquier otro, Luvin dice **Solo los requests HTTP con URL se pueden agregar a un workflow.**
+
+### La pregunta sobre los campos obligatorios
+
+La primera vez que agregas un request a un workflow, un diálogo pregunta qué campos exige la API. Respóndela una vez y vale para todos los workflows que usen ese request. Consulta [Agregar pasos](/es/design/add-steps/).
+
+## Cómo arma Luvin un contrato por ti
+
+Un archivo Arazzo necesita un contrato al que apuntar. Luvin lo crea a partir de tus requests, uno por URL base, en la carpeta `requests/_contracts` de la colección. Cada request es una operación. La primera línea dice que está generado: no lo edites, porque Luvin lo reescribe cuando cambia un request.
+
+Un request no dice qué responde la API, así que el contrato parte sin respuestas. Sin ellas, Luvin todavía no puede ver qué valores vienen de pasos anteriores.
+
+## Luvin aprende las respuestas
+
+Luvin aprende qué responde cada request de tres lugares:
+
+- La primera vez que ejecutas el workflow contra la **API real**. Las ejecuciones en simulación no cuentan.
+- Los ejemplos guardados en el request.
+- La última respuesta que recibiste al enviar el request solo.
+
+También puedes enseñárselo sin ejecutar. Haz clic en el paso. El panel empieza con **Del request «Create order»**. Cuando Luvin todavía no conoce la respuesta, lo dice y ofrece **Probar este paso**. En un GET, esto envía el request. En cualquier otro método primero advierte **Esto envía el POST de verdad y puede crear o cambiar datos.** y ofrece **Enviar igual** o **Cancelar**. Cuando ya conoce la respuesta, la nota lo dice.
+
+## Acepta las conexiones sugeridas
+
+Con las respuestas conocidas, Luvin puede ver que un valor que escribiste a mano viene de un paso anterior. Por ejemplo, la ruta de **Get order** tiene `{{order_id}}`, y **Create order** devuelve un `id`. Aparece una barra sobre el lienzo: **Luvin encontró 2 conexión(es) entre pasos**.
+
+| Botón | Qué hace |
+|---|---|
+| **Conectar todas** | Aplica todas las sugerencias. |
+| **Conectar** | Aplica esa. |
+| **Ignorar** | Oculta esa. |
+| **Ocultar** / **Ver** | Pliega o despliega la lista. |
+
+Cada línea nombra el paso, el valor y de dónde vendría. Después de una ejecución, las otras pestañas muestran **Con la última ejecución, Luvin encontró 2 conexión(es) entre pasos.** con el enlace **Revisar en Diseño**.
+
+Luvin no conecta nada hasta que aceptas. **Deshacer** lo revierte. [Conectar datos entre pasos](/es/design/wire-data/) explica el resultado.
+
+## Elige datos para variar
+
+Como los pasos conservan los valores de los requests, el workflow parte sin inputs, y un caso no tiene nada que cambiar. Elige los valores que quieres variar.
+
+<Steps>
+1. En la tarjeta **Inicio**, lee **Sin inputs: los pasos usan 5 valores fijos.** y haz clic en **Elegir datos variables…**.
+2. En **Datos para variar por caso**, marca los valores. Cada fila muestra dónde está, por ejemplo `query · bank`, y su valor actual.
+3. Haz clic en **Convertir en inputs**. La cantidad de valores que marcaste está en el botón.
+</Steps>
+
+Cada valor se vuelve un input del workflow que conserva el valor actual como valor por defecto, así que el camino feliz no cambia. Si el mismo valor se usa en varios pasos, un solo input los alimenta a todos. Un input es obligatorio solo cuando su parámetro o campo es obligatorio. Los parámetros de la ruta siempre lo son.
+
+Para cambiar un solo valor, apunta a él en una tarjeta y haz clic en **→ input**. Cuando el workflow ya tiene inputs, la tarjeta **Inicio** muestra **+ Volver input otro valor fijo** en su lugar.
+
+El mismo diálogo se abre desde la pestaña **Casos**, con el botón **Elegir datos para variar**. Tener inputs permite que Luvin genere casos que envían datos vacíos o inválidos. Consulta [Casos](/es/test/cases/).
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Conectar datos entre pasos" href="/es/design/wire-data/" />
+  <LinkCard title="Parámetros y body" href="/es/design/parameters-and-body/" />
+  <LinkCard title="Inputs" href="/es/test/inputs/" />
+</CardGrid>

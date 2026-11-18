@@ -1,0 +1,92 @@
+---
+title: Complete missing data
+description: What the bar "This workflow is missing data" detects, what the Complete button does and how to undo it.
+sidebar:
+  order: 15
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Sometimes a workflow asks for a value that nobody provides. Luvin notices it and shows a bar, **This workflow is missing data**, with a **Complete** button that fixes it without redoing your steps. This page explains what Luvin detects, what **Complete** changes and how to go back.
+
+## Example: a price without a currency
+
+The contract of the shop API starts to require the query parameter `currency` in `GET /prices`. The workflow has a step `getPrice` that does not send it. The bar says:
+
+```text
+This workflow is missing data
+The contract asks for data these steps do not send: getPrice · currency.
+```
+
+The **Overview** tab also lists it as an error: **The contract requires the query parameter "currency" and the step does not send it.**
+
+## When the bar appears
+
+The bar appears above the canvas in the **Design** tab, and above the fields in the **Inputs** tab. It shows only when Luvin finds something to complete. A workflow with nothing missing does not show it.
+
+It usually appears after something changes under the workflow:
+
+- The contract (OpenAPI) now marks a parameter or a body field as required.
+- You edited the [YAML](/design/arazzo-editor/) and a step now uses an input that the workflow does not declare.
+
+The bar does not appear while the YAML cannot be read. Fix the YAML first.
+
+## What Luvin detects
+
+The bar has up to two sentences. Each one is a different problem.
+
+| Sentence | What it means |
+|---|---|
+| **It uses inputs the workflow does not declare: …** | A step reads `$inputs.name`, in a parameter or in the body, but the workflow has no input with that name. The names follow. |
+| **The contract asks for data these steps do not send: …** | A step calls an operation whose contract requires a value, and the step sends nothing for it. Each item is written as the step and the value, for example `getPrice · currency`. |
+
+For the second sentence, Luvin checks:
+
+- Parameters the contract marks as required, and every path parameter. A value counts as missing when the step has no value for it or the value is empty.
+- Fields of the body that the contract marks as required. Only simple fields are checked (text, number, true/false), not objects or lists.
+
+Luvin does not check steps that call another workflow against a contract. It does check whether their values read an input that is not declared.
+
+<Aside type="note">
+Optional values are never reported. If the contract does not require it, the step may leave it out.
+</Aside>
+
+## What Complete does
+
+Click **Complete**. Luvin works through the two lists, step by step, and changes only what is missing. Your steps stay as they are.
+
+<Steps>
+1. **Inputs that are used but not declared.** Luvin declares them as inputs of the workflow. If a parameter uses the input, the input takes that parameter's type, description, example and whether it is required, from the contract. If it is used somewhere else, such as the body, Luvin declares it with no extra details.
+2. **Data the contract requires and a step does not send.** For each one, Luvin looks for a source among the steps before it, with the same rules it follows when you add a step. See [Connect data between steps](/design/wire-data/).
+   - If an earlier step has the value, the step now reads it. Luvin adds the output to that earlier step if it needs one.
+   - If none has it, Luvin creates a **required** input with the name of the value and the type of the contract, and the step reads that input. If the name is taken, it adds a number: `currency2`.
+</Steps>
+
+After this, the bar disappears. In the example, `getPrice` now sends `$inputs.currency` and the **Inputs** tab has a new required field, **currency**. Fill it in before you run. See [Inputs](/test/inputs/).
+
+<Aside type="tip">
+Open the step afterwards and check where each value comes from. A source that Luvin picked by name may not be the one you wanted. You can change it as described in [Connect data between steps](/design/wire-data/).
+</Aside>
+
+## Undo it
+
+**Complete** is one change in the history of the **Design** tab.
+
+<Steps>
+1. Click **Complete** in the bar of the **Design** tab.
+2. If you do not like the result, click **Undo** above the canvas, or press ⌘ + Z (Ctrl + Z).
+</Steps>
+
+**Redo** brings it back. See [Organize a workflow](/design/organize/).
+
+<Aside type="note">
+The bar is also in the **Inputs** tab, with the same **Complete** button. **Undo** is a button of the **Design** tab, so if you want to be able to undo, click **Complete** in **Design**.
+</Aside>
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Connect data between steps" href="/design/wire-data/" />
+  <LinkCard title="Inputs" href="/test/inputs/" />
+  <LinkCard title="Organize a workflow" href="/design/organize/" />
+</CardGrid>

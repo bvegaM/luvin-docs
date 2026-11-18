@@ -1,0 +1,97 @@
+---
+title: Casos con datos propios
+description: Agrega tus propios casos con una combinación de inputs y un resultado esperado, y usa generadores para tener datos nuevos en cada ejecución.
+sidebar:
+  order: 4
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Un **caso con datos propios** ejecuta el workflow con tu propia combinación de inputs y comprueba que un paso responde lo que esperas. Úsalo para situaciones que Luvin no puede deducir del contrato: un cliente que ya existe, una cuenta sin saldo, un Pokémon que no existe.
+
+Los casos con datos propios siempre se ejecutan contra la API real. Con la barra de ejecución en **Simulación** muestran **No se ejecutará**.
+
+## Ejemplo: Pokémon desconocido en Pokemon card
+
+Este caso comprueba que `getPokemon` responde 404 para un nombre que no existe.
+
+| Campo | Valor |
+|---|---|
+| **Nombre del caso** | Pokémon desconocido |
+| **Paso que se verifica** | `getPokemon` |
+| **Acción esperada (opcional)** | `pokemonNotFound (end)` |
+| **Status esperado** | `404` |
+| **Inputs del caso** | `pokemon` = `missingno` |
+
+## Crea un caso
+
+<Steps>
+1. Abre el workflow y haz clic en la pestaña **Casos**.
+2. En el grupo **Casos con datos propios**, pulsa **+ Nuevo caso con datos**. Se abre un formulario.
+3. En **Nombre del caso**, escribe un nombre que diga qué prueba el caso.
+4. En **Paso que se verifica**, elige el paso cuya respuesta quieres comprobar. Luvin propone el último paso.
+5. Completa el resultado esperado. Mira la sección siguiente.
+6. Bajo **Inputs del caso**, cambia los valores que provocan esa situación.
+7. Pulsa **Agregar caso**. El caso aparece en el grupo, marcado y listo para ejecutar.
+</Steps>
+
+**Agregar caso** está disponible cuando el caso tiene un nombre, un paso y al menos una expectativa: un status, un code o una acción.
+
+## El resultado esperado
+
+| Campo | Qué comprueba |
+|---|---|
+| **Status esperado** | El status que debe responder el paso. Empieza con el status de éxito del paso: cámbialo si el caso espera un error. Para varios, sepáralos con comas: `200, 201`. La etiqueta lista los status documentados en el contrato. |
+| **Code esperado en el body (opcional)** | El campo `code` del body de la respuesta debe ser exactamente este valor, por ejemplo `ACCOUNT_ALREADY_EXISTS`. |
+| **Acción esperada (opcional)** | La acción de éxito o de falla del paso que debe activarse. La lista muestra las acciones con nombre del paso. |
+
+Un caso **pasa** cuando todo lo que completaste coincide. Si no, **no pasa** y dice qué fue distinto, por ejemplo *"getPokemon" respondió 200 y se esperaba 404.* Si el workflow se detiene antes de llegar al paso, el caso es **no concluyente**.
+
+Cuando el status esperado es un error, el paso que lo responde se muestra como aprobado en los resultados. Mira [Lee el resultado de un paso](/es/test/step-results/).
+
+## Dale inputs
+
+El editor es el mismo que tiene cada caso:
+
+- Escribe un valor para cambiar un input. La fila pasa de **Por defecto** a **Cambiado**.
+- Pulsa **Omitir** para dejar un input fuera.
+- **Restablecer** devuelve un input a su valor por defecto.
+
+Los inputs que no cambias usan los valores de la pestaña **Inputs**. Si después cambias un valor por defecto allí, el caso lo sigue. Los estados se explican en [Ajusta un caso](/es/test/adjust-cases/).
+
+## Datos nuevos con generadores
+
+Un valor puede contener un generador: un nombre entre llaves dobles que Luvin reemplaza por un valor nuevo en cada ejecución. Así un caso que crea un cliente puede ejecutarse otra vez sin fallar porque el cliente ya existe.
+
+| Generador | Produce |
+|---|---|
+| `{{$randomEmail}}` | Un email aleatorio |
+| `{{uuid}}` | Un UUID |
+| `{{number:8}}` | 8 dígitos aleatorios. Cambia el número para otro largo, de 1 a 32 |
+| `{{cpf}}`, `{{rut}}` | Un CPF brasileño válido, un RUT chileno válido |
+| `{{email}}` | Un email único en `example.com` |
+| `{{date}}` | La fecha de hoy, como `YYYY-MM-DD` |
+
+Puedes mezclar un generador con texto: `QA-{{number:6}}`.
+
+Escribe `{{` en un campo para ver las sugerencias, o `{{$` para ver las 47 variables dinámicas, que tienen los mismos nombres que en Postman. Las variables del ambiente activo funcionan igual: `{{partnerCode}}`. La lista completa está en [Variables dinámicas](/es/environments/dynamic-variables/).
+
+<Aside type="tip">
+Después de una ejecución, **Ver valores enviados** en el detalle del caso muestra el valor que produjo cada generador.
+</Aside>
+
+## Edita y elimina
+
+- Para cambiar los inputs, pulsa **Inputs** en el caso.
+- El nombre y el resultado esperado no se pueden cambiar una vez creado el caso. Elimina el caso y agrégalo de nuevo.
+- **Eliminar** quita el caso de inmediato, sin confirmación. Solo los casos con datos propios tienen este botón.
+- Para conservar un caso sin ejecutarlo, desmárcalo.
+
+En un workspace, los casos con datos propios se guardan con la colección. Para llevarlos a otro lugar, mira [Importa y exporta casos](/es/test/adjust-cases/#importa-y-exporta-casos).
+
+## Siguiente
+
+<CardGrid>
+  <LinkCard title="Ejecutar" href="/es/test/run/" />
+  <LinkCard title="Lee los resultados" href="/es/test/results/" />
+</CardGrid>

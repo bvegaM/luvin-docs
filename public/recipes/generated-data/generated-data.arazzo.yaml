@@ -1,0 +1,41 @@
+arazzo: 1.0.1
+info:
+  title: Create a user with generated data
+  version: 1.0.0
+sourceDescriptions:
+  - name: dummyjson
+    url: ./dummyjson.openapi.yaml
+    type: openapi
+workflows:
+  - workflowId: addGeneratedUser
+    summary: Send a new random user on every run and check the echo
+    inputs:
+      type: object
+      properties:
+        age: { type: integer, example: 29 }
+    steps:
+      - stepId: addUser
+        operationId: addUser
+        requestBody:
+          contentType: application/json
+          payload:
+            firstName: '{{$randomFirstName}}'
+            lastName: '{{$randomLastName}}'
+            email: '{{$randomEmail}}'
+            age: $inputs.age
+        successCriteria:
+          - condition: $statusCode == 201
+          - condition: $response.body#/age == $inputs.age
+          - context: $response.body#/email
+            condition: ^[^@\s{]+@[^@\s]+\.[^@\s]+$
+            type: regex
+          - context: $response.body#/firstName
+            condition: ^[^{]+$
+            type: regex
+        outputs:
+          id: $response.body#/id
+          firstName: $response.body#/firstName
+          email: $response.body#/email
+    outputs:
+      firstName: $steps.addUser.outputs.firstName
+      email: $steps.addUser.outputs.email

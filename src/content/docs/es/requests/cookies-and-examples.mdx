@@ -1,0 +1,103 @@
+---
+title: Cookies y ejemplos guardados
+description: Cómo funciona el almacén de cookies, cómo guardar una respuesta como ejemplo de un request, y qué muestran el tiempo, el tamaño y la red de una respuesta.
+sidebar:
+  order: 6
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Esta página trata tres cosas que ves después de enviar un request: las cookies que puso la API, las respuestas que conservas como ejemplos y los números que acompañan al status de una respuesta.
+
+## Ejemplo
+
+Un login responde con este header:
+
+```text
+Set-Cookie: session=abc123; Path=/; Secure
+```
+
+Luvin guarda la cookie en su almacén. La pestaña **Cookies** de esa respuesta la muestra, y cada request siguiente al mismo dominio la lleva solo:
+
+| Dónde | Qué ves |
+|---|---|
+| Pestaña **Cookies** de la respuesta | **Nombre** `session`, **Valor** `abc123`, **Path** `/`, **Vence** **De sesión**, **Atributos** `Secure`. |
+| Pestaña **Headers** del siguiente request | La fila automática `Cookie` con `session=abc123`. |
+
+## El almacén de cookies
+
+Una cookie es un dato pequeño que una API le pide al cliente que recuerde, por ejemplo una sesión. La API la envía en un header `Set-Cookie`. Luvin guarda esas cookies en un **almacén de cookies** y las devuelve, solo, en los siguientes requests al mismo dominio, como hace Postman.
+
+- El almacén vive en memoria mientras la colección está abierta. No se guarda en el disco.
+- Una cookie se envía solo a los requests que coinciden con su dominio y su ruta. Una cookie marcada `Secure` se envía solo por `https`. Una cookie vencida no se envía.
+- En la pestaña **Headers** de un request, la fila automática `Cookie` muestra lo que se va a enviar. Desmárcala para no enviar ninguna cookie. Si escribes tu propio header `Cookie` en la tabla, el tuyo gana.
+
+:::note
+El almacén funciona en la app de escritorio. En la versión de navegador, las cookies las maneja el navegador y Luvin no puede leerlas.
+:::
+
+### Cookies de una respuesta
+
+Después de enviar un request, abre la pestaña **Cookies** de la respuesta. Lista las cookies que puso esa respuesta. Si no hubo ninguna, dice *Esta respuesta no puso cookies.*
+
+### Ver y administrar el almacén
+
+<Steps>
+
+1. Haz clic en **Cookies**, a la derecha de las pestañas del request. Un número en el botón indica cuántas cookies hay en el almacén.
+2. El diálogo **Cookies** lista las cookies agrupadas por dominio. Cada fila muestra **Nombre**, **Valor**, **Dominio**, **Path**, **Vence** (una fecha, o **De sesión** cuando no tiene) y **Atributos** (`Secure`, `HttpOnly`, `SameSite`).
+3. Para quitar una cookie, haz clic en la **×** al final de su fila (**Quitar cookie**).
+4. Para vaciar un dominio, haz clic en **Limpiar dominio**. Para vaciar todo, haz clic en **Limpiar todas**.
+
+</Steps>
+
+Para agregar una cookie a mano, completa el dominio, el nombre y el valor al final del diálogo y pulsa **Agregar**. La cookie vale para todas las rutas de ese dominio.
+
+Si el almacén está vacío, el diálogo dice *Todavía no hay cookies. Envía un request cuya respuesta ponga una y aparecerá aquí.*
+
+## Guardar una respuesta como ejemplo
+
+Un ejemplo conserva una respuesta junto con el request que la produjo. Úsalo para documentar cada caso que pruebas, por ejemplo `201 - Crear orden con request mínimo`.
+
+### Guardar uno
+
+<Steps>
+
+1. Envía el request.
+2. En la barra que está sobre la respuesta, haz clic en **Guardar respuesta**.
+3. En **Guardar respuesta como ejemplo**, escribe el **Nombre del ejemplo**. Luvin sugiere el status y el nombre del request, como `200 - Get pokemon`.
+4. Pulsa **Guardar ejemplo**.
+
+</Steps>
+
+El ejemplo se guarda en el archivo del request, así que viaja con la colección. Conserva el método, la URL, los params, los headers y el body del request, y el status, los headers y el body de la respuesta. No conserva la autorización.
+
+**Descargar como archivo**, en el mismo diálogo, guarda solo el body de la respuesta en un archivo y no crea un ejemplo.
+
+:::caution
+Un ejemplo conserva la respuesta tal como llegó. Revisa que no contenga ningún token ni datos personales antes de compartir la colección.
+:::
+
+### Ver y usar un ejemplo
+
+En la barra lateral, un request con ejemplos muestra cuántos tiene y una flecha pequeña. Haz clic en la flecha, o abre el menú **⋯** del request y elige **Ver ejemplos (n)**. Cada ejemplo aparece debajo del request con una marca **e.g.**. **Ocultar ejemplos** pliega la lista.
+
+Haz clic en un ejemplo para abrirlo. Muestra el request arriba y la respuesta guardada abajo. Todo es editable, y desde aquí no se envía nada: la barra dice *Ejemplo · editable, no se envía*. Cambia lo que quieras documentar, por ejemplo el status o el body de la respuesta.
+
+| Botón o menú | Qué hace |
+|---|---|
+| **Usar en el request** | Carga en el request el método, la URL, los params, los headers y el body del ejemplo, para que puedas enviar ese caso otra vez. Lo confirma con **Cargado en el request**. |
+| **Eliminar ejemplo** | Pide confirmación y lo elimina. |
+| **⋯** → **Renombrar** | Cambia el nombre. También puedes editar el nombre en la parte de arriba del ejemplo. |
+
+El ejemplo también muestra cuándo se guardó (*Guardado el* y la fecha).
+
+## Tiempo, tamaño y red de una respuesta
+
+Junto al status ves el tiempo y el tamaño, y un ícono de globo cuando Luvin conoce la dirección del servidor. Pasa el mouse sobre ellos para abrir una tarjeta con el detalle: cada fase del tiempo, el tamaño de los headers y del body, y los datos de red y del certificado. Cada fase, campo y nota se explica en [Lee una respuesta en detalle](/es/requests/response-details/).
+
+## Relacionado
+
+- [Requests sueltos](/es/requests/overview/)
+- [Params, headers y body](/es/requests/params-headers-body/)
+- [Dev Tools: Network](/es/dev-tools/network/)

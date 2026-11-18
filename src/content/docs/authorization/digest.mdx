@@ -1,0 +1,67 @@
+---
+title: Digest Auth
+description: Answer a Digest challenge from the server without sending the password, with the steps Luvin follows and a verified example.
+sidebar:
+  order: 15
+---
+
+import { Steps, Aside } from '@astrojs/starlight/components';
+
+Use **Digest Auth** when the server answers `401` with a `WWW-Authenticate: Digest` header. Digest never sends the password: it sends a hash computed from it.
+
+## Example
+
+Request `GET https://httpbin.org/digest-auth/auth/user/passwd`.
+
+**Type** `Digest Auth`, **Username** `user`, **Password** `passwd`. The final response is `200`:
+
+```json
+{
+  "authenticated": true,
+  "user": "user",
+  "authorized": true
+}
+```
+
+Without credentials the same request answers `401`.
+
+## What Luvin does
+
+<Steps>
+
+1. Luvin sends the request without credentials.
+2. The server answers `401` with `WWW-Authenticate: Digest` and a *realm* and a *nonce*.
+3. Luvin computes the answer and sends the request again with `Authorization: Digest …`.
+4. You see the second response. The time shown adds both calls.
+
+</Steps>
+
+If the first answer is not a `401` with a Digest challenge, Luvin does not repeat the request.
+
+## Fields
+
+| Field | What to write |
+|---|---|
+| **Username** | The user. |
+| **Password** | The password. A secret field. |
+
+## Details
+
+The second request carries `username`, `realm`, `nonce`, `uri`, `qop`, `nc`, `cnonce`, `response` and, when the server gave them, `opaque` and `algorithm`.
+
+- The algorithm is **MD5** unless the server asks for **SHA-256**. The `-sess` variants are supported.
+- When the server offers several `qop` options, Luvin prefers `auth`, then `auth-int`.
+- Works in requests, in the collection and in a workflow.
+
+<Aside type="caution" title="In the browser version">
+Luvin has to read the `WWW-Authenticate` header of the first answer. A server that does not allow the browser to read it (CORS) cannot be used with Digest from the browser. The desktop app has no such limit.
+</Aside>
+
+## Secrets
+
+**Password** is a secret: stored encrypted on your computer when typed as-is. **Username** goes to the file. See [Secrets](/authorization/secrets/).
+
+## Related
+
+- [Basic Auth](/authorization/basic/)
+- [Troubleshooting](/authorization/troubleshooting/)

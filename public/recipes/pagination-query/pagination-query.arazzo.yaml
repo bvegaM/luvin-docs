@@ -1,0 +1,76 @@
+arazzo: 1.0.1
+info:
+  title: Page through a product list
+  version: 1.0.0
+sourceDescriptions:
+  - name: dummyjson
+    url: ./dummyjson.openapi.yaml
+    type: openapi
+workflows:
+  - workflowId: pageThroughProducts
+    summary: Read the first page, the next page and a search
+    inputs:
+      type: object
+      properties:
+        pageSize: { type: integer, example: 5 }
+        nextSkip: { type: integer, example: 5 }
+        search: { type: string, example: phone }
+    steps:
+      - stepId: firstPage
+        operationId: listProducts
+        parameters:
+          - name: limit
+            in: query
+            value: $inputs.pageSize
+          - name: skip
+            in: query
+            value: 0
+          - name: select
+            in: query
+            value: title,price
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.body#/skip == 0
+        outputs:
+          total: $response.body#/total
+          firstTitle: $response.body#/products/0/title
+      - stepId: nextPage
+        operationId: listProducts
+        parameters:
+          - name: limit
+            in: query
+            value: $inputs.pageSize
+          - name: skip
+            in: query
+            value: $inputs.nextSkip
+          - name: select
+            in: query
+            value: title,price
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.body#/total == $steps.firstPage.outputs.total
+        outputs:
+          skip: $response.body#/skip
+          firstTitle: $response.body#/products/0/title
+      - stepId: searchProducts
+        operationId: searchProducts
+        parameters:
+          - name: q
+            in: query
+            value: $inputs.search
+          - name: limit
+            in: query
+            value: $inputs.pageSize
+          - name: select
+            in: query
+            value: title,price
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.body#/total > 0
+        outputs:
+          matches: $response.body#/total
+    outputs:
+      total: $steps.firstPage.outputs.total
+      firstTitle: $steps.firstPage.outputs.firstTitle
+      secondPageFirstTitle: $steps.nextPage.outputs.firstTitle
+      matches: $steps.searchProducts.outputs.matches

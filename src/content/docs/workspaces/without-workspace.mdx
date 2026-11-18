@@ -1,0 +1,107 @@
+---
+title: Use Luvin without a workspace
+description: How to open files or a folder for a quick try, what the saved session keeps and leaves out, and how to continue it or discard it.
+sidebar:
+  order: 9
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+You can use Luvin without creating a workspace. Open some files, try a workflow and close the app. This is useful for a quick test or to look at a contract someone sent you. Nothing is written to your disk unless you save a file yourself.
+
+## Example: try the Pokédex files
+
+To look at the PokéAPI contract and run a workflow without creating anything, open these files from `examples/pokemon/`:
+
+| File | What it is |
+|---|---|
+| `pokeapi.openapi.yaml` | The contract of the public PokéAPI |
+| `pokedex-events.asyncapi.yaml` | The messaging contract |
+| `pokemon.arazzo.yaml` | The four workflows |
+
+The workflows appear in the sidebar. Run **Pokemon card** against the **Real API** as in the [Quick start](/get-started/quick-start/). Edits are not written to disk.
+
+## Open files or a folder
+
+On the welcome screen, at the bottom, click **Open files without a workspace**.
+
+- **Desktop app:** a folder dialog opens. Luvin loads every YAML and JSON file in the folder and its subfolders, as one collection.
+- **Browser:** a file picker opens. Pick your OpenAPI or AsyncAPI contracts, your Arazzo files if you have any, and the files their `$ref` point to.
+
+If you closed the welcome screen with **I’ll explore on my own**, the screen **No collection is open** has the same options: **Open folder** (desktop app), **Open files** and **Show the welcome**.
+
+You can also drop `.yaml`, `.yml` or `.json` files on the window. The window says **Drop the files to open them.**
+
+After loading, the workflows appear in the sidebar and you can design, edit and run them as usual.
+
+<Aside type="note" title="The Examples">
+The Pokédex and PayPal examples are not a session. They open as collections of a workspace called **Examples**, saved inside Luvin, so they behave like any collection.
+</Aside>
+
+## What changes without a workspace
+
+| | With a workspace | Without a workspace |
+|---|---|---|
+| Where changes go | Into files, automatically. | Nowhere on disk. The editors show **Not saved**. |
+| Arazzo edits | Saved by the automatic saving. | Saved only when you save the file from the **YAML** tab. The desktop app writes it over its file if you opened a folder, or asks where to save it. The browser downloads it. |
+| Secrets | Stored encrypted on this computer. | Not saved. You type them again. |
+| Several collections | Yes. | One, made of the files you opened. |
+
+## The saved session
+
+So that a closed tab does not cost you the work, Luvin saves a **session** on this device half a second after each change. Next time you open the app, it offers to continue.
+
+The session keeps:
+
+- The files you opened, as they are now (contracts and Arazzo, with your edits).
+- Contracts you attached by hand and sources that Luvin downloaded from a URL (they are downloaded again when you continue).
+- The inputs and the cases.
+- The selected workflow, and whether you were on **Real API** or **Simulation**.
+- The environments, with their base URLs, variables and colors, and which one was active.
+
+The session leaves out:
+
+- **Credentials**, such as tokens, passwords and API keys. You paste them again.
+- **The values of secrets.** Only their names are kept.
+- **Any input whose name looks sensitive**, like `token`, `password`, `secret`, `authorization`, `api_key` or `client_secret`.
+- Saved requests, the authorization of workflows, the results of runs and the Dev Tools log.
+
+<Aside type="caution">
+The session lives in the browser or app storage of this computer, not in a folder you can see. If you clear the site data of your browser, it goes away. To keep your work for real, [create a workspace](/workspaces/create-and-open/).
+</Aside>
+
+## Continue or discard
+
+When a session exists, the welcome screen shows a card with the title of that session:
+
+<Steps>
+
+1. Click **Continue where you left off**. The same card appears on the empty screen **No collection is open**.
+2. Luvin rebuilds the collection from the saved files and brings back your inputs, cases and environments.
+3. Paste your credentials again. If you run against the real API without them, the calls that need them answer 401.
+
+</Steps>
+
+To throw it away, click **Discard**, at the bottom of the welcome screen. The session is deleted.
+
+Opening other files starts a new session and replaces the previous one. While a workspace is open, no session is saved: the workspace has its own files.
+
+## Move to a workspace
+
+Create a workspace, then bring your files in:
+
+<Steps>
+
+1. Create the workspace and a collection (see [Create and open a workspace](/workspaces/create-and-open/) and [Collections](/workspaces/collections/)).
+2. Click **Import Arazzo or contracts** on **Home**, or drop the files on the window.
+3. Fill the environments again. The values of secrets were not in the session.
+
+</Steps>
+
+## Next
+
+<CardGrid>
+  <LinkCard title="Create and open a workspace" href="/workspaces/create-and-open/" />
+  <LinkCard title="Privacy and security" href="/reference/privacy/" />
+  <LinkCard title="Run a workflow" href="/test/run/" />
+</CardGrid>

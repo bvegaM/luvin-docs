@@ -1,0 +1,52 @@
+---
+title: El resumen de la colección
+description: Qué muestra cada tarjeta del resumen de la colección, cómo abrirlo y qué cuentan los números del Inicio.
+sidebar:
+  order: 8
+---
+
+import { Steps, Aside, Badge, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+El resumen de la colección es una sola página que la describe: dónde está, su versión, su autorización, sus ambientes, workflows y contratos. Ábrelo cuando te sumas a un proyecto o cuando entregas una colección a otra persona.
+
+![El resumen de una colección, con sus tarjetas a la izquierda y su documentación a la derecha](/media/es/collection-overview.webp)
+
+## Abrirlo
+
+Usa cualquiera de estas opciones:
+
+- En el **Inicio**, haz clic en el nombre de una colección de la lista.
+- En la barra lateral, haz clic en el nombre de una colección, o abre su menú **⋯** y elige **Resumen de la colección**.
+- Haz clic en la pestaña con el nombre de la colección, si ya está abierta.
+
+El resumen se abre en una pestaña con el nombre de la colección. El panel **Documentación** de la derecha se explica en [Escribir documentación](/es/workspaces/documentation/).
+
+## Las tarjetas
+
+| Tarjeta | Qué muestra y qué hace |
+|---|---|
+| **Ubicación** | La carpeta de la colección. **Mostrar en Finder** (**Mostrar en el explorador**) la abre en tu explorador de archivos. **Abrir en terminal** abre una terminal ahí. Ambas, solo en escritorio. Una colección guardada en el navegador muestra **Guardado en este navegador**. |
+| **Versión** | La versión que tu equipo le da a la colección, o **Sin definir**. Mira [Definir la versión](/es/workspaces/collections/#definir-la-versión). |
+| **Autorización** | La autorización de los requests con **Heredar de la colección**. Mira [Autorización de la colección](/es/workspaces/collection-authorization/). |
+| **Ambientes** | Los ambientes con sus colores, y el enlace `2 ambiente(s) · configurar`, que abre el activo. |
+| **Workflows** | Cuántos workflows, archivos Arazzo y casos de prueba, por ejemplo `4 workflow(s) en 1 archivo(s) Arazzo · 12 caso(s) de prueba`. Después de ejecutar casos agrega la última ejecución: ✓ pasaron, ✕ fallaron, ! advertencia, ? no concluyente. Los enlaces abren los primeros seis workflows. |
+| **Contratos** | Cuántos contratos cargaron, por ejemplo `3 de 3 cargado(s)`, y un enlace a cada uno. |
+| **Compartir** | Un recordatorio de que la colección es una carpeta que puedes compartir con git, y **Copiar la ruta**. |
+
+Los conteos de la última ejecución son de esta sesión. No se guardan.
+
+## Los números del Inicio
+
+El **Inicio** tiene cuatro contadores: las **Colecciones** del workspace, y los **Workflows**, **Contratos** y **Ambientes** de la colección que está abierta. La nota que está debajo nombra esa colección.
+
+<Aside type="tip">
+Una colección sin Arazzo muestra un aviso en el **Inicio**: impórtalos con **Importar Arazzo o contratos**, o suéltalos sobre la colección. Mira [Colecciones](/es/workspaces/collections/#agregar-archivos-a-una-colección).
+</Aside>
+
+## Siguiente
+
+<CardGrid>
+  <LinkCard title="Colecciones" href="/es/workspaces/collections/" />
+  <LinkCard title="Escribir documentación" href="/es/workspaces/documentation/" />
+  <LinkCard title="Qué hay en el disco" href="/es/workspaces/files/" />
+</CardGrid>

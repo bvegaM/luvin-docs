@@ -1,0 +1,88 @@
+---
+title: Probar una operación
+description: Cómo llamar a una sola operación de un contrato, con las credenciales del ambiente activo, y dónde aparece la llamada en Dev Tools.
+sidebar:
+  order: 3
+---
+
+import { Steps, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+No necesitas un workflow para comprobar una operación. Luvin te deja llamar a una sola operación de un contrato, con los datos que escribas, y muestra si la respuesta cumple el contrato. Úsalo para ver que una API está arriba, para saber qué responde o para preparar los datos de un workflow.
+
+## Ejemplo: llama a `getPokemon` por separado
+
+Con el contrato de la PokéAPI y el ambiente `local`:
+
+| Haces | Luvin hace |
+|---|---|
+| Expandes `GET /pokemon/{idOrName}`, haces clic en **Try it out**, escribes `pikachu` en `idOrName` y haces clic en **Execute** | Envía `GET https://pokeapi.co/api/v2/pokemon/pikachu` con el servidor del ambiente activo |
+| Lees la respuesta en Swagger UI | Muestra el status `200` y el body JSON |
+| Abres **Dev Tools**, **Red** | Registra la llamada: **Caso** *Try it out*, **Paso** `/pokemon/{idOrName}`, con la etiqueta **Swagger UI** |
+
+## Probarla desde el contrato
+
+<Steps>
+
+1. Abre un contrato OpenAPI desde la lista **Contratos**.
+2. En la vista previa de la derecha, haz clic en una operación para expandirla.
+3. Haz clic en **Try it out**, completa los parámetros y el body, y haz clic en **Execute**.
+
+</Steps>
+
+Swagger UI muestra la respuesta debajo.
+
+Lo que hace Luvin por ti:
+
+- **El servidor sale del ambiente activo.** La dirección del ambiente es la primera de **Servers**, con el nombre *Ambiente «nombre» (Luvin)*. Cambia el ambiente activo y la llamada va a otro servidor.
+- **Las credenciales también salen del ambiente.** Para cada esquema de seguridad del contrato, Luvin autoriza la llamada con los valores que definiste en el ambiente. No tienes que escribirlos. Mira [Variables y secretos](/es/environments/variables-and-secrets/).
+- **La llamada sale de Luvin, no de la vista previa.** En la app de escritorio no hay restricción de CORS. En la versión de navegador la API debe permitir CORS.
+- **Los secretos quedan ocultos.** El comando cURL que muestra Swagger UI oculta con `••••` los valores de los secretos del ambiente.
+
+Esta llamada es siempre contra la API real. Aquí no se simula nada.
+
+## Probarla desde un paso
+
+Si un paso de un workflow llama a la operación, puedes probarla sin salir del workflow.
+
+<Steps>
+
+1. Abre el paso en un workflow.
+2. Haz clic en **▶ Probar sola**. El tooltip dice *Llama a esta operación por sí sola, fuera del workflow, con el ambiente activo*.
+3. Se abre una pestaña con la operación. Arriba, elige **API real** o **Simulado**, revisa el ambiente y pulsa **Enviar** (⌘/Ctrl + Enter).
+
+</Steps>
+
+El formulario lista los parámetros por lugar (**Parámetros de ruta**, **Query**, **Headers**, **Cookies**) y el **Body**. Los parámetros obligatorios llevan un `*`. Los valores parten de los ejemplos del contrato y aceptan `{{variables}}` del ambiente y generadores como `{{$randomEmail}}`. **Ejemplo del contrato** vuelve a poner el body de ejemplo.
+
+Unos mensajes sobre el formulario te avisan antes de enviar:
+
+| Mensaje | Qué hacer |
+|---|---|
+| *El ambiente no tiene URL para «nombre» ni el contrato define servers: complétala en el ambiente o usa la simulación.* | Agrega la URL base al ambiente, o elige **Simulado**. |
+| *Faltan credenciales en «ambiente»: la API probablemente responderá 401.* | Haz clic en **Configurar** y completa las credenciales. |
+| *Se envían las credenciales del ambiente (nombres).* | Nada: se encontraron las credenciales. |
+| *Sin valor (obligatorios): nombres. Se puede enviar igual para ver qué responde la API.* | Opcional. Puedes enviar igual. |
+
+Bajo **Respuesta** ves el status, el tiempo y uno de dos veredictos: **Cumple el contrato**, o *N diferencia(s) con el contrato*. Abre la tarjeta para leer el request y la respuesta.
+
+Con **Simulado**, Luvin responde desde los ejemplos del contrato y no envía nada a la red.
+
+## Dónde aparece la llamada
+
+Cada llamada de **Try it out** y de **Probar sola** queda registrada en **Dev Tools**, en la pestaña **Network**, con los secretos tapados.
+
+| Dónde la probaste | En la fila de Network |
+|---|---|
+| **Try it out** en el contrato | **Caso**: *Try it out*. **Paso**: la ruta de la operación. La llamada lleva la etiqueta **Swagger UI**. |
+| **Probar sola** en un paso | **Caso**: el método y la ruta, por ejemplo `GET /pokemon/{name}`. **Paso**: el `operationId` (o `request` cuando no tiene). La llamada lleva la etiqueta **Probar operación**. |
+
+Abre la fila para ver los headers, el body y la respuesta. Mira [Network](/es/dev-tools/network/).
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Contratos" href="/es/contracts/overview/" />
+  <LinkCard title="Editar un contrato" href="/es/contracts/edit/" />
+  <LinkCard title="Ambientes" href="/es/environments/overview/" />
+  <LinkCard title="Simulación" href="/es/test/simulation/" />
+</CardGrid>

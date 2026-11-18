@@ -1,0 +1,151 @@
+---
+title: Environments
+description: What an environment is, how to create, rename, color and delete one, and how to choose the active environment.
+sidebar:
+  order: 1
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+An environment holds what changes between the places where your API runs, such as local and production. You need one as soon as you run a workflow or send a request against a real API.
+
+Each environment is one small file. The same request, `{{baseUrl}}/customers`, goes to a different place in each:
+
+<Tabs>
+<TabItem label="local">
+
+```yaml title="environments/local.yaml"
+name: local
+color: green
+servers:
+  baseUrl: http://localhost:8080
+```
+
+`{{baseUrl}}/customers` becomes `http://localhost:8080/customers`.
+
+</TabItem>
+<TabItem label="production">
+
+```yaml title="environments/production.yaml"
+name: production
+color: red
+servers:
+  baseUrl: https://api.shop.test
+```
+
+`{{baseUrl}}/customers` becomes `https://api.shop.test/customers`.
+
+</TabItem>
+</Tabs>
+
+<video controls muted playsinline preload="metadata" poster="/media/en/environments.webp" src="/media/en/environments.mp4"></video>
+
+## What an environment holds
+
+| Part | What it is |
+|---|---|
+| **Base URLs** | The address of each API in this environment, for example `https://api.shop.test`. |
+| **Credentials** | The values the contracts ask for: a token, a user and password, an API key. |
+| **Variables** | Values you reuse as `{{name}}`, such as a client ID. |
+| **Secrets** | Variables for keys and tokens. Their values never go into the workspace files. |
+| **Label color** | A color to tell environments apart at a glance. |
+
+Environments belong to the open [collection](/reference/glossary/). Each collection has its own list and always has at least one.
+
+![An environment open, with its base URLs, credentials, variables and secrets](/media/en/environment.webp)
+
+## Where environments are
+
+| Place | What you find |
+|---|---|
+| Sidebar | The **Environments** section, at the bottom, with the open collection's name. The active one has its dot filled in |
+| Run bar of a workflow | The **Environment** selector, next to **Real API** and **Simulation** |
+| Bottom bar | The active environment's name, on the right. Click it to open the environment |
+
+## Choose the active environment
+
+The active environment is the one Luvin uses for every run, every request and **Try it out** in a contract.
+
+<Steps>
+
+1. In the sidebar, under **Environments**, click an environment.
+2. It becomes active and opens in a tab titled **Environment “name”**.
+
+</Steps>
+
+To switch without leaving a workflow, use the **Environment** selector in the run bar. Its last option, **Configure environment…**, opens the active environment. Luvin remembers the active environment of each collection on this computer.
+
+## Create an environment
+
+<Steps>
+
+1. In the sidebar, click **+** (**New environment**) in **Environments**. Inside an open environment you can also click **+ New**.
+2. A new environment called **New environment** is added and becomes active.
+3. Type its name and press **Enter**.
+
+</Steps>
+
+The new environment is a copy of the active one: same base URLs and variables. For secrets it copies only the names. Credentials are not copied. You only change what differs.
+
+## Rename an environment
+
+<Steps>
+
+1. Open the environment.
+2. Double-click its name in the row of environments at the top, or click **Rename**.
+3. Type the new name and press **Enter**. Press **Esc** to cancel.
+
+</Steps>
+
+## Give it a color
+
+<Steps>
+
+1. Open the environment.
+2. Next to **Label color**, click a color: gray, green, blue, purple, yellow, orange or red. The first option removes the color.
+
+</Steps>
+
+The color shows in the sidebar, in the **Environment** selector and in the bottom bar. A common choice: local in green, integration in yellow, production in red.
+
+## Delete an environment
+
+<Tabs>
+<TabItem label="From the sidebar">
+
+<Steps>
+
+1. Hover the environment and open its **⋯** menu.
+2. Choose **Delete environment…**.
+3. Confirm with **Delete**.
+
+</Steps>
+
+</TabItem>
+<TabItem label="From the environment">
+
+<Steps>
+
+1. Open the environment.
+2. Click **Delete**, on the right of the row of environments.
+3. Confirm with **Delete**.
+
+</Steps>
+
+</TabItem>
+</Tabs>
+
+Deleting an environment also deletes its credentials and secrets from this computer.
+
+<Aside type="note" title="There is always one environment">
+If you delete the only environment, Luvin leaves a new, empty one in its place, with the base URLs of the contracts. The confirmation says so before you delete.
+</Aside>
+
+## Next
+
+<CardGrid>
+  <LinkCard title="Base URLs, variables and secrets" href="/environments/variables-and-secrets/" />
+  <LinkCard title="Dynamic variables" href="/environments/dynamic-variables/" />
+  <LinkCard title="Authorization of a workflow" href="/authorization/workflow/" />
+  <LinkCard title="Run a workflow" href="/test/run/" />
+</CardGrid>

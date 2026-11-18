@@ -1,0 +1,128 @@
+---
+title: Simulation
+description: Run a workflow without calling any API. Where the simulated answers come from, what simulation is good for, what it cannot tell you and how it treats messaging steps, retries and dependencies.
+sidebar:
+  order: 10
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+**Simulation** runs a workflow without sending any request. Each step answers with an example taken from its contract. You need no network, no credentials and no running API. Use it to check the logic of a workflow, to see what happens on an error you cannot cause on demand, and to try a workflow before its API exists.
+
+To use it, choose **Simulation** in the run bar, next to **Real API**, and press **Run**. See [Run](/test/run/).
+
+## Example: simulate getSpecies
+
+In **Pokemon card**, `getSpecies` only needs `capture_rate >= 0`. In simulation it answers with the example of the contract.
+
+<Tabs>
+  <TabItem label="The step">
+
+```yaml title="pokemon.arazzo.yaml" {4}
+- stepId: getSpecies
+  successCriteria:
+    - condition: $statusCode == 200
+    - condition: $response.body#/capture_rate >= 0
+```
+
+  </TabItem>
+  <TabItem label="The contract example">
+
+```yaml title="pokeapi.openapi.yaml" {7}
+'200':
+  content:
+    application/json:
+      example:
+        id: 25
+        name: pikachu
+        capture_rate: 190
+        is_legendary: false
+```
+
+  </TabItem>
+</Tabs>
+
+The step answers 200 with that body, meets its criteria and passes `id` to the next steps. No request leaves your computer.
+
+## Where the answers come from
+
+For every step, Luvin looks up its operation in the contract and builds the response in this order:
+
+<Steps>
+1. **The status.** The status the step's success criteria ask for. If they do not ask for one, the first documented 2xx status. If there is none, 200.
+2. **The body, from an example.** An example of that response in the contract. If there are several, Luvin picks the one that already contains the values the criteria need, for example `$response.body#/status == 'ACTIVE'`. Otherwise it takes the first one.
+3. **The body, from the schema.** If the contract has no example, Luvin builds one from the schema: it uses the `example`, the `default` or the first allowed option of each field, and otherwise a plausible value (`1` for a number, `true` for yes/no, `demo@example.com` for an email, a fixed date for a date, a placeholder text for text). A list gets a single item.
+4. **The values the criteria require** are set on top of the body, so the step meets its own criteria.
+</Steps>
+
+Every step answers as a success, so a normal case runs from start to end. The only exception is a response case, described below.
+
+Simulated steps show the **Simulated** badge in the results, and the case list marks the case **Sim**. The report marks them as simulated too. See [Read a step result](/test/step-results/).
+
+<Aside type="tip">
+The better the examples in your contracts, the more useful the simulation. A contract with realistic examples gives you realistic data flowing from step to step.
+</Aside>
+
+## What it is good for
+
+- **Checking the design.** Do the outputs of one step reach the next one? Do the success criteria hold? Does the workflow end where you expect?
+- **Error paths.** Response cases make a step answer 404, 422 or 500 so you see which action fires. See [Cases](/test/cases/).
+- **Working without access.** The API is down, you have no credentials or you are offline. The PayPal example runs in simulation with no credentials.
+- **Demos and quick tries.** Nothing is created, changed or deleted anywhere.
+
+## What it cannot tell you
+
+Simulation proves that the workflow is consistent with its contract. It does not prove that the API behaves as the contract says.
+
+- **It does not validate what Luvin sends.** The request is built, but nothing reads it. A wrong value does not make the simulated step fail.
+- **It cannot reject anything.** For that reason **Data validation** and **Security** cases, and **Custom data cases**, do not run in simulation. They show **Will not run** with the reason. Switch the run bar to **Real API** to run them. See [Cases](/test/cases/).
+- **Its data is invented.** The examples may not look like the data your API returns.
+
+Run against the **Real API** before you trust a workflow.
+
+## Response and message cases
+
+A **response case** simulates that one step answers the response that triggers one of its actions, for example `getPokemon responds 404 → pokemonNotFound` in **Pokemon card**. The other steps answer as successes.
+
+The simulated response is built as above, with the values that the action's condition asks for. It is served **once**: the first time that step runs. If the workflow goes back to the step, for example after a retry, the step answers as a success.
+
+A **message case** is for a step that receives a message. Luvin simulates a message that carries the values an action expects, or no message at all, so the step reaches its timeout. See [Cases](/test/cases/).
+
+Response cases are simulated by default. To check the same thing against your API, switch the case to **Real API** and give it data. See [Adjust a case](/test/adjust-cases/).
+
+## Messaging steps are always simulated
+
+Luvin does not connect to message brokers such as Kafka, AMQP or MQTT. Steps that send or receive a message through an AsyncAPI channel are simulated **in every run**, also when the run bar says **Real API**.
+
+- A step that **sends** is reported as **Sent**. Nothing leaves your computer.
+- A step that **receives** gets an example message from the AsyncAPI contract that meets the step's criteria, with the correlation id the workflow expects.
+- The run bar says how many: *N messaging step(s) are simulated*.
+- Against the **Real API**, such a step ends as **Succeeded with warnings**, with the note *Simulated: Luvin does not connect to brokers yet, so this step uses the AsyncAPI examples.* In **Simulation** it ends as **Succeeded**.
+
+See [Messaging steps](/design/messaging/).
+
+## Retries
+
+When an action of type retry fires, the step runs again.
+
+- In simulation Luvin does not wait the `retryAfter` time between attempts. The run does not slow down.
+- If the action also names a workflow to run first, for example one that renews a token, that workflow runs before the retry.
+- A response case simulates the failing response once, so the next attempt succeeds. You see the step with **Attempt 2** and the workflow goes on. You cannot see the retries run out in simulation.
+
+## Workflows that depend on another
+
+The workflows that a workflow depends on run first, as in a real run. In simulation they are simulated too, each with its own contract examples and its own default values. No sign-in is asked for. Their steps show under **Preparation** in the results. See [Dependencies](/design/dependencies/).
+
+## Lists in simulation
+
+When a step returns a list that later steps use, the run pauses so you choose an item. In simulation the dialog appears **only when the list has more than one item**. A response built from a schema has a single item, so the run continues on its own. A contract example can have several items, and then the dialog appears.
+
+Against the **Real API** the dialog always appears, also with one item. See [Choose an item from a list](/test/lists/).
+
+## Next
+
+<CardGrid>
+  <LinkCard title="Run" href="/test/run/" />
+  <LinkCard title="Cases" href="/test/cases/" />
+  <LinkCard title="Read the results" href="/test/results/" />
+</CardGrid>

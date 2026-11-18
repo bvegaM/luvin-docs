@@ -1,0 +1,216 @@
+---
+title: Éxito y errores
+description: "Define qué cuenta como un paso exitoso y qué hace el workflow ante cada error documentado: terminar, reintentar o saltar."
+sidebar:
+  order: 7
+---
+
+import { Steps, Tabs, TabItem, Aside, Badge, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Cada paso necesita dos decisiones: qué respuesta significa que salió bien, y qué hacer cuando la API responde con un error. Luvin define la primera a partir del contrato y deja la segunda a ti. Ambas están en el panel del paso.
+
+## Ejemplo: un Pokémon que no existe
+
+En **Pokemon card**, el primer paso termina el workflow cuando la API responde 404, así que «el Pokémon no existe» es un resultado conocido y no una falla inesperada.
+
+<Tabs>
+  <TabItem label="En la app">
+
+  En el panel del paso `getPokemon`, **Es éxito si responde** tiene **200** seleccionado. Bajo **Si responde con error**, la lista junto a **404** dice **Terminar el workflow**. En el lienzo, con **Acciones según la respuesta** activado, la tarjeta muestra la fila `404 → pokemonNotFound` **fin ✕**.
+
+  ![El panel de un paso con los outputs y la acción elegida para cada error documentado](/media/es/step-outputs.webp)
+
+  </TabItem>
+  <TabItem label="En el YAML">
+
+```yaml title="pokemon.arazzo.yaml" {7-11}
+- stepId: getPokemon
+  successCriteria:
+    - condition: $statusCode == 200
+    - context: $response.body
+      condition: $.abilities[?(@.is_hidden == false)]
+      type: jsonpath
+  onFailure:
+    - name: pokemonNotFound
+      type: end
+      criteria:
+        - condition: $statusCode == 404
+```
+
+  </TabItem>
+</Tabs>
+
+## Qué cuenta como éxito
+
+<Steps>
+1. En la pestaña **Diseño**, haz clic en un paso.
+2. Busca **Es éxito si responde**. Tiene una opción por cada estado 2xx que el contrato documenta para la operación.
+3. Haz clic en el estado que esperas.
+</Steps>
+
+Un paso nuevo parte con el 2xx documentado más bajo, o 200 si el contrato no documenta ninguno. En el archivo se escribe como `$statusCode == 200`. Cualquier otra respuesta hace fallar el paso.
+
+### Más que el estado
+
+Un paso también puede revisar el contenido de la respuesta. Estos criterios adicionales se escriben en la [pestaña YAML](/es/design/arazzo-editor/). El panel los lista debajo de los estados con el enlace **Editar en el YAML**, y la tarjeta los muestra bajo **Criterios de éxito**. Todos los criterios deben cumplirse a la vez.
+
+En **Pokemon card**, el paso `getSpecies` revisa el estado y un campo:
+
+```yaml title="pokemon.arazzo.yaml" {3}
+successCriteria:
+  - condition: $statusCode == 200
+  - condition: $response.body#/capture_rate >= 0
+```
+
+Mira [Criterios JSONPath y regex](/es/recipes/criteria/) para ejemplos ejecutables.
+
+## Qué pasa ante cada error
+
+**Si responde con error** lista cada estado de error que el contrato documenta para la operación, con la descripción del contrato. Cada uno tiene una lista de acciones.
+
+| Acción | Qué hace el workflow |
+|---|---|
+| **Sin acción (el workflow falla)** | Es la predeterminada. El paso falla y el workflow se detiene con una falla genérica. |
+| **Terminar el workflow** | Se detiene en este paso como un resultado conocido, por ejemplo «el Pokémon no existe». |
+| **Reintentar (hasta 3 veces)** | Llama al paso otra vez, hasta 3 veces, esperando 1 segundo antes de cada intento. Si sigue fallando, el workflow falla. |
+| **Ir a «paso»** | Salta a otro paso del workflow y continúa desde ahí. |
+
+<Steps>
+1. Abre la lista junto al estado, por ejemplo **404**.
+2. Elige la acción.
+</Steps>
+
+Luvin la escribe en el archivo con el nombre `on404`:
+
+```yaml
+onFailure:
+  - name: on404
+    type: end
+    criteria:
+      - condition: $statusCode == 404
+```
+
+Cada acción que defines también te da una prueba: Luvin genera un caso que simula esa respuesta y comprueba que la acción se active. Consulta [Casos](/es/test/cases/).
+
+<Aside type="tip" title="Cambia el límite de reintentos">
+**Reintentar** escribe `retryLimit: 3` y `retryAfter: 1` (segundos). Para usar otros números, cámbialos en la pestaña YAML, o guarda la acción como [reutilizable](/es/design/reusables/): su panel tiene ambos campos.
+</Aside>
+
+En esta sección pueden aparecer dos cosas más:
+
+- Un grupo **Reutilizables** al comienzo de la lista, cuando una acción guardada maneja ese estado. Al elegirlo se aplica el reutilizable.
+- La línea **Hay 2 acción(es) de error con criterios propios.** con **Editar en el YAML**. Esas acciones no dependen de un solo estado, por ejemplo dependen de un campo de la respuesta. El panel no las edita.
+
+Ejemplos ejecutables: [Reintentar, saltar y terminar ante errores](/es/recipes/error-branches/) y [Demostrar que la API rechaza datos inválidos](/es/recipes/expected-error/).
+
+## Reintentos y llamadas lentas
+
+### Qué hace un reintento
+
+Cuando un paso no tiene éxito y su acción es **Reintentar**, Luvin envía el paso otra vez. Cada intento aparece en los resultados como, por ejemplo, **Reintento 1 de 3 (acción "on429")**. Si el último intento también falla, los resultados dicen **Se agotaron los 3 reintentos** y el paso falla.
+
+| Ajuste | Comportamiento |
+|---|---|
+| Cuántas veces | `retryLimit`. Si una acción no lo tiene, Luvin reintenta una vez. |
+| Cuánto esperar | `retryAfter`, en segundos, entre intentos. |
+| Límite con la API real | <Badge text="Máx. 10 s" variant="caution" /> Luvin nunca espera más de 10 segundos entre dos intentos, aunque `retryAfter` sea mayor. |
+| Simulación | No espera nada. |
+| De dónde sale la espera | Solo de `retryAfter`. Luvin no lee un header `Retry-After` de la respuesta. |
+
+### Ejecuta otro paso o workflow antes del reintento
+
+Una acción `retry` también puede nombrar algo que se ejecuta primero. Luvin lo ejecuta una vez y luego llama otra vez al paso que falló. Sirve para renovar un token: la llamada responde 401, corre un login y se vuelve a intentar.
+
+<Tabs>
+  <TabItem label="Paso: stepId">
+
+```yaml title="retry-step.arazzo.yaml" {5-6}
+onFailure:
+  - name: loginAndRetry
+    type: retry
+    stepId: login
+    retryLimit: 2
+    criteria:
+      - condition: $statusCode == 401
+```
+
+Luvin ejecuta el paso `login` del mismo workflow. El paso tiene que existir: si no, el análisis dice **La acción "loginAndRetry" (retry) apunta al paso inexistente "login".**
+
+  </TabItem>
+  <TabItem label="Workflow: workflowId">
+
+```yaml {4}
+onFailure:
+  - name: renewToken
+    type: retry
+    workflowId: $sourceDescriptions.auth.login
+    retryLimit: 2
+    criteria:
+      - condition: $statusCode == 401
+```
+
+Luvin ejecuta el workflow, de este archivo o de otro archivo Arazzo, y guarda sus outputs para que el paso reintentado los lea.
+
+  </TabItem>
+</Tabs>
+
+En los resultados, el intento aparece como **Reintento 1 de 2: antes corre el paso "login" (acción "loginAndRetry")**. El paso o workflow que corre primero cuenta para `retryLimit`, y Luvin espera `retryAfter` antes de cada reintento.
+
+Ejemplo ejecutable: [Vuelve a iniciar sesión y reintenta](/es/recipes/retry-step/).
+
+### Corta una llamada lenta con `timeout`
+
+Un paso puede llevar un `timeout`, en milisegundos. Si la API no responde en ese tiempo, Luvin corta la llamada y el paso falla con **La API no respondió en 3000 ms (timeout del paso).** El panel del paso no tiene un campo para esto. Escríbelo en la [pestaña YAML](/es/design/arazzo-editor/), dentro del paso:
+
+```yaml
+steps:
+  - stepId: getOrder
+    operationId: $sourceDescriptions.shop.getOrder
+    timeout: 3000
+```
+
+Mira [Motivos de falla](/es/reference/failure-reasons/) para saber cómo leer el mensaje. Para un paso que espera un mensaje, `timeout` significa otra cosa: mira [Pasos de mensajería](/es/design/messaging/).
+
+## Mira las acciones en el lienzo
+
+Activa **Acciones según la respuesta**, junto a **Mostrar:** sobre el lienzo. Cada tarjeta recibe una sección, **Si falla**, con una fila por respuesta:
+
+| Fila | Significado |
+|---|---|
+| `404 → pokemonNotFound` **fin ✕** | Ante un 404, la acción `pokemonNotFound` termina el workflow. |
+| `429 → on429` **reintenta ×3** | Ante un 429, el paso se intenta de nuevo hasta 3 veces. |
+| `409 → on409` **ir a getOrder** | Ante un 409, la ejecución salta al paso `getOrder`. |
+| `500 → sin acción` **falla** | El contrato documenta un 500 y nada lo maneja. |
+
+Un salto también se dibuja como una línea naranja punteada que sale de la fila, recorre el lado izquierdo de las tarjetas y entra al paso de destino. Su etiqueta es el estado y el nombre de la acción. En la leyenda, el punto naranja es **salta a otro paso**. Para apartar una línea de salto de las demás, arrastra su tramo vertical hacia un lado; el cursor muestra **Arrastra para mover la línea**. Las líneas de datos se mueven igual.
+
+Desactiva el interruptor para ocultar la sección y las líneas de salto cuando quieras leer solo los datos.
+
+## Comprueba que cada respuesta tiene manejo
+
+La pestaña **Resumen** del workflow tiene una sección, **Cobertura de respuestas**, que compara el contrato con el workflow.
+
+<Steps>
+1. Abre la pestaña **Resumen**.
+2. Abre **Cobertura de respuestas**. Su insignia dice, por ejemplo, **5/7 manejadas**.
+</Steps>
+
+La tabla tiene una fila por paso y estado documentado:
+
+| Manejo en el Arazzo | Significado |
+|---|---|
+| ✓ **Éxito** | El estado es el que el paso espera. |
+| ✓ **Acción** | Una acción lo maneja. Sigue el nombre de la acción. |
+| ✕ **Sin manejo** | Nada lo maneja. Si la API responde esto, el workflow falla con un error genérico. |
+
+No tienes que manejarlo todo. Maneja los errores que tu aplicación trata distinto, como «no encontrado» o «no aprobado».
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Reutilizables" href="/es/design/reusables/" />
+  <LinkCard title="Resultados" href="/es/test/results/" />
+  <LinkCard title="La pestaña YAML" href="/es/design/arazzo-editor/" />
+  <LinkCard title="Reintentar, saltar y terminar ante errores" href="/es/recipes/error-branches/" />
+  <LinkCard title="Vuelve a iniciar sesión y reintenta" href="/es/recipes/retry-step/" />
+</CardGrid>

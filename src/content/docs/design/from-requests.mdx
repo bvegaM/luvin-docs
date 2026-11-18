@@ -1,0 +1,102 @@
+---
+title: Build from saved requests
+description: Build a workflow without contracts by dragging saved requests onto the canvas, and let Luvin suggest how to wire them.
+sidebar:
+  order: 11
+---
+
+import { Steps, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+You do not need an OpenAPI contract to build a workflow. If you have saved requests, for example imported from Postman or Bruno, drag them onto the canvas and each one becomes a step. Use this when the API has no contract, or you only have a collection of requests.
+
+A *request* is one saved API call: a method, a URL, headers and a body. See [Requests](/requests/overview/) and [Import from Postman or Bruno](/get-started/import/).
+
+## Example: Create order and Get order
+
+You saved two requests, **Create order** and **Get order**. You drag them onto the canvas.
+
+| You drag | Luvin creates | What it keeps |
+|---|---|---|
+| Request **Create order** | The step `createOrder` | The same URL, headers and body, with the `{{variables}}` of the environment |
+| Request **Get order** | The step `getOrder` | The path with `{{order_id}}` |
+
+After a run, Luvin sees that **Create order** returns an `id` that **Get order** uses. A bar appears above the canvas:
+
+```text
+Luvin found 1 connection(s) between steps
+```
+
+Click **Connect** and `{{order_id}}` becomes the output of the first step. See [Accept the suggested connections](#accept-the-suggested-connections).
+
+## Add a request as a step
+
+<Steps>
+1. Open the workflow and go to the **Design** tab.
+2. In the **Operations** palette, open **Collection requests**. It lists the HTTP requests of the collection, grouped by folder. Type in **Search operation…** to filter.
+3. Drag a request onto the canvas, or click **+** on its row to add it at the end.
+</Steps>
+
+The step is sent exactly like the request: same URL, parameters, headers and body, with the `{{variables}}` of the environment kept. The only values Luvin replaces are the ones that an earlier step returns. Luvin does not create inputs, so what does not come from a step keeps the value of the request.
+
+The step is named after the request: **Create order** becomes `createOrder`. Its success criterion is the lowest 2xx status Luvin knows for it, or `$statusCode < 400` if it knows none.
+
+Only HTTP requests with a URL can be added. For anything else Luvin says **Only HTTP requests with a URL can be added to a workflow.**
+
+### The question about required fields
+
+The first time you add a request to a workflow, a dialog asks which fields the API requires. Answer it once and it applies to every workflow that uses that request. See [Add steps](/design/add-steps/).
+
+## How Luvin builds a contract for you
+
+An Arazzo file needs a contract to point to. Luvin creates one from your requests, one per base URL, in the folder `requests/_contracts` of the collection. Each request is an operation. The first line says it is generated: do not edit it, because Luvin rewrites it when a request changes.
+
+A request does not say what the API answers, so the contract starts with no responses. Without them, Luvin cannot yet see which values come from earlier steps.
+
+## Luvin learns the responses
+
+Luvin learns what each request answers from three places:
+
+- The first time you run the workflow against the **Real API**. Simulated runs do not count.
+- The examples saved in the request.
+- The last response you received when you sent the request on its own.
+
+You can also teach it without a run. Click the step. The panel starts with **From the request “Create order”**. When Luvin does not know the response yet, it says so and offers **Try this step**. For a GET this sends the request. For any other method it first warns **This sends the POST for real and may create or change data.** and offers **Send anyway** or **Cancel**. Once it knows the response, the note says so.
+
+## Accept the suggested connections
+
+With the responses known, Luvin can see that a value you wrote by hand comes from an earlier step. For example, the path of **Get order** has `{{order_id}}`, and **Create order** returns an `id`. A bar appears above the canvas: **Luvin found 2 connection(s) between steps**.
+
+| Button | What it does |
+|---|---|
+| **Connect all** | Applies every suggestion. |
+| **Connect** | Applies that one. |
+| **Ignore** | Hides that one. |
+| **Hide** / **Show** | Folds or unfolds the list. |
+
+Each line names the step, the value and where it would come from. After a run, the other tabs show **With the last run, Luvin found 2 connection(s) between steps.** with the link **Review in Design**.
+
+Luvin does not connect anything until you accept. **Undo** reverts it. [Connect data between steps](/design/wire-data/) explains the result.
+
+## Choose data to vary
+
+Since the steps keep the values of the requests, the workflow starts with no inputs, and a case has nothing to change. Pick the values you want to vary.
+
+<Steps>
+1. On the **Start** card, read **No inputs: the steps use 5 fixed values.** and click **Choose variable data…**.
+2. In **Data to vary per case**, tick the values. Each row shows where it is, for example `query · bank`, and its current value.
+3. Click **Turn into inputs**. The number of values you ticked is in the button.
+</Steps>
+
+Each value becomes an input of the workflow that keeps the current value as its default, so the happy path does not change. If the same value is used in several steps, one input feeds all of them. An input is required only when its parameter or field is required. Path parameters always are.
+
+To change one value, point at it on a card and click **→ input**. When the workflow already has inputs, the **Start** card shows **+ Turn another fixed value into an input** instead.
+
+The same dialog opens from the **Cases** tab, with the button **Choose data to vary**. Having inputs lets Luvin generate cases that send empty or invalid data. See [Cases](/test/cases/).
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Connect data between steps" href="/design/wire-data/" />
+  <LinkCard title="Parameters and body" href="/design/parameters-and-body/" />
+  <LinkCard title="Inputs" href="/test/inputs/" />
+</CardGrid>

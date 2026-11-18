@@ -1,0 +1,46 @@
+---
+title: NTLM Auth
+description: Authenticate against a Windows or intranet server with NTLM from the desktop app, with its fields and limits.
+sidebar:
+  order: 16
+---
+
+import { Aside, Badge } from '@astrojs/starlight/components';
+
+<Badge text="Desktop only" variant="caution" />
+
+Use **NTLM Auth** when a Windows or intranet server (for example IIS with Windows authentication) asks for NTLM. The handshake has three messages and they must travel on the same connection. Browsers do not allow that, so only the desktop app can do it.
+
+## Example
+
+A request `GET https://intranet.example.com/api/orders` to a server that answers `401` with `WWW-Authenticate: NTLM`.
+
+**Type** `NTLM Auth`, **Username** `ana`, **Password** `{{password}}`, **Domain** `CORP`, **Workstation** (empty). Luvin does the handshake (Negotiate, Challenge, Authenticate) on one connection and you see the final response.
+
+## Fields
+
+| Field | What to write |
+|---|---|
+| **Username** | The user. |
+| **Password** | The password. A secret field. |
+| **Domain** | The Windows domain, for example `CORP`. |
+| **Workstation** | The name of the workstation. Optional. |
+
+## Limits
+
+- **Desktop app only.** In the browser version the option reads *NTLM Auth · desktop only*, and sending shows *NTLM needs the desktop app: the handshake must happen on one connection, which browsers don’t allow.*
+- It is NTLM version 2.
+- It works in requests, in the collection and in a workflow, always from the desktop app.
+
+<Aside type="note">
+There is no public service to try NTLM against, so this page has no live example. The server in the example is a placeholder.
+</Aside>
+
+## Secrets
+
+**Password** is a secret: stored encrypted on your computer when typed as-is. **Username**, **Domain** and **Workstation** go to the file. Use variables to share. See [Secrets](/authorization/secrets/).
+
+## Related
+
+- [Digest Auth](/authorization/digest/)
+- [Limitations](/reference/limitations/)

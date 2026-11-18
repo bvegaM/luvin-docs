@@ -1,0 +1,135 @@
+---
+title: Envía un archivo
+description: Sube un archivo en un request, ya sea como el body completo (Archivo / binario) o como un campo de un Multipart Form, y corrige los errores cuando Luvin no puede leerlo.
+sidebar:
+  order: 15
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Algunas APIs reciben un archivo: un avatar, un PDF, un CSV. Luvin envía un archivo de dos maneras. Como el **body completo** (**Archivo / binario**), o como **un campo entre otros** (**Multipart Form**). Usa la primera cuando la API quiere solo el archivo, y la segunda cuando quiere el archivo más datos, como un nombre.
+
+## Ejemplo: sube un avatar
+
+Una API de tienda tiene `POST {{baseUrl}}/avatars`. Quiere un campo de texto `name` y un campo de archivo `avatar`. El archivo del request guarda la ruta del archivo, no su contenido:
+
+```yaml title="requests/uploads/upload-avatar.request.yaml" {8-18}
+name: Upload avatar
+kind: http
+method: POST
+url: "{{baseUrl}}/avatars"
+auth:
+  type: inherit
+body:
+  mode: formdata
+  form:
+    - key: name
+      value: Ana
+    - key: avatar
+      type: file
+      file:
+        path: /Users/ana/pics/ana.png
+        name: ana.png
+        contentType: image/png
+```
+
+## Envía un archivo como campo (Multipart Form)
+
+<Steps>
+
+1. Abre el request y haz clic en la pestaña **Body**.
+2. En el menú de arriba, elige **Multipart Form**, bajo **Formulario**.
+3. En la fila vacía del final, escribe la **Clave**, por ejemplo `name`, y su **Valor**, por ejemplo `Ana`.
+4. En la fila siguiente, escribe la clave `avatar`. En el menú a la derecha del **Valor**, **Tipo de campo**, cambia **Texto** por **Archivo**.
+5. La celda del valor pasa a mostrar **Elegir archivo** y **Ningún archivo elegido**. Haz clic en **Elegir archivo** y elige `ana.png`.
+6. La fila muestra ahora el nombre del archivo y su tamaño, y el botón dice **Cambiar archivo**.
+7. Pulsa **Enviar** (⌘/Ctrl + Enter).
+
+</Steps>
+
+Luvin arma el body multipart y pone `Content-Type: multipart/form-data` con su boundary. Abre **Request enviado** en la respuesta para verlo. El archivo aparece como su nombre entre paréntesis angulares, porque Luvin no imprime sus bytes:
+
+```text
+------Luvin3f9a1c
+Content-Disposition: form-data; name="name"
+
+Ana
+------Luvin3f9a1c
+Content-Disposition: form-data; name="avatar"; filename="ana.png"
+Content-Type: image/png
+
+<ana.png>
+------Luvin3f9a1c--
+```
+
+Notas:
+
+- Un campo de **Texto** acepta `{{variables}}` y generadores. Uno de **Archivo** no.
+- Si cambias **Archivo** de nuevo a **Texto**, Luvin olvida el archivo elegido.
+- Una fila de **Archivo** sin archivo elegido no se envía. Desmarca una fila para dejarla fuera sin borrarla. La ✕ (**Quitar fila**) la borra.
+- El `Content-Type` del archivo sale de su extensión: `json`, `xml`, `txt`, `csv`, `html`, `pdf`, `zip`, `png`, `jpg`, `jpeg`, `gif`, `webp` o `svg`. Con otra extensión, la versión del navegador usa el tipo que informa el navegador, y la app de escritorio envía `application/octet-stream`.
+
+## Envía un archivo como el body completo (Archivo / binario)
+
+<Steps>
+
+1. Abre la pestaña **Body** y elige **Archivo / binario**, bajo **Otro**.
+2. Haz clic en **Elegir archivo** y elige el archivo.
+3. Lee la nota: *El archivo se envía tal cual. El Content-Type sale de su extensión; cámbialo en Headers si hace falta.*
+4. Pulsa **Enviar**.
+
+</Steps>
+
+Para enviar el archivo con otro tipo, escribe tu propio `Content-Type` en **Headers**. Consulta [Los headers que agrega Luvin](/es/requests/auto-headers/).
+
+<Aside type="caution">
+El body no se envía con GET ni HEAD. Usa POST, PUT o PATCH.
+</Aside>
+
+## Cópialo como cURL
+
+**Copiar como cURL** escribe el formulario con `-F`, y un body binario con `--data-binary`:
+
+```bash
+curl -X POST 'https://api.shop.test/avatars' \
+  -F 'name=Ana' \
+  -F 'avatar=@/Users/ana/pics/ana.png'
+```
+
+En la versión del navegador no se conoce la ruta, así que el comando usa el nombre del archivo: `avatar=@ana.png`. Consulta [Importar y copiar cURL](/es/requests/curl/).
+
+## App de escritorio y navegador
+
+<Tabs>
+  <TabItem label="App de escritorio">
+
+  Luvin guarda la ruta del archivo y lo lee cada vez que envías. Si editas el archivo, el siguiente **Enviar** usa el contenido nuevo.
+
+  - Un archivo de más de 50 MB no se envía.
+  - Luvin solo lee archivos que elegiste con **Elegir archivo**, o que están dentro de un workspace abierto.
+
+  </TabItem>
+  <TabItem label="Navegador">
+
+  Una página no puede volver a leer una ruta, así que el archivo queda en memoria mientras la app está abierta. Después de recargar la página, elígelo de nuevo.
+
+  </TabItem>
+</Tabs>
+
+## Cuando falla
+
+El área de la respuesta dice el motivo, y no se envía nada.
+
+| Mensaje | Qué hacer |
+|---|---|
+| **Vuelve a elegir «ana.png»** | Luvin no puede leer el archivo. En el navegador, pasa después de recargar. En la app de escritorio, pasa cuando el request vino de otro computador o de un compañero: la ruta nunca se eligió aquí. Haz clic en **Elegir archivo** y elígelo. |
+| **«ana.png» ya no está en esa ubicación** | El archivo se movió o se borró. Haz clic en **Cambiar archivo** y elígelo. |
+| **«ana.png» pesa más de 50 MB** | Usa un archivo más pequeño. |
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Params, headers y body" href="/es/requests/params-headers-body/" />
+  <LinkCard title="Cómo se guarda un request" href="/es/requests/files/" />
+  <LinkCard title="Los headers que agrega Luvin" href="/es/requests/auto-headers/" />
+</CardGrid>

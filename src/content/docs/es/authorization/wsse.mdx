@@ -1,0 +1,40 @@
+---
+title: WSSE Auth
+description: Envía un UsernameToken de WS-Security a servicios SOAP o legados, con los dos headers que agrega Luvin.
+sidebar:
+  order: 19
+---
+
+Usa **WSSE Auth** cuando un servicio SOAP o legado pide un *UsernameToken* de WS-Security: un usuario y un digest de la contraseña en vez de la contraseña.
+
+## Ejemplo
+
+**Tipo** `WSSE Auth`, **Usuario** `ana`, **Contraseña** `secret`. Luvin agrega dos headers:
+
+```text
+X-WSSE: UsernameToken Username="ana", PasswordDigest="…", Nonce="…", Created="2026-11-17T14:03:22.000Z"
+Authorization: WSSE profile="UsernameToken"
+```
+
+`PasswordDigest` es el base64 del SHA-1 del nonce, la fecha de creación y la contraseña. El nonce y la fecha son nuevos en cada envío.
+
+## Campos
+
+| Campo | Qué escribir |
+|---|---|
+| **Usuario** | El usuario. |
+| **Contraseña** | La contraseña. Es un campo secreto. |
+
+## Reglas
+
+- Reemplaza un header `Authorization` que hayas escrito tú.
+- El digest se calcula al enviar. En **Headers** la fila dice *Luvin la calcula al enviar (WSSE)*.
+
+## Secretos
+
+**Contraseña** es un secreto: escrita tal cual se guarda cifrada en tu equipo. **Usuario** va al archivo. Mira [Secretos](/es/authorization/secrets/).
+
+## Relacionado
+
+- [Basic Auth](/es/authorization/basic/)
+- [Resumen de la autorización](/es/authorization/overview/)

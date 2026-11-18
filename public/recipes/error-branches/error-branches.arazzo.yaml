@@ -1,0 +1,62 @@
+arazzo: 1.0.1
+info:
+  title: What happens on each error
+  version: 1.0.0
+sourceDescriptions:
+  - name: dummyjson
+    url: ./dummyjson.openapi.yaml
+    type: openapi
+workflows:
+  - workflowId: retryThenEnd
+    summary: Retry a 503 twice, then end as failed
+    steps:
+      - stepId: callService
+        operationId: getStatus
+        parameters:
+          - name: status
+            in: path
+            value: 503
+        successCriteria:
+          - condition: $statusCode == 200
+        onFailure:
+          - name: retryUnavailable
+            type: retry
+            retryAfter: 1
+            retryLimit: 2
+            criteria:
+              - condition: $statusCode == 503
+          - name: stopOnAnyOtherError
+            type: end
+
+  - workflowId: fallbackOnNotFound
+    summary: A 404 jumps to a fallback step
+    steps:
+      - stepId: findItem
+        operationId: getStatus
+        parameters:
+          - name: status
+            in: path
+            value: 404
+        successCriteria:
+          - condition: $statusCode == 200
+        onSuccess:
+          - name: done
+            type: end
+        onFailure:
+          - name: useFallback
+            type: goto
+            stepId: fallback
+            criteria:
+              - condition: $statusCode == 404
+      - stepId: fallback
+        operationId: getStatus
+        parameters:
+          - name: status
+            in: path
+            value: 200
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          message: $response.body#/message
+    outputs:
+      message: $steps.fallback.outputs.message

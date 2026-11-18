@@ -1,0 +1,132 @@
+---
+title: Quick start
+description: Open the bundled Pokédex example, run the "Pokemon card" workflow and read the results, click by click.
+sidebar:
+  order: 2
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A complete first run with the bundled Pokédex, which calls the public PokéAPI. It needs no credentials and no setup. If Luvin is not open yet, see [Install and open Luvin](/get-started/install/).
+
+<video controls muted playsinline preload="metadata" poster="/media/en/quick-start.webp" src="/media/en/quick-start.mp4"></video>
+
+## What you will run
+
+The **Pokemon card** workflow, from `pokemon.arazzo.yaml`. Each step uses what the previous one returned:
+
+```yaml title="pokemon.arazzo.yaml" {8,13-14}
+workflows:
+  - workflowId: pokemonCard
+    inputs:
+      properties:
+        pokemon: { type: string, example: pikachu }
+    steps:
+      - stepId: getPokemon
+        operationId: $sourceDescriptions.pokeapi.getPokemon
+        parameters:
+          - name: idOrName
+            in: path
+            value: $inputs.pokemon
+        outputs:
+          id: $response.body#/id
+      - stepId: getSpecies
+        operationId: $sourceDescriptions.pokeapi.getPokemonSpecies
+        parameters:
+          - name: idOrName
+            in: path
+            value: $steps.getPokemon.outputs.id
+```
+
+Run with `pokemon: pikachu`, the first call is `GET https://pokeapi.co/api/v2/pokemon/pikachu` and the second `GET https://pokeapi.co/api/v2/pokemon-species/25`.
+
+## Run it
+
+<Steps>
+
+1. **Open the example.** Open Luvin and click **Try the example** on the screen titled **Welcome to Luvin**.
+
+   Luvin creates a workspace called **Examples** with the collection **Pokédex** and opens its first workflow, **Pokemon card**.
+
+   ![The welcome screen, with Try the example at the top and the cards to create a workspace, open one or take the guided tour](/media/en/welcome.webp)
+
+2. **Look at the design.** Click the **Design** tab.
+
+   The canvas shows `getPokemon`, `getSpecies`, `getWeakness` and `getAbility`. The lines between them are the data that travels.
+
+3. **Check the cases.** Click the **Cases** tab.
+
+   You see **Happy path** and a case for the 404 the workflow handles. Only ticked cases run.
+
+4. **Choose Real API.** In the run bar, above the tabs, leave **Real API** selected. The **Environment** selector shows `local`.
+
+5. **Run.** Click **Run** (its label says how many cases, for example **Run 2 cases**) or press ⌘ Enter (Ctrl+Enter on Windows and Linux).
+
+   The **Result** bar at the bottom opens by itself and fills in as each case finishes.
+
+6. **Continue the lists.** A dialog titled **Run paused** opens. Click **Continue with this item**. It opens twice: `types` has one item and `abilities` has two.
+
+   See [Choose an item from a list](/test/lists/) for what the dialog offers.
+
+</Steps>
+
+<Aside type="note" title="No &quot;Try the example&quot; button?">
+If you opened a workspace before, the welcome screen offers to reopen it. Click **See the examples**, then **Try the Pokédex**.
+</Aside>
+
+<Aside type="note">
+With the **Simple** interface a workflow opens on the **Overview** tab, not **Design**. See [A tour of the interface](/get-started/interface/).
+</Aside>
+
+## What is in the sidebar
+
+| Section | What the example has |
+|---|---|
+| **Collections** | **Pokédex**, its file `pokemon.arazzo.yaml`, four workflows and their steps |
+| **Contracts** | `pokeapi` (OpenAPI) and `pokedexEvents` (AsyncAPI), each with a ✓ because it is loaded |
+| **Environments** | One environment, `local` |
+
+| Workflow | What it shows |
+|---|---|
+| **Pokemon card** | Four steps, each using what the previous one returned |
+| **Type explorer** | A type, its first Pokémon and its species |
+| **Battle matchup** | A workflow that depends on another: **Type explorer** runs first |
+| **Register sighting** | A real HTTP call plus two messaging steps, which are simulated |
+
+A banner says **You’re viewing an example** and offers **Start the tour**. If you close it with ✕, it does not come back on this device.
+
+## Real API or Simulation
+
+| Option | What it does |
+|---|---|
+| **Real API** | Calls pokeapi.co over the network. The example opens with this one. |
+| **Simulation** | Calls nothing. Luvin answers with the examples in the contract. |
+
+Against **Real API** the **Run paused** dialog shows even when a list has one item. In **Simulation** it shows only when the list has more than one.
+
+## Read the results
+
+![The results of a run: the list of cases on the left and the steps of a passed case on the right](/media/en/results.webp)
+
+| Part | What it shows |
+|---|---|
+| **Header** | Counts: ✓ passed, ✕ failed, ! warnings, ? inconclusive |
+| **Case list** (left) | One row per case with a colored dot. A **Sim** badge marks a case with simulated steps. The 404 case is simulated even with **Real API**, so you see the error handling without causing it |
+| **Detail** (right) | The verdict (**Passed**, **Failed**, **Warning**, **Inconclusive**), what was **Expected**, the **Result** in plain words and the **Inputs** used |
+| **Steps** | One card per step. Click one to open **Criteria**, **Request**, **Response**, **Contract** and **Outputs** |
+
+## What to try next
+
+- **Another Pokémon.** In **Inputs**, change `pokemon` to `charizard` or `150` and run again.
+- **Simulation.** Select **Simulation** and run: no network call.
+- **A dependency.** Run **Battle matchup**. The results show a **Preparation** block: **Type explorer** ran first.
+- **A report.** Click **Report** in the results header for a shareable HTML file.
+
+## Next
+
+<CardGrid>
+  <LinkCard title="A tour of the interface" href="/get-started/interface/" />
+  <LinkCard title="The guided tour" href="/get-started/guided-tour/" />
+  <LinkCard title="Design a workflow" href="/design/overview/" />
+  <LinkCard title="Read the results" href="/test/results/" />
+</CardGrid>

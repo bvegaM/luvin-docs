@@ -1,0 +1,95 @@
+openapi: 3.0.3
+info:
+  title: DummyJSON users (subset)
+  version: 1.0.0
+  description: Three operations of the public DummyJSON API (https://dummyjson.com), for the Luvin recipes.
+servers:
+  - url: https://dummyjson.com
+paths:
+  /users:
+    get:
+      operationId: listUsers
+      summary: List users
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, example: 5 }
+        - name: select
+          in: query
+          description: Comma-separated fields to return
+          schema: { type: string, example: 'id,firstName,lastName' }
+      responses:
+        '200':
+          description: A page of users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: integer }
+                        firstName: { type: string }
+                        lastName: { type: string }
+                  total: { type: integer }
+                  skip: { type: integer }
+                  limit: { type: integer }
+              example:
+                users:
+                  - { id: 1, firstName: Emily, lastName: Johnson }
+                  - { id: 2, firstName: Michael, lastName: Williams }
+                total: 208
+                skip: 0
+                limit: 2
+  /users/{id}:
+    get:
+      operationId: getUser
+      summary: One user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, example: 1 }
+      responses:
+        '200':
+          description: The user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: integer, example: 1 }
+                  firstName: { type: string, example: Emily }
+                  lastName: { type: string, example: Johnson }
+                  email: { type: string, example: emily.johnson@x.dummyjson.com }
+        '404':
+          description: No such user
+  /carts/user/{userId}:
+    get:
+      operationId: getUserCarts
+      summary: The carts of a user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema: { type: integer, example: 1 }
+      responses:
+        '200':
+          description: The carts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total: { type: integer, example: 3 }
+                  carts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: integer }
+                        total: { type: number }
+                        totalProducts: { type: integer }

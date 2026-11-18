@@ -1,0 +1,130 @@
+---
+title: GraphQL requests
+description: How to write a GraphQL query with its variables, and what Luvin sends to the server.
+sidebar:
+  order: 20
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A GraphQL request sends a query or a mutation to a GraphQL endpoint. Use it when the API you are testing speaks GraphQL instead of REST.
+
+## Example
+
+A public GraphQL API of countries. Create a **GraphQL** request, write the URL `https://countries.trevorblades.com/graphql` and this in the **Query** tab:
+
+```graphql
+query Country($code: ID!) {
+  country(code: $code) {
+    name
+    capital
+    currency
+  }
+}
+```
+
+In **Variables**:
+
+```json
+{
+  "code": "CL"
+}
+```
+
+Press **Send**. The status is `200 OK` and the **Body** is:
+
+```json
+{"data":{"country":{"capital":"Santiago","currency":"CLF,CLP","name":"Chile"}}}
+```
+
+## Create a GraphQL request
+
+<Steps>
+
+1. In the sidebar, click **New request** under your collection.
+2. In the **New request** dialog, choose **GraphQL**.
+3. The request opens with the name **New GraphQL query**. In the sidebar it has a **GQL** badge.
+
+</Steps>
+
+## Write the query
+
+<Steps>
+
+1. Write the URL of the GraphQL endpoint, for example `https://api.example.com/graphql`.
+2. In the **Query** tab, write the query or the mutation.
+3. In the **Variables** tab, write the variables as JSON.
+4. Press **Send** (⌘/Ctrl + Enter). The response appears below, as for any HTTP request.
+
+</Steps>
+
+A query with one variable:
+
+```graphql
+query Country($code: ID!) {
+  country(code: $code) {
+    name
+    capital
+    currency
+  }
+}
+```
+
+And its variables:
+
+```json
+{
+  "code": "CL"
+}
+```
+
+The request screen has four tabs:
+
+| Tab | What it holds |
+|---|---|
+| **Query** | The query or the mutation. |
+| **Variables** | A JSON object with the variables of the query. A new request starts with `{}`. |
+| **Headers** | The same table as in an HTTP request, with the automatic headers. |
+| **Authorization** | The same options as in an HTTP request. A new GraphQL request inherits the authorization of the collection. |
+
+There is no **Params** tab and no **Body** tab: the body is built from the query and the variables.
+
+## What Luvin sends
+
+Luvin sends one `POST` to the URL, with a JSON body that holds the query and the variables:
+
+```json
+{
+  "query": "query Country($code: ID!) { country(code: $code) { name capital currency } }",
+  "variables": { "code": "CL" }
+}
+```
+
+- The `Content-Type` header is `application/json`, unless you write your own in **Headers**.
+- If the **Variables** tab is empty, the body has no `variables`.
+- Environment `{{variables}}` and generators are replaced in the URL, the query, the variables and the headers before sending.
+
+To see exactly what went out, open **Sent request** in the response.
+
+:::caution
+The **Variables** tab must hold valid JSON. If it does not, nothing is sent and the response area says *The GraphQL variables are not valid JSON.*
+:::
+
+## Read the response
+
+The response area is the same as for an HTTP request: status, time and size, then **Body**, **Headers**, **Cookies** and **Sent request**.
+
+:::tip
+Many GraphQL servers answer `200` even when the query fails. Look for an `errors` field in the body, not only at the status. If you misspell a field, for example `countryy`, this API answers `Cannot query field "countryy" on type "Query". Did you mean "country" or "countries"?` inside `errors`.
+:::
+
+## Limits
+
+- A GraphQL request cannot be dragged into a workflow as a step. Only HTTP requests can.
+- Pasting a cURL command into the URL field does not convert it. Use an HTTP request for that.
+
+## Related
+
+- [Params, headers and body](/requests/params-headers-body/)
+- [Authorization](/authorization/overview/)
+- [Cookies and saved examples](/requests/cookies-and-examples/)

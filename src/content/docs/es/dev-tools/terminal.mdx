@@ -1,0 +1,93 @@
+---
+title: Terminal
+description: Usa tu propia shell dentro de Luvin, en la carpeta de tu workspace o colección. Solo en la app de escritorio.
+sidebar:
+  order: 4
+---
+
+import { Badge, Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+La pestaña **Terminal** abre la shell de tu sistema dentro de Luvin, para que ejecutes `git`, `curl` o cualquier comando sin salir de la app. Existe solo en la app de escritorio. En el navegador, la pestaña no está.
+
+## Ejemplo: ver qué cambió
+
+En el menú de la colección elige **Abrir en Terminal**. Dev Tools se abre en **Terminal**, en esa carpeta:
+
+```bash
+git status
+git diff pokemon.arazzo.yaml
+```
+
+<Badge text="Solo escritorio" variant="caution" />
+
+## Abrir una terminal
+
+Hay dos formas.
+
+**Desde Dev Tools:**
+
+<Steps>
+
+1. Haz clic en **Dev Tools** en la barra inferior.
+2. Haz clic en la pestaña **Terminal**. Empieza una primera sesión.
+
+</Steps>
+
+La sesión se abre en la carpeta del workspace abierto.
+
+**Desde una colección**, para empezar en su carpeta:
+
+<Steps>
+
+1. Abre el menú **⋯** de la colección en la barra lateral, o la tarjeta **Ubicación** del [resumen de la colección](/es/workspaces/collection-overview/).
+2. Elige **Abrir en terminal**.
+
+</Steps>
+
+Dev Tools se abre en la pestaña **Terminal** con una sesión nueva en esa carpeta. El menú **Opciones de las colecciones** de la barra lateral tiene la misma acción para la carpeta del workspace.
+
+<Aside type="note" title="Dónde puede empezar una sesión">
+Una terminal empieza en la carpeta de un workspace de la app de escritorio, o en la carpeta de una colección dentro de él. Para cualquier otro lugar, empieza en tu carpeta personal. La versión de navegador no tiene terminal, y un workspace guardado en el navegador no tiene una carpeta que abrir.
+</Aside>
+
+La shell es la de tu sistema: la de tu variable `SHELL` (`/bin/zsh` si no hay) en macOS y Linux, y PowerShell en Windows. Empieza como shell de inicio de sesión, así que se carga tu perfil y tu prompt de siempre.
+
+## Trabajar con varias sesiones
+
+La lista de sesiones está a la derecha de la terminal.
+
+| Para esto | Haz esto |
+|---|---|
+| Empezar otra sesión | Haz clic en **+** (**Nueva terminal**) arriba en el panel. |
+| Cambiar de sesión | Haz clic en su nombre en la lista. |
+| Renombrar una sesión | Haz doble clic en su nombre, escribe el nuevo y pulsa **Enter**. **Esc** cancela. |
+| Cerrar una sesión | Haz clic en el ícono de papelera de su fila (**Cerrar la terminal**), o escribe `exit` en la shell. |
+| Limpiar la pantalla | Haz clic en **Limpiar** arriba en el panel. Actúa sobre la sesión que ves. |
+
+Una sesión lleva el nombre de su shell y un número, por ejemplo `zsh 1`. Junto al nombre, la lista muestra el nombre de su carpeta. La barra superior del panel muestra la carpeta completa de la sesión que ves.
+
+Las sesiones siguen vivas cuando cambias de pestaña o cierras el panel, y el comando que corre en ellas sigue ejecutándose. Terminan cuando las cierras, cuando la shell sale o cuando sales de Luvin. Cuando la shell sale, por ejemplo después de `exit`, la sesión sale de la lista. Sin sesiones, el panel dice **No hay terminales abiertas** y ofrece **Nueva terminal**.
+
+Si la terminal no puede empezar, el panel dice **No se pudo abrir la terminal**, muestra el motivo y ofrece **Reintentar**.
+
+## Límites
+
+- **Solo app de escritorio.** No hay terminal en la versión de navegador.
+- **No en la interfaz Simple.** Las acciones **Abrir en terminal** quedan deshabilitadas con **no en modo simple**. Mira [Dev Tools](/es/dev-tools/overview/).
+- **Tus permisos.** Es una shell normal: un comando puede hacer lo que tú puedes hacer. Luvin no limita lo que escribes.
+- **Carpetas.** Solo la carpeta de un workspace, una de sus colecciones o tu carpeta personal. Así la terminal no arranca en otros lugares.
+- **Historial en pantalla.** La terminal conserva las últimas 5000 líneas de salida.
+- **Nada se restaura.** Si sales de Luvin, las sesiones terminan. No vuelven cuando abres la app otra vez.
+- **El tema sigue al de la app.** Claro y oscuro cambian los colores de la terminal. Para prompts con íconos, instala una Nerd Font (por ejemplo MesloLGS NF): Luvin la usa si la encuentra.
+
+<Aside type="tip" title="Un uso práctico">
+Abre la terminal desde la colección, ejecuta `git status` y `git diff` para ver qué cambió desde tu último commit, y lee [Llevar un workspace en git](/es/workspaces/git/).
+</Aside>
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Dev Tools" href="/es/dev-tools/overview/" />
+  <LinkCard title="Llevar un workspace en git" href="/es/workspaces/git/" />
+  <LinkCard title="Privacidad y seguridad" href="/es/reference/privacy/" />
+</CardGrid>

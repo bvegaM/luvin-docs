@@ -1,0 +1,98 @@
+---
+title: Llevar un workspace en git
+description: Qué subir al repositorio, por qué los secretos están a salvo, cómo revisar un workflow en un pull request y qué hace un compañero después de clonar.
+sidebar:
+  order: 7
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Un workspace es una carpeta de archivos de texto, así que puedes llevarlo en git como si fuera código. Tu equipo puede entonces revisar el cambio de un workflow en un pull request, ver su historial y compartir una sola fuente de verdad. Luvin no ejecuta git por ti: usa tu cliente de git de siempre o la terminal de la app de escritorio (mira [Terminal](/es/dev-tools/terminal/)).
+
+## Ejemplo: el cambio de un workflow en un pull request
+
+Un cambio en un workflow es un cambio en un archivo de texto, así que el pull request lo muestra línea por línea. Por ejemplo, agregar un header a un paso aparece así:
+
+```diff
+   - stepId: createOrder
+     operationId: $sourceDescriptions.shop.createOrder
+     parameters:
++      - name: Idempotency-Key
++        in: header
++        value: $inputs.requestId
+```
+
+Qué lee quien revisa, y dónde:
+
+| Cambio | Archivo donde se ve |
+|---|---|
+| Un paso nuevo, un cableado nuevo entre pasos, otro criterio de éxito | El archivo `*.arazzo.yaml`. |
+| Inputs de partida nuevos o un caso propio nuevo | El archivo con el mismo nombre dentro de `scenarios/`. |
+| Otra URL base o variable en un ambiente | `environments/<nombre>.yaml`. |
+| Un cambio de contrato que puede romper un workflow | El archivo `*.openapi.yaml` o `*.asyncapi.yaml`. |
+| Un request nuevo guardado para depurar | `requests/*.request.yaml`. |
+
+Quien revisa también puede abrir la rama en Luvin, ejecutar los casos y leer los resultados. Mantén la [documentación generada](/es/workspaces/documentation/) en el repositorio para que el pull request muestre cómo cambia el resumen de los workflows.
+
+## Qué subir
+
+Sube la carpeta completa del workspace: `luvin.yaml`, el `README.md` opcional y cada carpeta de colección. Luvin no escribe nada ahí que debas ignorar. [Qué hay en el disco](/es/workspaces/files/) lista cada archivo.
+
+También puedes subir una sola colección, si cada colección tiene su propio repositorio. Una carpeta con `collection.yaml` y archivos Arazzo se abre como workspace.
+
+## Por qué los secretos están a salvo
+
+Luvin mantiene los valores secretos fuera de los archivos:
+
+- Un archivo de ambiente lista solo los **nombres** de sus secretos. Los valores quedan cifrados en cada computador.
+- Las credenciales, como un token o una API key, no se escriben en los archivos.
+- La autorización de workflows (`flow-auth.yaml`) apunta a variables, por ejemplo `clientSecret: '{{clientSecret}}'`, en vez de guardar el valor.
+- La documentación generada también lo dice: las credenciales y los secretos no están en el repositorio.
+
+Un archivo de ambiente en el repositorio se ve así:
+
+```yaml
+name: Staging
+servers:
+  shop: https://staging.api.shop.test
+variables:
+  clientId: shop-staging-client
+secrets:
+  - clientSecret
+```
+
+<Aside type="caution" title="Revisa lo que escribes en Inputs">
+Luvin no oculta los valores que escribes en **Inputs** ni en los casos: van a `scenarios/` tal como los escribiste. No pegues ahí una contraseña o un token reales. Usa un secreto y escribe `{{clientSecret}}`.
+</Aside>
+
+## Después de clonar: agrega tus secretos
+
+Los archivos tienen nombres y ningún valor, así que un compañero que clona el repositorio tiene que ingresar los suyos.
+
+<Steps>
+
+1. Clona el repositorio con git.
+2. En Luvin, elige **Abrir un workspace** y selecciona la carpeta clonada (la que tiene `luvin.yaml`).
+3. En la barra lateral, en **Ambientes**, abre el ambiente que vas a usar.
+4. En **Secretos**, escribe el **Valor** de cada secreto. Los nombres ya están listados.
+5. Completa las **Credenciales** si los contratos las piden, y cualquier variable con valor vacío.
+
+</Steps>
+
+Si ejecutas contra la API real y falta algo, un aviso sobre el workflow dice **Faltan credenciales en «nombre»** y **Completar** abre el ambiente. Mira [URLs base, variables y secretos](/es/environments/variables-and-secrets/).
+
+Los valores quedan en ese computador, cifrados. Nunca se agregan al repositorio, así que cada persona usa los suyos.
+
+<Aside type="tip" title="Dile a la siguiente persona dónde conseguirlos">
+En el README del workspace, lista los secretos que necesita cada ambiente y a quién pedirlos. La documentación generada de la colección ya dice que las credenciales no están en el repositorio.
+</Aside>
+
+Qué ambiente está activo en cada colección también se recuerda por computador, no en los archivos.
+
+## Siguiente
+
+<CardGrid>
+  <LinkCard title="Qué hay en el disco" href="/es/workspaces/files/" />
+  <LinkCard title="Privacidad y seguridad" href="/es/reference/privacy/" />
+  <LinkCard title="Variables y secretos" href="/es/environments/variables-and-secrets/" />
+</CardGrid>

@@ -1,0 +1,118 @@
+---
+title: Inicia sesión y usa el token
+description: Inicia sesión en DummyJSON, envía el token en un header y lee al usuario y sus carritos.
+sidebar:
+  order: 2
+---
+
+import { Steps, CardGrid, LinkCard, LinkButton, Aside } from '@astrojs/starlight/components'
+
+La mayoría de las APIs piden un token antes de responder. Esta receta inicia sesión, guarda el token y lo envía en un header al paso siguiente.
+
+**Qué prueba:** que el token de un paso viaja en un header al siguiente, de modo que una API protegida responda.
+
+## Descarga los archivos
+
+<LinkButton href="/recipes/login-token/login-token.arazzo.yaml" icon="download" download>login-token.arazzo.yaml</LinkButton>
+<LinkButton href="/recipes/login-token/dummyjson.openapi.yaml" icon="download" variant="secondary" download>dummyjson.openapi.yaml</LinkButton>
+
+## Ábrelo en Luvin
+
+<Steps>
+
+1. Descarga los dos archivos de arriba en una misma carpeta.
+2. En Luvin, pulsa **Nueva colección**, o abre una colección que ya tengas.
+3. En el inicio de la colección, pulsa **Importar Arazzo o contratos** y elige los dos archivos descargados.
+4. En la barra lateral, abre el workflow `loginAndCarts`.
+5. En la barra de ejecución, elige **API real**.
+6. Pulsa **Ejecutar**. Los resultados se abren abajo.
+
+</Steps>
+
+## El archivo Arazzo
+
+```yaml title="login-token.arazzo.yaml" {23-25,29,35,46}
+arazzo: 1.0.1
+info:
+  title: Log in and call a protected API
+  version: 1.0.0
+sourceDescriptions:
+  - name: dummyjson
+    url: ./dummyjson.openapi.yaml
+    type: openapi
+workflows:
+  - workflowId: loginAndCarts
+    summary: Log in, read the user with the token and list their carts
+    inputs:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string, example: emilys }
+        password: { type: string, example: emilyspass }
+    steps:
+      - stepId: login
+        operationId: login
+        requestBody:
+          contentType: application/json
+          payload:
+            username: $inputs.username
+            password: $inputs.password
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          token: $response.body#/accessToken
+      - stepId: getMe
+        operationId: getMe
+        parameters:
+          - name: Authorization
+            in: header
+            value: Bearer {$steps.login.outputs.token}
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          userId: $response.body#/id
+          firstName: $response.body#/firstName
+      - stepId: getUserCarts
+        operationId: getUserCarts
+        parameters:
+          - name: userId
+            in: path
+            value: $steps.getMe.outputs.userId
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          carts: $response.body#/total
+    outputs:
+      firstName: $steps.getMe.outputs.firstName
+      carts: $steps.getUserCarts.outputs.carts
+```
+
+| Línea | Qué hace |
+|---|---|
+| `inputs` (líneas 12-17) | El workflow pide `username` y `password`. Los valores de `example` son el usuario de demostración de DummyJSON, así que corre sin que escribas nada. |
+| `payload` (23-25) | El body del request de login se arma con los dos inputs. |
+| `token: $response.body#/accessToken` (29) | El paso guarda el `accessToken` de la respuesta como su output `token`. |
+| `Bearer {$steps.login.outputs.token}` (35) | El paso siguiente envía ese token en el header `Authorization`. Las llaves marcan una expresión dentro de un texto. |
+| `value: $steps.getMe.outputs.userId` (46) | El id de usuario que devolvió `getMe` va a la ruta del request de carritos. |
+
+## Qué obtienes
+
+| Paso | Estado HTTP | Outputs |
+|---|---|---|
+| `login` | 200 | `token` (el `accessToken` de la respuesta) |
+| `getMe` | 200 | `userId` = 1, `firstName` = Emily |
+| `getUserCarts` | 200 | `carts` = 1 |
+
+Los outputs del workflow son `firstName` = Emily y `carts` = 1. Cada paso cumple sus criterios, así que el caso termina **Pasó**.
+
+## Pruébalo
+
+**Contraseña incorrecta.** Cambia el input `password` a `wrong` y ejecuta de nuevo. DummyJSON responde 400 (*Invalid credentials*) al login, `login` no cumple `$statusCode == 200` y falla, y los dos pasos siguientes se omiten. El workflow termina **No pasó**. Para que un rechazo sea el resultado esperado, mira [Comprueba que la API rechaza datos malos](/es/recipes/expected-error/).
+
+## Relacionado
+
+<CardGrid>
+<LinkCard title="Conecta datos entre pasos" description="Cómo el output de un paso se vuelve el input del siguiente." href="/es/design/wire-data/" />
+<LinkCard title="Autorización del workflow" description="Agrega un token sin escribirlo en los pasos." href="/es/authorization/workflow/" />
+<LinkCard title="Depends on" description="Un workflow inicia sesión y otros reutilizan su token." href="/es/recipes/depends-on/" />
+</CardGrid>

@@ -1,0 +1,76 @@
+---
+title: Workspaces and collections
+description: What a workspace and a collection are, how they fit together on disk, how Luvin saves your work, and a map of this section.
+sidebar:
+  order: 1
+---
+
+import { FileTree, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A **workspace** is the folder that holds all your work. Inside it, each **collection** is a subfolder for one topic: a partner, a product, a family of APIs. You need a workspace as soon as you want Luvin to keep what you build.
+
+![The workspace home, with its collections, quick actions and the documentation panel](/media/en/home.webp)
+
+## The hierarchy
+
+<FileTree>
+
+- my-workspace/ the workspace
+  - luvin.yaml the list of collections
+  - README.md the workspace documentation (optional)
+  - pokedex/ a collection
+    - collection.yaml its name, version and authorization
+    - README.md the collection documentation (optional)
+    - pokeapi.openapi.yaml a contract
+    - pokemon.arazzo.yaml an Arazzo file with workflows
+    - environments/
+      - local.yaml an environment
+    - scenarios/ the inputs and cases of each Arazzo file
+    - requests/ the saved requests
+  - partners/ another collection
+
+</FileTree>
+
+Everything is a plain text file, so you can keep the workspace in git. [What is on disk](/workspaces/files/) explains each file.
+
+## Workspace and collection
+
+| | Workspace | Collection |
+|---|---|---|
+| **What it is** | The folder that holds collections. | A subfolder for one topic. |
+| **File that describes it** | `luvin.yaml` | `collection.yaml` |
+| **What it holds** | The list of collections and an optional README. | Contracts, Arazzo files, environments, cases, requests, an authorization and an optional README. |
+| **How many** | You work in one at a time. | One or many per workspace. One is open at a time. |
+
+Each has its own documentation, a `README.md`. See [Write documentation](/workspaces/documentation/).
+
+## How Luvin saves your work
+
+You never press Save. About half a second after your last change, Luvin writes only the files that changed. The top bar shows the state:
+
+| You see | It means |
+|---|---|
+| **Saving…** | Luvin is writing files. |
+| **✓ Saved** | Everything is on disk. |
+| **Save failed** | Something could not be written. Hover the badge to read the reason. |
+
+In the editors (an environment, a request) the same state appears as **Unsaved changes…**, **Saving…**, **Saved** and then **Saved automatically**. If it fails you see **Could not save** and **Retry**. **⌘S** (**Ctrl+S**) saves right now.
+
+Luvin also saves before it switches collection or closes the workspace. Saving never deletes an Arazzo file or a contract. Environments and requests that you delete in the app are deleted from disk.
+
+<Aside type="note" title="No workspace?">
+You can open files for a quick try without a workspace. Then nothing is written to disk. See [Use Luvin without a workspace](/workspaces/without-workspace/).
+</Aside>
+
+## Map of this section
+
+<CardGrid>
+  <LinkCard title="Create and open a workspace" description="Start, reopen, switch, rename and close." href="/workspaces/create-and-open/" />
+  <LinkCard title="Collections" description="Create, add files, import, rename, remove and delete." href="/workspaces/collections/" />
+  <LinkCard title="Collection authorization" description="One authorization for the requests of a collection." href="/workspaces/collection-authorization/" />
+  <LinkCard title="Write documentation" description="The README of a workspace and of a collection." href="/workspaces/documentation/" />
+  <LinkCard title="What is on disk" description="Every file Luvin writes." href="/workspaces/files/" />
+  <LinkCard title="Keep a workspace in git" description="What to commit and what a teammate does after cloning." href="/workspaces/git/" />
+  <LinkCard title="The collection overview" description="The summary page of a collection." href="/workspaces/collection-overview/" />
+  <LinkCard title="Without a workspace" description="Open files for a quick try." href="/workspaces/without-workspace/" />
+</CardGrid>

@@ -1,0 +1,50 @@
+arazzo: 1.0.1
+info:
+  title: Choose a user from a list
+  version: 1.0.0
+sourceDescriptions:
+  - name: dummyjson
+    url: ./dummyjson.openapi.yaml
+    type: openapi
+workflows:
+  - workflowId: userFromList
+    summary: List five users, continue with one and read their carts
+    steps:
+      - stepId: listUsers
+        operationId: listUsers
+        parameters:
+          - name: limit
+            in: query
+            value: 5
+          - name: select
+            in: query
+            value: id,firstName,lastName
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          userId: $response.body#/users/0/id
+      - stepId: getUser
+        operationId: getUser
+        parameters:
+          - name: id
+            in: path
+            value: $steps.listUsers.outputs.userId
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          firstName: $response.body#/firstName
+          email: $response.body#/email
+      - stepId: getUserCarts
+        operationId: getUserCarts
+        parameters:
+          - name: userId
+            in: path
+            value: $steps.listUsers.outputs.userId
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          carts: $response.body#/total
+    outputs:
+      firstName: $steps.getUser.outputs.firstName
+      email: $steps.getUser.outputs.email
+      carts: $steps.getUserCarts.outputs.carts

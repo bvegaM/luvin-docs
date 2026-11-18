@@ -1,0 +1,438 @@
+/* La marca de Luvin sobre Starlight: el verde del logo, Inter y el fondo oscuro del sitio. */
+:root {
+  --sl-font: 'Inter Variable', Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Tema oscuro (el de Starlight por defecto) */
+  --sl-color-accent-low: #12301a;
+  --sl-color-accent: #2f8f3f;
+  --sl-color-accent-high: #a8e3b2;
+  --sl-color-white: #edf3ee;
+  --sl-color-gray-1: #dfe8e1;
+  --sl-color-gray-2: #a3b2a8;
+  --sl-color-gray-3: #73847a;
+  --sl-color-gray-4: #3a4a40;
+  --sl-color-gray-5: #24322a;
+  --sl-color-gray-6: #121b16;
+  --sl-color-black: #0a110d;
+}
+:root[data-theme='light'] {
+  --sl-color-accent-low: #dff1e2;
+  --sl-color-accent: #2a7d38;
+  --sl-color-accent-high: #14401d;
+  --sl-color-white: #171b21;
+  --sl-color-gray-1: #262c33;
+  --sl-color-gray-2: #414a54;
+  --sl-color-gray-3: #5f6873;
+  --sl-color-gray-4: #8a939d;
+  --sl-color-gray-5: #cdd3db;
+  --sl-color-gray-6: #eef1f4;
+  --sl-color-gray-7: #f7f8fa;
+  --sl-color-black: #ffffff;
+}
+
+/* Títulos como en el sitio: apretados y con peso. */
+.sl-markdown-content :is(h1, h2, h3),
+h1 {
+  letter-spacing: -0.02em;
+}
+
+/* Las capturas de la app llevan borde, para que no se confundan con la página. */
+.sl-markdown-content img {
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 10px;
+}
+
+/* La banda de la portada (detrás del título y el buscador): un tinte del verde de la marca. */
+:root {
+  --docs-band: #0f1b14;
+  --docs-dot: rgba(163, 178, 168, 0.22);
+  --docs-accent-2: #7fe0a0;
+}
+:root[data-theme='light'] {
+  --docs-band: #e9f5ec;
+  --docs-dot: rgba(23, 27, 33, 0.14);
+  --docs-accent-2: #14803a;
+}
+
+/* Portada: los títulos de sección llevan más aire y las tarjetas no heredan márgenes de texto. */
+[data-has-hero] .sl-markdown-content h2 {
+  margin-top: 2.5rem;
+  font-size: var(--sl-text-h2);
+  font-weight: 700;
+}
+.sl-markdown-content .topic-card + .topic-card {
+  margin-top: 0;
+}
+
+/* Videos de la app: mismo marco que las capturas y todo el ancho de la columna. */
+.sl-markdown-content video {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 10px;
+  background: var(--sl-color-gray-6);
+}
+
+/* Barra lateral: la sección abierta se distingue de las páginas que contiene. */
+.sidebar-content .large {
+  font-weight: 600;
+}
+
+/* ===== Cabecera de dos filas: la de Starlight arriba y el menú de secciones abajo ===== */
+:root {
+  --lv-top-height: 3.5rem;
+  --lv-tabs-height: 2.6rem;
+  --sl-nav-height: calc(var(--lv-top-height) + var(--lv-tabs-height));
+}
+@media (min-width: 50rem) {
+  :root {
+    --lv-top-height: 4rem;
+    --lv-tabs-height: 2.85rem;
+  }
+}
+.page > header.header {
+  padding: 0;
+}
+.lv-header {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.lv-top {
+  height: var(--lv-top-height);
+  padding: var(--sl-nav-pad-y) var(--sl-nav-pad-x);
+}
+[data-has-sidebar] .lv-top {
+  padding-inline-end: calc(var(--sl-nav-gap) + var(--sl-nav-pad-x) + var(--sl-menu-button-size));
+}
+@media (min-width: 50rem) {
+  [data-has-sidebar] .lv-top {
+    padding-inline-end: var(--sl-nav-pad-x);
+  }
+}
+.sl-menu-button {
+  top: calc((var(--lv-top-height) - var(--sl-menu-button-size)) / 2);
+}
+.lv-tabs {
+  display: flex;
+  align-items: stretch;
+  height: var(--lv-tabs-height);
+  padding-inline: calc(var(--sl-nav-pad-x) - 0.6rem) var(--sl-nav-pad-x);
+  border-top: 1px solid var(--sl-color-hairline-shade);
+}
+.lv-tabs-scroll {
+  display: flex;
+  align-items: stretch;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.lv-tabs-scroll::-webkit-scrollbar {
+  display: none;
+}
+.lv-tabs a {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: none;
+  padding: 0 0.7rem;
+  font-size: var(--sl-text-sm);
+  font-weight: 500;
+  color: var(--sl-color-gray-2);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.lv-tabs a:hover {
+  color: var(--sl-color-white);
+}
+.lv-tabs a[aria-current='page'] {
+  color: var(--sl-color-white);
+  font-weight: 600;
+}
+/* La pestaña actual: un riel verde con su nodo, como un paso de un workflow. */
+.lv-tabs a[aria-current='page']::after {
+  content: '';
+  position: absolute;
+  left: 0.7rem;
+  right: 0.7rem;
+  bottom: -1px;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--sl-color-accent);
+}
+.lv-tabs .lv-site {
+  padding-right: 0;
+  color: var(--sl-color-gray-3);
+  font-size: var(--sl-text-xs);
+}
+@media (max-width: 50rem) {
+  .lv-tabs .lv-site {
+    display: none;
+  }
+}
+
+/* ===== Barra lateral: el nombre de la sección como título ===== */
+.lv-sidebar-title {
+  margin: 0.25rem 0 -0.25rem;
+  padding-inline: var(--sl-sidebar-item-padding-inline, 0.5rem);
+  font-size: var(--sl-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sl-color-text-accent);
+}
+.sidebar-content a[aria-current='page'] {
+  font-weight: 600;
+}
+
+/* ===== "En esta página" como una cadena de pasos ===== */
+.lv-toc starlight-toc h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: var(--sl-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sl-color-gray-3);
+}
+.lv-toc starlight-toc h2::before {
+  content: '';
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--sl-color-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sl-color-accent) 25%, transparent);
+}
+.lv-toc starlight-toc > nav > ul {
+  --lv-x: 0.45rem;
+  --lv-from: 0.85rem;
+  position: relative;
+  margin-top: 0.75rem;
+}
+/* El riel gris y, encima, lo ya recorrido en verde. */
+.lv-toc starlight-toc > nav > ul::before,
+.lv-toc starlight-toc > nav > ul::after {
+  content: '';
+  position: absolute;
+  left: calc(var(--lv-x) - 1px);
+  top: var(--lv-from);
+  width: 2px;
+  border-radius: 2px;
+}
+.lv-toc starlight-toc > nav > ul::before {
+  bottom: 0.85rem;
+  background: var(--sl-color-gray-5);
+}
+.lv-toc starlight-toc > nav > ul::after {
+  height: var(--lv-fill, 0px);
+  background: var(--sl-color-accent);
+  transition: height 0.45s cubic-bezier(0.3, 0.7, 0.3, 1);
+}
+.lv-toc starlight-toc a {
+  position: relative;
+  padding-block: 0.32rem;
+  padding-inline: calc(1.45rem + 0.85rem * var(--depth, 0)) 0.25rem;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-3);
+  transition: color 0.2s;
+}
+.lv-toc starlight-toc a:hover {
+  color: var(--sl-color-white);
+}
+/* Cada título es un nodo del riel; los de segundo nivel, más chicos. */
+.lv-toc starlight-toc a::before {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  left: calc(var(--lv-x) - 0.3rem);
+  top: 50%;
+  width: 0.6rem;
+  height: 0.6rem;
+  margin-top: -0.3rem;
+  border: 2px solid var(--sl-color-gray-4);
+  border-radius: 50%;
+  background: var(--sl-color-bg);
+  transition:
+    background 0.25s,
+    border-color 0.25s,
+    box-shadow 0.25s;
+}
+.lv-toc starlight-toc ul ul a::before {
+  left: calc(var(--lv-x) - 0.2rem);
+  width: 0.4rem;
+  height: 0.4rem;
+  margin-top: -0.2rem;
+  border-width: 1.5px;
+}
+.lv-toc starlight-toc a[data-passed] {
+  color: var(--sl-color-gray-2);
+}
+.lv-toc starlight-toc a[data-passed]::before {
+  border-color: var(--sl-color-accent);
+  background: var(--sl-color-accent);
+}
+.lv-toc starlight-toc a[aria-current='true'] {
+  color: var(--sl-color-white);
+  font-weight: 600;
+}
+.lv-toc starlight-toc a[aria-current='true']::before {
+  border-color: var(--sl-color-accent);
+  background: var(--sl-color-bg);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--sl-color-accent) 28%, transparent);
+  animation: lv-node 2.4s ease-in-out infinite;
+}
+@keyframes lv-node {
+  50% {
+    box-shadow: 0 0 0 7px color-mix(in srgb, var(--sl-color-accent) 10%, transparent);
+  }
+}
+/* Un dato que recorre la cadena hasta el paso actual. */
+.lv-toc .lv-packet {
+  position: absolute;
+  z-index: 2;
+  left: calc(var(--lv-x) - 0.19rem);
+  top: calc(var(--lv-from) - 0.19rem);
+  width: 0.38rem;
+  height: 0.38rem;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 6px 2px var(--sl-color-accent);
+  opacity: 0;
+  pointer-events: none;
+}
+.lv-toc ul[data-moving] .lv-packet {
+  animation: lv-packet 2.4s cubic-bezier(0.5, 0, 0.4, 1) infinite;
+}
+@keyframes lv-packet {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  12% {
+    opacity: 1;
+  }
+  78% {
+    opacity: 1;
+    transform: translateY(var(--lv-fill, 0px));
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(var(--lv-fill, 0px));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lv-toc ul[data-moving] .lv-packet,
+  .lv-toc starlight-toc a[aria-current='true']::before {
+    animation: none;
+  }
+}
+
+/* ===== Listas numeradas del contenido como los pasos de un workflow ===== */
+.sl-markdown-content > ol {
+  --lv-step: 1.7rem;
+  counter-reset: lv-step;
+  padding-inline-start: 0;
+  list-style: none;
+}
+.sl-markdown-content > ol > li {
+  position: relative;
+  counter-increment: lv-step;
+  padding-inline-start: calc(var(--lv-step) + 0.85rem);
+  padding-bottom: 0.4rem;
+}
+.sl-markdown-content > ol > li::before {
+  content: counter(lv-step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: grid;
+  place-items: center;
+  width: var(--lv-step);
+  height: var(--lv-step);
+  border: 2px solid var(--sl-color-accent);
+  border-radius: 50%;
+  background: var(--sl-color-bg);
+  color: var(--sl-color-text-accent);
+  font-size: var(--sl-text-xs);
+  font-weight: 700;
+  line-height: 1;
+}
+/* La línea que une un paso con el siguiente. */
+.sl-markdown-content > ol > li:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: calc(var(--lv-step) / 2 - 1px);
+  top: calc(var(--lv-step) + 0.2rem);
+  bottom: 0.05rem;
+  width: 2px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--sl-color-accent) 35%, var(--sl-color-gray-5));
+}
+.sl-markdown-content > ol > li + li {
+  margin-top: 0.15rem;
+}
+
+/* ===== Tablas, código en línea y avisos con más aire y la marca ===== */
+.sl-markdown-content table {
+  display: table;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.6rem;
+  overflow: hidden;
+  font-size: var(--sl-text-sm);
+}
+.sl-markdown-content th {
+  background: var(--sl-color-gray-6);
+  color: var(--sl-color-white);
+  font-weight: 600;
+  text-align: start;
+}
+.sl-markdown-content th,
+.sl-markdown-content td {
+  padding: 0.55rem 0.8rem;
+  border: 0;
+  border-bottom: 1px solid var(--sl-color-gray-5);
+}
+.sl-markdown-content tr:last-child td {
+  border-bottom: 0;
+}
+.sl-markdown-content :not(pre) > code {
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.3rem;
+  background: var(--sl-color-gray-6);
+  border: 1px solid var(--sl-color-gray-5);
+  font-size: 0.85em;
+}
+.sl-markdown-content .starlight-aside {
+  border-radius: 0.6rem;
+}
+
+/* El logo sigue la altura de la fila de arriba, no la de toda la cabecera. */
+.site-title img {
+  height: calc(var(--lv-top-height) - 2 * var(--sl-nav-pad-y));
+}
+.site-title {
+  gap: 0.6rem;
+}
+
+/* Recortes de un panel o un diálogo: a su tamaño real en pantalla, no estirados a la columna. */
+.sl-markdown-content img:is([src*='/step-panel.'], [src*='/step-outputs.'], [src*='/step-body.'], [src*='/sidebar-menu.']) {
+  display: block;
+  max-width: min(100%, 22rem);
+}
+.sl-markdown-content img:is([src*='/import-curl.'], [src*='/generate-requests.'], [src*='/list-pick.'], [src*='/list-pick-many.']) {
+  display: block;
+  max-width: min(100%, 40rem);
+}
+.sl-markdown-content img:is([src*='/reusables.'], [src*='/contract-missing.']) {
+  display: block;
+  max-width: min(100%, 22rem);
+}
+.sl-markdown-content img:is([src*='/collection-auth.']) {
+  display: block;
+  max-width: min(100%, 30rem);
+}

@@ -1,0 +1,208 @@
+---
+title: How a request is saved
+description: The YAML file that Luvin writes for each request, the keys it contains, how folders are stored and which values never reach the file.
+sidebar:
+  order: 5
+---
+
+import { FileTree, Aside, Tabs, TabItem, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+In a workspace, every request is one readable YAML file. You can open it in any editor, review it in a pull request and keep it in git together with the collection.
+
+## A complete request file
+
+This is the file that Luvin writes for a request named **Create post**: a POST with a Bearer token from a variable and a JSON body.
+
+```yaml title="requests/create-post.request.yaml"
+name: Create post
+kind: http
+method: POST
+url: "{{baseUrl}}/posts"
+headers:
+  - key: X-Trace
+    value: "{{traceId}}"
+auth:
+  type: bearer
+  token: "{{token}}"
+  prefix: Bearer
+body:
+  mode: json
+  text: |-
+    {
+      "title": "Hello Luvin",
+      "body": "My first post",
+      "userId": 1
+    }
+requiredFields:
+  - body:title
+  - body:userId
+```
+
+## Where the files live
+
+Requests are in the `requests/` folder of the collection. A folder in the sidebar is a real subfolder, with a small marker file inside.
+
+<FileTree>
+
+- shop/ a collection
+  - collection.yaml
+  - environments/
+    - local.yaml
+  - requests/
+    - get-post.request.yaml
+    - create-post.request.yaml
+    - customers/
+      - _folder.request.yaml the folder marker
+      - list-customers.request.yaml
+      - create-customer.request.yaml
+    - uploads/
+      - _folder.request.yaml
+      - upload-avatar.request.yaml
+
+</FileTree>
+
+- The file name is the request name in lowercase, without accents, with hyphens: **Create post** becomes `create-post.request.yaml`. If the name is taken, Luvin adds `-2`, `-3` and so on.
+- Renaming a request in Luvin renames the file. Dragging a request onto a folder moves the file.
+- The marker `_folder.request.yaml` keeps the visible name of the folder, with spaces and capitals:
+
+```yaml title="requests/customers/_folder.request.yaml"
+kind: folder
+name: Customers
+```
+
+A subfolder you create by hand on disk also appears in the sidebar, even without a marker. Its name is the name of the folder.
+
+## The keys
+
+Luvin leaves out every key that is empty, so a file only has what the request uses.
+
+| Key | What it holds |
+|---|---|
+| `name`, `kind` | The name, and the type: `http`, `graphql`, `grpc` or `websocket`. A file without a valid `kind` is not read as a request. |
+| `description` | The text of the request, when it has one. |
+| `method`, `url` | The method (HTTP and GraphQL) and the address. For gRPC the `url` is `host:port`; for WebSocket it starts with `ws://` or `wss://`. |
+| `params`, `headers` | A list of rows (see below). In gRPC the headers are saved as `metadata`. |
+| `auth` | The authorization. Not written when the type is **No Auth**. |
+| `body` | HTTP only: `mode` and then `text`, `form` or `file` for that mode. Not written with **No Body**. |
+| `query`, `variables` | GraphQL: the query, and the variables when they are not `{}`. |
+| `proto`, `service`, `rpc`, `message`, `tls` | gRPC. |
+| `messages` | WebSocket: the saved messages, each with a `name` and a `text`. |
+| `autoHeadersOff` | The automatic headers you unticked, in lowercase. |
+| `requiredFields` | The fields you marked as required, such as `query:bank` or `body:title`. |
+| `examples` | The responses saved as examples. |
+
+### Rows
+
+`params`, `headers` and the fields of a form share one shape:
+
+```yaml
+params:
+  - key: userId
+    value: "1"
+  - key: _limit
+    value: "10"
+    enabled: false
+    description: Not sent
+```
+
+`enabled: false` appears only on unticked rows.
+
+### Body types
+
+`mode` is one of `json`, `text`, `xml`, `sparql`, `urlencoded`, `formdata` or `file`. The first four write the text in `text`. `urlencoded` and `formdata` write a `form` list. `file` writes a `file`.
+
+A file field of a **Multipart Form** keeps the path of the file, not its content:
+
+```yaml title="requests/uploads/upload-avatar.request.yaml"
+name: Upload avatar
+kind: http
+method: POST
+url: "{{baseUrl}}/avatars"
+auth:
+  type: inherit
+body:
+  mode: formdata
+  form:
+    - key: name
+      value: Ana
+    - key: avatar
+      type: file
+      file:
+        path: /Users/ana/pics/ana.png
+        name: ana.png
+        contentType: image/png
+```
+
+In the browser version a file has no path on disk, so `path` is saved empty and Luvin asks you to choose the file again. See [Body](/requests/params-headers-body/).
+
+## Saved examples
+
+The responses you save with **Save response** go in the same file, under `examples`. An example keeps the request (method, URL, params, headers and body) and the response. It does not keep the authorization.
+
+```yaml title="requests/create-post.request.yaml"
+examples:
+  - id: m1x2
+    name: 201 - Create post
+    savedAt: 2026-11-17T14:03:22.000Z
+    request:
+      method: POST
+      url: "{{baseUrl}}/posts"
+      body:
+        mode: json
+        text: '{"title":"Hello Luvin"}'
+    response:
+      status: 201
+      statusText: Created
+      durationMs: 312
+      headers:
+        content-type: application/json; charset=utf-8
+      body: |-
+        {
+          "title": "Hello Luvin",
+          "id": 101
+        }
+```
+
+See [Cookies and saved examples](/requests/cookies-and-examples/).
+
+## Where secrets go
+
+Some fields of the `auth` block are secrets: `token`, `password`, `value` (of an API Key), `consumerSecret`, `tokenSecret`, `clientSecret`, `secretAccessKey`, `sessionToken`, `clientToken` and `accessToken`.
+
+| You type in the field | In the file | Where the value is |
+|---|---|---|
+| `{{token}}` (a variable) | `token: "{{token}}"` | In your environment. |
+| `s3cr3t` (as-is) | The key is left out | Encrypted on this computer. The desktop app uses the keychain of the operating system; the browser version encrypts it in the browser. |
+
+For example, a Basic Auth request with the password typed as-is is saved with the username only:
+
+```yaml
+auth:
+  type: basic
+  username: ana
+```
+
+:::caution
+Only the fields listed above are treated as secrets. Everything else you type in the **Authorization** tab, such as a username, a Client ID or an Access Key ID, is written to the file as it is. Use a `{{variable}}` for any value you do not want in git.
+:::
+
+The authorization of the whole collection is written to `collection.yaml`, with the same rules:
+
+```yaml title="collection.yaml"
+version: 1
+name: Shop
+auth:
+  type: bearer
+  token: "{{token}}"
+```
+
+## Edit a file by hand
+
+It is safer to change a request in the app: it has a fixed shape and Luvin rewrites the file when you change something. If you do edit a file with another program, keep the keys above and the YAML valid. Luvin reads the files when you open a collection, so close the workspace (**Close and switch workspace**) and open it again to see the change. See [What is on disk](/workspaces/files/).
+
+## Next
+
+<CardGrid>
+  <LinkCard title="Authorization" href="/authorization/overview/" description="The authorization types and where to set them." />
+  <LinkCard title="What is on disk" href="/workspaces/files/" description="The whole folder structure of a workspace." />
+</CardGrid>

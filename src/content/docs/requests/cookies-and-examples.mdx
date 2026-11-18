@@ -1,0 +1,103 @@
+---
+title: Cookies and saved examples
+description: How the cookie jar works, how to save a response as an example of a request, and what the time, size and network details of a response show.
+sidebar:
+  order: 6
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+This page covers three things you see after sending a request: the cookies the API set, the responses you keep as examples, and the numbers next to the status of a response.
+
+## Example
+
+A login answers with this header:
+
+```text
+Set-Cookie: session=abc123; Path=/; Secure
+```
+
+Luvin keeps the cookie in its jar. The **Cookies** tab of that response shows it, and every next request to the same domain carries it on its own:
+
+| Where | What you see |
+|---|---|
+| **Cookies** tab of the response | **Name** `session`, **Value** `abc123`, **Path** `/`, **Expires** **Session**, **Attributes** `Secure`. |
+| **Headers** tab of the next request | The automatic row `Cookie` with `session=abc123`. |
+
+## The cookie jar
+
+A cookie is a small piece of data that an API asks the client to remember, for example a session. The API sends it in a `Set-Cookie` header. Luvin keeps those cookies in a **cookie jar** and sends them back, on its own, in the next requests to the same domain, as Postman does.
+
+- The jar lives in memory while the collection is open. It is not saved to disk.
+- A cookie is sent only to requests that match its domain and path. A cookie marked `Secure` is sent only over `https`. An expired cookie is not sent.
+- In the **Headers** tab of a request, the automatic `Cookie` row shows what will be sent. Untick it to send no cookie. If you write your own `Cookie` header in the table, yours wins.
+
+:::note
+The jar works in the desktop app. In the browser version the browser handles cookies and Luvin cannot read them.
+:::
+
+### Cookies of a response
+
+After you send a request, open the **Cookies** tab of the response. It lists the cookies that response set. If there were none, it says *This response did not set cookies.*
+
+### See and manage the jar
+
+<Steps>
+
+1. Click **Cookies**, on the right of the request tabs. A number on the button tells how many cookies are in the jar.
+2. The **Cookies** dialog lists the cookies grouped by domain. Each row shows **Name**, **Value**, **Domain**, **Path**, **Expires** (a date, or **Session** when it has none) and **Flags** (`Secure`, `HttpOnly`, `SameSite`).
+3. To remove one cookie, click the **×** at the end of its row (**Remove cookie**).
+4. To empty a domain, click **Clear domain**. To empty everything, click **Clear all**.
+
+</Steps>
+
+To add a cookie by hand, fill the domain, the name and the value at the bottom of the dialog and press **Add**. The cookie applies to every path of that domain.
+
+If the jar is empty, the dialog says *No cookies yet. Send a request whose response sets one and it will show up here.*
+
+## Save a response as an example
+
+An example keeps a response together with the request that produced it. Use it to document each case you test, for example `201 - Create order with minimal request`.
+
+### Save one
+
+<Steps>
+
+1. Send the request.
+2. In the bar above the response, click **Save response**.
+3. In **Save response as example**, write the **Example name**. Luvin suggests the status and the name of the request, such as `200 - Get pokemon`.
+4. Press **Save example**.
+
+</Steps>
+
+The example is stored in the request file, so it travels with the collection. It keeps the method, URL, params, headers and body of the request, and the status, headers and body of the response. It does not keep the authorization.
+
+**Download as file**, in the same dialog, saves only the response body to a file and does not create an example.
+
+:::caution
+An example keeps the response as it arrived. Check that it holds no token or personal data before you share the collection.
+:::
+
+### View and use an example
+
+In the sidebar, a request with examples shows how many it has and a small arrow. Click the arrow, or open the **⋯** menu of the request and choose **Show examples (n)**. Each example appears under the request with an **e.g.** mark. **Hide examples** folds the list.
+
+Click an example to open it. It shows the request on top and the saved response below. Everything is editable, and nothing is sent from here: the bar says *Example · editable, not sent*. Change what you want to document, for example the status or the body of the response.
+
+| Button or menu | What it does |
+|---|---|
+| **Use in the request** | Loads the method, URL, params, headers and body of the example into the request, so you can send that case again. It confirms with **Loaded into the request**. |
+| **Delete example** | Asks for confirmation and removes it. |
+| **⋯** → **Rename** | Changes the name. You can also edit the name at the top of the example. |
+
+The example also shows when it was saved (*Saved* and the date).
+
+## Time, size and network of a response
+
+Next to the status you see the time and the size, and a globe icon when Luvin knows the address of the server. Move the mouse over them to open a card with the details: each phase of the time, the size of the headers and the body, and the network and certificate data. Every phase, field and note is explained in [Read a response in detail](/requests/response-details/).
+
+## Related
+
+- [Single requests](/requests/overview/)
+- [Params, headers and body](/requests/params-headers-body/)
+- [Dev Tools: Network](/dev-tools/network/)

@@ -1,0 +1,116 @@
+---
+title: La pestaña Resumen
+description: Lee la pestaña Resumen de un workflow, comprueba qué respuestas documentadas maneja el workflow y usa sus observaciones para encontrar problemas antes de ejecutar.
+sidebar:
+  order: 11
+---
+
+import { Steps, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+La pestaña **Resumen** da el resumen de un workflow en una sola pantalla: un diagrama de sus pasos, los problemas que Luvin encontró y una tabla de qué respuestas del contrato maneja el workflow. Ábrela antes de la primera ejecución, y otra vez después de cambiar un contrato o el workflow. No llama a ninguna API.
+
+## Ejemplo: Pokemon card
+
+![La pestaña Resumen del workflow Pokemon card, que empieza con el diagrama del workflow](/media/es/overview-tab.webp)
+
+| Sección | Qué lees en **Pokemon card** |
+|---|---|
+| **Diagrama del workflow** | La insignia dice 4, el número de pasos. Las cajas muestran cómo `getPokemon` alimenta a los otros tres. |
+| **Validación del workflow** | Las notas sobre el workflow. Sin nada que informar dice **Sin observaciones**. |
+| **Cobertura de respuestas** | Qué respuestas documentadas maneja el workflow, por ejemplo **5/7 manejadas**. |
+
+## Ábrela
+
+Haz clic en **Resumen** en las pestañas del workflow. Si el workflow tiene errores, la pestaña muestra un número rojo con cuántos son.
+
+En la interfaz Simple, un workflow se abre en **Resumen**. Mira [Recorrido por la interfaz](/es/get-started/interface/).
+
+La pestaña es una lista de secciones. Haz clic en el título de una sección para abrirla o cerrarla. El título trae insignias, así que puedes leer el estado sin abrirla.
+
+| Sección | Qué muestra |
+|---|---|
+| **Validación general** | Observaciones sobre todo el archivo Arazzo, no sobre un workflow. Aparece solo cuando el archivo tiene advertencias o errores. |
+| **Diagrama del workflow** | Los pasos del workflow y cómo se conectan. Abierta al llegar. |
+| **Validación del workflow** | Las observaciones sobre este workflow. Abierta cuando tiene errores o advertencias. |
+| **Cobertura de respuestas** | Qué respuestas documentadas maneja el workflow. Cerrada hasta que la abras. |
+| **Pasos y operaciones** | La lista de pasos, con la operación que llama cada uno. |
+
+![La pestaña Resumen del workflow Pokemon card, que empieza con el diagrama del workflow](/media/es/overview-tab.webp)
+
+## Diagrama del workflow
+
+La insignia dice cuántos pasos tiene el workflow. Con la sección cerrada, el resumen del workflow aparece junto al título. Con la sección abierta, ves además la descripción, si el workflow tiene una.
+
+El diagrama dibuja cada paso como una caja, en orden, con los datos que pasan entre ellos. Arrastra las cajas para ordenar el dibujo. **Mostrar:** tiene dos interruptores: **Acciones según la respuesta** y **Flujo de datos**. Funcionan como en la pestaña **Diseño**; mira [Diseñar un workflow](/es/design/overview/).
+
+Aquí solo lees. Para cambiar un paso, ve a **Diseño**.
+
+## Validación del workflow: las observaciones
+
+Luvin revisa el workflow contra sus contratos mientras lo editas. Cada observación tiene una etiqueta (**Error**, **Advertencia** o **Info**) y un mensaje. Si pertenece a un paso, el nombre del paso va primero.
+
+| Etiqueta | Significado |
+|---|---|
+| **Error** | Un fallo que hay que corregir, por ejemplo un paso que usa datos de un paso que se ejecuta después. |
+| **Advertencia** | Algo que puede no ser lo que querías. |
+| **Info** | Algo bueno de saber, por ejemplo que un paso de mensajería se va a simular. |
+
+Los errores van primero. Las insignias de la sección cuentan cada nivel. Cuando no hay nada que reportar, la sección dice **Sin observaciones**.
+
+Ejemplos de lo que puedes leer:
+
+- **Usa $steps.getPokemon.outputs.id, pero el paso "getPokemon" no existe.**
+- **El contrato exige el parámetro query "currency" y el paso no lo envía.** La barra [A este workflow le faltan datos](/es/design/complete-gaps/) ofrece arreglarlo.
+- **Sin successCriteria: se considerará exitoso cualquier respuesta 2xx.**
+
+[Mensajes del análisis](/es/reference/analysis-messages/) los lista todos y dice qué hacer en cada caso.
+
+## Cobertura de respuestas
+
+Una API documenta las respuestas que puede dar: 200, 404, 409 y así. Esta tabla comprueba, para cada paso, si tu workflow dice qué hacer con cada una. Una respuesta que nadie maneja hace fallar el workflow con un error genérico.
+
+<Steps>
+1. Abre **Cobertura de respuestas**. Su insignia dice, por ejemplo, **5/7 manejadas**. Es verde cuando todas las respuestas están manejadas y cambia a un color de advertencia cuando alguna no lo está.
+2. Lee la tabla. Tiene una fila por paso y estado documentado.
+</Steps>
+
+| Columna | Qué muestra |
+|---|---|
+| **Paso** | El paso, en la primera fila de cada grupo. |
+| **Status** | El código de estado que documenta el contrato. |
+| **Descripción en el contrato** | Lo que dice el contrato sobre esa respuesta. |
+| **Manejo en el Arazzo** | Cómo la trata el workflow. |
+
+La última columna tiene tres valores posibles:
+
+| Valor | Significado |
+|---|---|
+| ✓ **Éxito: successCriteria** | El estado es uno de los que el paso espera. |
+| ✓ **Acción: …** | Una acción lo maneja. Sigue el nombre de la acción. Una acción sin condición, que vale para cualquier fallo, aparece como *(sin criterios)*. |
+| ✕ **Sin manejo** | Nada lo maneja. Si la API responde esto, el workflow falla con un error genérico. |
+
+La tabla no incluye la respuesta `default`, ni los pasos sin una operación HTTP, como los de mensajería, ni los pasos que llaman a otro workflow.
+
+No tienes que manejar todas las respuestas. Maneja las que tu aplicación trata de forma distinta. Para agregar un manejo, mira [Éxito y errores](/es/design/success-and-errors/).
+
+## Pasos y operaciones
+
+Una tabla con los pasos en orden. De cada uno: su número, su nombre (y descripción), la operación que llama con el método y la ruta, y el contrato del que viene, bajo **Fuente**. Un paso que llama a otro workflow muestra el nombre de ese workflow en lugar de una operación.
+
+## Úsala antes de ejecutar
+
+<Steps>
+1. Abre **Resumen**.
+2. Si **Validación general** o **Validación del workflow** tienen errores, corrígelos primero. Cada observación dice qué está mal.
+3. Abre **Cobertura de respuestas**. Busca **✕ Sin manejo** en los errores que te importan, como 404 o 409.
+4. Revisa **Pasos y operaciones**: la operación correcta, en el orden correcto, del contrato correcto.
+5. Ve a la pestaña [Inputs](/es/test/inputs/) y luego a [Ejecutar](/es/test/run/).
+</Steps>
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Éxito y errores" href="/es/design/success-and-errors/" />
+  <LinkCard title="La pestaña YAML" href="/es/design/arazzo-editor/" />
+  <LinkCard title="Lee los resultados" href="/es/test/results/" />
+</CardGrid>

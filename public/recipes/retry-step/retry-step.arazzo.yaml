@@ -1,0 +1,53 @@
+arazzo: 1.0.1
+info:
+  title: Log in again and retry
+  version: 1.0.0
+sourceDescriptions:
+  - name: dummyjson
+    url: ./dummyjson.openapi.yaml
+    type: openapi
+workflows:
+  - workflowId: reloginAndRetry
+    summary: If the profile answers 401, log in and try again
+    inputs:
+      type: object
+      properties:
+        username: { type: string, example: emilys }
+        password: { type: string, example: emilyspass }
+    steps:
+      # 1. Reads the profile with the token of the login step. The first time there is no token yet.
+      - stepId: getMe
+        operationId: getMe
+        parameters:
+          - name: Authorization
+            in: header
+            value: Bearer {$steps.login.outputs.token}
+        successCriteria:
+          - condition: $statusCode == 200
+        onSuccess:
+          - name: done
+            type: end
+        onFailure:
+          # On 401: run the login step, then retry this one (at most twice).
+          - name: loginAndRetry
+            type: retry
+            stepId: login
+            retryLimit: 2
+            criteria:
+              - condition: $statusCode == 401
+        outputs:
+          firstName: $response.body#/firstName
+      # 2. Only runs when the retry asks for it.
+      - stepId: login
+        operationId: login
+        requestBody:
+          contentType: application/json
+          payload:
+            username: $inputs.username
+            password: $inputs.password
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          token: $response.body#/accessToken
+    outputs:
+      firstName: $steps.getMe.outputs.firstName

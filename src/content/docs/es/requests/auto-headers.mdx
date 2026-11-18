@@ -1,0 +1,96 @@
+---
+title: Los headers que agrega Luvin
+description: Qué headers agrega Luvin a un request por su cuenta, por qué está cada uno, cómo desactivar uno y cómo reemplazarlo con tu propio valor.
+sidebar:
+  order: 14
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Un header es una línea de información que viaja con un request, como `Accept: */*`. Luvin agrega algunos por su cuenta, como lo haría un navegador o Postman. Abre esta página cuando veas filas en **Headers** que no escribiste y quieras saber de dónde vienen o cómo cambiarlas.
+
+## Ejemplo: un POST con body JSON
+
+Un request `POST https://jsonplaceholder.typicode.com/posts` con body **JSON**. No escribiste ningún header. En la app de escritorio, la pestaña **Headers** muestra:
+
+| | Clave | Valor | Descripción |
+|---|---|---|---|
+| ☑ | `Cache-Control` | `no-cache` | Pide una respuesta fresca, sin caché |
+| 🔒 | `User-Agent` | `Luvin/0.1.0` | Le dice al servidor que el request viene de Luvin · escríbela en la tabla para cambiarla |
+| 🔒 | `Content-Type` | `application/json` | La agrega Luvin según el tipo de body |
+| 🔒 | `Content-Length` | `<se calcula al enviar>` | Tamaño del body, en bytes |
+| 🔒 | `Host` | `jsonplaceholder.typicode.com` | Nombre del servidor, sale de la URL |
+| 🔒 | `Accept` | `*/*` | Acepta cualquier tipo de respuesta · escríbela en la tabla para cambiarla |
+| 🔒 | `Accept-Encoding` | `gzip, deflate, br` | Permite respuestas comprimidas · escríbela en la tabla para cambiarla |
+| 🔒 | `Connection` | `keep-alive` | Reutiliza la conexión |
+
+La versión de `User-Agent` es la de tu Luvin. Estas filas van encima de las tuyas. Su texto es gris y no se pueden editar.
+
+## De dónde vienen
+
+| Header | Se agrega porque | La columna Descripción dice |
+|---|---|---|
+| `Cache-Control`, `User-Agent`, `Accept`, `Accept-Encoding`, `Connection`, `Host` | Toda request los lleva. | Para qué sirve cada uno, como en el ejemplo. |
+| `Content-Type` | El request tiene body. Su valor sigue el tipo que elegiste en **Body**. | **La agrega Luvin según el tipo de body** |
+| `Content-Length` | El request tiene body. | **Tamaño del body, en bytes** |
+| `Authorization` y similares | La pestaña **Autorización**, o la colección cuando el request la hereda. | **Según la pestaña Autorización · Bearer**, o **Heredada de la colección · Bearer** |
+| `Cookie` | El almacén de cookies tiene cookies para ese dominio. | **Del almacén de cookies · api.shop.test** |
+
+El valor de `Authorization` va enmascarado: `Bearer ••••••`. Con OAuth 2.0 dice **El token se obtiene al enviar** hasta que Luvin tiene un token. En los tipos que firman el request, como Digest o AWS Signature, muestra `…` y **Luvin la calcula al enviar (Digest)**. Consulta [Autorización](/es/authorization/overview/).
+
+<Aside type="note" title="En el navegador">
+Un navegador no deja que una página fije `User-Agent`, `Accept-Encoding` ni `Connection`. En la versión del navegador, esas filas dicen **Lo pone el navegador**. `Content-Length` y `Host` siempre se calculan al enviar.
+</Aside>
+
+## Desactiva uno
+
+Solo dos filas tienen casilla: `Cache-Control` y `Cookie`.
+
+<Steps>
+
+1. Abre la pestaña **Headers** del request.
+2. Desmarca la casilla de la fila, por ejemplo la de `Cache-Control`.
+3. Envíal request. El header no sale.
+
+</Steps>
+
+Luvin guarda la elección en el archivo del request, en `autoHeadersOff`, así que se mantiene después de cerrar la app:
+
+```yaml title="requests/get-post.request.yaml"
+name: Get post
+kind: http
+method: GET
+url: "{{baseUrl}}/posts/1"
+autoHeadersOff:
+  - cache-control
+```
+
+## Reemplaza uno con tu propio valor
+
+<Steps>
+
+1. En **Headers**, escribe el mismo nombre en la fila vacía del final, por ejemplo `Accept`.
+2. Escribe tu valor, por ejemplo `application/json`.
+3. La fila automática desaparece. La que sale es la tuya.
+
+</Steps>
+
+El nombre no distingue mayúsculas: `accept` reemplaza a `Accept`. Si desmarcas tu fila, vuelve la automática. Si escribes tu propio `Content-Type`, Luvin usa el tuyo en lugar del que corresponde al tipo de body.
+
+Comprueba el resultado en la pestaña **Request enviado** de la respuesta: lista todos los headers que salieron. Consulta [Lee una respuesta en detalle](/es/requests/response-details/).
+
+## Oculta las filas
+
+Cuando la tabla es larga, haz clic en **Ocultar headers automáticos**, sobre ella. El botón pasa a **Mostrar 8 headers automáticos**, con la cuenta real. Los headers se siguen enviando. Luvin recuerda esta elección en este equipo, para todas los requests.
+
+## Quita una de tus filas
+
+Cada fila tuya tiene una ✕ a la derecha, con el tooltip **Quitar fila**. Para dejar de enviar una fila sin perderla, desmarca su casilla.
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Params, headers y body" href="/es/requests/params-headers-body/" />
+  <LinkCard title="Envía un archivo" href="/es/requests/send-files/" />
+  <LinkCard title="Lee una respuesta en detalle" href="/es/requests/response-details/" />
+</CardGrid>

@@ -1,0 +1,25 @@
+{
+  "name": "luvin-docs",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Luvin's documentation: test the chain, not just the call.",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro build && astro preview",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "media": "node scripts/capture.mjs en .media/en && node scripts/convert.mjs .media/en public/media/en && node scripts/capture.mjs es .media/es && node scripts/convert.mjs .media/es public/media/es",
+    "verify-recipes": "node scripts/verify-recipes.mjs"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "0.43.1",
+    "@fontsource-variable/inter": "5.2.8",
+    "astro": "7.4.12",
+    "sharp": "^0.34.0"
+  },
+  "devDependencies": {
+    "ffmpeg-static": "^5.2.0"
+  }
+}

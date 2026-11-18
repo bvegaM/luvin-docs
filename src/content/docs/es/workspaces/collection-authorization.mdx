@@ -1,0 +1,70 @@
+---
+title: Autorización de la colección
+description: Define una autorización para una colección, mira qué requests la usan y aprende dónde se guarda.
+sidebar:
+  order: 4
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+La autorización de la colección son las credenciales que los requests de una colección usan por defecto. La defines una vez, y todo request con **Heredar de la colección** la envía. Úsala cuando la mayoría de los requests de una colección llaman a la misma API con el mismo token o clave.
+
+![La tarjeta Autorización de una colección, con Bearer Token elegido](/media/es/collection-auth.webp)
+
+## Definirla
+
+Ejemplo: todos los requests de una colección de tienda usan un bearer token, guardado en la variable `apiToken` del ambiente.
+
+<Steps>
+
+1. Abre el resumen de la colección: haz clic en el nombre de la colección en la barra lateral.
+2. Busca la tarjeta **Autorización**. Su ayuda dice: **Para los requests sueltos: la usan los que tengan «Heredar de la colección».**
+3. En **Tipo**, elige **Bearer Token**.
+4. En **Token**, escribe `{{apiToken}}`.
+5. Deja el prefijo como `Bearer`, salvo que la API use otro.
+
+</Steps>
+
+No hay que guardar: Luvin lo guarda solo. Los otros tipos que puedes elegir son **Basic Auth**, **API Key**, **Digest Auth**, **NTLM Auth**, **OAuth 1.0**, **OAuth 2.0**, **WSSE Auth**, **AWS Sig v4**, **Akamai EdgeGrid** y **Sin autorización**. Cada uno tiene sus propios campos: mira [Autorización de la colección](/es/authorization/collection/).
+
+Sin autorización, la tarjeta dice **Los requests que heredan de la colección se envían sin autorización.**
+
+## Qué requests la usan
+
+| Dónde | ¿Usa la autorización de la colección? |
+|---|---|
+| Un request cuyo tipo de **Autorización** es **Heredar de la colección** | Sí. El request dice **Usa la autorización de la colección: Bearer Token.** |
+| Un request con su propio tipo | No. Usa la suya. |
+| Requests creados con **Generar requests** desde un contrato | Sí. Empiezan heredándola. |
+| Requests importados de Postman o Bruno | Si la colección de origen tenía una autorización, llega aquí. |
+| Un workflow | No por defecto. Mira abajo. |
+
+Si la colección no tiene ninguna, un request que hereda dice **La colección no tiene autorización configurada, así que este request va sin autorización.**
+
+## Qué usan los workflows
+
+Un workflow elige su autorización por API en su propia pestaña **Autorización**, y no usa la de la colección por sí solo. La pestaña ofrece **Heredada de la colección** si quieres que un workflow use esta. Mira [Autorización de un workflow](/es/authorization/workflow/).
+
+## Dónde se guarda
+
+```yaml title="tienda/collection.yaml"
+version: 1
+name: Tienda
+auth:
+  type: bearer
+  token: '{{apiToken}}'
+```
+
+Un valor con `{{variables}}` se escribe tal cual en el archivo. Un valor que escribes directamente, como un token real o una contraseña, **no** se escribe en el archivo: queda cifrado en este computador. Por eso, quien clona la colección debe escribir el suyo. Mira [Secretos](/es/authorization/secrets/).
+
+<Aside type="tip">
+Usa `{{variables}}` y pon los valores reales en el [ambiente](/es/environments/variables-and-secrets/). Así la configuración viaja con la colección y cada persona guarda sus propios secretos.
+</Aside>
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Resumen de la autorización" href="/es/authorization/overview/" />
+  <LinkCard title="Heredar y ninguna" href="/es/authorization/inherit-and-none/" />
+  <LinkCard title="Autorización de un request" href="/es/authorization/overview/" />
+</CardGrid>
