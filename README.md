@@ -12,6 +12,8 @@ npm run build     # genera el sitio estático en dist/, con el índice del busca
 npm run preview   # sirve dist/ ya compilado
 npm run media     # vuelve a capturar las imágenes y los videos de la app, en los dos idiomas
 npm run verify-recipes   # ejecuta los ejemplos (recetas) con el motor de Luvin contra las APIs reales
+npm run check-links      # revisa que ningún enlace interno de dist/ esté roto (después de build)
+npm run deploy           # compila y publica en Cloudflare (docs.lu-vin.com)
 ```
 
 Requiere Node.js 20.19+ o 22.12+.
@@ -124,4 +126,15 @@ Los subtemas de cada sección (los grupos plegables de la barra lateral) están 
 
 ## Publicar
 
-`npm run build` deja el sitio en `dist/`. Es estático: sirve en cualquier hosting de archivos, por ejemplo Cloudflare (Workers con assets estáticos o Pages) apuntando a `dist/`. El dominio configurado es `https://docs.lu-vin.com` (`site` en `astro.config.mjs`); cámbialo si es otro.
+El sitio se publica en Cloudflare Workers, en `https://docs.lu-vin.com` (un subdominio de `lu-vin.com`, que ya está en Cloudflare). La configuración está en `wrangler.jsonc`.
+
+**Automático (CI/CD).** `.github/workflows/ci.yml` corre en GitHub Actions:
+
+- En cada pull request a `main`: compila el sitio (falla si una página tiene un error) y revisa que no haya enlaces rotos (`npm run check-links`).
+- En cada push a `main`: lo mismo y, si todo pasa, publica.
+
+Necesita dos secretos en el repositorio (Settings → Secrets and variables → Actions), los mismos que usa `luvin-web`: `CLOUDFLARE_API_TOKEN` (un token con la plantilla "Edit Cloudflare Workers") y `CLOUDFLARE_ACCOUNT_ID`. La primera publicación crea el Worker `luvin-docs` y conecta el subdominio, con su DNS y su certificado.
+
+**A mano.** `npx wrangler login` una vez y luego `npm run deploy`.
+
+Las recetas (`npm run verify-recipes`) no corren en la CI porque necesitan el repositorio de la app al lado: ejecútalas en tu equipo antes de cambiar una.

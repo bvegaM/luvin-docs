@@ -1,0 +1,95 @@
+# CI/CD de la documentación de Luvin.
+# - Pull requests a main: compila el sitio (falla si una página tiene un error) y revisa que no haya
+#   enlaces rotos, para detectar problemas antes de unir.
+# - Push a main: lo mismo y, si todo pasa, publica en Cloudflare Workers (https://docs.lu-vin.com).
+#
+# Secretos necesarios en GitHub (Settings → Secrets and variables → Actions), los mismos que en luvin-web:
+#   CLOUDFLARE_API_TOKEN   token con la plantilla "Edit Cloudflare Workers"
+#   CLOUDFLARE_ACCOUNT_ID  id de la cuenta de Cloudflare
+#
+# Las recetas (npm run verify-recipes) no se ejecutan aquí: necesitan el repositorio de la app al lado.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# En PRs, un push nuevo cancela la ejecución anterior. En main nunca se corta un despliegue a medias.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    name: Compilar y revisar
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Compilar
+        run: npm run build
+
+      - name: Revisar enlaces
+        run: npm run check-links
+
+      - name: Guardar el sitio compilado
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: dist/
+          retention-days: 1
+
+  deploy:
+    name: Publicar en Cloudflare
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: production
+      url: https://docs.lu-vin.com
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Recuperar el sitio compilado
+        uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: dist/
+
+      - name: Revisar los secretos de Cloudflare
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::Faltan los secretos CLOUDFLARE_API_TOKEN y CLOUDFLARE_ACCOUNT_ID en este repositorio (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Publicar
+        run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
