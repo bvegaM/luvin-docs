@@ -19,7 +19,7 @@ A **case** is one run of a workflow with given inputs and an expected result. Lu
   | Group | Case | Expects |
   |---|---|---|
   | **Happy path** | **Happy path** | **Success expected** |
-  | **Cases by response** | `getPokemon responds 404 → pokemonNotFound` | **Success expected**, **Simulated** |
+  | **Cases by response** | `getPokemon responds 404 → pokemonNotFound` | The action `pokemonNotFound`, **Simulated** |
 
   ![The Cases tab with the generated cases in their groups](/media/en/cases.webp)
 
@@ -41,6 +41,23 @@ onFailure:
 
 **Type explorer**, whose input `type` only allows a list of values, also gets `"type" with a value outside the enum`.
 
+## Every kind of case in one workflow
+
+A workflow with more inputs and a protected step gets every group. **Place order**, a shop workflow with the inputs `sku` (with a pattern), `quantity` (a whole number), `email` and `delivery` (options), and a `createOrder` step protected by the contract, gets nine cases. The video goes through them.
+
+<video controls muted playsinline preload="metadata" poster="/media/en/test-case-kinds.webp" src="/media/en/test-case-kinds.mp4"></video>
+
+| Group | Cases of **Place order** |
+|---|---|
+| **Happy path** | **Happy path** |
+| **Data validation** | **Without the required input "quantity"**, **Without the required input "email"**, **"sku" with a value that does not match the pattern ^SKU-[0-9]+$**, **"quantity" with text instead of a number**, **"delivery" with a value outside the enum** |
+| **Security** | **Without credentials** |
+| **Cases by response** | `getProduct responds 404 → productNotFound`, `createOrder responds 422 → outOfStock` |
+
+There is no "missing" case for `sku`, because it goes in the path. There is no wrong-value case for `email`: a format such as email does not produce one, only options, number, yes/no and pattern do.
+
+![The Cases tab of Place order: 9 of 9 cases selected, 7 against the real API and 2 simulated, with the Data validation group open](/media/en/test-case-groups.webp)
+
 ## The Cases tab
 
 The line at the top says what the **Run** button will do: how many cases are selected, how many go **against the real API**, how many are **simulated** and how many **will not run**.
@@ -57,7 +74,7 @@ Below it, the cases are in groups. Click a group to open or close it.
 
 Each case shows:
 
-- its name and what it expects (**Success expected** or **Rejection expected**),
+- its name and, for the happy path and the rejection cases, what it expects (**Success expected** or **Rejection expected**),
 - whether it will be **Simulated** or go to the **Real API**,
 - a sentence with the expected result,
 - the inputs it runs with (`default values`, or what it changes).
@@ -99,6 +116,8 @@ Each group says how many of its cases are **ready to run**. A selected case that
 
 Cases that cannot run are skipped. The others run.
 
+![Place order with the run bar on Simulation: 3 simulated and 6 will not run, and each blocked case says why](/media/en/test-wont-run.webp)
+
 ## Next
 
 <CardGrid>
@@ -106,4 +125,5 @@ Cases that cannot run are skipped. The others run.
   <LinkCard title="Custom data cases" description="Add your own." href="/test/custom-cases/" />
   <LinkCard title="Run" description="Run the cases you chose." href="/test/run/" />
   <LinkCard title="Prove the API rejects bad data" href="/recipes/expected-error/" />
+  <LinkCard title="What to test, case by case" description="Which case proves what." href="/test/what-to-test/" />
 </CardGrid>

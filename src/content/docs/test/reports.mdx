@@ -9,7 +9,7 @@ import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starli
 
 A report is a copy of your results in a file. Use it to show that a workflow works, to send a failure to whoever builds the API, or to keep a record of a run. The person who receives it does not need Luvin.
 
-![The exported HTML report open in a browser](/media/en/report.webp)
+<video controls muted playsinline preload="metadata" poster="/media/en/test-export-report.webp" src="/media/en/test-export-report.mp4"></video>
 
 ## Example: report of a Pokemon card run
 
@@ -23,13 +23,17 @@ The file `report-<title>-<date>.html` opens in any browser. It starts with the s
   </TabItem>
   <TabItem label="JSON">
 
-The file `report-<title>-<date>.json` has the same results for another tool. Its field names are in Spanish in both languages of the app.
+The file `report-<title>-<date>.json` has the same results for another tool. Its field names are in English whatever language the app is in.
 
-```json title="Field names" {2-4}
+```json title="Field names"
 {
-  "casos": [],
-  "resultado": "",
-  "pasos": []
+  "generatedAt": "2026-11-17T12:00:00.000Z",
+  "environment": "local",
+  "servers": { "pokeapi": "https://pokeapi.co/api/v2" },
+  "cases": [
+    { "id": "…", "title": "…", "origin": "arazzo", "inputs": {}, "expected": "…",
+      "verdict": "passed", "explanation": "…", "steps": [], "outputs": {} }
+  ]
 }
 ```
 
@@ -58,6 +62,10 @@ The report includes the latest results of every workflow you have run, not only 
 | **Environment** | The name of the environment and the base URL of each API. |
 | **Case summary** | A table with every case: its type, whether it was simulated or ran against the real API, its inputs and its verdict. Click a case to jump to its detail. |
 | **Details per case** | What was expected, the result, the **Values sent**, and every step with its request, response, criteria, contract check and outputs. |
+
+![The report of a shop workflow: the summary, the counters by verdict, the environment and the start of the case summary](/media/en/test-report.webp)
+
+![The Case summary table: each case with its type, whether it ran against the real API or simulated, its inputs and its verdict](/media/en/test-report-cases.webp)
 
 Steps are closed at first, except the ones that failed. The buttons at the top are **Expand all**, **Collapse all** and **Print / save as PDF**.
 
@@ -88,7 +96,7 @@ Masking covers secrets and fields with sensitive names. Other data in the reques
 
 The JSON has the same results in a form another tool can read: when it was generated, the environment, and for each case its id, title, inputs, expected result, verdict, explanation, steps and outputs. Credentials are masked in the same way.
 
-The field names are in Spanish in both languages of the app, for example `casos`, `resultado` and `pasos`. The verdict is one of `passed`, `failed`, `warning` or `inconclusive`.
+The field names are in English whatever language the app is in, for example `cases`, `verdict` and `steps`, so a tool reads every report the same way. The verdict is one of `passed`, `failed`, `warning` or `inconclusive`. `origin` says where the case came from: `arazzo` (the success criteria), `response` (one per documented response), `schema` (invalid or missing inputs), `security` (no credentials) or `data` (your own data cases).
 
 ## Share with someone who does not have Luvin
 

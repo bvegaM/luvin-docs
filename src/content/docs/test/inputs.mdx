@@ -55,6 +55,8 @@ You can also add an input yourself: in **Design**, click the **Start** node, typ
 
 ## Set the default values
 
+<video controls muted playsinline preload="metadata" poster="/media/en/test-edit-inputs.webp" src="/media/en/test-edit-inputs.mp4"></video>
+
 <Steps>
 1. Open the workflow and click the **Inputs** tab.
 2. Fill in each field under **Required**. The badge at the top says **Required complete** when nothing is missing, or how many are missing.
@@ -85,7 +87,11 @@ Each field says its type next to its name. A `*` after the name marks a required
 | **list** | A block with one row per item. **+ Add to …** adds an item and the ✕ removes it. |
 | **free JSON** | A box where you write JSON. **Invalid JSON** appears if it cannot be read. |
 
-A format, when there is one, follows the type: **text · email**.
+A format, when there is one, follows the type: **text · email**. A pattern shows under the field: *Pattern: ^SKU-[0-9]+$*.
+
+![The Inputs tab of a shop workflow: sku with a pattern, quantity as a whole number, email with a generator, and delivery with options under the optional inputs](/media/en/test-inputs-types.webp)
+
+The type also decides which **Data validation** cases Luvin generates: an input with options, a number, yes/no or a pattern gets a case with a wrong value. See [Cases](/test/cases/#the-cases-luvin-generates).
 
 ## Generators and variables as values
 
@@ -94,7 +100,11 @@ Text and number fields accept values between double braces:
 - A **variable** of the active environment, such as `{{partnerCode}}`.
 - A **generator**, which produces a new value on every run, such as `{{$randomEmail}}` or `{{uuid}}`.
 
-Type `{{` in a field to see the suggestions. A value with braces is not checked against its format: it is resolved when the case runs.
+Type `{{` in a field to see the suggestions: the variables and base URLs of the active environment, and the dynamic variables, each with an example. Keep typing to filter them, for example `{{$randomE`.
+
+![Typing in the email input: the suggestions list the dynamic variables with an example of each](/media/en/test-inputs-generators.webp)
+
+A value with braces is not checked against its format: it is resolved when the case runs. After a run, **Show values sent** in the case detail shows the value it produced.
 
 See [Variables and secrets](/environments/variables-and-secrets/) and the full list of [dynamic variables](/environments/dynamic-variables/).
 

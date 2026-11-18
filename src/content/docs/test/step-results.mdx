@@ -9,19 +9,24 @@ import { LinkCard, CardGrid } from '@astrojs/starlight/components';
 
 In the detail of a case, every step of the workflow is a card. Closed, it tells you how the step ended. Open, it shows the request that was sent, the response that came back and why the step passed or failed.
 
-![A case that did not pass, with the failed step open and the reason in plain words](/media/en/results-failed.webp)
+<video controls muted playsinline preload="metadata" poster="/media/en/test-read-failure.webp" src="/media/en/test-read-failure.mp4"></video>
 
 ## Example: a criterion that was not met
 
-A failed step explains what it expected and what it received:
+In a shop workflow, `getProduct` checks that the product it gets back is the one it asked for: `$response.body#/sku == $inputs.sku`. Asked for `SKU-999`, the shop answers 200 with `"sku": "unknown"`. The step fails and explains what it expected and what it received:
 
 ```text
-status
-Expected   "ACTIVE"
-Received   "INACTIVE"
+Criterion not met
+sku
+Expected   "SKU-999"
+Received   "unknown"
 ```
 
+![A failed step: Criterion not met, sku expected SKU-999 and received unknown, and the Criteria tab with the condition Not met](/media/en/test-verdict-inconclusive.webp)
+
 Press **See in the response** to open the **Response** tab with that field highlighted in the body.
+
+![The Response tab of the same step: the field sku is marked in red](/media/en/test-step-response.webp)
 
 ## The step card
 
@@ -45,10 +50,12 @@ Under the header, notes say why the step failed, which action fired (for example
 | Tab | What it shows |
 |---|---|
 | **Criteria** | Each success criterion in plain words, with the technical expression below, whether it was **Met** or **Not met**, and the detail. |
-| **Request** | The method, URL, headers and body that were sent. **Copy as cURL** copies the request for your terminal. |
+| **Request** | The method, URL, headers and body that were sent, under **Line and headers** and **Body**. **Copy as cURL** copies the request for your terminal. |
 | **Response** | The body, with a search box, and **Status and headers**. For a messaging step the tab is **Message**. |
 | **Contract** | **The response matches the contract**, or the list of differences. |
 | **Outputs** | The values the step exposes to the next steps. **Not in the response** marks one that was not found. |
+
+![The Request tab of a step: Copy as cURL, the line and headers that were sent, and the empty body of a GET](/media/en/test-step-request.webp)
 
 ## Read the response of a step
 
@@ -92,7 +99,13 @@ Some cases expect an error: a rejection case, a response case, or a custom data 
 - The action that the error triggered.
 - On the steps after it: *Not run: the workflow stopped at "…", which answered with the error this case expected.*
 
-If the step answers something else, the note says **Did not respond what the case expects**.
+![A step that answered the expected error: Responded 404 (expected), This is what the case tests, The API said: Not Found, and the action that ended the workflow](/media/en/test-response-real-result.webp)
+
+In these cases the **Criteria** tab shows a single criterion, for example **Responds 404 (what this case expects)**. The step's own success criteria are folded under *The step’s normal criteria (2): they do not apply in this case*.
+
+If the step answers something else, the note says **Did not respond what the case expects**, for example *this case goes without credentials and expects 401, 403, but «createOrder» responded 201.*
+
+![A step that did not respond what the case expects: createOrder answered 201 to a request without credentials](/media/en/test-verdict-failed.webp)
 
 ## Chosen at run time
 

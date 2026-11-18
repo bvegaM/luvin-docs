@@ -11,17 +11,21 @@ Un **caso con datos propios** ejecuta el workflow con tu propia combinación de 
 
 Los casos con datos propios siempre se ejecutan contra la API real. Con la barra de ejecución en **Simulación** muestran **No se ejecutará**.
 
-## Ejemplo: Pokémon desconocido en Pokemon card
+## Ejemplo: un Pokémon que no existe en Pokemon card
 
 Este caso comprueba que `getPokemon` responde 404 para un nombre que no existe.
 
 | Campo | Valor |
 |---|---|
-| **Nombre del caso** | Pokémon desconocido |
+| **Nombre del caso** | Pokémon que no existe |
 | **Paso que se verifica** | `getPokemon` |
 | **Acción esperada (opcional)** | `pokemonNotFound (end)` |
 | **Status esperado** | `404` |
 | **Inputs del caso** | `pokemon` = `missingno` |
+
+<video controls muted playsinline preload="metadata" poster="/media/es/test-data-case.webp" src="/media/es/test-data-case.mp4"></video>
+
+![El formulario del caso nuevo, completo como en la tabla](/media/es/test-new-data-case.webp)
 
 ## Crea un caso
 
@@ -45,7 +49,17 @@ Este caso comprueba que `getPokemon` responde 404 para un nombre que no existe.
 | **Code esperado en el body (opcional)** | El campo `code` del body de la respuesta debe ser exactamente este valor, por ejemplo `ACCOUNT_ALREADY_EXISTS`. |
 | **Acción esperada (opcional)** | La acción de éxito o de falla del paso que debe activarse. La lista muestra las acciones con nombre del paso. |
 
-Un caso **pasa** cuando todo lo que completaste coincide. Si no, **no pasa** y dice qué fue distinto, por ejemplo *"getPokemon" respondió 200 y se esperaba 404.* Si el workflow se detiene antes de llegar al paso, el caso es **no concluyente**.
+Un caso **pasa** cuando todo lo que completaste coincide: *"getPokemon" respondió 404 y activó "pokemonNotFound", como se esperaba.*
+
+![Pokémon que no existe pasó contra la PokéAPI: getPokemon Respondió 404 (esperado), La API dijo: Not Found](/media/es/test-data-case-result.webp)
+
+Si no, **no pasa** y dice qué fue distinto, por ejemplo *"getProduct" respondió 200 y se esperaba 404; no se activó "productNotFound".* En esta tienda, la API responde 200 con un producto vacío a un código que no existe.
+
+![Producto que no existe no pasó: getProduct respondió 200, y el paso dice No respondió lo que espera el caso](/media/es/test-verdict-mismatch.webp)
+
+Si el workflow se detiene antes de llegar al paso, el caso es **no concluyente**: *No se llegó a una respuesta de "createOrder": el workflow se detuvo en "getProduct" (…)*. Mira [Lee los resultados](/es/test/results/#veredictos).
+
+Cuando el status esperado es un error, los criterios de éxito normales de ese paso no aplican en este caso. La pestaña **Criterios** muestra **Responde 404 (lo que espera este caso)** y, plegado, *Criterios normales del paso (2): no aplican en este caso*.
 
 Cuando el status esperado es un error, el paso que lo responde se muestra como aprobado en los resultados. Mira [Lee el resultado de un paso](/es/test/step-results/).
 

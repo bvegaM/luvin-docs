@@ -68,7 +68,9 @@ Cuando termina la ejecución, una línea dice en palabras simples si el workflow
 - *El camino feliz no funciona: se detiene en el paso «get species».*
 - *No se pudo comprobar el camino feliz (la API no respondió o faltan datos).*
 
-Debajo, puntos breves nombran las comprobaciones que fallaron, las advertencias y las comprobaciones que no se pudieron completar.
+Debajo, puntos breves nombran las comprobaciones que fallaron, las advertencias y las comprobaciones que no se pudieron completar. Por ejemplo, después de ejecutar un workflow de tienda, **Place order**, contra una API que acepta cualquier pedido:
+
+![El resumen de Place order: El camino feliz funciona, pero fallaron otros casos, con las comprobaciones que no pasaron, las advertencias y una que no se pudo completar, y debajo los filtros por veredicto](/media/es/test-verdicts.webp)
 
 Si no se pudo llegar a la API, un panel titulado **No se pudo conectar con la API** explica qué revisar y ofrece **Probar en simulación**. Mira [Ayuda de conexión](/es/dev-tools/connection-help/).
 
@@ -82,7 +84,9 @@ La lista de la izquierda tiene una fila por caso, con un punto del color de su v
 
 ## Veredictos
 
-Cada caso termina con un [veredicto](/es/reference/glossary/) y un motivo.
+Cada caso termina con un [veredicto](/es/reference/glossary/) y un motivo. Este video recorre un caso de cada veredicto en la ejecución de **Place order**.
+
+<video controls muted playsinline preload="metadata" poster="/media/es/test-verdicts-tour.webp" src="/media/es/test-verdicts-tour.mp4"></video>
 
 | Veredicto | Significado |
 |---|---|
@@ -92,6 +96,23 @@ Cada caso termina con un [veredicto](/es/reference/glossary/) y un motivo.
 | **No concluyente** | El caso no se pudo juzgar: la API no respondió, el workflow se detuvo antes del paso que el caso comprueba, o falló un workflow del que depende. |
 
 Un camino feliz puede pasar con pasos que tienen advertencias, por ejemplo una respuesta que no coincide con el contrato. El motivo nombra esos pasos.
+
+### Un ejemplo de cada uno
+
+| Veredicto | Caso | Resultado |
+|---|---|---|
+| **Pasó** | `getProduct responde 404 → productNotFound` (simulado) | *Con la respuesta 404, "getProduct" activó "productNotFound" (end), como se esperaba.* |
+| **No pasó** | **Sin credenciales** | *"createOrder" aceptó la petición (201) cuando debía rechazarla con 401 o 403.* |
+| **Advertencia** | **"quantity" con un texto en lugar de un número** | *"createOrder" aceptó la petición (201) cuando debía rechazarla con 400 o 422.* |
+| **No concluyente** | **Pedido de un producto que no existe**, un caso con datos propios que revisa `createOrder` | *No se llegó a una respuesta de "createOrder": el workflow se detuvo en "getProduct" (…).* |
+
+![El caso Sin credenciales no pasó: los dos pasos se cumplieron, y createOrder No respondió lo que espera el caso](/media/es/test-verdict-failed.webp)
+
+![El caso con advertencia: createOrder aceptó un quantity que no es un número, con Está bien así: no volver a probarlo](/media/es/test-verdict-warning.webp)
+
+![El caso no concluyente: getProduct no cumplió su criterio, así que createOrder, el paso que revisa el caso, no se ejecutó](/media/es/test-verdict-inconclusive.webp)
+
+Para más ejemplos, por situación, mira [Casuísticas de prueba](/es/test/what-to-test/#qué-significa-cada-veredicto).
 
 ## El detalle de un caso
 

@@ -19,7 +19,11 @@ The case `getPokemon responds 404 → pokemonNotFound` is simulated. To try it a
 
 The case now sends `missingno`, and `getPokemon` must answer 404 so that the action `pokemonNotFound` fires.
 
+![The response case switched to Real API, with the input pokemon changed to missingno and its default, pikachu, below](/media/en/test-response-real.webp)
+
 ## Change the inputs of one case
+
+<video controls muted playsinline preload="metadata" poster="/media/en/test-adjust-inputs.webp" src="/media/en/test-adjust-inputs.mp4"></video>
 
 <Steps>
 1. In the **Cases** tab, press **Inputs** on the case. **Inputs of this case** opens with one row per input.
@@ -29,7 +33,9 @@ The case now sends `missingno`, and `getPokemon` must answer 404 so that the act
 5. Press **Close inputs**.
 </Steps>
 
-The change applies to this case only. The case then shows how many inputs it changes.
+The change applies to this case only. The case then shows how many inputs it changes, for example **2 input(s) changed**, and its **Inputs** line says what: `defaults + quantity = 5, without delivery`.
+
+![Inputs of this case: quantity Changed to 5 with its default below, delivery Omitted, the others Default](/media/en/test-case-inputs.webp)
 
 | State | Meaning |
 |---|---|
@@ -48,6 +54,10 @@ If the workflow has no inputs yet, the editor offers **Choose data to vary**. Se
 
 Luvin suggests 400 or 422 when the contract documents them for that step, or else the other 4xx statuses it documents. For **Without credentials** it suggests 401 and 403. With no status chosen, any 4xx counts.
 
+![A Data validation case with the statuses Luvin suggests, 400 and 422, and If it responds otherwise: warning](/media/en/test-status-suggested.webp)
+
+<video controls muted playsinline preload="metadata" poster="/media/en/test-choose-status.webp" src="/media/en/test-choose-status.mp4"></video>
+
 <Steps>
 1. Click a status to add or remove it. A dot marks the statuses documented in the contract.
 2. For a status that is not in the list, type it in **Other (Enter)** and press Enter.
@@ -62,6 +72,8 @@ What happens when the API answers something else depends on who chose the status
 | Chosen by you | **Failed**. It is what you state about your API. |
 | **Without credentials** | **Failed**. |
 
+![The same case after removing 400: only 422 counts, If it responds otherwise: error, and Back to the suggestion (400, 422)](/media/en/test-status-chosen.webp)
+
 <Aside type="tip">
 If your API accepts a request that the contract says it should reject, and that is fine, add `200` and remove the others. The case shows **Expects 200** and passes when the API answers 200.
 </Aside>
@@ -70,13 +82,21 @@ If your API accepts a request that the contract says it should reject, and that 
 
 Response cases are simulated: Luvin makes the step answer the response that triggers the action. To check the same thing against your API, give the case data that causes that response.
 
+<video controls muted playsinline preload="metadata" poster="/media/en/test-response-real-run.webp" src="/media/en/test-response-real-run.mp4"></video>
+
 <Steps>
 1. On the case, switch **Simulated** to **Real API**. Its inputs open.
 2. Change the inputs. For `getPokemon responds 404 → pokemonNotFound`, set `pokemon` to a name that does not exist.
 3. Run the case.
 </Steps>
 
-Until you change at least one input, the case shows **Will not run**. Message cases have no switch: they are always simulated.
+Until you change at least one input, the case shows **Will not run**: *To test it against the real API, change in the case inputs the values that cause this response.* Message cases have no switch: they are always simulated.
+
+![The response case on Real API with no input changed: Will not run, and its inputs open](/media/en/test-response-needs-data.webp)
+
+With `missingno`, the PokéAPI answers 404 for real, the action fires and the case passes. The step says *The API said: Not Found*.
+
+![The response case passed against the real API: getPokemon Responded 404 (expected) and the workflow ended with pokemonNotFound](/media/en/test-response-real-result.webp)
 
 <Aside type="note">
 A response case set to **Real API** calls the API even when the run bar is on **Simulation**.
@@ -84,28 +104,66 @@ A response case set to **Real API** calls the API even when the run bar is on **
 
 ## Import and export cases
 
+<video controls muted playsinline preload="metadata" poster="/media/en/test-cases-file.webp" src="/media/en/test-cases-file.mp4"></video>
+
 At the top right of the **Cases** tab, the **⋯** menu has two actions:
 
-- **Export cases** downloads a YAML file named after the Arazzo file, ending in `.escenarios.yaml`. It holds the default inputs of each workflow in that file, your custom data cases, and the inputs you changed in generated cases.
+- **Export cases** downloads a YAML file named after the Arazzo file, ending in `.escenarios.yaml`: `orders.arazzo.yaml` gives `orders.arazzo.escenarios.yaml`. It holds the default inputs of each workflow in that file, your custom data cases, and the inputs you changed in generated cases.
 - **Import cases** reads a `.yaml`, `.yml` or `.json` file in that format. It replaces the custom data cases of this Arazzo file and the default inputs of the workflows named in the file. A message then says how many were added and updated, and lists what could not be applied.
 
 ```yaml
 version: 1
-bases:
+defaults:
   pokemonCard:
     pokemon: pikachu
-casos:
+cases:
   - workflow: pokemonCard
-    nombre: Unknown Pokémon
+    name: Unknown Pokémon
     inputs:
       pokemon: missingno
-    espera:
-      paso: getPokemon
+    expect:
+      step: getPokemon
       status: [404]
-      accion: pokemonNotFound
+      action: pokemonNotFound
 ```
 
-The field names are in Spanish in both languages of the app.
+An exported file starts with three comment lines and the title of the Arazzo file. This one was exported from **Place order**, with two custom data cases:
+
+```yaml title="orders.arazzo.escenarios.yaml"
+# Luvin scenarios
+# defaults: default input values per workflow. cases: what each case changes (inputs) and what it does not send (omit).
+# Supports generators: {{email}} {{cpf}} {{rut}} {{uuid}} {{number:8}} {{date}} {{timestamp}}
+version: 1
+arazzo: Shop orders
+defaults:
+  placeOrder:
+    sku: SKU-103
+    quantity: 2
+    email: "{{$randomEmail}}"
+    delivery: standard
+cases:
+  - workflow: placeOrder
+    name: Unknown product
+    inputs:
+      sku: SKU-999
+    expect:
+      step: getProduct
+      status:
+        - 404
+      action: productNotFound
+```
+
+| Key of a case | What it holds |
+|---|---|
+| `workflow` | The `workflowId`. |
+| `name` | The name of the case. |
+| `inputs` | The inputs the case changes. |
+| `omit` | The inputs the case does not send, as a list. |
+| `expect` | For a custom data case: `step`, and `status`, `code` or `action`. |
+| `case` | For a generated case: its id. Luvin uses it to find the case and apply its `inputs` and `omit`. |
+| `mode` | For a response case: `real` or `simulated`. |
+
+The keys are in English whatever language the app is in, so the file is the same for the whole team. Files written with the Spanish keys of earlier versions (`bases`, `casos`, `nombre`, `espera`) are still read.
 
 In a workspace you do not need to export to keep your cases: Luvin saves this same information in the collection, under `scenarios/`. See [Files of a workspace](/workspaces/files/).
 
@@ -115,4 +173,5 @@ In a workspace you do not need to export to keep your cases: Luvin saves this sa
   <LinkCard title="Cases" href="/test/cases/" />
   <LinkCard title="Custom data cases" href="/test/custom-cases/" />
   <LinkCard title="Read the results" href="/test/results/" />
+  <LinkCard title="Keep the cases in git" href="/test/what-to-test/#keep-the-cases-in-git" />
 </CardGrid>

@@ -59,6 +59,8 @@ Cada paso responde con éxito, así que un caso normal corre de principio a fin.
 
 Los pasos simulados muestran la etiqueta **Simulado** en los resultados, y la lista de casos marca el caso con **Sim**. El reporte también los marca como simulados. Mira [Lee el resultado de un paso](/es/test/step-results/).
 
+![El camino feliz de Pokemon card en simulación: cada paso con la etiqueta Simulado, 0 ms, y los outputs armados con los ejemplos del contrato](/media/es/test-simulation-results.webp)
+
 <Aside type="tip">
 Mientras mejores sean los ejemplos de tus contratos, más útil es la simulación. Un contrato con ejemplos realistas te da datos realistas fluyendo de un paso a otro.
 </Aside>
@@ -78,6 +80,8 @@ La simulación demuestra que el workflow es coherente con su contrato. No demues
 - **No puede rechazar nada.** Por eso los casos de **Validación de datos** y de **Seguridad**, y los **Casos con datos propios**, no se ejecutan en simulación. Muestran **No se ejecutará** con el motivo. Cambia la barra de ejecución a **API real** para ejecutarlos. Mira [Casos](/es/test/cases/).
 - **Sus datos son inventados.** Los ejemplos pueden no parecerse a los datos que devuelve tu API.
 
+![Un workflow de tienda con la barra de ejecución en Simulación: 3 casos simulados y 6 que no se ejecutarán, cada uno con su razón](/media/es/test-wont-run.webp)
+
 Ejecuta contra la **API real** antes de confiar en un workflow.
 
 ## Casos por respuesta y de mensaje
@@ -87,6 +91,8 @@ Un **caso por respuesta** simula que un paso responde la respuesta que activa un
 La respuesta simulada se arma como arriba, con los valores que pide la condición de la acción. Se entrega **una sola vez**: la primera vez que ese paso se ejecuta. Si el workflow vuelve al paso, por ejemplo después de un reintento, el paso responde con éxito.
 
 Un **caso de mensaje** es para un paso que recibe un mensaje. Luvin simula un mensaje con los valores que espera una acción, o ningún mensaje, de modo que el paso llega a su timeout. Mira [Casos](/es/test/cases/).
+
+![Un caso por respuesta simulado que pasó: getProduct simuló un 404 y la acción productNotFound terminó el workflow](/media/es/test-verdict-passed.webp)
 
 Los casos por respuesta se simulan por defecto. Para comprobar lo mismo contra tu API, cambia el caso a **API real** y dale datos. Mira [Ajusta un caso](/es/test/adjust-cases/).
 

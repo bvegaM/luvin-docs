@@ -68,7 +68,9 @@ When the run ends, a line says in plain words whether the workflow works:
 - *The happy path doesn't work: it stops at step «get species».*
 - *The happy path couldn't be checked (the API didn't respond or data is missing).*
 
-Under it, short points name the checks that failed, the warnings and the checks that could not be completed.
+Under it, short points name the checks that failed, the warnings and the checks that could not be completed. For example, after a run of a shop workflow, **Place order**, against an API that accepts any order:
+
+![The summary of Place order: The happy path works, but other cases failed, with the failed checks, the warnings and one check that couldn't be completed, and the filters by verdict below](/media/en/test-verdicts.webp)
 
 If the API could not be reached, a panel titled **Could not reach the API** explains what to check and offers **Try in simulation**. See [Connection help](/dev-tools/connection-help/).
 
@@ -82,7 +84,9 @@ The list on the left has one row per case, with a dot in the color of its verdic
 
 ## Verdicts
 
-Every case ends with a [verdict](/reference/glossary/) and a reason.
+Every case ends with a [verdict](/reference/glossary/) and a reason. This video goes through one case of each verdict in the run of **Place order**.
+
+<video controls muted playsinline preload="metadata" poster="/media/en/test-verdicts-tour.webp" src="/media/en/test-verdicts-tour.mp4"></video>
 
 | Verdict | Meaning |
 |---|---|
@@ -92,6 +96,23 @@ Every case ends with a [verdict](/reference/glossary/) and a reason.
 | **Inconclusive** | The case could not be judged: the API did not respond, the workflow stopped before the step the case checks, or a workflow it depends on failed. |
 
 A happy path can pass with steps that have warnings, for example a response that does not match the contract. The reason names those steps.
+
+### One example of each
+
+| Verdict | Case | Result |
+|---|---|---|
+| **Passed** | `getProduct responds 404 → productNotFound` (simulated) | *With response 404, "getProduct" triggered "productNotFound" (end), as expected.* |
+| **Failed** | **Without credentials** | *"createOrder" accepted the request (201) when it should have rejected it with 401 or 403.* |
+| **Warning** | **"quantity" with text instead of a number** | *"createOrder" accepted the request (201) when it should have rejected it with 400 or 422.* |
+| **Inconclusive** | **Order an unknown product**, a custom data case that checks `createOrder` | *No response was reached for "createOrder": the workflow stopped at "getProduct" (…).* |
+
+![The Failed case Without credentials: both steps Succeeded, and createOrder Did not respond what the case expects](/media/en/test-verdict-failed.webp)
+
+![The Warning case: createOrder accepted a quantity that is not a number, with It's fine: stop testing it](/media/en/test-verdict-warning.webp)
+
+![The Inconclusive case: getProduct failed its criterion, so createOrder, the step the case checks, did not run](/media/en/test-verdict-inconclusive.webp)
+
+For more examples, by situation, see [What to test, case by case](/test/what-to-test/#what-each-verdict-means).
 
 ## The detail of a case
 

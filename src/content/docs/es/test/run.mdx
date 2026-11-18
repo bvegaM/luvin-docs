@@ -34,6 +34,10 @@ La barra de ejecución está arriba de un workflow abierto, sobre sus pestañas.
 | **Ambiente** | El ambiente cuyas URLs base, variables y credenciales se usan. **Configurar ambiente…**, al final de la lista, lo abre. |
 | **Ejecutar** | Ejecuta los casos seleccionados que están listos. Su texto dice cuántos: **Ejecutar 3 casos**, **Ejecutar 1 caso**. Sin ninguno listo dice **Ejecutar** y no se puede pulsar. |
 
+![La barra de ejecución de Pokemon card: API real, el ambiente staging y Ejecutar 2 casos](/media/es/test-runbar.webp)
+
+Antes de pulsar **Ejecutar**, la línea de arriba de la pestaña **Casos** dice qué va a pasar: cuántos casos están seleccionados, cuántos van contra la API real, cuántos se simulan y cuántos no se ejecutarán. Mira [Casos](/es/test/cases/#la-pestaña-casos).
+
 ## Ejecuta los casos
 
 <Steps>
@@ -69,6 +73,8 @@ Un paso que usa `POST`, `PUT`, `PATCH` o `DELETE` crea, cambia o elimina datos. 
 | **Usar simulación** | Cambia a **Simulación** y ejecuta ahí. No se envía nada a la API. |
 | **Cancelar** | Cierra el aviso sin ejecutar. |
 
+![El aviso antes de ejecutar Create order de PayPal contra la API real: un POST modifica datos en el ambiente Sandbox](/media/es/test-run-confirm.webp)
+
 Lee el nombre del ambiente en el aviso antes de confirmar.
 
 ## Otros avisos antes de ejecutar
@@ -81,6 +87,10 @@ Lee el nombre del ambiente en el aviso antes de confirmar.
 
 Mientras los casos se ejecutan, el botón **Ejecutar** se convierte en **Cancelar**. Los resultados también muestran un botón **Cancelar**. La ejecución se detiene en el paso actual y los casos que no habían empezado quedan **Pendientes**.
 
+## Ejecuta todos los workflows de un archivo
+
+Para ejecutar todos los workflows de un archivo Arazzo uno tras otro, abre el archivo en la barra lateral y pulsa **▶ Ejecutar todos**. Mira [El archivo Arazzo](/es/design/arazzo-file/).
+
 ## Cuando un workflow depende de otro
 
 Algunos workflows necesitan que otro corra primero: por ejemplo, **Battle matchup** en la Pokédex corre después de **Type explorer** y usa sus outputs.
@@ -90,6 +100,8 @@ Algunos workflows necesitan que otro corra primero: por ejemplo, **Battle matchu
 - En **Simulación** también se simulan.
 - Los resultados los muestran bajo **Preparación**. Haz clic en uno para ver sus pasos.
 - Si uno de ellos falla, los casos no se pueden probar. Cada caso termina como **No concluyente** y dice qué workflow falló.
+
+![Battle matchup en simulación: Type explorer se ejecutó primero en Preparación, y después el camino feliz](/media/es/test-preparation.webp)
 
 Mira [Dependencias](/es/design/dependencies/) y la receta [Un workflow inicia sesión, otros reutilizan su token](/es/recipes/depends-on/).
 

@@ -34,6 +34,10 @@ The run bar is at the top of an open workflow, above its tabs. The workflow name
 | **Environment** | The environment whose base URLs, variables and credentials are used. **Configure environment…**, at the end of the list, opens it. |
 | **Run** | Runs the selected cases that are ready. Its label says how many: **Run 3 cases**, **Run 1 case**. With none ready it says **Run** and cannot be pressed. |
 
+![The run bar of Pokemon card: Real API, the environment staging and Run 2 cases](/media/en/test-runbar.webp)
+
+Before you press **Run**, the line at the top of the **Cases** tab says what will happen: how many cases are selected, how many go against the real API, how many are simulated and how many will not run. See [Cases](/test/cases/#the-cases-tab).
+
 ## Run the cases
 
 <Steps>
@@ -69,6 +73,8 @@ A step that uses `POST`, `PUT`, `PATCH` or `DELETE` creates, changes or deletes 
 | **Use simulation** | Switches to **Simulation** and runs there. Nothing is sent to the API. |
 | **Cancel** | Closes the notice without running. |
 
+![The notice before running PayPal's Create order against the real API: a POST modifies data in the Sandbox environment](/media/en/test-run-confirm.webp)
+
 Read the environment name in the notice before you confirm.
 
 ## Other notices before a run
@@ -81,6 +87,10 @@ Read the environment name in the notice before you confirm.
 
 While cases are running, the **Run** button becomes **Cancel**. The results show a **Cancel** button too. The run stops at the current step, and the cases that had not started stay **Pending**.
 
+## Run every workflow of a file
+
+To run all the workflows of an Arazzo file one after another, open the file in the sidebar and press **▶ Run all**. See [The Arazzo file](/design/arazzo-file/).
+
 ## When a workflow depends on another
 
 Some workflows need another one to run first: for example, **Battle matchup** in the Pokédex runs after **Type explorer** and uses its outputs.
@@ -90,6 +100,8 @@ Some workflows need another one to run first: for example, **Battle matchup** in
 - In **Simulation** they are simulated too.
 - The results show them under **Preparation**. Click one to see its steps.
 - If one of them fails, the cases cannot be tested. Each case ends as **Inconclusive** and says which workflow failed.
+
+![Battle matchup in simulation: Type explorer ran first under Preparation, then the happy path](/media/en/test-preparation.webp)
 
 See [Dependencies](/design/dependencies/) and the recipe [One workflow logs in, others reuse its token](/recipes/depends-on/).
 

@@ -55,6 +55,8 @@ También puedes agregar un input tú mismo: en **Diseño**, haz clic en el nodo 
 
 ## Fija los valores por defecto
 
+<video controls muted playsinline preload="metadata" poster="/media/es/test-edit-inputs.webp" src="/media/es/test-edit-inputs.mp4"></video>
+
 <Steps>
 1. Abre el workflow y haz clic en la pestaña **Inputs**.
 2. Completa cada campo bajo **Obligatorios**. La etiqueta de arriba dice **Obligatorios completos** cuando no falta nada, o cuántos faltan.
@@ -85,7 +87,11 @@ Cada campo dice su tipo junto a su nombre. Un `*` después del nombre marca un i
 | **lista** | Un bloque con una fila por elemento. **+ Agregar a …** agrega un elemento y la ✕ lo quita. |
 | **JSON libre** | Una caja donde escribes JSON. Aparece **JSON inválido** si no se puede leer. |
 
-Un formato, cuando existe, va después del tipo: **texto · email**.
+Un formato, cuando existe, va después del tipo: **texto · email**. Un patrón aparece bajo el campo: *Patrón: ^SKU-[0-9]+$*.
+
+![La pestaña Inputs de un workflow de tienda: sku con un patrón, quantity como número entero, email con un generador y delivery con opciones entre los opcionales](/media/es/test-inputs-types.webp)
+
+El tipo también decide qué casos de **Validación de datos** genera Luvin: un input con opciones, de número, de sí/no o con un patrón recibe un caso con un valor incorrecto. Mira [Casos](/es/test/cases/#los-casos-que-luvin-genera).
 
 ## Generadores y variables como valores
 
@@ -94,7 +100,11 @@ Los campos de texto y de número aceptan valores entre llaves dobles:
 - Una **variable** del ambiente activo, como `{{partnerCode}}`.
 - Un **generador**, que produce un valor nuevo en cada ejecución, como `{{$randomEmail}}` o `{{uuid}}`.
 
-Escribe `{{` en un campo para ver las sugerencias. Un valor con llaves no se comprueba contra su formato: se resuelve cuando el caso se ejecuta.
+Escribe `{{` en un campo para ver las sugerencias: las variables y las URLs base del ambiente activo, y las variables dinámicas, cada una con un ejemplo. Sigue escribiendo para filtrarlas, por ejemplo `{{$randomE`.
+
+![Escribiendo en el input email: las sugerencias muestran las variables dinámicas con un ejemplo de cada una](/media/es/test-inputs-generators.webp)
+
+Un valor con llaves no se comprueba contra su formato: se resuelve cuando el caso se ejecuta. Después de ejecutar, **Ver valores enviados** en el detalle del caso muestra el valor que produjo.
 
 Mira [Variables y secretos](/es/environments/variables-and-secrets/) y la lista completa de [variables dinámicas](/es/environments/dynamic-variables/).
 

@@ -57,7 +57,10 @@ For every step, Luvin looks up its operation in the contract and builds the resp
 
 Every step answers as a success, so a normal case runs from start to end. The only exception is a response case, described below.
 
-Simulated steps show the **Simulated** badge in the results, and the case list marks the case **Sim**. The report marks them as simulated too. See [Read a step result](/test/step-results/).
+Simulated steps show the **Simulated** badge in the results, and the case list marks the case **Sim**.
+
+![The happy path of Pokemon card in simulation: each step Succeeded with the Simulated badge, 0 ms, and the outputs built from the contract examples](/media/en/test-simulation-results.webp)
+ The report marks them as simulated too. See [Read a step result](/test/step-results/).
 
 <Aside type="tip">
 The better the examples in your contracts, the more useful the simulation. A contract with realistic examples gives you realistic data flowing from step to step.
@@ -78,6 +81,8 @@ Simulation proves that the workflow is consistent with its contract. It does not
 - **It cannot reject anything.** For that reason **Data validation** and **Security** cases, and **Custom data cases**, do not run in simulation. They show **Will not run** with the reason. Switch the run bar to **Real API** to run them. See [Cases](/test/cases/).
 - **Its data is invented.** The examples may not look like the data your API returns.
 
+![A shop workflow with the run bar on Simulation: 3 simulated cases and 6 that will not run, each with its reason](/media/en/test-wont-run.webp)
+
 Run against the **Real API** before you trust a workflow.
 
 ## Response and message cases
@@ -87,6 +92,8 @@ A **response case** simulates that one step answers the response that triggers o
 The simulated response is built as above, with the values that the action's condition asks for. It is served **once**: the first time that step runs. If the workflow goes back to the step, for example after a retry, the step answers as a success.
 
 A **message case** is for a step that receives a message. Luvin simulates a message that carries the values an action expects, or no message at all, so the step reaches its timeout. See [Cases](/test/cases/).
+
+![A simulated response case that passed: getProduct simulated a 404 and the action productNotFound ended the workflow](/media/en/test-verdict-passed.webp)
 
 Response cases are simulated by default. To check the same thing against your API, switch the case to **Real API** and give it data. See [Adjust a case](/test/adjust-cases/).
 

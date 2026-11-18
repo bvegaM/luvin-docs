@@ -1,0 +1,403 @@
+---
+title: Casuísticas de prueba
+description: Un catálogo de situaciones de prueba. En cada una, qué demuestra, cómo se hace en Luvin, qué resultado debes ver y dónde se explica en detalle.
+sidebar:
+  order: 0
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Cada sección es una situación que puedes querer probar. Dice qué demuestra la prueba, cómo se hace en Luvin, qué debes ver y qué página la explica en detalle. La mayoría no necesita preparación: Luvin genera el caso y tú solo lo ejecutas.
+
+Los ejemplos usan la Pokédex y PayPal, que vienen con Luvin, y un workflow de tienda pequeño, **Place order**, que consulta un producto con `getProduct` y crea un pedido con `createOrder`. Las capturas de la tienda son ejecuciones reales contra una API de tienda de prueba en el mismo equipo, que acepta cualquier pedido.
+
+| Situación | Luvin la genera | Necesita la API real |
+|---|---|---|
+| [El camino feliz](#el-camino-feliz-funciona) | Sí | No |
+| [Falta un input obligatorio](#falta-un-input-obligatorio) | Sí | Sí |
+| [Un input con un valor incorrecto](#un-input-con-un-valor-incorrecto) | Sí | Sí |
+| [Una llamada sin credenciales](#una-llamada-sin-credenciales) | Sí | Sí |
+| [Cada respuesta de error documentada](#cada-respuesta-de-error-documentada) | Sí | No |
+| [Un rechazo debe devolver un status dado](#un-rechazo-debe-devolver-un-status-dado) | Sí, tú eliges el status | Sí |
+| [Una situación propia](#una-situación-propia-caso-con-datos-propios) | No, la agregas tú | Sí |
+| [Una respuesta de error, contra la API real](#una-respuesta-de-error-contra-la-api-real) | Sí, tú das los datos | Sí |
+| [Un caso sin un input](#un-caso-sin-un-input) | No, lo omites tú | Depende del caso |
+| [Datos fijos o datos nuevos en cada ejecución](#datos-fijos-o-datos-nuevos-en-cada-ejecución) | — | — |
+| [API real o Simulación](#api-real-o-simulación) | — | — |
+| [Otro ambiente](#otro-ambiente) | — | Sí |
+| [Un paso que devuelve una lista](#un-paso-que-devuelve-una-lista) | — | — |
+| [Un workflow que depende de otro](#un-workflow-que-depende-de-otro) | — | No |
+| [Iniciar sesión antes de ejecutar](#iniciar-sesión-antes-de-ejecutar) | — | Sí |
+
+## El camino feliz funciona
+
+**Qué demuestra:** la cadena funciona de principio a fin con los inputs por defecto. Cada paso cumple sus criterios de éxito y le pasa sus datos al siguiente.
+
+<Steps>
+
+1. Abre el workflow y haz clic en la pestaña **Casos**. El caso **Camino feliz** está en el primer grupo, marcado.
+2. En la barra de ejecución, elige **Simulación** para revisar el diseño, o **API real** para revisar la API.
+3. Pulsa **Ejecutar**.
+
+</Steps>
+
+**Qué debes ver:** el caso termina en **Pasó** y el resumen dice *El camino feliz funciona y todas las comprobaciones salieron como se esperaba.* En simulación, cada paso lleva la insignia **Simulado**.
+
+![El camino feliz de Pokemon card pasó en simulación: cada paso con la insignia Simulado y los outputs del workflow](/media/es/test-simulation-results.webp)
+
+Si no pasa, el resumen nombra el paso donde se detiene: *El camino feliz no funciona: se detiene en el paso «get species».* Mira [Lee los resultados](/es/test/results/).
+
+## Falta un input obligatorio
+
+**Qué demuestra:** la API valida los datos que dice que son obligatorios. Luvin envía el request sin un input obligatorio y espera que el primer paso que lo usa lo rechace.
+
+<Steps>
+
+1. En la pestaña **Casos**, abre el grupo **Validación de datos**.
+2. Busca **Sin el input obligatorio "…"**. Hay uno por cada input obligatorio.
+3. Comprueba que la barra de ejecución diga **API real** y pulsa **Ejecutar**, o ▶ en el caso para ejecutarlo solo.
+
+</Steps>
+
+**Qué debes ver:** **Pasó** si el paso respondió uno de los status que aparecen bajo el caso, por ejemplo 400 o 422. El paso muestra **Respondió 400 (esperado)** y la nota **Es lo que prueba el caso**.
+
+Si la API acepta igual el request, el caso termina en **Advertencia**. Mira [Qué significa cada veredicto](#qué-significa-cada-veredicto).
+
+Un input que va en la ruta de la URL no tiene caso de "falta": sin él, la URL apunta a otro recurso. Mira [Casos](/es/test/cases/#los-casos-que-luvin-genera).
+
+## Un input con un valor incorrecto
+
+**Qué demuestra:** la API rechaza datos que no cumplen el contrato. Luvin envía un valor fuera de las opciones permitidas, un texto en lugar de un número, un texto en lugar de sí/no, o un valor que no cumple el patrón.
+
+<Steps>
+
+1. En la pestaña **Casos**, abre **Validación de datos**.
+2. Busca el caso con el nombre del input, por ejemplo **"type" con un valor fuera del enum** en **Type explorer**.
+3. Ejecútalo contra la **API real**.
+
+</Steps>
+
+**Qué debes ver:** en la Pokédex, la PokéAPI responde 404 a un tipo que no existe, que es el status que documenta el contrato, así que el caso pasa.
+
+![Un caso de rechazo que pasó: getType respondió 404, como se esperaba, y la API dijo Not Found](/media/es/test-rejection-passed.webp)
+
+Luvin solo genera este caso para inputs con opciones permitidas, de tipo número o sí/no, o con un patrón. Un input de texto sin más no tiene ninguno.
+
+## Una llamada sin credenciales
+
+**Qué demuestra:** las operaciones protegidas de verdad están protegidas. Luvin ejecuta el workflow sin credenciales y espera que el primer paso protegido responda 401 o 403.
+
+<Steps>
+
+1. En la pestaña **Casos**, abre el grupo **Seguridad**. Solo existe si un contrato protege al menos un paso, como en **Create order** de PayPal.
+2. Ejecuta **Sin credenciales** contra la **API real**.
+
+</Steps>
+
+**Qué debes ver:** **Pasó** si el paso respondió 401 o 403. Si respondió otra cosa, el caso **no pasa**, porque una operación que el contrato protege dejó pasar el request.
+
+![Los casos de Create order de PayPal: Sin el input obligatorio "amount", Sin credenciales y un caso por respuesta](/media/es/test-paypal-cases.webp)
+
+## Cada respuesta de error documentada
+
+**Qué demuestra:** el workflow hace lo correcto cuando un paso responde un error: termina, reintenta o va a otro paso. Luvin genera un caso por cada acción de éxito o de falla que tiene criterios, y simula la respuesta que la activa.
+
+<Steps>
+
+1. En la pestaña **Casos**, abre **Casos por respuesta**. Cada caso lleva el nombre del paso, el status y la acción: `getPokemon responde 404 → pokemonNotFound`.
+2. Pulsa **Ejecutar**. Estos casos se simulan, así que funcionan con la barra de ejecución en cualquiera de las dos opciones.
+
+</Steps>
+
+**Qué debes ver:** **Pasó** cuando se activó la acción esperada. El paso muestra **Respondió 404 (esperado)** con **Simulado**, y los pasos siguientes dicen *No se ejecutó: el workflow se detuvo en «…», que respondió con el error que esperaba este caso.*
+
+![Un caso por respuesta que pasó: getProduct simuló un 404 y la acción productNotFound terminó el workflow](/media/es/test-verdict-passed.webp)
+
+¿Qué respuestas todavía no tienen acción? Abre la pestaña **Resumen** y su sección **Cobertura de respuestas**. Cada fila **✕ Sin manejo** es un error que el workflow no trata. Mira [La pestaña Resumen](/es/test/overview-tab/#cobertura-de-respuestas).
+
+![Cobertura de respuestas de Pokemon card: 5 de 8 respuestas documentadas manejadas, tres 404 sin manejo](/media/es/test-coverage.webp)
+
+## Un rechazo debe devolver un status dado
+
+**Qué demuestra:** tu API responde exactamente el status acordado, por ejemplo 422 y no 400. Por defecto Luvin sugiere los status 4xx que documenta el contrato y acepta cualquiera de ellos.
+
+<video controls muted playsinline preload="metadata" poster="/media/es/test-choose-status.webp" src="/media/es/test-choose-status.mp4"></video>
+
+<Steps>
+
+1. En **Validación de datos** o **Seguridad**, busca el caso. Debajo, **Status que debe responder «…»:** muestra los status que acepta.
+2. Haz clic en un status para agregarlo o quitarlo. Un punto marca los status documentados en el contrato.
+3. Para un status que no está en la lista, escríbelo en **Otro (Enter)** y pulsa Enter.
+
+</Steps>
+
+**Qué debes ver:** el caso ahora dice **Si responde otra cosa: error**. Una respuesta distinta de la API es un **No pasó**, no una advertencia, porque el status es lo que tú afirmas de tu API. **Volver a lo sugerido** deshace tu elección.
+
+![Un caso de Validación de datos que solo acepta 422: Si responde otra cosa: error, y Volver a lo sugerido](/media/es/test-status-chosen.webp)
+
+Mira [Ajusta un caso](/es/test/adjust-cases/#elige-el-status-que-debe-devolver-un-caso-de-rechazo).
+
+## Una situación propia (caso con datos propios)
+
+**Qué demuestra:** una situación de negocio que Luvin no puede deducir del contrato: un cliente que ya existe, una cuenta sin saldo, un Pokémon que no existe. Tú eliges los inputs y lo que debe responder un paso.
+
+<video controls muted playsinline preload="metadata" poster="/media/es/test-data-case.webp" src="/media/es/test-data-case.mp4"></video>
+
+<Steps>
+
+1. En la pestaña **Casos**, en **Casos con datos propios**, pulsa **+ Nuevo caso con datos**.
+2. En **Nombre del caso**, escribe lo que prueba: `Pokémon que no existe`.
+3. En **Paso que se verifica**, elige `getPokemon`.
+4. Completa lo que debe pasar. Basta con uno de los tres:
+   - **Status esperado**: `404`. Varios se separan con comas: `200, 201`.
+   - **Code esperado en el body (opcional)**: el campo `code` de la respuesta, por ejemplo `ACCOUNT_ALREADY_EXISTS`.
+   - **Acción esperada (opcional)**: `pokemonNotFound (end)`.
+5. En **Inputs del caso**, cambia los datos que provocan la situación: `pokemon` = `missingno`.
+6. Pulsa **Agregar caso** y ejecútalo contra la **API real**.
+
+</Steps>
+
+![El formulario de un caso nuevo completo: nombre, paso, acción, status esperado 404 y el input pokemon cambiado a missingno](/media/es/test-new-data-case.webp)
+
+**Qué debes ver:** **Pasó**, con el resultado *"getPokemon" respondió 404 y activó "pokemonNotFound", como se esperaba.* Si algo difiere, el caso **no pasa** y dice qué, por ejemplo *"getProduct" respondió 200 y se esperaba 404; no se activó "productNotFound".* Si el workflow se detiene antes del paso, el caso es **No concluyente**.
+
+Mira [Casos con datos propios](/es/test/custom-cases/).
+
+## Una respuesta de error, contra la API real
+
+**Qué demuestra:** lo mismo que un caso por respuesta, pero con tu API respondiendo el error de verdad.
+
+<video controls muted playsinline preload="metadata" poster="/media/es/test-response-real-run.webp" src="/media/es/test-response-real-run.mp4"></video>
+
+<Steps>
+
+1. En **Casos por respuesta**, cambia el caso de **Simulado** a **API real**. Se abren sus inputs, y el caso dice que **No se ejecutará** hasta que cambies uno.
+2. Cambia el input que provoca el error: `pokemon` = `missingno`.
+3. Pulsa ▶ en el caso.
+
+</Steps>
+
+**Qué debes ver:** el paso respondió 404 de verdad, el caso **Pasó** y la nota muestra lo que dijo la API: *La API dijo: Not Found*.
+
+![El caso por respuesta en API real con el input pokemon cambiado a missingno](/media/es/test-response-real.webp)
+
+Un caso por respuesta en **API real** llama a la API aunque la barra de ejecución esté en **Simulación**. Mira [Ajusta un caso](/es/test/adjust-cases/#ejecuta-un-caso-por-respuesta-contra-la-api-real).
+
+## Un caso sin un input
+
+**Qué demuestra:** qué pasa cuando no se envía un input opcional, o cuando un caso necesita otros datos que los por defecto.
+
+<video controls muted playsinline preload="metadata" poster="/media/es/test-adjust-inputs.webp" src="/media/es/test-adjust-inputs.mp4"></video>
+
+<Steps>
+
+1. En la pestaña **Casos**, pulsa **Inputs** en el caso. Se abre **Inputs de este caso**.
+2. Para no enviar un input, pulsa **Omitir** en su fila. Dice **No se envía en este caso**.
+3. Para cambiar un valor, escríbelo. La fila pasa de **Por defecto** a **Cambiado** y muestra el valor por defecto debajo.
+4. **Restablecer** devuelve una fila a su valor por defecto. **Restablecer todo** las devuelve todas.
+
+</Steps>
+
+![Inputs del camino feliz: quantity cambiado a 5, delivery omitido, los demás por defecto](/media/es/test-case-inputs.webp)
+
+**Qué debes ver:** el caso muestra cuántos inputs cambia, por ejemplo **2 input(s) cambiado(s)**, y su línea **Inputs** dice `por defecto + quantity = 5, sin delivery`. El cambio solo aplica a ese caso. Mira [Ajusta un caso](/es/test/adjust-cases/).
+
+## Datos fijos o datos nuevos en cada ejecución
+
+**Qué demuestra:** con datos fijos, el mismo request cada vez, fácil de comparar. Con un generador, un workflow que crea algo (un cliente, un pedido) puede ejecutarse otra vez sin fallar porque el dato ya existe.
+
+<video controls muted playsinline preload="metadata" poster="/media/es/test-edit-inputs.webp" src="/media/es/test-edit-inputs.mp4"></video>
+
+<Steps>
+
+1. Abre la pestaña **Inputs**, o **Inputs** en un caso.
+2. Para un dato fijo, escribe el valor: `ana@example.com`.
+3. Para un dato nuevo, escribe `{{` y elige entre las sugerencias, o escribe el generador: `{{$randomEmail}}`, `{{uuid}}`, `{{number:8}}`.
+
+</Steps>
+
+![Escribiendo un generador en el input email: las sugerencias muestran las variables dinámicas con un ejemplo de cada una](/media/es/test-inputs-generators.webp)
+
+**Qué debes ver:** el generador queda resaltado en el campo. Después de ejecutar, **Ver valores enviados** en el detalle del caso muestra el valor que produjo. Mira [Inputs](/es/test/inputs/#generadores-y-variables-como-valores) y [Variables dinámicas](/es/environments/dynamic-variables/).
+
+## API real o Simulación
+
+**Qué demuestra:** **Simulación** demuestra que el workflow es coherente con sus contratos: los datos pasan de paso en paso y los criterios se cumplen. **API real** demuestra que la API se comporta así.
+
+<Steps>
+
+1. En la barra de ejecución, haz clic en **Simulación** o en **API real**.
+2. Lee la línea de arriba de la pestaña **Casos**. Dice cuántos casos van **contra la API real**, cuántos son **simulados** y cuántos **no se ejecutarán**.
+3. Pulsa **Ejecutar**.
+
+</Steps>
+
+**Qué debes ver:** en **Simulación**, los casos de **Validación de datos**, **Seguridad** y **Casos con datos propios** muestran **No se ejecutará**, con la razón. Necesitan una API que pueda rechazar datos.
+
+![La pestaña Casos en Simulación: 3 simulados, 6 no se ejecutarán, y cada caso bloqueado dice por qué](/media/es/test-wont-run.webp)
+
+Mira [Simulación](/es/test/simulation/).
+
+## Otro ambiente
+
+**Qué demuestra:** el mismo workflow funciona contra otro servidor, por ejemplo staging en lugar de local, con sus propias URLs base, variables y credenciales.
+
+<Steps>
+
+1. En la barra de ejecución, abre **Ambiente** y elige uno. **Configurar ambiente…**, al final de la lista, lo abre.
+2. Elige **API real** y pulsa **Ejecutar**.
+
+</Steps>
+
+**Qué debes ver:** los requests van a las URLs base de ese ambiente. Si un paso crea, cambia o borra datos, un aviso nombra el ambiente antes de enviar nada: *Estos pasos modifican datos en el ambiente «Sandbox»*, con **Ejecutar igual**, **Usar simulación** y **Cancelar**.
+
+![Antes de ejecutar Create order de PayPal: el aviso de que un POST modifica datos en el ambiente Sandbox](/media/es/test-run-confirm.webp)
+
+Para crear un ambiente, mira [Ambientes](/es/environments/overview/).
+
+## Un paso que devuelve una lista
+
+**Qué demuestra:** el workflow funciona con el elemento de la lista que te importa, no solo con el primero. Cuando un paso posterior necesita datos de una lista, la ejecución se pausa y muestra lo que llegó.
+
+| Cómo usa la lista el diseño | Puedes probar con |
+|---|---|
+| Un valor de un elemento va a un parámetro | Un elemento |
+| Un valor de un elemento va dentro de una lista del body del request siguiente | Varios elementos, o la lista completa |
+| La lista completa va a un paso que recibe listas | La lista completa, o solo algunos elementos |
+
+<Steps>
+
+1. Ejecuta el caso contra la **API real**.
+2. En **¿Con qué dato de la lista quieres probar?**, haz clic en el elemento.
+3. Pulsa **Continuar con este elemento**, o **Continuar con N elegidos** cuando marcas varios.
+
+</Steps>
+
+**Qué debes ver:** los pasos siguientes usan ese elemento, y el paso que devolvió la lista guarda la nota **Elegido al ejecutar**. Mira [Elige un elemento de una lista](/es/test/lists/).
+
+## Un workflow que depende de otro
+
+**Qué demuestra:** un workflow que necesita otro antes, como un login o una preparación, funciona con los outputs reales de ese otro.
+
+<Steps>
+
+1. Abre el workflow, por ejemplo **Battle matchup** en la Pokédex. Depende de **Type explorer**.
+2. Pulsa **Ejecutar**. No ejecutas tú el otro workflow.
+
+</Steps>
+
+**Qué debes ver:** los workflows de los que depende se ejecutan primero, una vez por ejecución, y aparecen en **Preparación**. Haz clic en uno para ver sus pasos. Si uno de ellos falla, todos los casos terminan en **No concluyente** y dicen qué workflow falló.
+
+![Preparación: Type explorer se ejecutó primero con sus tres pasos, y después el camino feliz de Battle matchup](/media/es/test-preparation.webp)
+
+Mira [Ejecutar](/es/test/run/#cuando-un-workflow-depende-de-otro) y la receta [Reutiliza un login con dependsOn](/es/recipes/depends-on/).
+
+## Iniciar sesión antes de ejecutar
+
+**Qué demuestra:** el workflow se ejecuta con un token válido sin que lo pegues. Hay dos formas, según cómo inicia sesión tu API.
+
+| Tu API usa | Cómo inicia sesión Luvin |
+|---|---|
+| OAuth 2.0 con client credentials, como el ejemplo de PayPal | Configúralo en la pestaña **Autorización** del workflow. Luvin pide el token antes de las llamadas y lo renueva solo. |
+| OAuth 2.0 en el que una persona inicia sesión | La barra de ejecución dice *Este workflow inicia sesión con OAuth 2.0 en: …*. Pulsa **Iniciar sesión**, o pulsa **Ejecutar** y el inicio de sesión se abre primero. Si lo cancelas, no se ejecuta nada. |
+| Una llamada de login propia | Pon el login en un workflow y haz que los demás dependan de él. Se ejecuta primero, en **Preparación**. |
+
+![La pestaña Autorización de un workflow, con una tarjeta por API](/media/es/workflow-auth.webp)
+
+Mira [Autorización de un workflow](/es/authorization/workflow/), [OAuth 2.0](/es/authorization/oauth2/) y la receta [Inicia sesión y usa el token](/es/recipes/login-token/).
+
+## Qué significa cada veredicto
+
+Cada caso termina con uno de cuatro veredictos y una razón. Estos cuatro salen de la misma ejecución de **Place order**. El video los recorre.
+
+<video controls muted playsinline preload="metadata" poster="/media/es/test-verdicts-tour.webp" src="/media/es/test-verdicts-tour.mp4"></video>
+
+### Pasó
+
+El caso hizo lo que esperaba. En un caso de rechazo, significa que la API rechazó el request.
+
+*Ejemplo:* `getProduct responde 404 → productNotFound` simula un 404 y la acción `productNotFound` termina el workflow, como espera el caso (mira la captura en [Cada respuesta de error documentada](#cada-respuesta-de-error-documentada)).
+
+### No pasó
+
+Un paso no cumplió sus criterios, la acción esperada no se activó, o la API respondió algo distinto del status que exigen tú o el caso.
+
+*Ejemplo:* **Sin credenciales**. La tienda creó el pedido (201) sin credenciales, cuando el contrato protege `createOrder`: *"createOrder" aceptó la petición (201) cuando debía rechazarla con 401 o 403.*
+
+![Sin credenciales no pasó: createOrder respondió 201 y el caso esperaba 401 o 403](/media/es/test-verdict-failed.webp)
+
+### Advertencia
+
+Solo para casos de **Validación de datos** con el status que sugirió Luvin. La API aceptó datos que según el contrato debería rechazar. El workflow igual funciona: revísalo con quien construye la API.
+
+*Ejemplo:* **"quantity" con un texto en lugar de un número**. La tienda respondió 201 a `quantity` = `"texto-invalido"`.
+
+![Una advertencia: createOrder aceptó un quantity que no es un número](/media/es/test-verdict-warning.webp)
+
+Si el comportamiento está bien, pulsa **Está bien así: no volver a probarlo** en el detalle del caso. El caso queda desmarcado. Si elegiste tú el status, la misma respuesta es un **No pasó**.
+
+### No concluyente
+
+El caso no se pudo juzgar: la API no respondió, el workflow se detuvo antes del paso que revisa el caso, o falló un workflow del que depende.
+
+*Ejemplo:* **Pedido de un producto que no existe** revisa `createOrder`, pero antes falló `getProduct`, así que `createOrder` nunca se ejecutó: *No se llegó a una respuesta de "createOrder": el workflow se detuvo en "getProduct".*
+
+![Un caso no concluyente: getProduct no cumplió su criterio, sku esperado SKU-999 y recibido unknown, así que createOrder no se ejecutó](/media/es/test-verdict-inconclusive.webp)
+
+## Por qué no pasó un caso, y cómo reproducirlo
+
+**Qué te da:** la razón en palabras simples, lo esperado y lo recibido, y el request exacto para enviárselo a quien construye la API.
+
+<video controls muted playsinline preload="metadata" poster="/media/es/test-read-failure.webp" src="/media/es/test-read-failure.mp4"></video>
+
+<Steps>
+
+1. En los resultados, haz clic en **No pasaron** en los filtros, y luego en el caso.
+2. Lee **Esperado** y **Resultado** arriba del detalle.
+3. Abre el paso que falló. Su nota dice qué respondió la API, por ejemplo *No respondió lo que espera el caso: … espera 404, pero «getProduct» respondió 200.* Un criterio que no se cumplió muestra el campo con su valor **Esperado** y **Recibido**.
+4. Abre la pestaña **Respuesta**. Los campos que hicieron fallar el paso están marcados en rojo.
+5. Abre la pestaña **Petición** y pulsa **Copiar como cURL**. Pégalo en una terminal o en un mensaje. Los secretos quedan como `<secret>`.
+
+</Steps>
+
+![La pestaña Respuesta del paso que falló: el campo sku, marcado en rojo, tiene el valor unknown](/media/es/test-step-response.webp)
+
+Mira [Lee el resultado de un paso](/es/test/step-results/).
+
+## Comparte los resultados
+
+**Qué te da:** un registro de la ejecución para alguien que no tiene Luvin.
+
+<Steps>
+
+1. Después de ejecutar, pulsa **Reporte** en la cabecera de los resultados.
+2. Envía el archivo descargado. Se abre en cualquier navegador, sin conexión a internet.
+
+</Steps>
+
+**Qué debes ver:** el resumen en palabras simples, los contadores por veredicto, el ambiente y una tabla con cada caso. Los secretos van enmascarados. **JSON** entrega los mismos resultados a otra herramienta. Mira [Reportes](/es/test/reports/).
+
+![El reporte HTML de Place order: el resumen, los contadores y el ambiente](/media/es/test-report.webp)
+
+## Guarda los casos en git
+
+**Qué te da:** todo el equipo ejecuta los mismos casos con los mismos datos, y un cambio en un caso se ve en una revisión.
+
+<Steps>
+
+1. En la pestaña **Casos**, abre el menú **⋯** arriba a la derecha.
+2. Pulsa **Exportar casos**. Se descarga un archivo con el nombre del archivo Arazzo, terminado en `.escenarios.yaml`.
+3. Súbelo junto al archivo Arazzo. En otro equipo, **Importar casos** lo lee.
+
+</Steps>
+
+En un workspace no necesitas exportar: Luvin ya guarda esos mismos datos en la colección, en `scenarios/`, así que los casos viajan con el repositorio. Mira [Importa y exporta casos](/es/test/adjust-cases/#importa-y-exporta-casos) y [Llevar un workspace en git](/es/workspaces/git/).
+
+## Más
+
+<CardGrid>
+  <LinkCard title="Cómo se prueba un workflow" description="La vuelta completa en una página." href="/es/test/overview/" />
+  <LinkCard title="Comprueba que tu API rechaza datos malos" description="Un tutorial paso a paso." href="/es/tutorials/negative-cases/" />
+  <LinkCard title="Averigua por qué falló un caso" href="/es/tutorials/debug-failure/" />
+  <LinkCard title="Ejemplos" description="Workflows que puedes descargar y ejecutar." href="/es/recipes/overview/" />
+</CardGrid>

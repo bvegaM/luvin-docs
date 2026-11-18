@@ -17,7 +17,7 @@ The **Overview** tab gives a workflow's summary in one screen: a diagram of its 
 |---|---|
 | **Workflow diagram** | The badge says 4, the number of steps. The boxes show how `getPokemon` feeds the other three. |
 | **Workflow validation** | The notes about the workflow. With nothing to report it says **No findings**. |
-| **Response coverage** | Which documented responses the workflow handles, for example **5/7 handled**. |
+| **Response coverage** | Which documented responses the workflow handles, for example **5/8 handled**. |
 
 ## Open it
 
@@ -34,8 +34,6 @@ The tab is a list of sections. Click a section's title to open or close it. The 
 | **Workflow validation** | The notes about this workflow. Open when it has errors or warnings. |
 | **Response coverage** | Which documented responses the workflow handles. Closed until you open it. |
 | **Steps and operations** | The list of steps, with the operation each one calls. |
-
-![The Overview tab of the Pokemon card workflow, starting with the workflow diagram](/media/en/overview-tab.webp)
 
 ## Workflow diagram
 
@@ -70,7 +68,7 @@ Examples of what you may read:
 An API documents the responses it can give: 200, 404, 409 and so on. This table checks, for each step, whether your workflow says what to do with each one. A response nobody handles makes the workflow fail with a generic error.
 
 <Steps>
-1. Open **Response coverage**. Its badge reads, for example, **5/7 handled**. It is green when every response is handled and turns to a warning color when some are not.
+1. Open **Response coverage**. Its badge reads, for example, **5/8 handled**. It is green when every response is handled and turns to a warning color when some are not.
 2. Read the table. It has one row per step and documented status.
 </Steps>
 
@@ -80,6 +78,8 @@ An API documents the responses it can give: 200, 404, 409 and so on. This table 
 | **Status** | The status code that the contract documents. |
 | **Description in the contract** | What the contract says about that response. |
 | **Handling in the Arazzo** | How the workflow treats it. |
+
+![Response coverage of Pokemon card: 5/8 handled. The 404 of getPokemon is handled by the action pokemonNotFound; the 404 of the other three steps is Unhandled](/media/en/test-coverage.webp)
 
 The last column has three possible values:
 
@@ -92,6 +92,8 @@ The last column has three possible values:
 The table does not include the `default` response, steps without an HTTP operation, such as messaging steps, or steps that call another workflow.
 
 You do not have to handle every response. Handle the ones your application treats differently. To add a handler, see [Success and errors](/design/success-and-errors/).
+
+Each response that an action handles also becomes a case in **Cases by response**, so you can see the action fire. See [Cases](/test/cases/).
 
 ## Steps and operations
 

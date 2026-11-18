@@ -17,7 +17,7 @@ La pestaña **Resumen** da el resumen de un workflow en una sola pantalla: un di
 |---|---|
 | **Diagrama del workflow** | La insignia dice 4, el número de pasos. Las cajas muestran cómo `getPokemon` alimenta a los otros tres. |
 | **Validación del workflow** | Las notas sobre el workflow. Sin nada que informar dice **Sin observaciones**. |
-| **Cobertura de respuestas** | Qué respuestas documentadas maneja el workflow, por ejemplo **5/7 manejadas**. |
+| **Cobertura de respuestas** | Qué respuestas documentadas maneja el workflow, por ejemplo **5/8 manejadas**. |
 
 ## Ábrela
 
@@ -34,8 +34,6 @@ La pestaña es una lista de secciones. Haz clic en el título de una sección pa
 | **Validación del workflow** | Las observaciones sobre este workflow. Abierta cuando tiene errores o advertencias. |
 | **Cobertura de respuestas** | Qué respuestas documentadas maneja el workflow. Cerrada hasta que la abras. |
 | **Pasos y operaciones** | La lista de pasos, con la operación que llama cada uno. |
-
-![La pestaña Resumen del workflow Pokemon card, que empieza con el diagrama del workflow](/media/es/overview-tab.webp)
 
 ## Diagrama del workflow
 
@@ -70,7 +68,7 @@ Ejemplos de lo que puedes leer:
 Una API documenta las respuestas que puede dar: 200, 404, 409 y así. Esta tabla comprueba, para cada paso, si tu workflow dice qué hacer con cada una. Una respuesta que nadie maneja hace fallar el workflow con un error genérico.
 
 <Steps>
-1. Abre **Cobertura de respuestas**. Su insignia dice, por ejemplo, **5/7 manejadas**. Es verde cuando todas las respuestas están manejadas y cambia a un color de advertencia cuando alguna no lo está.
+1. Abre **Cobertura de respuestas**. Su insignia dice, por ejemplo, **5/8 manejadas**. Es verde cuando todas las respuestas están manejadas y cambia a un color de advertencia cuando alguna no lo está.
 2. Lee la tabla. Tiene una fila por paso y estado documentado.
 </Steps>
 
@@ -80,6 +78,8 @@ Una API documenta las respuestas que puede dar: 200, 404, 409 y así. Esta tabla
 | **Status** | El código de estado que documenta el contrato. |
 | **Descripción en el contrato** | Lo que dice el contrato sobre esa respuesta. |
 | **Manejo en el Arazzo** | Cómo la trata el workflow. |
+
+![Cobertura de respuestas de Pokemon card: 5/8 manejadas. El 404 de getPokemon lo maneja la acción pokemonNotFound; el 404 de los otros tres pasos está Sin manejo](/media/es/test-coverage.webp)
 
 La última columna tiene tres valores posibles:
 
@@ -92,6 +92,8 @@ La última columna tiene tres valores posibles:
 La tabla no incluye la respuesta `default`, ni los pasos sin una operación HTTP, como los de mensajería, ni los pasos que llaman a otro workflow.
 
 No tienes que manejar todas las respuestas. Maneja las que tu aplicación trata de forma distinta. Para agregar un manejo, mira [Éxito y errores](/es/design/success-and-errors/).
+
+Cada respuesta que maneja una acción también se vuelve un caso en **Casos por respuesta**, así puedes ver cómo se activa la acción. Mira [Casos](/es/test/cases/).
 
 ## Pasos y operaciones
 

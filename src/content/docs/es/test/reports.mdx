@@ -9,7 +9,7 @@ import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starli
 
 Un reporte es una copia de tus resultados en un archivo. Úsalo para mostrar que un workflow funciona, para enviar una falla a quien construye la API, o para guardar un registro de una ejecución. La persona que lo recibe no necesita Luvin.
 
-![El reporte HTML exportado, abierto en un navegador](/media/es/report.webp)
+<video controls muted playsinline preload="metadata" poster="/media/es/test-export-report.webp" src="/media/es/test-export-report.mp4"></video>
 
 ## Ejemplo: reporte de una ejecución de Pokemon card
 
@@ -23,13 +23,17 @@ El archivo `reporte-<título>-<fecha>.html` se abre en cualquier navegador. Empi
   </TabItem>
   <TabItem label="JSON">
 
-El archivo `reporte-<título>-<fecha>.json` tiene los mismos resultados para otra herramienta. Los nombres de sus campos están en español en los dos idiomas de la app.
+El archivo `reporte-<título>-<fecha>.json` tiene los mismos resultados para otra herramienta. Los nombres de sus campos están en inglés sea cual sea el idioma de la app.
 
-```json title="Nombres de campos" {2-4}
+```json title="Nombres de campos"
 {
-  "casos": [],
-  "resultado": "",
-  "pasos": []
+  "generatedAt": "2026-11-17T12:00:00.000Z",
+  "environment": "local",
+  "servers": { "pokeapi": "https://pokeapi.co/api/v2" },
+  "cases": [
+    { "id": "…", "title": "…", "origin": "arazzo", "inputs": {}, "expected": "…",
+      "verdict": "passed", "explanation": "…", "steps": [], "outputs": {} }
+  ]
 }
 ```
 
@@ -58,6 +62,10 @@ El reporte incluye los últimos resultados de cada workflow que hayas ejecutado,
 | **Ambiente** | El nombre del ambiente y la URL base de cada API. |
 | **Resumen de casos** | Una tabla con cada caso: su tipo, si se simuló o corrió contra la API real, sus inputs y su veredicto. Haz clic en un caso para saltar a su detalle. |
 | **Detalle por caso** | Qué se esperaba, el resultado, los **Valores enviados**, y cada paso con su petición, respuesta, criterios, comprobación del contrato y outputs. |
+
+![El reporte de un workflow de tienda: el resumen, los contadores por veredicto, el ambiente y el comienzo del resumen de casos](/media/es/test-report.webp)
+
+![La tabla Resumen de casos: cada caso con su tipo, si se ejecutó contra la API real o simulado, sus inputs y su veredicto](/media/es/test-report-cases.webp)
 
 Los pasos están cerrados al principio, salvo los que fallaron. Los botones de arriba son **Expandir todo**, **Contraer todo** e **Imprimir / guardar como PDF**.
 
@@ -88,7 +96,7 @@ La ocultación cubre los secretos y los campos con nombres sensibles. Otros dato
 
 El JSON tiene los mismos resultados en una forma que otra herramienta puede leer: cuándo se generó, el ambiente y, para cada caso, su id, título, inputs, resultado esperado, veredicto, explicación, pasos y outputs. Las credenciales se ocultan de la misma manera.
 
-Los nombres de los campos están en español en los dos idiomas de la app, por ejemplo `casos`, `resultado` y `pasos`. El veredicto es uno de `passed`, `failed`, `warning` o `inconclusive`.
+Los nombres de los campos están en inglés sea cual sea el idioma de la app, por ejemplo `cases`, `verdict` y `steps`, así una herramienta lee todos los reportes igual. El veredicto es uno de `passed`, `failed`, `warning` o `inconclusive`. `origin` dice de dónde salió el caso: `arazzo` (los criterios de éxito), `response` (uno por respuesta documentada), `schema` (inputs inválidos o faltantes), `security` (sin credenciales) o `data` (tus casos con datos propios).
 
 ## Comparte con alguien que no tiene Luvin
 

@@ -23,6 +23,10 @@ This case checks that `getPokemon` answers 404 for a name that does not exist.
 | **Expected status** | `404` |
 | **Case inputs** | `pokemon` = `missingno` |
 
+<video controls muted playsinline preload="metadata" poster="/media/en/test-data-case.webp" src="/media/en/test-data-case.mp4"></video>
+
+![The form of the new data case, filled in as in the table](/media/en/test-new-data-case.webp)
+
 ## Create a case
 
 <Steps>
@@ -45,7 +49,17 @@ This case checks that `getPokemon` answers 404 for a name that does not exist.
 | **Expected code in the body (optional)** | The `code` field of the response body must be exactly this value, for example `ACCOUNT_ALREADY_EXISTS`. |
 | **Expected action (optional)** | The success or failure action of the step that must fire. The list shows the named actions of the step. |
 
-A case **passes** when everything you filled in matches. If not, it **fails** and says what was different, for example *"getPokemon" responded 200 and 404 was expected.* If the workflow stops before reaching the step, the case is **inconclusive**.
+A case **passes** when everything you filled in matches: *"getPokemon" responded 404 and triggered "pokemonNotFound", as expected.*
+
+![Unknown Pokémon passed against the PokéAPI: getPokemon Responded 404 (expected), The API said: Not Found](/media/en/test-data-case-result.webp)
+
+If not, it **fails** and says what was different, for example *"getProduct" responded 200 and 404 was expected; did not trigger "productNotFound".* In this shop, the API answers 200 with an empty product for a code that does not exist.
+
+![Unknown product failed: getProduct responded 200, and the step says Did not respond what the case expects](/media/en/test-verdict-mismatch.webp)
+
+If the workflow stops before reaching the step, the case is **inconclusive**: *No response was reached for "createOrder": the workflow stopped at "getProduct" (…)*. See [Read the results](/test/results/#verdicts).
+
+When the expected status is an error, the normal success criteria of that step do not apply in this case. The **Criteria** tab shows **Responds 404 (what this case expects)** and, folded, *The step’s normal criteria (2): they do not apply in this case*.
 
 When the expected status is an error, the step that answers it is shown as passed in the results. See [Read a step result](/test/step-results/).
 

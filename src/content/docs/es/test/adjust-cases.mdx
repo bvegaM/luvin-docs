@@ -19,7 +19,11 @@ El caso `getPokemon responde 404 → pokemonNotFound` es simulado. Para probarlo
 
 El caso ahora envía `missingno`, y `getPokemon` debe responder 404 para que se active la acción `pokemonNotFound`.
 
+![El caso por respuesta en API real, con el input pokemon cambiado a missingno y su valor por defecto, pikachu, debajo](/media/es/test-response-real.webp)
+
 ## Cambia los inputs de un caso
+
+<video controls muted playsinline preload="metadata" poster="/media/es/test-adjust-inputs.webp" src="/media/es/test-adjust-inputs.mp4"></video>
 
 <Steps>
 1. En la pestaña **Casos**, pulsa **Inputs** en el caso. Se abre **Inputs de este caso** con una fila por input.
@@ -29,7 +33,9 @@ El caso ahora envía `missingno`, y `getPokemon` debe responder 404 para que se 
 5. Pulsa **Cerrar inputs**.
 </Steps>
 
-El cambio se aplica solo a este caso. El caso muestra entonces cuántos inputs cambia.
+El cambio se aplica solo a este caso. El caso muestra entonces cuántos inputs cambia, por ejemplo **2 input(s) cambiado(s)**, y su línea **Inputs** dice cuáles: `por defecto + quantity = 5, sin delivery`.
+
+![Inputs de este caso: quantity Cambiado a 5 con su valor por defecto debajo, delivery Omitido, los demás Por defecto](/media/es/test-case-inputs.webp)
 
 | Estado | Significado |
 |---|---|
@@ -48,6 +54,10 @@ Los casos de **Validación de datos** y de **Seguridad** esperan que un paso rec
 
 Luvin sugiere 400 o 422 cuando el contrato los documenta para ese paso, o si no, los otros status 4xx que documenta. Para **Sin credenciales** sugiere 401 y 403. Si no eliges ningún status, vale cualquier 4xx.
 
+![Un caso de Validación de datos con los status que sugiere Luvin, 400 y 422, y Si responde otra cosa: advertencia](/media/es/test-status-suggested.webp)
+
+<video controls muted playsinline preload="metadata" poster="/media/es/test-choose-status.webp" src="/media/es/test-choose-status.mp4"></video>
+
 <Steps>
 1. Haz clic en un status para agregarlo o quitarlo. Un punto marca los status documentados en el contrato.
 2. Para un status que no está en la lista, escríbelo en **Otro (Enter)** y pulsa Enter.
@@ -62,6 +72,8 @@ Lo que pasa cuando la API responde otra cosa depende de quién eligió el status
 | Elegido por ti | **No pasó**. Es lo que afirmas de tu API. |
 | **Sin credenciales** | **No pasó**. |
 
+![El mismo caso después de quitar 400: solo vale 422, Si responde otra cosa: error, y Volver a lo sugerido (400, 422)](/media/es/test-status-chosen.webp)
+
 <Aside type="tip">
 Si tu API acepta un request que el contrato dice que debería rechazar, y eso está bien, agrega `200` y quita los demás. El caso muestra **Se espera 200** y pasa cuando la API responde 200.
 </Aside>
@@ -70,13 +82,21 @@ Si tu API acepta un request que el contrato dice que debería rechazar, y eso es
 
 Los casos por respuesta son simulados: Luvin hace que el paso responda la respuesta que activa la acción. Para comprobar lo mismo contra tu API, dale al caso datos que provoquen esa respuesta.
 
+<video controls muted playsinline preload="metadata" poster="/media/es/test-response-real-run.webp" src="/media/es/test-response-real-run.mp4"></video>
+
 <Steps>
 1. En el caso, cambia **Simulado** a **API real**. Se abren sus inputs.
 2. Cambia los inputs. Para `getPokemon responde 404 → pokemonNotFound`, pon en `pokemon` un nombre que no exista.
 3. Ejecuta el caso.
 </Steps>
 
-Mientras no cambies al menos un input, el caso muestra **No se ejecutará**. Los casos de mensaje no tienen este interruptor: siempre se simulan.
+Mientras no cambies al menos un input, el caso muestra **No se ejecutará**: *Para probarlo contra la API real, cambia en los inputs del caso los valores que provocan esta respuesta.* Los casos de mensaje no tienen este interruptor: siempre se simulan.
+
+![El caso por respuesta en API real sin ningún input cambiado: No se ejecutará, y sus inputs abiertos](/media/es/test-response-needs-data.webp)
+
+Con `missingno`, la PokéAPI responde 404 de verdad, se activa la acción y el caso pasa. El paso dice *La API dijo: Not Found*.
+
+![El caso por respuesta pasó contra la API real: getPokemon Respondió 404 (esperado) y el workflow terminó con pokemonNotFound](/media/es/test-response-real-result.webp)
 
 <Aside type="note">
 Un caso por respuesta puesto en **API real** llama a la API incluso cuando la barra de ejecución está en **Simulación**.
@@ -84,28 +104,66 @@ Un caso por respuesta puesto en **API real** llama a la API incluso cuando la ba
 
 ## Importa y exporta casos
 
+<video controls muted playsinline preload="metadata" poster="/media/es/test-cases-file.webp" src="/media/es/test-cases-file.mp4"></video>
+
 Arriba a la derecha de la pestaña **Casos**, el menú **⋯** tiene dos acciones:
 
-- **Exportar casos** descarga un archivo YAML con el nombre del archivo Arazzo, terminado en `.escenarios.yaml`. Contiene los inputs por defecto de cada workflow de ese archivo, tus casos con datos propios y los inputs que cambiaste en los casos generados.
+- **Exportar casos** descarga un archivo YAML con el nombre del archivo Arazzo, terminado en `.escenarios.yaml`: `orders.arazzo.yaml` da `orders.arazzo.escenarios.yaml`. Contiene los inputs por defecto de cada workflow de ese archivo, tus casos con datos propios y los inputs que cambiaste en los casos generados.
 - **Importar casos** lee un archivo `.yaml`, `.yml` o `.json` con ese formato. Reemplaza los casos con datos propios de este archivo Arazzo y los inputs por defecto de los workflows que nombra el archivo. Luego un mensaje dice cuántos se agregaron y actualizaron, y lista lo que no se pudo aplicar.
 
 ```yaml
 version: 1
-bases:
+defaults:
   pokemonCard:
     pokemon: pikachu
-casos:
+cases:
   - workflow: pokemonCard
-    nombre: Pokémon desconocido
+    name: Pokémon desconocido
     inputs:
       pokemon: missingno
-    espera:
-      paso: getPokemon
+    expect:
+      step: getPokemon
       status: [404]
-      accion: pokemonNotFound
+      action: pokemonNotFound
 ```
 
-Los nombres de los campos están en español en los dos idiomas de la app.
+Un archivo exportado empieza con tres líneas de comentario y el título del archivo Arazzo. Este se exportó desde **Place order**, con dos casos con datos propios:
+
+```yaml title="orders.arazzo.escenarios.yaml"
+# Luvin scenarios
+# defaults: default input values per workflow. cases: what each case changes (inputs) and what it does not send (omit).
+# Supports generators: {{email}} {{cpf}} {{rut}} {{uuid}} {{number:8}} {{date}} {{timestamp}}
+version: 1
+arazzo: Shop orders
+defaults:
+  placeOrder:
+    sku: SKU-103
+    quantity: 2
+    email: "{{$randomEmail}}"
+    delivery: standard
+cases:
+  - workflow: placeOrder
+    name: Producto que no existe
+    inputs:
+      sku: SKU-999
+    expect:
+      step: getProduct
+      status:
+        - 404
+      action: productNotFound
+```
+
+| Clave de un caso | Qué contiene |
+|---|---|
+| `workflow` | El `workflowId`. |
+| `name` | El nombre del caso. |
+| `inputs` | Los inputs que cambia el caso. |
+| `omit` | Los inputs que el caso no envía, como lista. |
+| `expect` | En un caso con datos propios: `step`, y `status`, `code` o `action`. |
+| `case` | En un caso generado: su id. Luvin lo usa para encontrar el caso y aplicarle sus `inputs` y `omit`. |
+| `mode` | En un caso por respuesta: `real` o `simulated`. |
+
+Las claves están en inglés sea cual sea el idioma de la app, así el archivo es el mismo para todo el equipo. Los archivos escritos con las claves en español de versiones anteriores (`bases`, `casos`, `nombre`, `espera`) se siguen leyendo.
 
 En un workspace no necesitas exportar para conservar tus casos: Luvin guarda esta misma información en la colección, en `scenarios/`. Mira [Archivos de un workspace](/es/workspaces/files/).
 
@@ -115,4 +173,5 @@ En un workspace no necesitas exportar para conservar tus casos: Luvin guarda est
   <LinkCard title="Casos" href="/es/test/cases/" />
   <LinkCard title="Casos con datos propios" href="/es/test/custom-cases/" />
   <LinkCard title="Lee los resultados" href="/es/test/results/" />
+  <LinkCard title="Guarda los casos en git" href="/es/test/what-to-test/#guarda-los-casos-en-git" />
 </CardGrid>

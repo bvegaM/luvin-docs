@@ -1,0 +1,88 @@
+---
+title: How testing works
+description: The whole loop of testing a workflow in Luvin, from the inputs to the report, and where each part is explained.
+sidebar:
+  order: 0
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Testing a workflow means running its chain of calls with given data and checking that each step answers what it should. Luvin writes the test plan for you: from the contracts and the design it generates the **cases**, runs them against the real API or in simulation, and gives each one a verdict with its reason. You decide the data, choose where to run and read the results.
+
+This video is the whole loop with the Pokédex example, which needs no account or credentials.
+
+<video controls muted playsinline preload="metadata" poster="/media/en/test-loop.webp" src="/media/en/test-loop.mp4"></video>
+
+## The loop in six parts
+
+<Steps>
+
+1. **Inputs.** The values every case starts with, such as a product code or an email. You set them once in the **Inputs** tab. A value can be fixed or a generator, such as `{{$randomEmail}}`, that gives a new value on every run. See [Inputs](/test/inputs/).
+
+   ![The Inputs tab of a shop workflow: three required inputs, one of them a generator, and an optional input with options](/media/en/test-inputs-types.webp)
+
+2. **Cases.** One run of the workflow with given inputs and an expected result. Luvin generates them in groups: the **Happy path**, **Data validation**, **Security** and **Cases by response**. You add your own in **Custom data cases**. See [Cases](/test/cases/).
+
+   ![The Cases tab: the line that says what Run will do, and the cases in their groups](/media/en/test-case-groups.webp)
+
+3. **Where it runs.** In the run bar, **Real API** sends the requests to the base URLs of the **Environment** you choose. **Simulation** sends nothing: each step answers with the examples of its contract. See [Run](/test/run/) and [Simulation](/test/simulation/).
+
+   ![The run bar: Real API or Simulation, the environment and the Run button with the number of cases](/media/en/test-runbar.webp)
+
+4. **Run.** Press **Run**. If a step creates, changes or deletes data, Luvin asks first. If a step returns a list that the next steps use, the run pauses so you choose an item. See [Choose an item from a list](/test/lists/).
+
+5. **Results.** A sentence in plain words says whether the workflow works. Each case ends **Passed**, **Failed**, **Warning** or **Inconclusive**, with its reason, and each step shows the request, the response and the criteria. See [Read the results](/test/results/).
+
+   ![The results of a run: the summary in plain words, the filters by verdict and the detail of a case](/media/en/test-verdicts.webp)
+
+6. **Report.** **Report** downloads a single HTML file that anyone can open in a browser. **JSON** gives the same results to another tool. See [Reports](/test/reports/).
+
+</Steps>
+
+## What each verdict means
+
+| Verdict | In one sentence | Example |
+|---|---|---|
+| **Passed** | The case did what it expected. | The PokéAPI answers 404 for a Pokémon that does not exist, and the action `pokemonNotFound` fires. |
+| **Failed** | Something you or the contract state did not happen. | A shop accepts an order without credentials when it should answer 401 or 403. |
+| **Warning** | Only for **Data validation** cases: the API accepted data the contract says it should reject. The workflow still works. | The shop accepts `quantity` = `"texto-invalido"` and answers 201. |
+| **Inconclusive** | The case could not be judged. | The workflow stopped at the first step, so the step the case checks never ran. |
+
+Every verdict, with screenshots, is in [What to test, case by case](/test/what-to-test/#what-each-verdict-means).
+
+## Real API or Simulation
+
+| | **Real API** | **Simulation** |
+|---|---|---|
+| Sends requests | Yes, to the environment you choose | No |
+| Needs credentials and a running API | Yes | No |
+| Proves | That the API behaves as the workflow expects | That the workflow is consistent with its contracts |
+| Runs **Data validation**, **Security** and **Custom data cases** | Yes | No, they show **Will not run** |
+| Good for | Trusting the workflow before release | Designing, error paths, demos, working offline |
+
+A common way to work: design with **Simulation** until the chain is right, then switch to **Real API** before you trust it.
+
+## Before the first run
+
+<Aside type="tip">
+Open the [Overview tab](/test/overview-tab/) first. It shows the errors in the design and which documented responses the workflow does not handle. It calls no API.
+</Aside>
+
+## Where to go next
+
+| I want to… | Read |
+|---|---|
+| Find the right test for a situation | [What to test, case by case](/test/what-to-test/) |
+| Set the starting values | [Inputs](/test/inputs/) |
+| Understand the generated cases | [Cases](/test/cases/) |
+| Change, add or omit data in one case | [Adjust a case](/test/adjust-cases/) |
+| Test a situation of my own | [Custom data cases](/test/custom-cases/) |
+| Run, run one case, stop a run | [Run](/test/run/) |
+| Run without calling the API | [Simulation](/test/simulation/) |
+| Know why a case failed | [Read the results](/test/results/) and [Read a step result](/test/step-results/) |
+| Send the results to someone | [Reports](/test/reports/) |
+
+<CardGrid>
+  <LinkCard title="What to test, case by case" description="Every testing situation, with the steps in Luvin and the result you should see." href="/test/what-to-test/" />
+  <LinkCard title="Run" description="Real API or Simulation, the environment, one case or all." href="/test/run/" />
+</CardGrid>

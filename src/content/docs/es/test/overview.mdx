@@ -1,0 +1,88 @@
+---
+title: Cómo se prueba un workflow
+description: La vuelta completa de probar un workflow en Luvin, de los inputs al reporte, y dónde se explica cada parte.
+sidebar:
+  order: 0
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Probar un workflow es ejecutar su cadena de llamadas con datos dados y comprobar que cada paso responde lo que debe. Luvin escribe el plan de prueba por ti: a partir de los contratos y del diseño genera los **casos**, los ejecuta contra la API real o en simulación y le da a cada uno un veredicto con su razón. Tú decides los datos, eliges dónde ejecutar y lees los resultados.
+
+Este video es la vuelta completa con el ejemplo de la Pokédex, que no necesita cuenta ni credenciales.
+
+<video controls muted playsinline preload="metadata" poster="/media/es/test-loop.webp" src="/media/es/test-loop.mp4"></video>
+
+## La vuelta en seis partes
+
+<Steps>
+
+1. **Inputs.** Los valores con los que parte cada caso, como un código de producto o un email. Los defines una vez en la pestaña **Inputs**. Un valor puede ser fijo o un generador, como `{{$randomEmail}}`, que da un valor nuevo en cada ejecución. Mira [Inputs](/es/test/inputs/).
+
+   ![La pestaña Inputs de un workflow de tienda: tres inputs obligatorios, uno de ellos con un generador, y un input opcional con opciones](/media/es/test-inputs-types.webp)
+
+2. **Casos.** Una ejecución del workflow con inputs dados y un resultado esperado. Luvin los genera en grupos: **Camino feliz**, **Validación de datos**, **Seguridad** y **Casos por respuesta**. Los tuyos los agregas en **Casos con datos propios**. Mira [Casos](/es/test/cases/).
+
+   ![La pestaña Casos: la línea que dice qué hará Ejecutar y los casos en sus grupos](/media/es/test-case-groups.webp)
+
+3. **Dónde se ejecuta.** En la barra de ejecución, **API real** envía los requests a las URLs base del **Ambiente** que elijas. **Simulación** no envía nada: cada paso responde con los ejemplos de su contrato. Mira [Ejecutar](/es/test/run/) y [Simulación](/es/test/simulation/).
+
+   ![La barra de ejecución: API real o Simulación, el ambiente y el botón Ejecutar con la cantidad de casos](/media/es/test-runbar.webp)
+
+4. **Ejecutar.** Pulsa **Ejecutar**. Si un paso crea, cambia o borra datos, Luvin pregunta antes. Si un paso devuelve una lista que usan los pasos siguientes, la ejecución se pausa para que elijas un elemento. Mira [Elige un elemento de una lista](/es/test/lists/).
+
+5. **Resultados.** Una frase en palabras simples dice si el workflow funciona. Cada caso termina en **Pasó**, **No pasó**, **Advertencia** o **No concluyente**, con su razón, y cada paso muestra el request, la respuesta y los criterios. Mira [Lee los resultados](/es/test/results/).
+
+   ![Los resultados de una ejecución: el resumen en palabras simples, los filtros por veredicto y el detalle de un caso](/media/es/test-verdicts.webp)
+
+6. **Reporte.** **Reporte** descarga un solo archivo HTML que cualquiera abre en un navegador. **JSON** entrega los mismos resultados a otra herramienta. Mira [Reportes](/es/test/reports/).
+
+</Steps>
+
+## Qué significa cada veredicto
+
+| Veredicto | En una frase | Ejemplo |
+|---|---|---|
+| **Pasó** | El caso hizo lo que esperaba. | La PokéAPI responde 404 a un Pokémon que no existe y se activa la acción `pokemonNotFound`. |
+| **No pasó** | No pasó algo que tú o el contrato afirman. | Una tienda acepta un pedido sin credenciales, cuando debería responder 401 o 403. |
+| **Advertencia** | Solo en casos de **Validación de datos**: la API aceptó datos que según el contrato debería rechazar. El workflow igual funciona. | La tienda acepta `quantity` = `"texto-invalido"` y responde 201. |
+| **No concluyente** | El caso no se pudo juzgar. | El workflow se detuvo en el primer paso, así que el paso que revisa el caso nunca se ejecutó. |
+
+Cada veredicto, con capturas, está en [Casuísticas de prueba](/es/test/what-to-test/#qué-significa-cada-veredicto).
+
+## API real o Simulación
+
+| | **API real** | **Simulación** |
+|---|---|---|
+| Envía requests | Sí, al ambiente que elijas | No |
+| Necesita credenciales y una API funcionando | Sí | No |
+| Demuestra | Que la API se comporta como espera el workflow | Que el workflow es coherente con sus contratos |
+| Ejecuta **Validación de datos**, **Seguridad** y **Casos con datos propios** | Sí | No, muestran **No se ejecutará** |
+| Sirve para | Confiar en el workflow antes de publicarlo | Diseñar, caminos de error, demos, trabajar sin conexión |
+
+Una forma habitual de trabajar: diseña con **Simulación** hasta que la cadena esté bien, y cambia a **API real** antes de confiar en ella.
+
+## Antes de la primera ejecución
+
+<Aside type="tip">
+Abre primero la [pestaña Resumen](/es/test/overview-tab/). Muestra los errores del diseño y qué respuestas documentadas no maneja el workflow. No llama a ninguna API.
+</Aside>
+
+## Adónde ir después
+
+| Quiero… | Lee |
+|---|---|
+| Encontrar la prueba para una situación | [Casuísticas de prueba](/es/test/what-to-test/) |
+| Definir los valores de partida | [Inputs](/es/test/inputs/) |
+| Entender los casos generados | [Casos](/es/test/cases/) |
+| Cambiar, agregar u omitir datos en un caso | [Ajusta un caso](/es/test/adjust-cases/) |
+| Probar una situación propia | [Casos con datos propios](/es/test/custom-cases/) |
+| Ejecutar, ejecutar un caso, detener una ejecución | [Ejecutar](/es/test/run/) |
+| Ejecutar sin llamar a la API | [Simulación](/es/test/simulation/) |
+| Saber por qué no pasó un caso | [Lee los resultados](/es/test/results/) y [Lee el resultado de un paso](/es/test/step-results/) |
+| Enviarle los resultados a alguien | [Reportes](/es/test/reports/) |
+
+<CardGrid>
+  <LinkCard title="Casuísticas de prueba" description="Cada situación de prueba, con los pasos en Luvin y el resultado que debes ver." href="/es/test/what-to-test/" />
+  <LinkCard title="Ejecutar" description="API real o Simulación, el ambiente, un caso o todos." href="/es/test/run/" />
+</CardGrid>

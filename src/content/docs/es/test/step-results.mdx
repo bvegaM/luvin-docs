@@ -9,19 +9,24 @@ import { LinkCard, CardGrid } from '@astrojs/starlight/components';
 
 En el detalle de un caso, cada paso del workflow es una tarjeta. Cerrada, te dice cómo terminó el paso. Abierta, muestra el request que se envió, la respuesta que llegó y por qué el paso pasó o falló.
 
-![Un caso que no pasó, con el paso fallido abierto y el motivo en palabras simples](/media/es/results-failed.webp)
+<video controls muted playsinline preload="metadata" poster="/media/es/test-read-failure.webp" src="/media/es/test-read-failure.mp4"></video>
 
 ## Ejemplo: un criterio que no se cumplió
 
-Un paso fallido explica qué esperaba y qué recibió:
+En un workflow de tienda, `getProduct` comprueba que el producto que recibe es el que pidió: `$response.body#/sku == $inputs.sku`. Cuando pide `SKU-999`, la tienda responde 200 con `"sku": "unknown"`. El paso falla y explica qué esperaba y qué recibió:
 
 ```text
-status
-Esperado   "ACTIVE"
-Recibido   "INACTIVE"
+Criterio no cumplido
+sku
+Esperado   "SKU-999"
+Recibido   "unknown"
 ```
 
+![Un paso fallido: Criterio no cumplido, sku esperado SKU-999 y recibido unknown, y la pestaña Criterios con la condición que no se cumple](/media/es/test-verdict-inconclusive.webp)
+
 Pulsa **Ver en la respuesta** para abrir la pestaña **Respuesta** con ese campo resaltado en el body.
+
+![La pestaña Respuesta del mismo paso: el campo sku está marcado en rojo](/media/es/test-step-response.webp)
 
 ## La tarjeta del paso
 
@@ -45,10 +50,12 @@ Bajo el encabezado, unas notas dicen por qué falló el paso, qué acción se ac
 | Pestaña | Qué muestra |
 |---|---|
 | **Criterios** | Cada criterio de éxito en palabras simples, con la expresión técnica debajo, si **Se cumple** o **No se cumple**, y el detalle. |
-| **Petición** | El método, la URL, los headers y el body que se enviaron. **Copiar como cURL** copia el request para tu terminal. |
+| **Petición** | El método, la URL, los headers y el body que se enviaron, en **Línea y headers** y **Body**. **Copiar como cURL** copia el request para tu terminal. |
 | **Respuesta** | El body, con una caja de búsqueda, y **Status y headers**. Para un paso de mensajería la pestaña es **Mensaje**. |
 | **Contrato** | **La respuesta cumple el contrato**, o la lista de diferencias. |
 | **Outputs** | Los valores que el paso expone a los pasos siguientes. **No vino en la respuesta** marca uno que no se encontró. |
+
+![La pestaña Petición de un paso: Copiar como cURL, la línea y los headers que se enviaron, y el body vacío de un GET](/media/es/test-step-request.webp)
 
 ## Lee la respuesta de un paso
 
@@ -92,7 +99,13 @@ Algunos casos esperan un error: un caso de rechazo, un caso por respuesta, o un 
 - La acción que activó el error.
 - En los pasos posteriores: *No se ejecutó: el workflow se detuvo en «…», que respondió con el error que esperaba este caso.*
 
-Si el paso responde otra cosa, la nota dice **No respondió lo que espera el caso**.
+![Un paso que respondió el error esperado: Respondió 404 (esperado), Es lo que prueba el caso, La API dijo: Not Found, y la acción que terminó el workflow](/media/es/test-response-real-result.webp)
+
+En estos casos la pestaña **Criterios** muestra un solo criterio, por ejemplo **Responde 404 (lo que espera este caso)**. Los criterios de éxito propios del paso quedan plegados en *Criterios normales del paso (2): no aplican en este caso*.
+
+Si el paso responde otra cosa, la nota dice **No respondió lo que espera el caso**, por ejemplo *este caso va sin credenciales y espera 401, 403, pero «createOrder» respondió 201.*
+
+![Un paso que no respondió lo que espera el caso: createOrder respondió 201 a un request sin credenciales](/media/es/test-verdict-failed.webp)
 
 ## Elegido al ejecutar
 

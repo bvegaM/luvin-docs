@@ -19,7 +19,7 @@ Un **caso** es una ejecución de un workflow con unos inputs dados y un resultad
   | Grupo | Caso | Espera |
   |---|---|---|
   | **Camino feliz** | **Camino feliz** | **Se espera éxito** |
-  | **Casos por respuesta** | `getPokemon responde 404 → pokemonNotFound` | **Se espera éxito**, **Simulado** |
+  | **Casos por respuesta** | `getPokemon responde 404 → pokemonNotFound` | La acción `pokemonNotFound`, **Simulado** |
 
   ![La pestaña Casos con los casos generados en sus grupos](/media/es/cases.webp)
 
@@ -41,6 +41,23 @@ onFailure:
 
 **Type explorer**, cuyo input `type` solo admite una lista de valores, recibe además `"type" con un valor fuera del enum`.
 
+## Todos los tipos de caso en un workflow
+
+Un workflow con más inputs y un paso protegido recibe todos los grupos. **Place order**, un workflow de tienda con los inputs `sku` (con un patrón), `quantity` (número entero), `email` y `delivery` (opciones), y un paso `createOrder` protegido por el contrato, recibe nueve casos. El video los recorre.
+
+<video controls muted playsinline preload="metadata" poster="/media/es/test-case-kinds.webp" src="/media/es/test-case-kinds.mp4"></video>
+
+| Grupo | Casos de **Place order** |
+|---|---|
+| **Camino feliz** | **Camino feliz** |
+| **Validación de datos** | **Sin el input obligatorio "quantity"**, **Sin el input obligatorio "email"**, **"sku" con un valor que no cumple el patrón ^SKU-[0-9]+$**, **"quantity" con un texto en lugar de un número**, **"delivery" con un valor fuera del enum** |
+| **Seguridad** | **Sin credenciales** |
+| **Casos por respuesta** | `getProduct responde 404 → productNotFound`, `createOrder responde 422 → outOfStock` |
+
+No hay caso de "falta" para `sku`, porque va en la ruta. No hay caso de valor incorrecto para `email`: un formato como email no genera uno; solo lo generan las opciones, el número, el sí/no y el patrón.
+
+![La pestaña Casos de Place order: 9 de 9 casos seleccionados, 7 contra la API real y 2 simulados, con el grupo Validación de datos abierto](/media/es/test-case-groups.webp)
+
 ## La pestaña Casos
 
 La línea de arriba dice qué hará el botón **Ejecutar**: cuántos casos están seleccionados, cuántos van **contra la API real**, cuántos son **simulados** y cuántos **no se ejecutarán**.
@@ -57,7 +74,7 @@ Debajo, los casos están en grupos. Haz clic en un grupo para abrirlo o cerrarlo
 
 Cada caso muestra:
 
-- su nombre y lo que espera (**Se espera éxito** o **Se espera rechazo**),
+- su nombre y, en el camino feliz y en los casos de rechazo, lo que espera (**Se espera éxito** o **Se espera rechazo**),
 - si será **Simulado** o irá a la **API real**,
 - una frase con el resultado esperado,
 - los inputs con los que corre (`valores por defecto`, o lo que cambia).
@@ -99,6 +116,8 @@ Cada grupo dice cuántos de sus casos están **listos para ejecutar**. Un caso s
 
 Los casos que no pueden ejecutarse se omiten. Los demás se ejecutan.
 
+![Place order con la barra de ejecución en Simulación: 3 simulados y 6 que no se ejecutarán, y cada caso bloqueado dice por qué](/media/es/test-wont-run.webp)
+
 ## Siguiente
 
 <CardGrid>
@@ -106,4 +125,5 @@ Los casos que no pueden ejecutarse se omiten. Los demás se ejecutan.
   <LinkCard title="Casos con datos propios" description="Agrega los tuyos." href="/es/test/custom-cases/" />
   <LinkCard title="Ejecutar" description="Ejecuta los casos que elegiste." href="/es/test/run/" />
   <LinkCard title="Demostrar que la API rechaza datos inválidos" href="/es/recipes/expected-error/" />
+  <LinkCard title="Casuísticas de prueba" description="Qué caso demuestra qué." href="/es/test/what-to-test/" />
 </CardGrid>
