@@ -1,0 +1,14 @@
+// Publicación en Cloudflare Workers: el sitio es estático, así que solo sirve los archivos de dist/.
+// El subdominio docs.lu-vin.com sale del dominio que ya está en Cloudflare (no hay que comprar otro);
+// Cloudflare crea el registro DNS y el certificado al publicar.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "luvin-docs",
+  "compatibility_date": "2026-11-10",
+  "assets": {
+    "directory": "./dist",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  },
+  "routes": [{ "pattern": "docs.lu-vin.com", "custom_domain": true }]
+}
