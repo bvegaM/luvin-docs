@@ -69,6 +69,8 @@ In the Pokédex, add `GET /type/{idOrName}` after two other steps and Luvin prop
 
 The mark goes away when you choose the source yourself. It is a reminder while you design and is not saved in the file.
 
+<video controls muted playsinline preload="metadata" poster="/media/en/design-wire.webp" src="/media/en/design-wire.mp4"></video>
+
 ## Change where a value comes from
 
 <Steps>
@@ -90,6 +92,10 @@ The mark goes away when you choose the source yourself. It is a reminder while y
 
 The list only offers steps that run before this one.
 
+![The Source list of idOrName in getType open: No source, the input, New input, then the outputs and response fields of Get pokemon, some of them from a list](/media/en/design-source-options.webp)
+
+You should see the new source on the card, without the `?`, and a data line from the earlier step.
+
 ## Connect by dragging
 
 Each input in **Start**, each output of a step and each parameter has a dot on its right.
@@ -106,6 +112,8 @@ To remove a connection, click its line and press Delete or Backspace. If you rep
 A field inside a list is shown without its position: `cards/bank`, not `cards/0/bank`. In the **Source** list it reads **cards/bank (from a list: you choose which at run time)**.
 
 You do not choose the item when you design. When you run a case, Luvin pauses after the step that returned the list and asks which item to continue with. See [Choose an item from a list](/test/lists/).
+
+![The outputs of listProducts: the note that items/sku comes from one item of items, the whole list tag and the button to expose the whole list](/media/en/design-list-outputs.webp)
 
 ## Read the data lines
 
@@ -126,9 +134,12 @@ Sometimes a step has a value written by hand, such as `{{order_id}}`, and Luvin 
 
 This is most common in workflows built from requests. See [Build from saved requests](/design/from-requests/).
 
+![The bar Luvin found 1 connection(s) between steps, with Connect all, and one line with Connect and Ignore](/media/en/design-connections-bar.webp)
+
 ## Related
 
 <CardGrid>
+  <LinkCard title="Common design situations" href="/design/common-situations/" />
   <LinkCard title="Parameters and body" href="/design/parameters-and-body/" />
   <LinkCard title="Outputs" href="/design/outputs/" />
   <LinkCard title="Log in and use the token" description="A recipe that passes a token from one step to the next." href="/recipes/login-token/" />

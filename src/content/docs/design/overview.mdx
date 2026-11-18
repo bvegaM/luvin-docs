@@ -87,6 +87,8 @@ Drag the dividers between the three areas to resize them. Double-click a divider
 - **Success criteria** and **Outputs**.
 - **On failure**: what happens on each error.
 
+![The card of getPokemon: number and name, method and path, its parameters with their source, its success criteria, its outputs and the On failure section](/media/en/design-card.webp)
+
 ### Show: the two layers
 
 Above the canvas, **Show:** has two switches.
@@ -97,6 +99,8 @@ Above the canvas, **Show:** has two switches.
 | **Data flow** | The number is how many connections carry data from one step to another. In the diagram of the **Overview** tab it shows or hides those lines. In **Design** the data lines are always drawn, because that is where you edit them. |
 
 To the right, the legend explains the dots: green is **success** and orange is **jumps to another step**.
+
+![A card with Actions by response on: the On failure section lists 401 end, 429 retries ×3, 409 go to listProducts and 400 no action](/media/en/design-actions-canvas.webp)
 
 ### Move around the canvas
 
@@ -111,6 +115,7 @@ Moving a card sideways only changes the drawing. Moving it above or below anothe
 
 | To do this | Read |
 |---|---|
+| Find how to do a common task, with its YAML | [Common design situations](/design/common-situations/) |
 | Start a new workflow | [Create a workflow](/design/create/) |
 | Add calls | [Add steps](/design/add-steps/) |
 | Pass data from one step to the next | [Connect data between steps](/design/wire-data/) |
@@ -128,5 +133,6 @@ Moving a card sideways only changes the drawing. Moving it above or below anothe
 
 <CardGrid>
   <LinkCard title="Create a workflow" href="/design/create/" />
+  <LinkCard title="Common design situations" description="How to do each common task, with its YAML." href="/design/common-situations/" />
   <LinkCard title="Quick start" description="If you have not run the example yet." href="/get-started/quick-start/" />
 </CardGrid>

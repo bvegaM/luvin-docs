@@ -31,6 +31,10 @@ It usually appears after something changes under the workflow:
 
 The bar does not appear while the YAML cannot be read. Fix the YAML first.
 
+![The bar This workflow is missing data after deleting the input username that the login step uses: It uses inputs the workflow does not declare: username, with Complete](/media/en/design-gaps-bar.webp)
+
+The same happens when you delete an input on the **Start** panel while a step still reads it.
+
 ## What Luvin detects
 
 The bar has up to two sentences. Each one is a different problem.
@@ -82,6 +86,8 @@ Open the step afterwards and check where each value comes from. A source that Lu
 <Aside type="note">
 The bar is also in the **Inputs** tab, with the same **Complete** button. **Undo** is a button of the **Design** tab, so if you want to be able to undo, click **Complete** in **Design**.
 </Aside>
+
+<video controls muted playsinline preload="metadata" poster="/media/en/design-gaps.webp" src="/media/en/design-gaps.mp4"></video>
 
 ## Related
 

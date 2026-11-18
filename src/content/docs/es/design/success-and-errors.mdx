@@ -64,6 +64,8 @@ successCriteria:
 
 Mira [Criterios JSONPath y regex](/es/recipes/criteria/) para ejemplos ejecutables.
 
+![El panel de getSpecies: el status 200 elegido, el criterio extra $response.body#/capture_rate >= 0 y el enlace Editar en el YAML](/media/es/design-criteria-panel.webp)
+
 ## Qué pasa ante cada error
 
 **Si responde con error** lista cada estado de error que el contrato documenta para la operación, con la descripción del contrato. Cada uno tiene una lista de acciones.
@@ -79,6 +81,10 @@ Mira [Criterios JSONPath y regex](/es/recipes/criteria/) para ejemplos ejecutabl
 1. Abre la lista junto al estado, por ejemplo **404**.
 2. Elige la acción.
 </Steps>
+
+![La sección Si responde con error de createOrder: 400 sin acción, 401 Terminar el workflow, 409 Ir a «List products» y 429 Reintentar (hasta 3 veces)](/media/es/design-error-actions.webp)
+
+<video controls muted playsinline preload="metadata" poster="/media/es/design-errors.webp" src="/media/es/design-errors.mp4"></video>
 
 Luvin la escribe en el archivo con el nombre `on404`:
 
@@ -186,6 +192,8 @@ Un salto también se dibuja como una línea naranja punteada que sale de la fila
 
 Desactiva el interruptor para ocultar la sección y las líneas de salto cuando quieras leer solo los datos.
 
+![El lienzo con Acciones según la respuesta encendido: la fila 409 de createOrder salta a listProducts y una línea naranja punteada sube por la izquierda hasta ese paso](/media/es/design-jump-line.webp)
+
 ## Comprueba que cada respuesta tiene manejo
 
 La pestaña **Resumen** del workflow tiene una sección, **Cobertura de respuestas**, que compara el contrato con el workflow.
@@ -204,6 +212,8 @@ La tabla tiene una fila por paso y estado documentado:
 | ✕ **Sin manejo** | Nada lo maneja. Si la API responde esto, el workflow falla con un error genérico. |
 
 No tienes que manejarlo todo. Maneja los errores que tu aplicación trata distinto, como «no encontrado» o «no aprobado».
+
+![Cobertura de respuestas con 7/11 manejadas: una fila por paso y status, con Éxito, Acción o Sin manejo](/media/es/design-coverage.webp)
 
 ## Relacionado
 

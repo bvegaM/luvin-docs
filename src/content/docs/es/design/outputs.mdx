@@ -49,7 +49,7 @@ Agrega uno a mano cuando quieras que el workflow devuelva el valor al final, o t
 3. Marca un campo.
 </Steps>
 
-![El panel de un paso con los campos de la respuesta marcados como outputs y la acción elegida para cada error](/media/es/step-outputs.webp)
+<video controls muted playsinline preload="metadata" poster="/media/es/design-outputs.webp" src="/media/es/design-outputs.mp4"></video>
 
 El output aparece en la tarjeta, bajo **Outputs**, con un punto a su derecha que puedes arrastrar hasta un parámetro de un paso posterior. Desmarca el campo para quitar el output.
 
@@ -81,6 +81,8 @@ Los campos de los elementos de una lista se muestran sin posición: `cards/bank`
 
 La elección ocurre durante la ejecución: Luvin hace una pausa y muestra lo que llegó. Consulta [Elegir un elemento de una lista](/es/test/lists/).
 
+![Los outputs de listProducts: items con la etiqueta lista completa, items/sku marcado y el aviso con el botón Exponer la lista «items» completa](/media/es/design-list-outputs.webp)
+
 ## Outputs escritos en el YAML
 
 El panel cubre los campos elegidos por su ruta. Un output también puede ser una búsqueda dentro de la respuesta, escrita en la [pestaña YAML](/es/design/arazzo-editor/). En **Pokemon card**, el paso `getAbility` guarda la descripción en inglés de una habilidad con una búsqueda JSONPath:
@@ -110,6 +112,8 @@ También puedes arrastrar desde el punto de cualquier output hasta la tarjeta **
 Si el panel dice **Todavía no hay nada que exponer: declara outputs en los pasos.**, agrega primero outputs a un paso.
 
 Por ejemplo, **Pokemon card** devuelve seis valores tomados de sus cuatro pasos, entre ellos `name` y `mainType` de `getPokemon` y `weakTo` de `getWeakness`. En el lienzo, una línea punteada va desde cada uno de esos outputs hasta **Fin del workflow**.
+
+![El panel de Fin del workflow: los outputs posibles de los pasos y los inputs, createOrder › orderId marcado y debajo su nombre editable y su papelera](/media/es/design-workflow-outputs.webp)
 
 ## Relacionado
 

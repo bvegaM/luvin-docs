@@ -64,6 +64,8 @@ successCriteria:
 
 See [JSONPath and regex criteria](/recipes/criteria/) for runnable examples.
 
+![The panel of getSpecies: the 200 status selected, the extra criterion $response.body#/capture_rate >= 0 and the link Edit in the YAML](/media/en/design-criteria-panel.webp)
+
 ## What happens on each error
 
 **If it responds with an error** lists every error status the contract documents for the operation, with the contract's description. Each one has a list of actions.
@@ -79,6 +81,10 @@ See [JSONPath and regex criteria](/recipes/criteria/) for runnable examples.
 1. Open the list next to the status, for example **404**.
 2. Choose the action.
 </Steps>
+
+![The section If it responds with an error of createOrder: 400 with no action, 401 End the workflow, 409 Go to “List products” and 429 Retry (up to 3 times)](/media/en/design-error-actions.webp)
+
+<video controls muted playsinline preload="metadata" poster="/media/en/design-errors.webp" src="/media/en/design-errors.mp4"></video>
 
 Luvin writes it in the file with the name `on404`:
 
@@ -186,6 +192,8 @@ A jump is also drawn as an orange dashed line that leaves the row, runs along th
 
 Turn the switch off to hide the section and the jump lines when you want to read only the data.
 
+![The canvas with Actions by response on: the 409 row of createOrder jumps to listProducts and an orange dashed line runs along the left up to that step](/media/en/design-jump-line.webp)
+
 ## Check that every response is handled
 
 The **Overview** tab of the workflow has a section, **Response coverage**, that compares the contract with the workflow.
@@ -204,6 +212,8 @@ The table has one row per step and documented status:
 | ✕ **Unhandled** | Nothing handles it. If the API answers this, the workflow fails with a generic error. |
 
 You do not have to handle everything. Handle the errors your application treats differently, such as "not found" or "not approved".
+
+![Response coverage with 7/11 handled: one row per step and status, with Success, Action or Unhandled](/media/en/design-coverage.webp)
 
 ## Related
 

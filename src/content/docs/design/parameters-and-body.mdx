@@ -64,6 +64,12 @@ If the operation has no parameters and no body, the panel says **This operation 
 
 For query parameters in action, see [Query parameters and paging](/recipes/pagination-query/).
 
+### A value inside a text
+
+Some values mix fixed text with data, such as a token after `Bearer`. Choose **Fixed value…** and write the expression between braces inside the text: `Bearer {$steps.login.outputs.token}`. Luvin replaces it when the step runs. The canvas draws no data line for it, because the value is not only the output.
+
+![The Authorization header of createOrder with the fixed value Bearer and the token of the login step](/media/en/design-token-header.webp)
+
 ## Send an optional parameter
 
 Optional parameters are not sent until you give them a source. They stay folded on one line: **Optional, not sent: limit, offset**.
@@ -75,6 +81,8 @@ Optional parameters are not sent until you give them a source. They stay folded 
 </Steps>
 
 To stop sending it, choose **Don't send** in its **Source** list.
+
+![The optional query parameters limit and offset unfolded, each with Don’t send, and the link Hide the ones not sent](/media/en/design-optional-params-open.webp)
 
 ## Fill in the request body
 
@@ -137,6 +145,8 @@ If the text is not valid JSON, the box shows **The JSON isn't valid:** with the 
 
 To build a body from random data, see [Generated data in the body](/recipes/generated-data/).
 
+![The Edit as JSON box of createOrder with an address object and a lines list, and the Cancel and Apply buttons](/media/en/design-body-json.webp)
+
 ## Turn a fixed value into an input
 
 A fixed value is always the same. Turn it into an input when you want cases to try other values: empty, invalid, other data.
@@ -149,6 +159,27 @@ A fixed value is always the same. Turn it into an input when you want cases to t
 The workflow gets a new input with the current value as its value, so it runs as before, and the step now reads the input.
 
 To do several at once, use the **Start** card: **Choose variable data…** when the workflow has no inputs, or **+ Turn another fixed value into an input** when it has some. A dialog, **Data to vary per case**, lists every fixed value. Tick the ones you want and click **Turn into inputs**. If the same value is used in several steps, a single input feeds them all.
+
+![The card of createOrder with the → input button next to the fixed value of currency](/media/en/design-promote-one.webp)
+
+![The dialog Data to vary per case: each fixed value with where it is, its value and the input it would become](/media/en/design-pick-data.webp)
+
+You should see the new inputs on **Start**, and the values on the card now read them.
+
+![Start with the inputs currency and city, created from fixed values, and their data lines](/media/en/design-promoted.webp)
+
+### Turn an input back into a fixed value
+
+There is no single button for this. Do it in two moves:
+
+<Steps>
+1. Click the step and, in the **Source** list of the value, choose **Fixed value…**. Type the value. If the field is optional and still empty, it folds into **Optional, not sent**: click **Edit** to see it.
+2. Click **Start** and delete the input with its bin, if no other step uses it.
+</Steps>
+
+If you delete an input that a step still uses, the bar **This workflow is missing data** appears. See [Complete missing data](/design/complete-gaps/). Right after turning values into inputs, **Undo** also brings the fixed values back.
+
+<video controls muted playsinline preload="metadata" poster="/media/en/design-promote.webp" src="/media/en/design-promote.mp4"></video>
 
 ## Related
 

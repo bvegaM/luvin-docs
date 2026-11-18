@@ -55,7 +55,7 @@ No necesitas leer ni escribir este archivo. La pestaña **Diseño** lo edita por
 Un archivo puede tener varios workflows. El ejemplo de la Pokédex tiene un archivo con cuatro: **Pokemon card**, **Type explorer**, **Battle matchup** y **Register sighting**.
 
 <Aside type="tip" title="¿Un archivo o varios?">
-Pon los workflows en el mismo archivo cuando uno usa a otro. Un workflow solo puede llamar o depender de workflows de su propio archivo. Consulta [Workflows que usan otros workflows](/es/design/dependencies/).
+Pon los workflows en el mismo archivo cuando uno usa a otro: el lienzo los ofrece primero. Un workflow también puede llamar o depender de un workflow de otro archivo Arazzo de la misma colección. Consulta [Workflows que usan otros workflows](/es/design/dependencies/).
 </Aside>
 
 ## Crea un archivo Arazzo nuevo
@@ -67,6 +67,8 @@ Necesitas una colección abierta.
 2. Elige **Nuevo Arazzo**.
 </Steps>
 
+![El menú + junto a las pestañas, con Nuevo request, Nuevo workflow en este archivo y Nuevo Arazzo](/media/es/design-plus-menu.webp)
+
 Luvin crea el archivo `nuevo.arazzo.yaml` en la colección, le agrega los contratos de la colección y abre su primer workflow, **Mi workflow**, en la pestaña **Diseño**. El lienzo está vacío y dice **Arrastra aquí la primera operación**.
 
 Si ya existe un archivo con ese nombre, el nuevo se llama `nuevo-2.arazzo.yaml`, y así sucesivamente.
@@ -74,6 +76,8 @@ Si ya existe un archivo con ese nombre, el nuevo se llama `nuevo-2.arazzo.yaml`,
 <Aside type="tip">
 En un workspace, el menú **⋯** de una colección en la barra lateral tiene la misma acción: **Nuevo archivo Arazzo**. Para cambiar el nombre del archivo más tarde, abre el menú **⋯** del archivo en la barra lateral y elige **Renombrar**.
 </Aside>
+
+![Un archivo Arazzo nuevo: el workflow Mi workflow se abre en Diseño con Inicio, Fin del workflow y el mensaje Arrastra la primera operación aquí](/media/es/design-new-arazzo.webp)
 
 ## Agrega un workflow a un archivo existente
 
@@ -106,6 +110,8 @@ Mientras escribes, una línea debajo muestra **id en el Arazzo:** seguido de un 
 | **Ya hay un workflow «…» en este archivo.** | Otro workflow del archivo tiene ese id. Elige un nombre distinto. |
 
 Renombrar es seguro. Luvin actualiza todo lo que apunta al workflow en el archivo: los workflows que dependen de él, los pasos que lo llaman y los valores que leen sus outputs. Sus casos se quedan con él.
+
+![El nombre del workflow mientras se edita, con la línea id en el Arazzo: debajo](/media/es/design-rename.webp)
 
 ### Cambia la descripción
 

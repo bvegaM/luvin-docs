@@ -37,6 +37,12 @@ Solo cuenta la posición vertical. Mover una tarjeta hacia los lados cambia el d
 
 Un paso solo puede usar datos de pasos que se ejecutan antes que él. Si mueves un paso por encima de otro del que toma datos, aparece una barra: **Revisa el orden:** y el detalle, por ejemplo **«getBenefits» usa datos de «getCards», que ahora se ejecuta después**. Luvin no cambia las conexiones. Haz clic en **Deshacer** en la barra, o mueve también el otro paso. La [pestaña YAML](/es/design/arazzo-editor/) y el panel del paso también muestran el error **Usa un output de «getCards», que se ejecuta después.**
 
+![La barra Revisa el orden: «getOrder» usa datos de «createOrder», que ahora se ejecuta después, con Deshacer y Cerrar](/media/es/design-order-warning.webp)
+
+**Deshacer** en la barra devuelve los pasos a su lugar; **Cerrar** oculta la barra.
+
+<video controls muted playsinline preload="metadata" poster="/media/es/design-organize.webp" src="/media/es/design-organize.mp4"></video>
+
 ## Renombra un paso
 
 <Steps>
@@ -60,7 +66,9 @@ Para renombrar el workflow completo, consulta [Crear un workflow](/es/design/cre
 
 El paso desaparece del lienzo y del archivo.
 
-Puede que otros pasos usaran sus datos. En ese caso Luvin conserva sus referencias y muestra una barra: **Otros pasos usaban lo que quitaste y quedaron sin ese dato:** y los nombres de esos pasos. Las referencias ahora no apuntan a nada, así que cada uno de esos pasos muestra un error como **Usa $steps.getPokemon.outputs.id, pero el paso "getPokemon" no existe.** Dale a esos valores otro origen (consulta [Conectar datos entre pasos](/es/design/wire-data/)), o haz clic en **Deshacer** para recuperar el paso.
+Puede que otros pasos usaran sus datos. En ese caso Luvin conserva sus referencias, que ahora no apuntan a nada. Cada uno de esos pasos muestra **1 error(es)** en su tarjeta, y su panel muestra un error como **Usa $steps.getPokemon.outputs.id, pero el paso "getPokemon" no existe.** Dale a esos valores otro origen (consulta [Conectar datos entre pasos](/es/design/wire-data/)), o haz clic en **Deshacer** para recuperar el paso.
+
+![Después de eliminar listProducts: la tarjeta de createOrder tiene borde rojo y dice 1 error(es), porque leía el sku del paso eliminado](/media/es/design-dangling.webp)
 
 ## Deshacer y rehacer
 

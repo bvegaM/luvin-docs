@@ -49,7 +49,7 @@ Add one by hand when you want the workflow to return the value at the end, or to
 3. Tick a field.
 </Steps>
 
-![The step panel with the response fields ticked as outputs and the action chosen for each error](/media/en/step-outputs.webp)
+<video controls muted playsinline preload="metadata" poster="/media/en/design-outputs.webp" src="/media/en/design-outputs.mp4"></video>
 
 The output appears on the card, under **Outputs**, with a dot on its right that you can drag to a parameter of a later step. Untick the field to remove the output.
 
@@ -81,6 +81,8 @@ Fields of list items are shown without a position: `cards/bank`, not `cards/0/ba
 
 The choice happens during the run: Luvin pauses and shows what came back. See [Choose an item from a list](/test/lists/).
 
+![The outputs of listProducts: items with the whole list tag, items/sku ticked, and the note with the button Expose the whole “items” list](/media/en/design-list-outputs.webp)
+
 ## Outputs written in the YAML
 
 The panel covers fields picked by their path. An output can also be a search inside the response, written in the [YAML tab](/design/arazzo-editor/). In **Pokemon card**, the step `getAbility` keeps the English description of an ability with a JSONPath search:
@@ -110,6 +112,8 @@ You can also drag from the dot of any output to the **End of workflow** card.
 If the panel says **Nothing to expose yet: declare outputs on the steps.**, add outputs to a step first.
 
 For example, **Pokemon card** returns six values taken from its four steps, among them `name` and `mainType` from `getPokemon` and `weakTo` from `getWeakness`. On the canvas, a dashed line goes from each of those outputs to **End of workflow**.
+
+![The End of workflow panel: the candidate outputs of the steps and the inputs, createOrder › orderId ticked, and below it its editable name and its bin](/media/en/design-workflow-outputs.webp)
 
 ## Related
 

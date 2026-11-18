@@ -55,7 +55,7 @@ You do not need to read or write this file. The **Design** tab edits it for you,
 One file can hold several workflows. The Pokédex example has one file with four: **Pokemon card**, **Type explorer**, **Battle matchup** and **Register sighting**.
 
 <Aside type="tip" title="One file or several?">
-Put workflows in the same file when one of them uses another. A workflow can only call or depend on workflows of its own file. See [Workflows that use other workflows](/design/dependencies/).
+Put workflows in the same file when one of them uses another: the canvas offers them first. A workflow can also call or depend on a workflow of another Arazzo file of the same collection. See [Workflows that use other workflows](/design/dependencies/).
 </Aside>
 
 ## Create a new Arazzo file
@@ -67,6 +67,8 @@ You need an open collection.
 2. Choose **New Arazzo**.
 </Steps>
 
+![The + menu next to the tabs, with New request, New workflow in this file and New Arazzo](/media/en/design-plus-menu.webp)
+
 Luvin creates the file `new.arazzo.yaml` in the collection, adds the contracts of the collection to it, and opens its first workflow, **My workflow**, in the **Design** tab. The canvas is empty and says **Drag the first operation here**.
 
 If a file with that name already exists, the new one is called `new-2.arazzo.yaml`, and so on.
@@ -74,6 +76,8 @@ If a file with that name already exists, the new one is called `new-2.arazzo.yam
 <Aside type="tip">
 In a workspace, the **⋯** menu of a collection in the sidebar has the same action: **New Arazzo file**. To change the file name later, open the **⋯** menu of the file in the sidebar and choose **Rename**.
 </Aside>
+
+![A new Arazzo file: the workflow My workflow opens in Design with Start, End of workflow and the message Drag the first operation here](/media/en/design-new-arazzo.webp)
 
 ## Add a workflow to an existing file
 
@@ -106,6 +110,8 @@ While you type, a line below shows **id in the Arazzo:** followed by an identifi
 | **There is already a workflow «…» in this file.** | Another workflow of the file has that id. Choose a different name. |
 
 Renaming is safe. Luvin updates everything in the file that points to the workflow: the workflows that depend on it, the steps that call it and the values that read its outputs. Its cases stay with it.
+
+![The name of the workflow being edited, with the line id in the Arazzo: below it](/media/en/design-rename.webp)
 
 ### Change the description
 

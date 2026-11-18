@@ -28,6 +28,8 @@ Luvin found 1 connection(s) between steps
 
 Click **Connect** and `{{order_id}}` becomes the output of the first step. See [Accept the suggested connections](#accept-the-suggested-connections).
 
+<video controls muted playsinline preload="metadata" poster="/media/en/design-from-requests.webp" src="/media/en/design-from-requests.mp4"></video>
+
 ## Add a request as a step
 
 <Steps>
@@ -41,6 +43,8 @@ The step is sent exactly like the request: same URL, parameters, headers and bod
 The step is named after the request: **Create order** becomes `createOrder`. Its success criterion is the lowest 2xx status Luvin knows for it, or `$statusCode < 400` if it knows none.
 
 Only HTTP requests with a URL can be added. For anything else Luvin says **Only HTTP requests with a URL can be added to a workflow.**
+
+![The palette of a collection without contracts: Collection requests with Create order (POST) and Get order (GET)](/media/en/design-requests-palette.webp)
 
 ### The question about required fields
 
@@ -62,6 +66,10 @@ Luvin learns what each request answers from three places:
 
 You can also teach it without a run. Click the step. The panel starts with **From the request “Create order”**. When Luvin does not know the response yet, it says so and offers **Try this step**. For a GET this sends the request. For any other method it first warns **This sends the POST for real and may create or change data.** and offers **Send anyway** or **Cancel**. Once it knows the response, the note says so.
 
+![The panel of a step built from the request Create order: Luvin does not know its response yet, with Try this step and Required fields (1)](/media/en/design-request-step.webp)
+
+![After Try this step on a POST: the warning This sends the POST for real and may create or change data, with Send anyway and Cancel](/media/en/design-try-step.webp)
+
 ## Accept the suggested connections
 
 With the responses known, Luvin can see that a value you wrote by hand comes from an earlier step. For example, the path of **Get order** has `{{order_id}}`, and **Create order** returns an `id`. A bar appears above the canvas: **Luvin found 2 connection(s) between steps**.
@@ -76,6 +84,8 @@ With the responses known, Luvin can see that a value you wrote by hand comes fro
 Each line names the step, the value and where it would come from. After a run, the other tabs show **With the last run, Luvin found 2 connection(s) between steps.** with the link **Review in Design**.
 
 Luvin does not connect anything until you accept. **Undo** reverts it. [Connect data between steps](/design/wire-data/) explains the result.
+
+![The bar Luvin found 1 connection(s) between steps: the orderId of the second step, written as {{order_id}}, would come from the id of the first](/media/en/design-connections-bar.webp)
 
 ## Choose data to vary
 

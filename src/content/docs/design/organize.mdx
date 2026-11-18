@@ -37,6 +37,12 @@ Only the vertical position counts. Moving a card sideways changes the drawing, n
 
 A step can only use data from steps that run before it. If you move a step above one it takes data from, a bar appears: **Check the order:** and the detail, for example **“getBenefits” uses data from “getCards”, which now runs after it**. Luvin does not change the connections. Click **Undo** in the bar, or move the other step too. The [YAML tab](/design/arazzo-editor/) and the step's panel also show the error **Uses an output of “getCards”, which runs later.**
 
+![The bar Check the order: “getOrder” uses data from “createOrder”, which now runs after it, with Undo and Close](/media/en/design-order-warning.webp)
+
+**Undo** in the bar puts the steps back; **Close** hides the bar.
+
+<video controls muted playsinline preload="metadata" poster="/media/en/design-organize.webp" src="/media/en/design-organize.mp4"></video>
+
 ## Rename a step
 
 <Steps>
@@ -60,7 +66,9 @@ To rename the whole workflow, see [Create a workflow](/design/create/).
 
 The step disappears from the canvas and from the file.
 
-Other steps may have used its data. In that case Luvin keeps their references and shows a bar: **Other steps used what you removed and lost that data:** and the names of those steps. The references now point to nothing, so each of those steps shows an error such as **Uses $steps.getPokemon.outputs.id, but step "getPokemon" does not exist.** Give those values another source (see [Connect data between steps](/design/wire-data/)), or click **Undo** to bring the step back.
+Other steps may have used its data. In that case Luvin keeps their references, which now point to nothing. Each of those steps shows **1 error(s)** on its card, and its panel shows an error such as **Uses $steps.getPokemon.outputs.id, but step "getPokemon" does not exist.** Give those values another source (see [Connect data between steps](/design/wire-data/)), or click **Undo** to bring the step back.
+
+![After deleting listProducts: the card of createOrder has a red border and says 1 error(s), because it read the sku of the deleted step](/media/en/design-dangling.webp)
 
 ## Undo and redo
 

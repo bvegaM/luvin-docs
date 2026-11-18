@@ -53,6 +53,8 @@ The palette has one group per contract, named after it, with the number of opera
 2. Type in **Search operation…** to filter. The search looks at the path, the operation id, the summary and the tags.
 </Steps>
 
+![The Operations palette of the Pokédex: the search box, the workflows of other Arazzo files and the operations of the pokeapi contract](/media/en/design-palette.webp)
+
 ## Add it to the workflow
 
 | How | Where the step goes |
@@ -90,6 +92,12 @@ Start with an empty workflow in the Pokédex collection.
 
 The `?` means Luvin is less sure about that connection. [Connect data between steps](/design/wire-data/) explains the rules and how to change a source.
 
+![The workflow after adding two operations: Start has the new input idOrName, getPokemon reads it and exposes id, and a data line goes down to getPokemonSpecies](/media/en/design-auto-wired.webp)
+
+The panel of the new step opens at once. Its `idOrName` reads the output `id` of `getPokemon`:
+
+![The panel of getPokemonSpecies right after adding it: idOrName comes from id, success is 200 and the 404 has no action yet](/media/en/design-new-step-panel.webp)
+
 ## Other things you can add
 
 The palette has three more groups when they apply. They are added the same way: drag, or **+**.
@@ -102,6 +110,8 @@ The palette has three more groups when they apply. They are added the same way: 
 
 Operations of AsyncAPI contracts are not in the palette. [Messaging steps](/design/messaging/) explains how to add them.
 
+![The palette of a shop workflow: Workflows in this Arazzo, From other Arazzo files and the operations of the store contract](/media/en/design-palette-workflows.webp)
+
 ### The question about required fields
 
 A saved request has no contract that says which of its fields the API requires. The first time you add a request to a workflow, a dialog asks **What does the API require in «…»?** with every field of the request.
@@ -113,11 +123,17 @@ A saved request has no contract that says which of its fields the API requires. 
 
 Your answer is saved in the request and applies to every workflow that uses it. Operations from a contract never show this dialog: the contract already says what is required.
 
+![The dialog What does the API require in «Create order»? with the body fields customer, ticked as required, and currency](/media/en/design-required-fields.webp)
+
 ## If the canvas says the workflow is missing data
 
 A bar titled **This workflow is missing data** appears when a step uses an input the workflow does not declare, or when the contract asks for data a step does not send. This happens, for example, after a contract changes.
 
 Click **Complete**. Luvin declares the missing inputs or connects the data to an earlier step, without redoing the steps. **Undo** reverts it.
+
+![The bar This workflow is missing data above the canvas, with the Complete button](/media/en/design-gaps-bar.webp)
+
+See [Complete missing data](/design/complete-gaps/).
 
 ## Next
 

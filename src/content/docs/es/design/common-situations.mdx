@@ -1,0 +1,499 @@
+---
+title: Casuísticas de diseño
+description: Un catálogo de las situaciones que aparecen al diseñar un workflow, cada una con los pasos en el diseñador, el Arazzo que resulta y un enlace a la página que la explica.
+sidebar:
+  order: 1.5
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Esta página responde "¿cómo hago…?" para las situaciones más comunes al diseñar un workflow. Cada una tiene la situación en una línea, cómo se hace en la pestaña **Diseño**, lo que Luvin escribe en el archivo Arazzo y la página que la explica completa.
+
+Los ejemplos usan la Pokédex de la app y una tienda genérica: iniciar sesión, listar productos, crear un pedido y consultarlo.
+
+<Aside type="tip" title="Lienzo o YAML">
+Casi todo se hace en el lienzo. Unas pocas cosas, como los criterios sobre el body o las acciones en caso de éxito, se escriben en la [pestaña YAML](/es/design/arazzo-editor/). Cada situación dice cuál. Lo que escribes a mano se conserva al volver al lienzo.
+</Aside>
+
+## Pasar datos de un paso al siguiente
+
+### El token del login va en una cabecera de los pasos siguientes
+
+El login devuelve `accessToken`, y las llamadas siguientes necesitan `Authorization: Bearer <token>`.
+
+<Steps>
+1. Haz clic en el paso `login`. En **Outputs**, marca `accessToken`. La tarjeta muestra ahora el output `token`.
+2. Haz clic en el paso que necesita el token, por ejemplo `createOrder`.
+3. En **Parámetros** › **Headers**, abre la lista **Origen** de `Authorization` y elige **Valor fijo…**.
+4. Escribe `Bearer {$steps.login.outputs.token}`. Las llaves marcan una expresión dentro de un texto.
+5. Haz lo mismo en cada paso siguiente que necesite el token.
+</Steps>
+
+Debes ver el texto en el campo y, en la tarjeta, el valor `Bearer {$steps.login.outputs…`.
+
+![El panel de createOrder: la cabecera Authorization con un valor fijo que contiene el token del paso login](/media/es/design-token-header.webp)
+
+```yaml
+- stepId: login
+  outputs:
+    token: $response.body#/accessToken
+- stepId: createOrder
+  parameters:
+    - name: Authorization
+      in: header
+      value: Bearer {$steps.login.outputs.token}
+```
+
+El lienzo no dibuja una línea de datos para un valor escrito dentro de un texto: la línea solo aparece cuando el valor entero es el output. La cabecera solo aparece en el panel si el contrato la declara. Si no, agrega el parámetro en la pestaña YAML. Para enviar el token sin escribirlo en cada paso, usa la [autorización del workflow](/es/authorization/workflow/). Ejemplo que se puede ejecutar: [Inicia sesión y usa el token](/es/recipes/login-token/).
+
+### Un id de una respuesta va en la ruta del paso siguiente
+
+Agregas `GET /pokemon-species/{idOrName}` después de `GET /pokemon/{idOrName}`, y el segundo necesita el `id` del primero.
+
+<Steps>
+1. Agrega las dos operaciones con **+** o arrastrándolas al lienzo.
+2. Mira la segunda tarjeta. Su `idOrName` muestra `? getPokemon › id`: Luvin lo conectó por ti y agregó el output `id` al primer paso.
+3. Si el origen no es el que quieres, haz clic en el paso y elige otro en su lista **Origen**.
+</Steps>
+
+![Un workflow nuevo con dos pasos: Inicio tiene el input idOrName, el primer paso lo lee y expone id](/media/es/design-auto-wired.webp)
+
+<video controls muted playsinline preload="metadata" poster="/media/es/design-wire.webp" src="/media/es/design-wire.mp4"></video>
+
+```yaml
+- stepId: getPokemonSpecies
+  parameters:
+    - name: idOrName
+      in: path
+      value: $steps.getPokemon.outputs.id
+```
+
+El `?` significa que Luvin está menos seguro: revísalo. Detalle: [Conectar datos entre pasos](/es/design/wire-data/).
+
+### Un valor que nadie entrega se vuelve un input
+
+Cuando ningún paso anterior devuelve un valor que el paso necesita, Luvin crea un input del workflow con el nombre del valor. En la imagen de arriba, **Inicio** lista `idOrName`, creado al agregar el primer paso.
+
+Para hacerlo tú, abre la lista **Origen** del valor y elige **Nuevo input «nombre»**. El input se crea como obligatorio.
+
+```yaml
+inputs:
+  type: object
+  required: [idOrName]
+  properties:
+    idOrName: { type: string }
+steps:
+  - stepId: getPokemon
+    parameters:
+      - { name: idOrName, in: path, value: $inputs.idOrName }
+```
+
+Los inputs se llenan en la pestaña **Inputs**. Ver [Inputs](/es/test/inputs/).
+
+### Un valor fijo se vuelve input, y de vuelta
+
+Un paso envía siempre `currency: EUR`. Quieres casos que prueben otras monedas.
+
+<Steps>
+1. En la tarjeta, apunta al valor fijo. Junto a él aparece **→ input**.
+2. Haz clic en **→ input**. **Inicio** recibe el input `currency`, con `EUR` como valor, y el paso lo lee.
+3. Para elegir varios a la vez, haz clic en **+ Volver input otro valor fijo** en **Inicio** (o **Elegir datos variables…** cuando todavía no hay inputs), marca los valores en **Datos para variar por caso** y haz clic en **Convertir en inputs**.
+</Steps>
+
+![La tarjeta de createOrder con el botón → input junto al valor fijo de currency](/media/es/design-promote-one.webp)
+
+![El diálogo Datos para variar por caso con dos valores marcados: currency y address/city](/media/es/design-pick-data.webp)
+
+Para volver atrás no hay un solo botón. Hazlo en dos movimientos:
+
+<Steps>
+1. Haz clic en el paso y, en la lista **Origen** del valor, elige **Valor fijo…**. Escribe el valor. Si el campo es opcional y queda vacío, se pliega en **Opcionales sin enviar**; haz clic en **Editar** para verlo.
+2. Haz clic en **Inicio** y borra el input con su papelera.
+</Steps>
+
+Si borras un input que un paso todavía usa, aparece la barra **A este workflow le faltan datos**. Justo después de convertir valores en inputs, **Deshacer** también trae de vuelta los valores fijos.
+
+<video controls muted playsinline preload="metadata" poster="/media/es/design-promote.webp" src="/media/es/design-promote.mp4"></video>
+
+```yaml
+inputs:
+  properties:
+    currency:
+      type: string
+      description: createOrder · body · currency
+      example: EUR
+steps:
+  - stepId: createOrder
+    requestBody:
+      payload:
+        currency: $inputs.currency
+```
+
+Detalle: [Parámetros y body](/es/design/parameters-and-body/#convierte-un-valor-fijo-en-un-input).
+
+### Un campo que sale de una lista
+
+`listProducts` devuelve `items`, una lista, y el paso siguiente necesita el `sku` de un producto.
+
+<Steps>
+1. Haz clic en el paso siguiente y abre la lista **Origen** del valor.
+2. Bajo `listProducts`, elige **items/sku (de una lista: eliges cuál al ejecutar)**.
+</Steps>
+
+El campo se muestra sin su posición: `items/sku`. En el archivo Luvin escribe la primera posición, y al ejecutar un caso se pausa después del paso y pregunta con qué elemento seguir. El panel de outputs también deja exponer la **lista completa**.
+
+![Los outputs de listProducts: el aviso sobre la lista, la etiqueta lista completa e items/sku marcado](/media/es/design-list-outputs.webp)
+
+```yaml
+- stepId: listProducts
+  outputs:
+    sku: $response.body#/items/0/sku
+```
+
+Detalle: [Outputs](/es/design/outputs/#campos-que-son-listas) y [Elige un elemento de una lista](/es/test/lists/).
+
+### Objetos anidados y listas en un body
+
+El pedido tiene un objeto `address` y una lista de `lines`.
+
+<Steps>
+1. Haz clic en el paso. En **Body**, los campos dentro de objetos aparecen con su ruta: `address/city`, `address/zip`. Dale un origen a cada uno.
+2. Para la lista, haz clic en **Editar como JSON**, escribe los elementos y haz clic en **Aplicar**. Usa `"$inputs.nombre"` o `"$steps.paso.outputs.valor"` como valores.
+</Steps>
+
+![La caja Editar como JSON de createOrder con el objeto address y la lista lines](/media/es/design-body-json.webp)
+
+```yaml
+requestBody:
+  contentType: application/json
+  payload:
+    customer: Ana
+    address: { city: Madrid, zip: '28001' }
+    lines:
+      - { sku: $steps.listProducts.outputs.sku, qty: 1 }
+```
+
+Detalle: [Parámetros y body](/es/design/parameters-and-body/#edita-el-body-como-json).
+
+### La misma operación dos veces en un workflow
+
+Quieres consultar un Pokémon y, más adelante, otro. Agrega otra vez la misma operación desde la paleta. El paso nuevo lleva un número: `getPokemon2`. Cada paso tiene sus propios parámetros y outputs, así que los pasos siguientes pueden leer `$steps.getPokemon.outputs…` o `$steps.getPokemon2.outputs…`.
+
+```yaml
+- stepId: getPokemon
+  operationId: $sourceDescriptions.pokeapi.getPokemon
+- stepId: getPokemon2
+  operationId: $sourceDescriptions.pokeapi.getPokemon
+```
+
+Para darle un nombre más claro, haz clic en el paso y cambia su nombre arriba del panel. Detalle: [Agregar pasos](/es/design/add-steps/).
+
+## Cambiar el orden o deshacer
+
+### Reordenar, borrar, deshacer y rehacer
+
+<Steps>
+1. Apunta a una tarjeta y haz clic en **↑** o **↓**, o arrástrala arriba o abajo de otra.
+2. Si el paso ahora corre antes del que le da un dato, la barra **Revisa el orden:** lo dice. Haz clic en **Deshacer** en la barra.
+3. Para borrar un paso, haz clic en él y presiona Suprimir, o haz clic en la papelera arriba de su panel. Los pasos que usaban sus datos muestran **1 error(es)** en su tarjeta.
+4. **Deshacer** y **Rehacer** sobre el lienzo (⌘ + Z y ⇧ + ⌘ + Z) recorren tus cambios.
+</Steps>
+
+![La barra Revisa el orden: getOrder usa datos de createOrder, que ahora corre después](/media/es/design-order-warning.webp)
+
+<video controls muted playsinline preload="metadata" poster="/media/es/design-organize.webp" src="/media/es/design-organize.mp4"></video>
+
+Detalle: [Organizar un workflow](/es/design/organize/).
+
+## Decidir qué cuenta como éxito
+
+### Éxito por status
+
+Haz clic en el paso y, en **Es éxito si responde**, haz clic en el status que esperas. Luvin escribe `$statusCode == 201`.
+
+### Éxito por una condición sobre la respuesta
+
+El lienzo edita el status. Las condiciones sobre el body o las cabeceras se escriben en la pestaña YAML, dentro de `successCriteria`. Se deben cumplir todos los criterios. El panel los lista bajo el status con **Editar en el YAML**.
+
+| Tipo | Ejemplo |
+|---|---|
+| Simple | `- condition: $response.body#/capture_rate >= 0` |
+| Regex | `- context: $response.header.Content-Type`<br />`  condition: ^application/json`<br />`  type: regex` |
+| JSONPath | `- context: $response.body`<br />`  condition: $.abilities[?(@.is_hidden == false)]`<br />`  type: jsonpath` |
+| XPath (respuestas XML) | `- context: $response.body`<br />`  condition: /order/status`<br />`  type: xpath` |
+
+![El panel de getSpecies: el status de éxito y un criterio extra con Editar en el YAML](/media/es/design-criteria-panel.webp)
+
+Detalle: [Éxito y errores](/es/design/success-and-errors/), [Criterios de éxito](/es/reference/criteria/) y la receta [Comprueba más que el status](/es/recipes/criteria/).
+
+## Decidir qué pasa ante un error
+
+<video controls muted playsinline preload="metadata" poster="/media/es/design-errors.webp" src="/media/es/design-errors.mp4"></video>
+
+### Un error esperado termina el workflow
+
+"El Pokémon no existe" es un resultado conocido, no una caída.
+
+<Steps>
+1. Haz clic en el paso. En **Si responde con error**, busca el status, por ejemplo **404**.
+2. Abre su lista y elige **Terminar el workflow**.
+</Steps>
+
+```yaml
+onFailure:
+  - name: on404
+    type: end
+    criteria:
+      - condition: $statusCode == 404
+```
+
+Luvin también genera un caso que simula el 404 y comprueba que la acción se dispara. Ejemplo que se puede ejecutar: [Espera un error](/es/recipes/expected-error/).
+
+### Reintentar con espera y límite
+
+Elige **Reintentar (hasta 3 veces)** para el status, por ejemplo **429**. Luvin escribe 3 intentos y 1 segundo entre ellos. Para cambiar los números, edita `retryLimit` y `retryAfter` en la pestaña YAML, o guarda la acción como [reutilizable](/es/design/reusables/): su panel tiene los dos campos. Contra la API real, Luvin nunca espera más de 10 segundos entre dos intentos.
+
+```yaml
+onFailure:
+  - name: on429
+    type: retry
+    retryAfter: 5
+    retryLimit: 4
+    criteria:
+      - condition: $statusCode == 429
+```
+
+Para iniciar sesión de nuevo antes del reintento, agrega `stepId` o `workflowId` a la acción en el YAML. Ver [Reintentos y llamadas lentas](/es/design/success-and-errors/#reintentos-y-llamadas-lentas).
+
+### Saltar a otro paso
+
+Elige **Ir a «paso»** para el status. La lista ofrece todos los demás pasos del workflow. Con **Acciones según la respuesta** encendido, la tarjeta muestra la fila y una línea naranja va al paso de destino.
+
+![El lienzo: la fila 409 de createOrder dice ir a listProducts y una línea naranja punteada sube hasta ese paso](/media/es/design-jump-line.webp)
+
+```yaml
+onFailure:
+  - name: on409
+    type: goto
+    stepId: listProducts
+    criteria:
+      - condition: $statusCode == 409
+```
+
+### Saltar a otro workflow
+
+La lista del panel solo ofrece pasos. Para seguir en otro workflow, escribe `workflowId` en vez de `stepId` en el YAML. La ejecución sigue en ese workflow, y los resultados dicen **Continúa en el workflow "…"**.
+
+```yaml
+onFailure:
+  - name: notifySupport
+    type: goto
+    workflowId: reportProblem
+    criteria:
+      - condition: $statusCode == 500
+```
+
+Para un workflow de otro archivo Arazzo, usa `$sourceDescriptions.<fuente>.<workflowId>`.
+
+### Acciones en caso de éxito
+
+`onSuccess` se escribe en el YAML. Acepta los mismos tipos: `end`, `goto` y `retry`. El panel dice **Este paso usa cosas que el lienzo no edita (onSuccess)**. La tarjeta lista la acción en la misma sección que las acciones de error; un `end` en caso de éxito dice **fin ✓**.
+
+```yaml
+- stepId: findItem
+  onSuccess:
+    - name: done
+      type: end
+```
+
+Ejemplo que se puede ejecutar: [Reintenta, salta y termina ante errores](/es/recipes/error-branches/).
+
+## Guardar valores
+
+### Outputs de un paso y outputs del workflow
+
+<Steps>
+1. Haz clic en el paso. En **Outputs**, marca los campos de la respuesta que quieres. Cada uno aparece en la tarjeta con un punto.
+2. Haz clic en **Fin del workflow** y, en **Outputs del workflow**, marca lo que devuelve el workflow. Haz clic en un nombre para cambiarlo.
+</Steps>
+
+![El panel de Fin del workflow: los outputs posibles, con createOrder › orderId marcado y su nombre](/media/es/design-workflow-outputs.webp)
+
+<video controls muted playsinline preload="metadata" poster="/media/es/design-outputs.webp" src="/media/es/design-outputs.mp4"></video>
+
+```yaml
+- stepId: getOrder
+  outputs:
+    status: $response.body#/status
+outputs:
+  orderId: $steps.createOrder.outputs.orderId
+```
+
+Detalle: [Outputs](/es/design/outputs/).
+
+## Usar otros workflows
+
+### Depender de otro workflow del mismo archivo o de otro archivo
+
+`placeOrder` necesita el token que devuelve el workflow `login`, y `login` está en `auth.arazzo.yaml`.
+
+<Steps>
+1. Haz clic en **Inicio**. En **Depende de**, abre **Agregar un workflow…**.
+2. Elige un workflow en **De este archivo** o en el grupo de otro archivo, como **De auth.arazzo.yaml**.
+3. Sobre **Inicio** aparece una tarjeta **Depende de** con los outputs de ese workflow. Úsalos desde la lista **Origen** de cualquier valor, o arrastra su punto.
+</Steps>
+
+![La lista Agregar un workflow con los grupos De este archivo y De auth.arazzo.yaml](/media/es/design-depends-options.webp)
+
+![La tarjeta Depende de sobre Inicio: el workflow login de auth.arazzo.yaml y su output token](/media/es/design-depends-card.webp)
+
+```yaml
+sourceDescriptions:
+  - { name: auth, url: ./auth.arazzo.yaml, type: arazzo }
+workflows:
+  - workflowId: placeOrder
+    dependsOn: [$sourceDescriptions.auth.login]
+```
+
+Para un workflow del mismo archivo, `dependsOn` lleva solo su id: `dependsOn: [browseProducts]`. Detalle: [Workflows que usan otros workflows](/es/design/dependencies/).
+
+### Llamar a un workflow como un paso
+
+En la paleta, abre **Workflows de este Arazzo** (o **De otros archivos Arazzo**) y haz clic en **+** en el workflow. El paso nuevo lista los inputs de ese workflow en **Inputs del workflow**, conectados como cualquier otro valor, y sus outputs.
+
+![El panel de un paso que llama al workflow browseProducts: su input limit y sus outputs sku y price](/media/es/design-call-workflow.webp)
+
+<video controls muted playsinline preload="metadata" poster="/media/es/design-depends.webp" src="/media/es/design-depends.mp4"></video>
+
+```yaml
+- stepId: browseProducts
+  workflowId: browseProducts
+  parameters:
+    - { name: limit, value: $inputs.limit }
+  outputs:
+    sku: $outputs.sku
+    price: $outputs.price
+```
+
+## Definir una vez y usar en varios pasos
+
+### Acciones de error y parámetros reutilizables
+
+<Steps>
+1. Elige la acción de un error, por ejemplo **Reintentar** en **429**, o dale un valor a un parámetro.
+2. Haz clic en ♻ (**Guardar como reutilizable**) en esa fila, escribe un nombre y haz clic en **Guardar**.
+3. En otro paso, la lista de ese status lo ofrece en **Reutilizables**. También puedes arrastrarlo desde el grupo **Reutilizables** de la paleta sobre una tarjeta.
+4. Haz clic en la insignia ♻ para editarlo una vez para todos los pasos. **Se usa en** lista los pasos.
+</Steps>
+
+![El panel del reutilizable unauthorized de PayPal: termina el workflow ante un 401 y lo usan cinco pasos](/media/es/design-reusable-panel.webp)
+
+<video controls muted playsinline preload="metadata" poster="/media/es/design-reusables.webp" src="/media/es/design-reusables.mp4"></video>
+
+```yaml
+components:
+  failureActions:
+    tooManyRequests:
+      name: tooManyRequests
+      type: retry
+      retryAfter: 1
+      retryLimit: 3
+      criteria:
+        - condition: $statusCode == 429
+# en cada paso:
+onFailure:
+  - reference: $components.failureActions.tooManyRequests
+```
+
+Detalle: [Reutilizables](/es/design/reusables/).
+
+## Mensajes y eventos
+
+### Enviar y recibir mensajes
+
+<Aside type="caution">
+Los pasos de mensajería siempre se simulan. Luvin todavía no se conecta a brokers (Kafka, AMQP, MQTT…): el paso usa los ejemplos del contrato AsyncAPI, también cuando ejecutas contra la API real.
+</Aside>
+
+Las operaciones de AsyncAPI no están en la paleta. Escribe el paso en la pestaña YAML, con `action: send` o `action: receive`. En el lienzo se ve con **SEND** o **RECEIVE**, y sus outputs, criterios y acciones de error se editan en el panel.
+
+![El panel de awaitConfirmation, un paso que recibe: dice que el lienzo no edita su canal y lista su criterio sobre el mensaje y su output entryNumber](/media/es/design-messaging-receive.webp)
+
+```yaml
+- stepId: awaitConfirmation
+  channelPath: '{$sourceDescriptions.pokedexEvents.url}#/channels/sightingConfirmed'
+  action: receive
+  correlationId: $inputs.correlationId
+  timeout: 5000
+  successCriteria:
+    - condition: $message.payload#/status == 'CONFIRMED'
+```
+
+Detalle: [Pasos de mensajería](/es/design/messaging/).
+
+## Sin contrato
+
+### Construir desde requests guardados
+
+<Steps>
+1. Crea un workflow con **+** › **Nuevo Arazzo**.
+2. En la paleta, abre **Requests de la colección** y agrega tus requests con **+** o arrastrándolos.
+3. La primera vez que usas cada request, marca lo que exige la API y haz clic en **Guardar**.
+4. Haz clic en un paso y en **Probar este paso**, o ejecuta el workflow una vez contra la API real, para que Luvin aprenda las respuestas.
+5. La barra **Luvin encontró 1 conexión(es) entre pasos** propone las conexiones. Haz clic en **Conectar**.
+</Steps>
+
+![La barra Luvin encontró 1 conexión(es) entre pasos: el orderId de consultarPedido vendría del id de crearPedido](/media/es/design-connections-bar.webp)
+
+<video controls muted playsinline preload="metadata" poster="/media/es/design-from-requests.webp" src="/media/es/design-from-requests.mp4"></video>
+
+Detalle: [Armar desde requests guardados](/es/design/from-requests/).
+
+### Marcar los campos obligatorios de un request
+
+Un request no dice qué campos exige la API. El diálogo **¿Qué exige la API en «…»?** lo pregunta la primera vez. Para cambiarlo después, haz clic en el paso y luego en **Campos obligatorios (n)** arriba del panel.
+
+![El diálogo ¿Qué exige la API en «Crear pedido»? con customer marcado como obligatorio](/media/es/design-required-fields.webp)
+
+```yaml title="requests/create-order.request.yaml"
+requiredFields:
+  - body:customer
+```
+
+Detalle: [Marca los campos obligatorios de un request](/es/design/required-fields/).
+
+## Arreglar un workflow
+
+### Completar los datos que faltan
+
+Después de que cambia un contrato, o de editar el YAML, un paso puede usar un input que el workflow no declara, o no enviar algo que el contrato exige. La barra **A este workflow le faltan datos** dice qué. Haz clic en **Completar**. **Deshacer** lo revierte.
+
+![La barra A este workflow le faltan datos: se usan inputs que el workflow no declara, username, con el botón Completar](/media/es/design-gaps-bar.webp)
+
+<video controls muted playsinline preload="metadata" poster="/media/es/design-gaps.webp" src="/media/es/design-gaps.mp4"></video>
+
+Detalle: [Completa los datos que faltan](/es/design/complete-gaps/).
+
+### Editar el YAML a mano
+
+<Steps>
+1. Abre la pestaña **YAML**. Es el mismo archivo que edita el lienzo.
+2. Escribe. Después de `$`, `$steps.` o `$inputs.` el editor sugiere lo que existe.
+3. Revisa la insignia sobre el texto y la lista **Problemas** debajo.
+4. Vuelve a **Diseño**. Lo que escribiste se queda, también después de cambiar otras cosas en el lienzo.
+</Steps>
+
+![La pestaña YAML sugiriendo los pasos del workflow después de $steps.](/media/es/design-yaml-autocomplete.webp)
+
+<video controls muted playsinline preload="metadata" poster="/media/es/design-yaml.webp" src="/media/es/design-yaml.mp4"></video>
+
+Detalle: [La pestaña YAML](/es/design/arazzo-editor/).
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Diseñar un workflow" href="/es/design/overview/" />
+  <LinkCard title="Recetas" description="Ejemplos que se pueden ejecutar de estas situaciones." href="/es/recipes/overview/" />
+  <LinkCard title="Soporte de especificaciones" href="/es/reference/support/" />
+  <LinkCard title="Glosario" href="/es/reference/glossary/" />
+</CardGrid>

@@ -49,6 +49,8 @@ El lienzo y el YAML son dos vistas del mismo archivo. Cada cambio que haces en e
 
 La pestaña muestra el archivo completo, no solo el workflow que tenías abierto: todos los workflows del archivo, sus contratos (`sourceDescriptions`) y sus reutilizables (`components`). El nombre del archivo está sobre el texto.
 
+<video controls muted playsinline preload="metadata" poster="/media/es/design-yaml.webp" src="/media/es/design-yaml.mp4"></video>
+
 ## Validación mientras escribes
 
 Un momento después de que dejas de escribir, Luvin vuelve a leer el archivo y lo revisa. La barra sobre el texto muestra el resultado:
@@ -62,6 +64,10 @@ Un momento después de que dejas de escribir, Luvin vuelve a leer el archivo y l
 Mientras el YAML es inválido, el lienzo no puede mostrarlo. La pestaña **Diseño** dice **El YAML no se puede leer** y ofrece **Ver el YAML**. Corrige la línea y el lienzo vuelve.
 
 Cuando hay algo que informar, aparece bajo el texto una lista llamada **Problemas**. Haz clic en un problema y el cursor va al lugar del texto. Cuando la lista solo tiene información, se llama **Notas** y empieza plegada. Una nota no es un error, por ejemplo **Paso receive sin "timeout"**.
+
+![La pestaña YAML con la insignia 1 error(es), el valor equivocado subrayado y la lista Problemas con una nota y el error del paso que no existe](/media/es/design-yaml-problems.webp)
+
+![La pestaña Diseño mientras el YAML no se puede leer: el mensaje con la línea del problema y el enlace Ver el YAML](/media/es/design-yaml-broken.webp)
 
 ## Autocompletado
 
@@ -77,6 +83,8 @@ Mientras escribes, el editor sugiere valores. Pulsa Enter para aceptar uno.
 | `workflowId:` en un paso | Los otros workflows del archivo. |
 | `stepId:` en un salto (`goto`) | Los pasos del workflow. |
 | `action:`, `in:`, `type:` | Los valores válidos, como `send`, `receive`, `header`, `end`, `retry`. |
+
+![La pestaña YAML sugiriendo $steps.createOrder.outputs., $steps.getOrder.outputs., $steps.listProducts.outputs. y $steps.login.outputs. después de escribir $steps.](/media/es/design-yaml-autocomplete.webp)
 
 ## Qué revisa el análisis
 

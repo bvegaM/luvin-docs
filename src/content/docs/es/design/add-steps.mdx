@@ -53,6 +53,8 @@ La paleta tiene un grupo por contrato, con su nombre y la cantidad de operacione
 2. Escribe en **Buscar operación…** para filtrar. La búsqueda mira la ruta, el id de la operación, el resumen y las etiquetas.
 </Steps>
 
+![La paleta Operaciones de la Pokédex: la búsqueda, los workflows de otros archivos Arazzo y las operaciones del contrato pokeapi](/media/es/design-palette.webp)
+
 ## Agrégala al workflow
 
 | Cómo | Dónde queda el paso |
@@ -90,6 +92,12 @@ Parte de un workflow vacío en la colección Pokédex.
 
 La `?` significa que Luvin está menos seguro de esa conexión. [Conectar datos entre pasos](/es/design/wire-data/) explica las reglas y cómo cambiar un origen.
 
+![El workflow después de agregar dos operaciones: Inicio tiene el input nuevo idOrName, getPokemon lo lee y expone id, y una línea de datos baja hasta getPokemonSpecies](/media/es/design-auto-wired.webp)
+
+El panel del paso nuevo se abre enseguida. Su `idOrName` lee el output `id` de `getPokemon`:
+
+![El panel de getPokemonSpecies recién agregado: idOrName sale de id, el éxito es 200 y el 404 todavía no tiene acción](/media/es/design-new-step-panel.webp)
+
 ## Otras cosas que puedes agregar
 
 La paleta tiene tres grupos más cuando corresponden. Se agregan igual: arrastrando, o con **+**.
@@ -102,6 +110,8 @@ La paleta tiene tres grupos más cuando corresponden. Se agregan igual: arrastra
 
 Las operaciones de los contratos AsyncAPI no están en la paleta. [Pasos de mensajería](/es/design/messaging/) explica cómo agregarlas.
 
+![La paleta de un workflow de una tienda: Workflows de este Arazzo, De otros archivos Arazzo y las operaciones del contrato store](/media/es/design-palette-workflows.webp)
+
 ### La pregunta sobre los campos obligatorios
 
 Un request guardado no tiene un contrato que diga cuáles de sus campos exige la API. La primera vez que agregas un request a un workflow, un diálogo pregunta **¿Qué exige la API en «…»?** con todos los campos del request.
@@ -113,11 +123,17 @@ Un request guardado no tiene un contrato que diga cuáles de sus campos exige la
 
 Tu respuesta se guarda en el request y vale para todos los workflows que lo usen. Las operaciones de un contrato nunca muestran este diálogo: el contrato ya dice qué es obligatorio.
 
+![El diálogo ¿Qué exige la API en «Crear pedido»? con los campos del body customer, marcado como obligatorio, y currency](/media/es/design-required-fields.webp)
+
 ## Si el lienzo dice que al workflow le faltan datos
 
 Una barra con el título **A este workflow le faltan datos** aparece cuando un paso usa un input que el workflow no declara, o cuando el contrato pide datos que un paso no envía. Pasa, por ejemplo, después de que un contrato cambia.
 
 Haz clic en **Completar**. Luvin declara los inputs que faltan o conecta los datos con un paso anterior, sin rehacer los pasos. **Deshacer** lo revierte.
+
+![La barra A este workflow le faltan datos sobre el lienzo, con el botón Completar](/media/es/design-gaps-bar.webp)
+
+Ver [Completa los datos que faltan](/es/design/complete-gaps/).
 
 ## Siguiente
 

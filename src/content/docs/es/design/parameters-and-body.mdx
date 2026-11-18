@@ -64,6 +64,12 @@ Si la operación no tiene parámetros ni body, el panel dice **Esta operación n
 
 Para ver parámetros de query en acción, mira [Parámetros de query y paginación](/es/recipes/pagination-query/).
 
+### Un valor dentro de un texto
+
+Algunos valores mezclan texto fijo con datos, como un token después de `Bearer`. Elige **Valor fijo…** y escribe la expresión entre llaves dentro del texto: `Bearer {$steps.login.outputs.token}`. Luvin la reemplaza al ejecutar el paso. El lienzo no dibuja una línea de datos para él, porque el valor no es solo el output.
+
+![La cabecera Authorization de createOrder con el valor fijo Bearer y el token del paso login](/media/es/design-token-header.webp)
+
 ## Envía un parámetro opcional
 
 Los parámetros opcionales no se envían hasta que les das un origen. Quedan plegados en una línea: **Opcionales sin enviar: limit, offset**.
@@ -75,6 +81,8 @@ Los parámetros opcionales no se envían hasta que les das un origen. Quedan ple
 </Steps>
 
 Para dejar de enviarlo, elige **No enviar** en su lista **Origen**.
+
+![Los parámetros opcionales limit y offset desplegados, cada uno con No enviar, y el enlace Ocultar los que no se envían](/media/es/design-optional-params-open.webp)
 
 ## Completa el body
 
@@ -137,6 +145,8 @@ Si el texto no es un JSON válido, la caja muestra **El JSON no es válido:** co
 
 Para armar un body con datos aleatorios, mira [Datos generados en el body](/es/recipes/generated-data/).
 
+![La caja Editar como JSON de createOrder con un objeto address y una lista lines, y los botones Cancelar y Aplicar](/media/es/design-body-json.webp)
+
 ## Convierte un valor fijo en un input
 
 Un valor fijo siempre es el mismo. Conviértelo en un input cuando quieras que los casos prueben otros valores: vacíos, inválidos, otros datos.
@@ -149,6 +159,27 @@ Un valor fijo siempre es el mismo. Conviértelo en un input cuando quieras que l
 El workflow recibe un input nuevo con el valor actual como valor, así que se ejecuta igual que antes, y el paso ahora lee el input.
 
 Para hacer varios a la vez, usa la tarjeta **Inicio**: **Elegir datos variables…** cuando el workflow no tiene inputs, o **+ Volver input otro valor fijo** cuando ya tiene algunos. Un diálogo, **Datos para variar por caso**, lista cada valor fijo. Marca los que quieras y haz clic en **Convertir en inputs**. Si el mismo valor se usa en varios pasos, un solo input los alimenta a todos.
+
+![La tarjeta de createOrder con el botón → input junto al valor fijo de currency](/media/es/design-promote-one.webp)
+
+![El diálogo Datos para variar por caso: cada valor fijo con dónde está, su valor y el input en que se convertiría](/media/es/design-pick-data.webp)
+
+Debes ver los inputs nuevos en **Inicio**, y los valores de la tarjeta ahora los leen.
+
+![Inicio con los inputs currency y city, creados desde valores fijos, y sus líneas de datos](/media/es/design-promoted.webp)
+
+### Vuelve un input a valor fijo
+
+No hay un solo botón para esto. Hazlo en dos movimientos:
+
+<Steps>
+1. Haz clic en el paso y, en la lista **Origen** del valor, elige **Valor fijo…**. Escribe el valor. Si el campo es opcional y sigue vacío, se pliega en **Opcionales sin enviar**: haz clic en **Editar** para verlo.
+2. Haz clic en **Inicio** y borra el input con su papelera, si ningún otro paso lo usa.
+</Steps>
+
+Si borras un input que un paso todavía usa, aparece la barra **A este workflow le faltan datos**. Ver [Completa los datos que faltan](/es/design/complete-gaps/). Justo después de convertir valores en inputs, **Deshacer** también trae de vuelta los valores fijos.
+
+<video controls muted playsinline preload="metadata" poster="/media/es/design-promote.webp" src="/media/es/design-promote.mp4"></video>
 
 ## Relacionado
 

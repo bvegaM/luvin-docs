@@ -69,6 +69,8 @@ En la Pokédex, agrega `GET /type/{idOrName}` después de otros dos pasos y Luvi
 
 La marca desaparece cuando eliges el origen tú mismo. Es un recordatorio mientras diseñas y no se guarda en el archivo.
 
+<video controls muted playsinline preload="metadata" poster="/media/es/design-wire.webp" src="/media/es/design-wire.mp4"></video>
+
 ## Cambia de dónde sale un valor
 
 <Steps>
@@ -90,6 +92,10 @@ La marca desaparece cuando eliges el origen tú mismo. Es un recordatorio mientr
 
 La lista solo ofrece pasos que se ejecutan antes que este.
 
+![La lista Origen de idOrName en getType abierta: Sin origen, el input, Nuevo input, y luego los outputs y campos de la respuesta de Get pokemon, algunos de una lista](/media/es/design-source-options.webp)
+
+Debes ver el origen nuevo en la tarjeta, sin el `?`, y una línea de datos desde el paso anterior.
+
 ## Conecta arrastrando
 
 Cada input de **Inicio**, cada output de un paso y cada parámetro tienen un punto a su derecha.
@@ -106,6 +112,8 @@ Para quitar una conexión, haz clic en su línea y pulsa Delete o Backspace. Si 
 Un campo dentro de una lista se muestra sin su posición: `cards/bank`, no `cards/0/bank`. En la lista **Origen** se lee **cards/bank (de una lista: eliges cuál al ejecutar)**.
 
 No eliges el elemento cuando diseñas. Cuando ejecutas un caso, Luvin hace una pausa después del paso que devolvió la lista y pregunta con qué elemento seguir. Consulta [Elegir un elemento de una lista](/es/test/lists/).
+
+![Los outputs de listProducts: el aviso de que items/sku sale de un elemento de items, la etiqueta lista completa y el botón para exponer la lista completa](/media/es/design-list-outputs.webp)
 
 ## Lee las líneas de datos
 
@@ -126,9 +134,12 @@ A veces un paso tiene un valor escrito a mano, como `{{order_id}}`, y Luvin ve q
 
 Es más común en workflows armados con requests. Consulta [Armar desde requests guardados](/es/design/from-requests/).
 
+![La barra Luvin encontró 1 conexión(es) entre pasos, con Conectar todas, y una línea con Conectar e Ignorar](/media/es/design-connections-bar.webp)
+
 ## Relacionado
 
 <CardGrid>
+  <LinkCard title="Casuísticas de diseño" href="/es/design/common-situations/" />
   <LinkCard title="Parámetros y body" href="/es/design/parameters-and-body/" />
   <LinkCard title="Outputs" href="/es/design/outputs/" />
   <LinkCard title="Iniciar sesión y usar el token" description="Una receta que pasa un token de un paso al siguiente." href="/es/recipes/login-token/" />

@@ -28,6 +28,8 @@ Luvin encontró 1 conexión(es) entre pasos
 
 Haz clic en **Conectar** y `{{order_id}}` pasa a ser el output del primer paso. Mira [Sugerencias de conexión](#acepta-las-conexiones-sugeridas).
 
+<video controls muted playsinline preload="metadata" poster="/media/es/design-from-requests.webp" src="/media/es/design-from-requests.mp4"></video>
+
 ## Agrega un request como un paso
 
 <Steps>
@@ -41,6 +43,8 @@ El paso se envía exactamente como el request: la misma URL, parámetros, header
 El paso lleva el nombre del request: **Create order** se vuelve `createOrder`. Su criterio de éxito es el menor estado 2xx que Luvin conoce para él, o `$statusCode < 400` si no conoce ninguno.
 
 Solo se pueden agregar requests HTTP con una URL. Para cualquier otro, Luvin dice **Solo los requests HTTP con URL se pueden agregar a un workflow.**
+
+![La paleta de una colección sin contratos: Requests de la colección con Crear pedido (POST) y Consultar pedido (GET)](/media/es/design-requests-palette.webp)
 
 ### La pregunta sobre los campos obligatorios
 
@@ -62,6 +66,10 @@ Luvin aprende qué responde cada request de tres lugares:
 
 También puedes enseñárselo sin ejecutar. Haz clic en el paso. El panel empieza con **Del request «Create order»**. Cuando Luvin todavía no conoce la respuesta, lo dice y ofrece **Probar este paso**. En un GET, esto envía el request. En cualquier otro método primero advierte **Esto envía el POST de verdad y puede crear o cambiar datos.** y ofrece **Enviar igual** o **Cancelar**. Cuando ya conoce la respuesta, la nota lo dice.
 
+![El panel de un paso armado desde el request Crear pedido: Luvin todavía no conoce su respuesta, con Probar este paso y Campos obligatorios (1)](/media/es/design-request-step.webp)
+
+![Después de Probar este paso en un POST: el aviso Esto envía el POST de verdad y puede crear o cambiar datos, con Enviar igual y Cancelar](/media/es/design-try-step.webp)
+
 ## Acepta las conexiones sugeridas
 
 Con las respuestas conocidas, Luvin puede ver que un valor que escribiste a mano viene de un paso anterior. Por ejemplo, la ruta de **Get order** tiene `{{order_id}}`, y **Create order** devuelve un `id`. Aparece una barra sobre el lienzo: **Luvin encontró 2 conexión(es) entre pasos**.
@@ -76,6 +84,8 @@ Con las respuestas conocidas, Luvin puede ver que un valor que escribiste a mano
 Cada línea nombra el paso, el valor y de dónde vendría. Después de una ejecución, las otras pestañas muestran **Con la última ejecución, Luvin encontró 2 conexión(es) entre pasos.** con el enlace **Revisar en Diseño**.
 
 Luvin no conecta nada hasta que aceptas. **Deshacer** lo revierte. [Conectar datos entre pasos](/es/design/wire-data/) explica el resultado.
+
+![La barra Luvin encontró 1 conexión(es) entre pasos: el orderId del segundo paso, escrito como {{order_id}}, vendría del id del primero](/media/es/design-connections-bar.webp)
 
 ## Elige datos para variar
 

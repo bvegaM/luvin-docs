@@ -7,7 +7,7 @@ sidebar:
 
 import { Tabs, TabItem, Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
 
-A workflow can use another workflow of the same file in two ways. It can **call** it as one step, or it can **depend on** it, which means the other workflow runs first and this one reads what it returned. Use this to avoid building the same chain twice, for example "log in" or "create a customer".
+A workflow can use another workflow, of the same file or of another Arazzo file of the collection, in two ways. It can **call** it as one step, or it can **depend on** it, which means the other workflow runs first and this one reads what it returned. Use this to avoid building the same chain twice, for example "log in" or "create a customer".
 
 ## The example: Battle matchup
 
@@ -54,6 +54,10 @@ The panel says **This Arazzo has no other workflows.** when the file has only on
 
 To stop depending on a workflow, click the bin next to its name in the same panel.
 
+![The Start panel with its inputs and the list Add a workflow… open, with the groups In this file and In auth.arazzo.yaml](/media/en/design-depends-options.webp)
+
+<video controls muted playsinline preload="metadata" poster="/media/en/design-depends.webp" src="/media/en/design-depends.mp4"></video>
+
 ## Use its outputs
 
 The outputs of the workflows you depend on are available to every step, as `$workflows.<workflow>.outputs.<name>`. There are two ways to connect one:
@@ -75,6 +79,8 @@ The step is named after the workflow. Luvin does the wiring for you:
 
 The step panel shows **calls workflow typeExplorer** under the name. If the workflow is not in the file, it adds **missing**.
 
+![The panel of a step that calls browseProducts: calls workflow browseProducts, the input limit under Workflow inputs and the outputs sku and price](/media/en/design-call-workflow.webp)
+
 ## Use a workflow of another Arazzo file
 
 The workflow you need can be in a different Arazzo file of the same collection, for example a `login` that every file reuses. Luvin runs it as if it were in this file.
@@ -89,6 +95,8 @@ The workflow you need can be in a different Arazzo file of the same collection, 
 </Steps>
 
 Luvin adds the other file to `sourceDescriptions` as a source of `type: arazzo`, once, and writes the reference. The **Depends on** card shows the name of the workflow and its file.
+
+![The Depends on card above Start: the workflow login of auth.arazzo.yaml and its output token](/media/en/design-depends-card.webp)
 
 To call it as a step instead, open the **Operations** palette. The group **From other Arazzo files** lists those workflows, each marked **FLOW**. Drag one onto the canvas. Luvin adds the source the same way.
 

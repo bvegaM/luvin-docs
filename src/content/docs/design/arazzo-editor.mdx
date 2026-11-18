@@ -49,6 +49,8 @@ The canvas and the YAML are two views of the same file. Each change you make on 
 
 The tab shows the whole file, not only the workflow you had open: every workflow of the file, its contracts (`sourceDescriptions`) and its reusables (`components`). The name of the file is above the text.
 
+<video controls muted playsinline preload="metadata" poster="/media/en/design-yaml.webp" src="/media/en/design-yaml.mp4"></video>
+
 ## Validation as you type
 
 A moment after you stop typing, Luvin reads the file again and checks it. The bar above the text shows the result:
@@ -62,6 +64,10 @@ A moment after you stop typing, Luvin reads the file again and checks it. The ba
 While the YAML is invalid, the canvas cannot show it. The **Design** tab says **The YAML can’t be read** and offers **View the YAML**. Fix the line and the canvas comes back.
 
 When there is something to report, a list appears under the text, called **Problems**. Click a problem and the cursor goes to the place in the text. When the list has only information, it is called **Notes** and starts folded. A note is not a mistake, for example **Receive step without “timeout”**.
+
+![The YAML tab with the badge 1 error(s), the wrong value underlined, and the Problems list with an info note and the error Uses $steps.createOrdr.outputs.orderId, but step "createOrdr" does not exist](/media/en/design-yaml-problems.webp)
+
+![The Design tab while the YAML cannot be read: the message with the line of the problem and the link View the YAML](/media/en/design-yaml-broken.webp)
 
 ## Autocomplete
 
@@ -77,6 +83,8 @@ While you type, the editor suggests values. Press Enter to accept one.
 | `workflowId:` in a step | The other workflows of the file. |
 | `stepId:` in a jump (`goto`) | The steps of the workflow. |
 | `action:`, `in:`, `type:` | The valid values, such as `send`, `receive`, `header`, `end`, `retry`. |
+
+![The YAML tab suggesting $steps.createOrder.outputs., $steps.getOrder.outputs., $steps.listProducts.outputs. and $steps.login.outputs. after typing $steps.](/media/en/design-yaml-autocomplete.webp)
 
 ## What the analysis checks
 
