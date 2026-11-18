@@ -66,9 +66,9 @@ To rename the whole workflow, see [Create a workflow](/design/create/).
 
 The step disappears from the canvas and from the file.
 
-Other steps may have used its data. In that case Luvin keeps their references, which now point to nothing. Each of those steps shows **1 error(s)** on its card, and its panel shows an error such as **Uses $steps.getPokemon.outputs.id, but step "getPokemon" does not exist.** Give those values another source (see [Connect data between steps](/design/wire-data/)), or click **Undo** to bring the step back.
+Other steps may have used its data. In that case a red bar above the canvas names them: **Other steps used what you removed and lost that data: createOrder.** Luvin keeps their references, which now point to nothing. Each of those steps shows **1 error(s)** on its card, and its panel shows an error such as **Uses $steps.getPokemon.outputs.id, but step "getPokemon" does not exist.** Give those values another source (see [Connect data between steps](/design/wire-data/)), or click **Undo** to bring the step back.
 
-![After deleting listProducts: the card of createOrder has a red border and says 1 error(s), because it read the sku of the deleted step](/media/en/design-dangling.webp)
+![After deleting listProducts: the red bar names createOrder, and its card has a red border and says 1 error(s), because it read the sku of the deleted step](/media/en/design-dangling.webp)
 
 ## Undo and redo
 

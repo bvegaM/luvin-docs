@@ -66,9 +66,9 @@ Para renombrar el workflow completo, consulta [Crear un workflow](/es/design/cre
 
 El paso desaparece del lienzo y del archivo.
 
-Puede que otros pasos usaran sus datos. En ese caso Luvin conserva sus referencias, que ahora no apuntan a nada. Cada uno de esos pasos muestra **1 error(es)** en su tarjeta, y su panel muestra un error como **Usa $steps.getPokemon.outputs.id, pero el paso "getPokemon" no existe.** Dale a esos valores otro origen (consulta [Conectar datos entre pasos](/es/design/wire-data/)), o haz clic en **Deshacer** para recuperar el paso.
+Puede que otros pasos usaran sus datos. En ese caso una barra roja sobre el lienzo los nombra: **Otros pasos usaban lo que quitaste y quedaron sin ese dato: createOrder.** Luvin conserva sus referencias, que ahora no apuntan a nada. Cada uno de esos pasos muestra **1 error(es)** en su tarjeta, y su panel muestra un error como **Usa $steps.getPokemon.outputs.id, pero el paso "getPokemon" no existe.** Dale a esos valores otro origen (consulta [Conectar datos entre pasos](/es/design/wire-data/)), o haz clic en **Deshacer** para recuperar el paso.
 
-![Después de eliminar listProducts: la tarjeta de createOrder tiene borde rojo y dice 1 error(es), porque leía el sku del paso eliminado](/media/es/design-dangling.webp)
+![Después de eliminar listProducts: la barra roja nombra a createOrder, y su tarjeta tiene borde rojo y dice 1 error(es), porque leía el sku del paso eliminado](/media/es/design-dangling.webp)
 
 ## Deshacer y rehacer
 

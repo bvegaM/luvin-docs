@@ -77,7 +77,7 @@ El paso lleva el nombre del workflow. Luvin hace las conexiones por ti:
 - Cada input obligatorio del workflow llamado se vuelve un parámetro del paso, tomado de un paso anterior o de un input de este workflow, como en cualquier otro paso. El panel los lista bajo **Inputs del workflow**.
 - Cada output del workflow llamado se vuelve un output del paso, para que los pasos siguientes lo lean.
 
-El panel del paso muestra **llama al workflow typeExplorer** bajo el nombre. Si el workflow no está en el archivo, agrega **no existe**.
+El panel del paso muestra **llama al workflow typeExplorer** bajo el nombre. Para un workflow de otro archivo Arazzo agrega ese archivo, por ejemplo **llama al workflow login · auth.arazzo.yaml**, y lista los inputs que pide ese workflow, igual que para uno de este archivo. Si el workflow no existe, agrega **no existe**.
 
 ![El panel de un paso que llama a browseProducts: llama al workflow browseProducts, el input limit en Inputs del workflow y los outputs sku y price](/media/es/design-call-workflow.webp)
 

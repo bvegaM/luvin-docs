@@ -77,7 +77,7 @@ The step is named after the workflow. Luvin does the wiring for you:
 - Each required input of the called workflow becomes a parameter of the step, taken from an earlier step or from an input of this workflow, as for any other step. The panel lists them under **Workflow inputs**.
 - Every output of the called workflow becomes an output of the step, so the next steps can read it.
 
-The step panel shows **calls workflow typeExplorer** under the name. If the workflow is not in the file, it adds **missing**.
+The step panel shows **calls workflow typeExplorer** under the name. For a workflow of another Arazzo file it adds that file, for example **calls workflow login · auth.arazzo.yaml**, and lists the inputs that workflow asks for, the same as for one of this file. If the workflow does not exist, it adds **missing**.
 
 ![The panel of a step that calls browseProducts: calls workflow browseProducts, the input limit under Workflow inputs and the outputs sku and price](/media/en/design-call-workflow.webp)
 
