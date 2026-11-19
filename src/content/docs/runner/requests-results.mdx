@@ -1,0 +1,165 @@
+---
+title: Read the results of requests
+description: The status, the totals, the filters, each iteration and each request of a run of requests, how to stop it and how to export it as JSON.
+sidebar:
+  order: 6
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+The results of a run of requests answer two questions: did everything pass, and if not, which request failed, in which iteration and why. They fill in while the run goes on and stay when it ends.
+
+![The results of a run of Shop requests, Finished, with Configure, Run again and JSON; the totals 3 iterations, 9 requests, 9 passed and 0 failed; the filters All, Failed and Passed; and Iteration 1 to 3, each with its three requests, status 200 or 201, time and size](/media/en/runner-requests-results.webp)
+
+## Example: find the request that failed
+
+A run of the shop folder **Orders**, 3 requests in 3 iterations, has ended. The totals say **1** failed.
+
+<Steps>
+1. Click **Failed**. Only **Iteration 2** is left, with one row: **Create order**, status `422`, checks `1/2`.
+2. Click the row. The detail shows the check that failed, the variables the request saved and the response.
+3. Press **Open the request** to open **Create order** in its tab and fix it.
+4. Back in the Runner, press **Run again**.
+</Steps>
+
+## While it runs
+
+- The status at the top says how far it is, for example **Running 4 of 9**: requests sent out of ticked requests times iterations.
+- A bar under the top fills in at the same pace.
+- The iteration in progress ends with a row **Sending…** for the request on its way.
+- **Stop** ends the run. See [Stop a run](#stop-a-run).
+
+## The top
+
+The top shows the name of what ran, for example **Orders**, the date and time it started and the data file, if any.
+
+On the right, the status:
+
+| Status | When |
+|---|---|
+| **Running 4 of 9** | While it runs. |
+| **Finished** | Every iteration ran. |
+| **Stopped** | You pressed **Stop**, or closed the Runner with **Stop and close**. |
+| **Stopped on an error** | **Stop if a request fails** was on and a request failed. |
+
+When it ends, **Configure** goes back to the setup, **Run again** repeats the run with the same requests, settings and data file, and **JSON** downloads the results.
+
+## The totals
+
+| Total | What it counts |
+|---|---|
+| **iterations** | Iterations that started. |
+| **requests** | Requests that were sent, in every iteration. |
+| **passed** | Requests that passed. |
+| **failed** | Requests that failed. It turns red when there is at least one. |
+| **checks** | Checks that passed out of all the checks that ran, for example `11/12`. |
+| **average** | The average response time of the requests. |
+| **duration** | How long the whole run took. |
+
+Times under a second are in ms, for example `180 ms`. Longer ones are in seconds with one decimal, for example `1.2 s`.
+
+## When a request passes or fails
+
+| The request… | Result |
+|---|---|
+| Does not answer: no connection, timeout, an error before sending | **Fails**. Its status says **No response**. |
+| Answers and has checks | **Passes** if every check passes. **Fails** if one does not. |
+| Answers and has no checks | **Passes** if the status is below 400. **Fails** with 400 or more. |
+| Is a gRPC call | **Passes** if it ends with code 0. |
+
+If an error status is what you expect, add a check, for example that `res.status` equals `404`. The request then passes when it answers 404. Opening a request that failed for its status, with no checks, reminds you: *Without checks, an error status counts as a failure. Add a check (for example, status is 404) if it is expected.*
+
+## Filters
+
+**All**, **Failed** and **Passed**, above the iterations, filter the requests. Each one shows how many there are.
+
+With **Failed** or **Passed**, an iteration with nothing to show is hidden.
+
+## Iterations
+
+The results are grouped by iteration: **Iteration 1**, **Iteration 2**… With a data file, next to each title you see up to four values of its row, for example `sku=SKU-100 · quantity=2 · coupon=WELCOME`.
+
+## Each request
+
+Each request has a row:
+
+| Part | What it shows |
+|---|---|
+| ✓ or ✕ | Passed or failed. |
+| Method | The method, or **gRPC**. |
+| Name and URL | The name of the request and the URL it was sent to, with its variables replaced. Rest the pointer on the URL to read it whole. |
+| Status | The status, colored by its family: 2xx, 3xx, 4xx, 5xx. **No response** when it did not answer. |
+| Time | The response time. |
+| Size | The size of the response, in B, KB or MB. |
+| Checks | Passed out of total, for example `2/2`, green when all passed and red when one failed. Empty when it has no checks. |
+
+## Open a request
+
+<Steps>
+1. Click a row. Its detail opens below it. Click it again to close it.
+2. Read, from top to bottom:
+   - The error, if it did not answer.
+   - Each check, with what it expected and what it got.
+   - The variables it saved, with their values.
+   - The response: status, headers and body, as in the request tab.
+3. Press **Open the request** to open the request in its tab.
+</Steps>
+
+Only one row is open at a time. If **Keep responses to see them** was off, there is no response: *The response was not kept ("Keep responses" setting).*
+
+## Stop a run
+
+<Steps>
+1. While it runs, press **Stop** at the top.
+2. The status becomes **Stopped**.
+</Steps>
+
+A request that was on its way when you stopped is left out of the results. It does not count as failed: stopping is not an API error.
+
+With **Stop if a request fails**, the run stops by itself at the first failure, and the status says **Stopped on an error**. That request is the last row.
+
+## Export the results
+
+When the run ends, **JSON** downloads the results. The file is named after what ran and the moment it started, in UTC, for example `runner-orders-2026-11-19-10-30-00.json`.
+
+```json title="runner-orders-2026-11-19-10-30-00.json (shortened)"
+{
+  "name": "Orders",
+  "startedAt": "2026-11-19T10:30:00.000Z",
+  "durationMs": 2140,
+  "status": "done",
+  "totals": { "requests": 9, "passed": 8, "failed": 1, "assertsPassed": 11, "assertsFailed": 1, "avgMs": 180 },
+  "iterations": [
+    {
+      "index": 0,
+      "steps": [
+        { "name": "Log in", "method": "POST", "url": "https://shop.example.com/login", "status": 200, "durationMs": 120, "size": 312, "outcome": "passed" }
+      ]
+    }
+  ]
+}
+```
+
+- `status` is `done` (**Finished**), `cancelled` (**Stopped**) or `stopped` (**Stopped on an error**).
+- `data` is the name of the data file, and each iteration has its row under `data`.
+- Each request has its method, URL, status, time, size, outcome, checks and the variables it saved. The response bodies are not included.
+
+**JSON** is also in the results of the run in **History**.
+
+## When the results are not what you expect
+
+| What you see | Why | What to do |
+|---|---|---|
+| Every request says **No response**. | The address cannot be reached with this environment. | Check the **Environment** and its variables. Try one request with **Send**. |
+| A request fails with `404` and that is what you wanted. | Without checks, 400 or more is a failure. | Add a check for the status you expect. |
+| A request answers `401` after **Log in**. | It runs before **Log in**, or **Log in** is unticked. | Move **Log in** up and tick it. |
+| The response is not there. | **Keep responses to see them** was off. | Turn it on and run again. |
+| Iteration 2 uses the same values as iteration 1. | There is no data file, or it has one row. | See [Data files](/runner/data-files/#rows-and-iterations). |
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Settings for running requests" href="/runner/requests-settings/" />
+  <LinkCard title="Runs, tabs and history" href="/runner/lifecycle/" />
+  <LinkCard title="Checks and variables" href="/requests/variables-and-checks/" />
+</CardGrid>

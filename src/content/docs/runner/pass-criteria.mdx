@@ -1,0 +1,114 @@
+---
+title: Pass criteria
+description: Set the thresholds a performance test must meet, how each one is measured, the rule for an error rate of 0 %, the verdict banner, a test with no data, and the color of the status.
+sidebar:
+  order: 15
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Pass criteria turn a performance test into a yes or no. You set the limits before the test, and when it ends it says whether it passed each one. Without them, the test only gives numbers, and you decide whether they are good.
+
+## Example: a catalog that must answer fast and never fail
+
+<Steps>
+1. In the setup of a performance test, open **Pass test if…**. The hint says *Optional. When it ends, the test says whether it passed against these thresholds.*
+2. Tick **Average response time is below** and type `300`.
+3. Tick **p95 is below** and type `800`.
+4. Tick **Error rate is below** and type `0`.
+5. Start the test.
+</Steps>
+
+![Pass test if… open with its hint and three ticked thresholds: Average response time is below 500 ms, p95 is below 1000 ms and Error rate is below 1 %](/media/en/runner-perf-criteria.webp)
+
+When it ends, a banner says, for example:
+
+**✕ Test failed** · ✓ *average 210 ms (had to be below 300 ms)* · ✓ *p95 640 ms (had to be below 800 ms)* · ✕ *error rate 0.4 % (had to be 0 %)*
+
+## The thresholds
+
+| Threshold | Value when you tick it | Unit | Arrows |
+|---|---|---|---|
+| **Average response time is below** | 500 | ms | 50 at a time |
+| **p95 is below** | 1000 | ms | 50 at a time |
+| **Error rate is below** | 1 | % | 0.5 at a time |
+
+- Tick a threshold to use it. Its field turns on with the value of the table. Untick it to leave it out.
+- The values cannot be negative.
+- With at least one threshold ticked, **Pass test if…** is open when you come back to the setup.
+
+## How each one is measured
+
+All three are measured over the whole test, with every request, or every workflow step, that finished:
+
+| Threshold | What is compared |
+|---|---|
+| Average | The average response time of all the requests. |
+| p95 | The time under which 95 % of the requests finished. |
+| Error rate | The requests that failed, out of all of them, as a percentage. |
+
+- Looking at a time range or at one request in the results does not change the verdict.
+- The rows of a whole workflow do not count. See [Performance of workflows](/runner/performance-workflows/#the-whole-workflow-row).
+- Requests cut when the time ran out do not count.
+
+## Below means below
+
+The value has to be strictly below the limit: an average of exactly 500 ms does not pass **Average response time is below** `500`.
+
+### An error rate of 0 %
+
+**Error rate is below** `0` means no errors at all. A single failed request fails the threshold, and the banner says *error rate 0.04 % (had to be 0 %)*.
+
+With a limit like `0.5`, an error rate of 0.4 % passes and 0.5 % does not.
+
+## The verdict
+
+When the test ends, a banner under the top shows the verdict and each threshold:
+
+| Banner | When |
+|---|---|
+| **✓ Test passed** | Every ticked threshold passed. |
+| **✕ Test failed** | At least one did not. |
+
+Each threshold has its own line, with ✓ or ✕, its value and its limit:
+
+- ✓ *average 210 ms (had to be below 300 ms)*
+- ✓ *p95 380 ms (had to be below 1 s)*
+- ✕ *error rate 2.5 % (had to be below 1 %)*
+
+Times of a second or more are shown in seconds. The banner appears when the test ends, whether it finished or you stopped it.
+
+## No data
+
+If no request finished, there is nothing to measure. The banner says:
+
+*No request finished within 1 min, so there is nothing to measure. Check that the API responds, or make the test longer.*
+
+![The top of the results of a 5-second test: the amber banner No data, saying that no request finished within 5 s, and the key numbers all at 0](/media/en/runner-perf-nodata.webp)
+
+- Without thresholds, its title is **No data**.
+- With thresholds, its title is **✕ Test failed**: a test with no data never passes. An average of 0 ms is not a result.
+
+The usual causes: the API does not answer at that address, every request takes longer than the test, or the test was stopped at once.
+
+## The status color
+
+The status at the top of the results, and the dot of the test in **History**, take a color when the test ends:
+
+| Color | When |
+|---|---|
+| Green | With thresholds: the test passed. Without thresholds: it finished, with requests and no errors. |
+| Red | With thresholds: the test failed, including a test with no data. |
+| Amber | Without thresholds: it had errors, had no data, or was stopped. |
+
+## Without thresholds
+
+Leave **Pass test if…** with nothing ticked when you are exploring: there is no banner, only the numbers, the chart and the table. See [Read a performance test](/runner/performance-results/).
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Read a performance test" href="/runner/performance-results/" />
+  <LinkCard title="Performance tests" href="/runner/performance/" />
+  <LinkCard title="The table and the errors" href="/runner/performance-table/" />
+</CardGrid>

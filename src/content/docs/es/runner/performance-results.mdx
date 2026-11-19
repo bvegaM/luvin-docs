@@ -1,0 +1,114 @@
+---
+title: Lee una prueba de rendimiento
+description: La parte de arriba, el estado, el veredicto y los números clave de una prueba de rendimiento, qué cuenta cada uno y cómo se llenan los resultados mientras corre.
+sidebar:
+  order: 17
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Los resultados de una prueba de rendimiento se llenan mientras corre y se quedan cuando termina. Responden tres preguntas: si la prueba pasó, cómo se comportó la API en el tiempo y cuál fue el request más lento. Esta página cubre la parte de arriba de los resultados. El gráfico y la tabla tienen sus propias páginas.
+
+![Los resultados de una prueba de rendimiento de runner-shop.arazzo.yaml, 8 usuarios · 24 s · Pico sostenido, Terminó: el aviso rojo La prueba no pasó con el promedio y el p95 dentro del límite y la tasa de error sobre 1 %, los cuatro números clave, la línea del más lento, el gráfico y la tabla Detalle de toda la prueba](/media/es/runner-perf-results.webp)
+
+## Ejemplo: encuentra el request lento
+
+Terminó una prueba de una carpeta de la tienda con **List products** y **Get product**, 20 usuarios durante 1 minuto.
+
+<Steps>
+1. Lee el aviso de arriba: **✓ La prueba pasó** o **✕ La prueba no pasó**, con cada umbral.
+2. Bajo los números clave, lee la línea *Lo más lento: «Get product», con un p95 de 420 ms (promedio 180 ms).* En la tabla, **Get product** tiene la etiqueta **el más lento**.
+3. En el gráfico, arrastra sobre la parte donde sube el tiempo de respuesta. La tabla cambia a **Detalle de 0:20 a 0:35**.
+4. Elige **Get product** en **Todos los requests** para ver solo ese request en el gráfico y en la tabla.
+5. Pulsa **Quitar filtro** para volver a toda la prueba.
+</Steps>
+
+## La parte de arriba
+
+| Línea | Ejemplo |
+|---|---|
+| El nombre de lo que se ejecutó | **Catalog**, o el nombre del archivo Arazzo |
+| La fecha y hora, el ambiente y el archivo de datos, si hay | *19 nov 2026, 10:30 · staging · products.csv* |
+| La carga | *20 usuarios · 1 min · Subida gradual · desde 5*. **desde 5** es la carga inicial, en todas las formas salvo **Fija**. |
+
+A la derecha, el estado:
+
+| Estado | Cuándo |
+|---|---|
+| **12 s de 1 min 0 s** | Mientras corre, con una barra bajo la parte de arriba. |
+| **Terminó** | Se acabó el tiempo. |
+| **Detenida** | Pulsaste **Detener**, o cerraste el runner y elegiste **Detener y cerrar**. |
+
+Cuando la prueba termina, el estado toma un color: verde, rojo o ámbar. Mira [Criterios para pasar](/es/runner/pass-criteria/#el-color-del-estado).
+
+| Botón | Cuándo | Qué hace |
+|---|---|---|
+| **Detener** | Mientras corre. | Termina la prueba. Lo medido se queda. |
+| **Configurar** | Cuando termina. | Vuelve a la configuración. |
+| **Ejecutar de nuevo…** | Cuando termina. | Abre la configuración, para que confirmes la carga otra vez. Mira [Confirma antes de mandar carga](/es/runner/safety/). |
+
+## Mientras corre
+
+- Cada medio segundo se actualizan los números clave, el gráfico y la tabla.
+- La línea de tiempo del gráfico ya cubre toda la duración: las líneas crecen hacia la derecha.
+- El aviso con el veredicto solo aparece cuando la prueba termina.
+
+## El veredicto
+
+Con umbrales en **Pasar la prueba si…**, un aviso bajo la parte de arriba dice **✓ La prueba pasó** o **✕ La prueba no pasó**, con cada umbral y su valor:
+
+- ✓ *p95 380 ms (debía ser menor que 1 s)*
+- ✕ *tasa de error 2,5 % (debía ser menor que 1 %)*
+- ✕ *tasa de error 0,4 % (debía ser 0 %)*, cuando el límite era 0 %.
+
+Si ningún request terminó, el aviso dice **Sin datos**: *Ningún request alcanzó a terminar en 1 min: no hay con qué medir. Revisa que la API responda o alarga la prueba.* Con umbrales, una prueba sin datos nunca pasa: el aviso dice **✕ La prueba no pasó**.
+
+Sin umbrales, no hay aviso. Mira [Criterios para pasar](/es/runner/pass-criteria/).
+
+## Números clave
+
+Cuatro números resumen toda la prueba:
+
+| Número | Debajo | Qué cuenta |
+|---|---|---|
+| **Total de requests** | *en 1 min 0 s* | Requests, o pasos de un workflow, que terminaron. No cuentan los requests cortados al final ni las filas de un workflow completo. |
+| **Requests por segundo** | *pico de 48* | El total dividido por el tiempo que corrió la prueba. El pico es el segundo con más requests. |
+| **Tiempo de respuesta promedio** | *p95 420 ms · p99 610 ms* | El promedio de todos los tiempos de respuesta, con el p95 y el p99. |
+| **Tasa de error** | *12 de 2840* | La parte de los requests que falló, y cuántos. Se pone en rojo con cualquier error. |
+
+Los números clave siempre son de toda la prueba: elegir un tramo de tiempo o un request en el gráfico no los cambia.
+
+### Percentiles
+
+El p95 es el tiempo bajo el que terminó el 95 % de los requests. Si el p95 es 420 ms, 5 requests de cada 100 tardaron más que eso.
+
+El promedio esconde los lentos: 95 requests de 100 ms y 5 de 2 s dan un promedio menor que 200 ms, pero esos 5 usuarios esperaron 2 segundos. El p95 y el p99 los muestran. La tabla también tiene el p90. Mira [La tabla y los errores](/es/runner/performance-table/).
+
+Luvin agrupa los tiempos en franjas angostas para calcular los percentiles, así que un percentil puede diferir en un pequeño porcentaje del tiempo exacto de un request. Nunca es mayor que el tiempo más lento.
+
+### Cómo se escriben los números
+
+- Los números siguen el formato del idioma de la app, por ejemplo `12.400` y `2,5 %` en español.
+- Los tiempos de menos de un segundo van en ms. Desde un segundo, en s: `1,2 s`.
+- Una tasa de error menor que 1 % conserva dos decimales, por ejemplo `0,04 %`.
+
+## Resumen y Errores
+
+Bajo los números clave, dos pestañas:
+
+| Pestaña | Qué tiene |
+|---|---|
+| **Resumen** | La línea sobre el request más lento, los filtros, el gráfico y la tabla. Mira [El gráfico de rendimiento](/es/runner/performance-chart/) y [La tabla y los errores](/es/runner/performance-table/). |
+| **Errores** | Las fallas agrupadas por motivo. Su título muestra cuántos errores hubo, en rojo cuando hay al menos uno. Mira [Errores](/es/runner/performance-table/#la-pestaña-errores). |
+
+## En el historial
+
+Cada prueba de rendimiento se guarda en **Historial**, en **Ejecuciones**, con la etiqueta **Rendimiento**: los usuarios, los requests, el p95 y el ambiente, por ejemplo *20 usuarios · 950 requests · p95 180 ms · staging*. Haz clic en ella para volver a ver estos mismos resultados, con el gráfico y la tabla. Mira [Ejecuciones, pestañas e historial](/es/runner/lifecycle/#historial).
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="El gráfico de rendimiento" href="/es/runner/performance-chart/" />
+  <LinkCard title="La tabla y los errores" href="/es/runner/performance-table/" />
+  <LinkCard title="Criterios para pasar" href="/es/runner/pass-criteria/" />
+</CardGrid>

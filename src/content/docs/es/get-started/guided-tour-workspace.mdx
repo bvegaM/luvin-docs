@@ -1,0 +1,113 @@
+---
+title: El workspace del tour
+description: El workspace que crea el tour guiado, qué contiene, qué cambia el tour al empezar una sección, cómo eliminarlo, las marcas de las secciones vistas y la interfaz Simple.
+sidebar:
+  order: 5.2
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+El tour guiado nunca toca tu trabajo. Corre en un workspace propio, **Pokédex (tour)**, que crea la primera vez y vuelve a abrir cada vez que empiezas una sección. Puedes probar cosas en él con libertad y eliminarlo cuando termines.
+
+## Qué crea el tour
+
+El workspace se guarda en el almacenamiento del navegador, o de la app de escritorio, no en una carpeta del disco.
+
+| Qué | Lo crea | Contenido |
+|---|---|---|
+| Workspace **Pokédex (tour)** | Cualquier sección, la primera vez | Las colecciones de abajo. |
+| Colección **Pokédex** | Cualquier sección, la primera vez | `pokemon.arazzo.yaml`, `pokeapi.openapi.yaml`, `pokedex-events.asyncapi.yaml` y la documentación de la colección. |
+| Colección **PayPal** | **Contratos y ambientes** | `paypal.arazzo.yaml`, `paypal-orders.openapi.yaml`, `paypal-events.asyncapi.yaml`, el ambiente **Sandbox**, la autorización de sus workflows y su documentación. |
+| Un request a `pokeapi.co/api/v2/pokemon/pikachu` | **Requests** | Una variable y dos comprobaciones, que pone el tour. |
+| El mock **Mock de la PokéAPI** y el ambiente **Mock · Mock de la PokéAPI** | **Mock servers** | El mock responde con los ejemplos del contrato. El ambiente se crea en la app de escritorio. |
+| Ejecuciones de workflows | Cada sección que ejecuta algo | Quedan en el **Historial** de la colección. |
+
+Cada una de estas cosas se crea una sola vez. Cuando vuelves a empezar una sección, el tour encuentra lo que ya está y lo usa.
+
+## Qué pasa cuando empieza una sección
+
+<Steps>
+1. El tour cierra lo que dejó abierto un paso anterior: Dev Tools, la búsqueda o el diálogo de request nuevo.
+2. Si el workspace abierto no es **Pokédex (tour)**, Luvin lo cierra. Luego abre otra vez **Pokédex (tour)**, con lo que hiciste en él, o lo crea si ya no existe.
+3. Crea **Pokédex**, y **PayPal** cuando la sección la necesita, si faltan.
+4. Abre la colección que usa la sección.
+5. Si el mock del tour está encendido, lo apaga. Si el ambiente activo es un ambiente de mock, cuyo nombre empieza con **Mock ·**, vuelve a elegir tu ambiente de siempre.
+</Steps>
+
+Tu propio workspace no cambia. Se cierra, como cuando abres otro. Para volver a él después del tour, ábrelo desde la barra superior. Mira [Crear y abrir un workspace](/es/workspaces/create-and-open/).
+
+## Qué deja elegido el tour
+
+El tour cambia algunos ajustes como lo harías tú, y no los devuelve:
+
+| Ajuste | Lo cambia | Queda en |
+|---|---|---|
+| Modo de ejecución, junto a **Ejecutar** | **Contratos y ambientes** (la primera vez), **Mock servers** en el navegador, **Runner y rendimiento**, **Historial y Dev Tools** | **Simulación** |
+| Modo de ejecución | **Mock servers** en la app de escritorio | **API real** |
+| Ambiente activo | **Mock servers** en la app de escritorio | **Mock · Mock de la PokéAPI**, hasta que empiece la siguiente sección |
+| Variables y comprobaciones del request de pikachu | **Requests** | La variable `pokemonId` y las dos comprobaciones del tour |
+| El mock | **Mock servers** en la app de escritorio | Encendido, hasta que empiece la siguiente sección |
+
+## Elimina el workspace del tour
+
+Puedes eliminarlo desde el selector de secciones o como cualquier otro workspace. Las dos formas eliminan sus colecciones y sus secretos. No se puede deshacer.
+
+Desde el selector de secciones, mientras **Pokédex (tour)** está abierto:
+
+<Steps>
+1. Haz clic en **Tour**, en la barra de estado.
+2. Haz clic en **Eliminar el workspace del tour**, al final del selector. Solo aparece mientras el workspace del tour está abierto.
+3. El selector pregunta **¿Eliminar el workspace del tour con todo lo que hiciste en él?**. Haz clic en **Sí, eliminarlo**, o en **Cancelar** para conservarlo.
+</Steps>
+
+![El selector de secciones con Eliminar el workspace del tour abajo, debajo de las siete secciones; Workflows muestra ✓ y Ver de nuevo](/media/es/tour-sections.webp)
+
+Desde la barra superior: abre el menú del workspace y elige **Eliminar workspace…**. La confirmación dice **¿Eliminar «Pokédex (tour)»? Se borran sus colecciones y secretos de este navegador. No se puede deshacer.**
+
+La próxima sección que empieces crea un **Pokédex (tour)** nuevo y limpio.
+
+## Las secciones que ya viste
+
+El selector de secciones marca las secciones que terminaste: **✓** en lugar del número, y **Ver de nuevo** en lugar de **Ver**. La primera sección pierde su insignia **Empieza aquí** cuando tiene su ✓.
+
+| Cómo termina la sección | Queda marcada como vista |
+|---|---|
+| **Siguiente: …**, **Ver las secciones** o **Terminar**, en la última tarjeta | Sí |
+| **Salir del tour**, en cualquier tarjeta antes de la última | No |
+| La tecla → en la última tarjeta, que cierra el tour | No |
+
+Luvin recuerda las marcas en este equipo, aparte del workspace: eliminar **Pokédex (tour)** las conserva. **Ver de nuevo** empieza la sección desde su primer paso, como la primera vez.
+
+## En la interfaz Simple
+
+La interfaz **Simple (producto)** oculta las herramientas técnicas. El tour se adapta:
+
+| | Estándar | Simple |
+|---|---|---|
+| **Historial y Dev Tools** | 5 pasos | 4 pasos: se salta el paso de **Dev Tools**, porque Simple no tiene Dev Tools |
+| Nombres de los pasos en las tarjetas y en el árbol | `getWeakness` | **Get weakness** |
+| Todo lo demás | Las mismas secciones y pasos | Lo mismo |
+
+Mira [Preferencias y la interfaz Simple](/es/get-started/preferences/).
+
+## Solución de problemas
+
+**La tarjeta dice Preparando… durante mucho rato.** El paso está esperando una ejecución o la pantalla. Una ejecución espera hasta 20 segundos; un request, hasta 15. Si no termina, la tarjeta muestra su explicación igual.
+
+**La ejecución de Workflows falla con errores de red.** Esa sección llama a la PokéAPI real cuando está elegida **API real**. Sin internet, elige **Simulación** junto a **Ejecutar** y luego pulsa **Atrás** y **Siguiente** para volver a ejecutar el paso.
+
+**Capture order falla cuando repito Contratos y ambientes.** El tour solo cambia a **Simulación** la primera vez que crea **PayPal**. Si está elegida **API real**, la ejecución va al sandbox real de PayPal con un `clientId` vacío. Elige **Simulación** junto a **Ejecutar** y luego **Atrás** y **Siguiente**.
+
+**La tarjeta está en el centro y no se resalta nada.** El paso no encontró su zona, por ejemplo porque un panel no se abrió. La explicación se muestra igual. Pulsa **Atrás** y **Siguiente** para intentarlo otra vez.
+
+**El tour avanzó mientras escribía.** Las teclas ← y → mueven el tour aunque estés escribiendo en un campo. Usa antes **Salir del tour** si quieres escribir en la app.
+
+**Se cerró mi workspace.** El tour cierra el workspace abierto para abrir el suyo. No se pierde nada. Vuelve a abrir tu workspace desde la barra superior.
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="El tour guiado" href="/es/get-started/guided-tour/" />
+  <LinkCard title="Las secciones del tour" href="/es/get-started/guided-tour-sections/" />
+  <LinkCard title="Crear y abrir un workspace" href="/es/workspaces/create-and-open/" />
+</CardGrid>

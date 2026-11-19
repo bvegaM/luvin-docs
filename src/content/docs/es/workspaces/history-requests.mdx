@@ -1,0 +1,115 @@
+---
+title: Requests en el historial
+description: Qué muestra una entrada de request del historial, sus pestañas de respuesta, cómo volver a abrir el request, guardar la respuesta como ejemplo o descargarla, y qué hacer para enviarlo de nuevo.
+sidebar:
+  order: 8.6
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Cada request que envías se guarda con la respuesta que recibió. Una entrada de request te deja volver a leer esa respuesta, con las mismas pestañas que la pantalla del request, y guardarla como ejemplo aunque ya hayas enviado el request muchas veces más.
+
+## Ejemplo: guarda el 404 de missingno como ejemplo
+
+Hace una hora enviaste **Get pokemon** con `missingno` y recibiste `404`. Desde entonces lo enviaste con otros Pokémon.
+
+<Steps>
+1. En la barra lateral, haz clic en **Ver todo** en la sección **Historial**. La pestaña **Historial** se abre en **Requests**.
+2. En **Buscar en el historial**, escribe `404`. Quedan solo los envíos que recibieron `404`.
+3. Haz clic en el de `missingno`. Su respuesta se abre a la derecha.
+4. Pulsa **Guardar respuesta**. El diálogo **Guardar respuesta como ejemplo** propone el nombre `404 - Get pokemon`.
+5. Pulsa **Guardar ejemplo**. El ejemplo se abre, debajo de **Get pokemon** en la barra lateral.
+</Steps>
+
+## Una fila de la lista
+
+| Parte | Ejemplo |
+|---|---|
+| El tipo y el método | `GET`, `POST`, `DEL` para `DELETE`, `GQL` para GraphQL, `gRPC`. |
+| El nombre del request | **Get pokemon** |
+| La URL que se envió, debajo del nombre | `https://pokeapi.co/api/v2/pokemon/pikachu` |
+| El status | `200`, con el color de su grupo. **Sin respuesta** en rojo cuando no volvió nada. |
+| La hora | `10:42` |
+
+Pasa el mouse por una fila para leer la URL completa.
+
+## Arriba de una entrada
+
+Arriba se ven el método, el nombre y *Enviado el* con la fecha y la hora completas, y después los botones:
+
+| Botón | Qué hace |
+|---|---|
+| **Abrir request** | Abre el request en su pestaña, tal como está ahora. |
+| **Eliminar** | Borra esta entrada del historial, sin preguntar. |
+
+Si el request ya no está en la colección (se borró o se movió a otra carpeta), en lugar de **Abrir request** dice *El request ya no está en la colección*.
+
+## La respuesta
+
+Debajo está la respuesta, como la muestra la pantalla del request:
+
+| Pestaña | Qué muestra |
+|---|---|
+| **Body** | El body, con **Pretty**, **Raw** y, para JSON y HTML, **Preview**. Una imagen o un archivo pequeño se conserva y se muestra. |
+| **Headers** | Los headers de la respuesta, con su cantidad. |
+| **Cookies** | Las cookies que puso la respuesta, con su cantidad. |
+| **Request enviado** | El método, la URL, los headers y el body que salieron, con los secretos tapados. |
+| **Comprobaciones** | Solo si el request tiene comprobaciones o guarda variables: el resultado de cada comprobación y los valores guardados. |
+
+Arriba de las pestañas están el status, el resultado de las comprobaciones, el tiempo, el tamaño y **Copiar**, que copia el body. Mira [Lee una respuesta en detalle](/es/requests/response-details/).
+
+![Una entrada GET SKU-103 en el Historial: Enviado el con la fecha, Abrir request y Eliminar arriba, luego 200 OK, el tiempo, el tamaño, Copiar y Guardar respuesta, y las pestañas Body, Headers, Cookies y Request enviado con el body JSON](/media/es/history-request.webp)
+
+### Cuando no hubo respuesta
+
+Un request que no recibió respuesta, como un error de red o un tiempo agotado, muestra el error y el request que se envió. No hay nada que guardar como ejemplo.
+
+### Un request gRPC
+
+Una entrada gRPC muestra el código de status y su nombre (por ejemplo `0 OK`), la duración, los detalles si los hay, y los mensajes recibidos como JSON. Si la llamada falló, muestra el error.
+
+## Guarda la respuesta como ejemplo
+
+**Guardar respuesta** aparece cuando el request sigue en la colección y hubo respuesta.
+
+<Steps>
+1. Pulsa **Guardar respuesta**. Se abre el diálogo **Guardar respuesta como ejemplo**.
+2. En **Nombre del ejemplo**, deja la propuesta (el status y el nombre del request, como `200 - Get pokemon`) o escribe otro.
+3. Pulsa **Guardar ejemplo**. El ejemplo se abre.
+</Steps>
+
+El ejemplo guarda el request **tal como estaba escrito** cuando lo enviaste, con sus `{{variables}}` y no con sus valores, y la respuesta tal como llegó. Los secretos siguen tapados como `••••`. Mira [Cookies y ejemplos guardados](/es/requests/cookies-and-examples/).
+
+Un ejemplo guardado también es una respuesta para un mock de la colección. Mira [Crea un mock server](/es/mocks/create/).
+
+## Descarga el body
+
+**Descargar como archivo** guarda el body de la respuesta en un archivo, y no crea ningún ejemplo.
+
+| La entrada | Dónde está **Descargar como archivo** |
+|---|---|
+| El request sigue en la colección | Dentro del diálogo **Guardar respuesta como ejemplo**. Para un archivo o una imagen, también junto a **Guardar respuesta**. |
+| El request ya no está en la colección | Junto a **Copiar**, en lugar de **Guardar respuesta**. |
+
+## Envíalo de nuevo
+
+Una entrada de request no tiene un botón para enviarlo de nuevo. Pulsa **Abrir request** y envíalo desde su pestaña: sale como está el request ahora, con el ambiente activo. Para enviar la versión del historial, guárdala primero como ejemplo, abre el ejemplo y pulsa **Usar en el request**.
+
+## Qué va tapado
+
+Antes de guardar, Luvin reemplaza por `••••`:
+
+- los secretos del ambiente activo;
+- las credenciales de la autorización, el header `Authorization` y un token de acceso de OAuth 2.0;
+- los valores que el request guarda como variables secretas, en el body, los headers y las cookies de la respuesta.
+
+Todo lo demás se guarda tal como llegó. Mira [Apaga y borra el historial](/es/workspaces/history-settings/).
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Historial" href="/es/workspaces/history/" />
+  <LinkCard title="Ejecuciones en el historial" href="/es/workspaces/history-runs/" />
+  <LinkCard title="Cookies y ejemplos guardados" href="/es/requests/cookies-and-examples/" />
+  <LinkCard title="Lee una respuesta en detalle" href="/es/requests/response-details/" />
+</CardGrid>

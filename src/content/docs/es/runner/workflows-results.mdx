@@ -1,0 +1,116 @@
+---
+title: Lee los resultados de los workflows
+description: El estado, los totales, los filtros, cada vuelta y cada workflow de una ejecución de workflows, y cómo abrir los resultados de sus casos.
+sidebar:
+  order: 10
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Los resultados de una ejecución de workflows dicen qué workflows pasaron en cada vuelta, y te dejan abrir cada uno para ver sus casos y sus pasos, como después de **Ejecutar**. Se llenan mientras avanza la ejecución y se quedan cuando termina.
+
+## Ejemplo: un Pokémon falla
+
+**Pokemon card** se ejecutó contra la **API real** en 3 vueltas, con un archivo de datos de tres Pokémon. Los totales dicen **1** en fallaron.
+
+<Steps>
+1. Haz clic en **Fallaron**. Solo queda la **Vuelta 3**. Junto a su título: `pokemon=missingno`.
+2. La fila de **Pokemon card** tiene ✕ y las cuentas ✓ 1 ✕ 1.
+3. Haz clic en la fila. Los resultados de sus casos se abren debajo: el camino feliz falló en `getPokemon`, con el status 404.
+</Steps>
+
+El camino feliz falló porque ese Pokémon no existe. Lo que hay que corregir son sus datos, no el workflow.
+
+## Mientras se ejecuta
+
+- El estado dice cuánto lleva, por ejemplo **Ejecutando 2 de 8**: workflows hechos de los workflows marcados por las vueltas.
+- Una barra bajo la parte de arriba se llena al mismo ritmo.
+- La vuelta en curso termina con una fila **Ejecutando…** para el workflow que se está ejecutando.
+- **Detener** termina la ejecución.
+
+## La parte de arriba
+
+Arriba se ve el nombre de lo que se ejecutó, la fecha y hora, el ambiente, **API real** o **Simulado**, y el archivo de datos, si hay.
+
+A la derecha, el estado:
+
+| Estado | Cuándo |
+|---|---|
+| **Ejecutando 2 de 8** | Mientras se ejecuta. |
+| **Terminó** | Se ejecutaron todas las vueltas. |
+| **Detenido** | Pulsaste **Detener**, o cerraste el runner con **Detener y cerrar**. |
+| **Se detuvo en un error** | **Detenerse si un workflow falla** estaba marcado y un workflow falló. |
+
+Cuando termina, **Configurar** vuelve a la configuración y **Ejecutar de nuevo** repite la ejecución con los mismos workflows, ajustes y archivo de datos. Si un workflow inicia sesión con OAuth 2.0, el inicio de sesión puede abrirse otra vez. Los resultados de los workflows no tienen botón **JSON**.
+
+## Los totales
+
+| Total | Qué cuenta |
+|---|---|
+| **vueltas** | Vueltas que empezaron. |
+| **workflows** | Workflows que se ejecutaron, contados una vez por vuelta: 4 workflows en 2 vueltas son 8. |
+| **casos** | Casos que terminaron. |
+| **pasaron** | Casos que pasaron. |
+| **fallaron** | Casos que fallaron. Se pone en rojo cuando hay al menos uno. |
+| **advertencias o sin concluir** | Casos que terminaron con una advertencia o sin concluir. |
+| **duración** | Cuánto tardó toda la ejecución. |
+
+## Cuándo falla un workflow en una vuelta
+
+Un workflow falla en una vuelta cuando:
+
+- falla uno de sus casos, o
+- falla un workflow del que depende, así que sus casos no se pueden probar.
+
+Un caso con advertencia o sin concluir no hace fallar al workflow. Mira [Lee los resultados](/es/test/results/) para saber qué significa cada veredicto.
+
+## Filtros
+
+**Todos**, **Fallaron** y **Pasaron**, arriba de las vueltas, filtran los workflows. **Fallaron** deja los workflows que fallaron en cada vuelta. **Pasaron** deja los demás, incluidos los que tienen advertencias. Una vuelta sin nada que mostrar se oculta.
+
+## Vueltas y workflows
+
+Los resultados se agrupan por vuelta. Con un archivo de datos, junto a cada título ves hasta cuatro valores de su fila, por ejemplo `pokemon=pikachu`.
+
+![Los resultados de pokemon.arazzo.yaml contra la API real con pokemon-data.csv, Terminó: 3 vueltas, 12 casos, 12 pasaron y 0 fallaron, y Vuelta 1 a 3 con los valores de cada fila, como pokemon=pikachu · nickname=Sparky, y las filas de Pokemon card y Type explorer con ✓ 2](/media/es/runner-workflows-results.webp)
+
+Cada workflow tiene una fila:
+
+| Parte | Qué muestra |
+|---|---|
+| ✓ o ✕ | Pasó o falló en esa vuelta. |
+| Nombre | El nombre del workflow. |
+| Una línea en gris | Cuántos casos se ejecutaron, por ejemplo *2 caso(s)*. Si falló un workflow del que depende, ese error en su lugar. |
+| ✓ ✕ ! | Cuántos casos pasaron, fallaron, y terminaron con advertencia o sin concluir. ✕ y ! solo aparecen cuando son más de 0. |
+
+## Abre un workflow
+
+<Steps>
+1. Haz clic en la fila de un workflow. Los resultados de sus casos se abren debajo.
+2. Haz clic en un caso para ver sus pasos, los requests y las respuestas, como después de **Ejecutar** en la pestaña del workflow.
+3. Haz clic otra vez en la fila para cerrarla.
+</Steps>
+
+Solo un workflow está abierto a la vez. Mira [Lee los resultados](/es/test/results/) y [Lee el resultado de un paso](/es/test/step-results/).
+
+## Detén una ejecución
+
+Mientras se ejecuta, pulsa **Detener**. El estado pasa a **Detenido**. Con **Detenerse si un workflow falla**, la ejecución se detiene sola en el primer workflow que falla, y el estado dice **Se detuvo en un error**.
+
+## Cuando los resultados no son lo que esperas
+
+| Qué ves | Por qué | Qué hacer |
+|---|---|---|
+| Una fila dice **Sin casos que ejecutar en este modo**. | El archivo Arazzo de ese workflow tiene un error, así que no se pudo ejecutar. | Abre el archivo y corrígelo. La barra lateral lo marca con **No se puede leer**. |
+| Todos los casos de un workflow están sin concluir y la fila muestra un error. | Falló un workflow del que depende. | Abre la fila para ver cuál, y ejecuta ese workflow a mano. |
+| Muchos pasos responden `401`. | El ambiente no tiene credenciales para ellos. | Revisa el aviso *Faltan credenciales en «…»* en la configuración, y pulsa **Completar**. |
+| Un paso falla con *Ningún elemento de la lista (…) cumple la regla: …* | Una regla guardada no encontró ningún elemento. | Mira [Listas en el runner](/es/runner/workflows-lists/#cuando-ningún-elemento-cumple). |
+| Todas las vueltas dan el mismo resultado. | El archivo de datos tiene una fila, o ninguna. | Mira [Archivos de datos](/es/runner/data-files/#filas-y-vueltas). |
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Ejecuta workflows" href="/es/runner/workflows/" />
+  <LinkCard title="Lee los resultados" href="/es/test/results/" />
+  <LinkCard title="Ejecuciones, pestañas e historial" href="/es/runner/lifecycle/" />
+</CardGrid>

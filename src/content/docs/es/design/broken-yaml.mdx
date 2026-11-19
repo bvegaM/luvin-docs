@@ -1,0 +1,136 @@
+---
+title: Cuando el YAML no se puede leer
+description: Qué bloquea Luvin mientras un archivo Arazzo tiene un error de escritura, qué ves antes y después de volver a abrir el workspace y cómo corregirlo sin perder casos.
+sidebar:
+  order: 13.5
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Basta una sangría incorrecta o una comilla que falta para que un archivo Arazzo deje de ser YAML. Entonces Luvin deja de dibujar y de ejecutar sus workflows, y te dice dónde corregirlo. No se pierde nada: el texto queda como lo escribiste, y los inputs y los casos vuelven cuando el archivo se puede leer otra vez.
+
+## Ejemplo: una comilla que nunca se cierra
+
+En la pestaña YAML de **Pokemon card**, el ejemplo del input `pokemon` pierde su comilla de cierre, en la línea 27 del archivo:
+
+<Tabs>
+<TabItem label="Roto">
+
+```yaml title="pokemon.arazzo.yaml" {5}
+      properties:
+        pokemon:
+          type: string
+          # …
+          example: "pikachu
+```
+
+</TabItem>
+<TabItem label="Corregido">
+
+```yaml title="pokemon.arazzo.yaml" {5}
+      properties:
+        pokemon:
+          type: string
+          # …
+          example: "pikachu"
+```
+
+</TabItem>
+</Tabs>
+
+Un momento después de que dejas de escribir, la insignia sobre el texto dice **YAML inválido**. Agrega la comilla y vuelven la insignia, el lienzo y **Ejecutar**.
+
+## Qué cuenta como ilegible
+
+| Caso | Ejemplo |
+|---|---|
+| El texto no es YAML ni JSON válido | Una comilla o un corchete que nunca se cierra, una clave con un espacio de más o de menos, tabulaciones usadas como sangría. |
+| El texto es válido pero no es un Arazzo | Se borró el campo `arazzo` de la raíz. El mensaje es **No se encontró ningún archivo Arazzo (debe tener el campo "arazzo" en la raíz).** |
+
+Un error que encuentra el análisis, como un paso que no existe, es distinto: el archivo se puede leer, el lienzo lo dibuja y se puede ejecutar. Esos aparecen en **Problemas**. Mira [La pestaña YAML](/es/design/arazzo-editor/#validación-mientras-escribes).
+
+## Mientras editas
+
+Desde que el texto no se puede leer, hasta que lo corriges:
+
+| Dónde | Qué ves |
+|---|---|
+| La pestaña YAML | La insignia **YAML inválido**. El texto se sigue pudiendo editar. |
+| La pestaña **Diseño** | El aviso **El YAML tiene un error y no se puede dibujar. Corrígelo en la pestaña YAML y el diseño vuelve.**, con el botón **Ir al YAML**. |
+| El botón **Ejecutar** | Desactivado. Su tooltip dice **No se puede ejecutar: el YAML de pokemon.arazzo.yaml tiene un error. Corrígelo en la pestaña YAML.** **⌘Enter** (**Ctrl+Enter**) tampoco lo ejecuta. |
+| El runner | Los workflows de ese archivo muestran **Sin casos que ejecutar en este modo**. Los demás workflows se ejecutan. |
+| La barra lateral, **Resumen**, **Inputs** y **Casos** | Los workflows siguen ahí, como estaban en la última versión que Luvin pudo leer. |
+| Los demás archivos de la colección | Funcionan como siempre. |
+
+![El aviso El YAML tiene un error y no se puede dibujar. Corrígelo en la pestaña YAML y el diseño vuelve., con el botón Ir al YAML](/media/es/design-yaml-broken.webp)
+
+Luvin no ejecuta la última versión que pudo leer, porque no es lo que dice el archivo ahora. El texto se guarda tal como lo dejaste, con el error.
+
+![La barra de ejecución con API real, Simulación y el ambiente local, el botón Ejecutar 1 caso apagado y el texto No se puede ejecutar: el YAML de catalog.arazzo.yaml tiene un error. Corrígelo en la pestaña YAML.](/media/es/design-run-disabled.webp)
+
+## Si vuelves a abrir el workspace con el archivo roto
+
+Si dejas el archivo roto y vuelves a abrir la colección más tarde, por ejemplo al cerrar y abrir otra vez el workspace, Luvin no puede leer sus workflows, así que no los carga.
+
+| Dónde | Qué ves |
+|---|---|
+| Arriba de la ventana | Una barra roja con el nombre del archivo y el error, por ejemplo **pokemon.arazzo.yaml: No se pudo leer como YAML o JSON: Missing closing "quote at line 27, column 28:**, seguido de la línea, y **Cerrar**. |
+| La barra lateral | Una fila con el nombre del archivo y **No se puede leer**, al comienzo de los archivos de la colección. Su tooltip dice *Este Arazzo tiene un error de escritura y sus workflows no se cargaron. Ábrelo para corregirlo:* seguido del error. |
+| Los workflows de ese archivo | No están en el árbol, en la búsqueda ni en el runner. |
+| Los demás archivos de la colección | Se cargan como siempre. |
+
+![La barra lateral con la fila returns.arazzo… No se puede leer al principio de la colección Catalog, encima de catalog.arazzo.yaml y su workflow Buy product](/media/es/sidebar-broken-arazzo.webp)
+
+Luvin igual reconoce el archivo como Arazzo por su nombre (`.arazzo.yaml`, `.arazzo.yml` o `.arazzo.json`), o por una línea de su texto que empieza con `arazzo:`.
+
+## Corrígelo
+
+<Steps>
+1. Lee el error. Dice qué está mal y, casi siempre, la línea y la columna, por ejemplo **at line 27, column 28**. Ese texto viene en inglés en los dos idiomas.
+2. Abre el texto:
+   - Mientras editas: haz clic en **Ir al YAML** en la pestaña **Diseño**, o en la pestaña **YAML**.
+   - Después de volver a abrir: haz clic en la fila **No se puede leer** de la barra lateral. El texto del archivo se abre en el editor.
+3. Ve a esa línea. El error suele estar en la línea anterior, donde se abrió una comilla o un corchete.
+4. Corrígelo y espera un momento.
+</Steps>
+
+Qué pasa después:
+
+| Estabas | Cuando el texto se puede leer otra vez |
+|---|---|
+| Editando en la pestaña YAML | La insignia cambia, la pestaña **Diseño** vuelve a dibujar el workflow y **Ejecutar** se activa. |
+| En el texto abierto desde **No se puede leer** | El editor se cierra y el archivo se abre otra vez como Arazzo, sin recargar. Sus workflows vuelven a la barra lateral. |
+
+### Errores frecuentes
+
+| El mensaje empieza con | Causa habitual | Cómo se corrige |
+|---|---|---|
+| `Missing closing "quote` | Un texto que se abrió con `"` y nunca se cierra. | Cierra la comilla en la misma línea. |
+| `Tabs are not allowed as indentation` | Una tabulación al comienzo de una línea. | Cámbiala por espacios. |
+| `Sequence item without - indicator` | Una clave de un elemento de lista con un espacio menos que las demás. | Alinéala con las otras claves del elemento. |
+| `Nested mappings are not allowed in compact mappings` | Una clave con un espacio más que la de arriba. | Alinéala con la clave de arriba. |
+
+## Tus inputs y casos se conservan
+
+Los inputs y los casos de un workflow no están en el archivo Arazzo: están en un archivo aparte, en `scenarios/`. Mira [Qué hay en el disco](/es/workspaces/files/).
+
+- Mientras editas, quedan como están.
+- Después de volver a abrir con el archivo roto, Luvin no los carga, pero los conserva en el workspace. Cuando el archivo se puede leer otra vez, los carga con los workflows, incluidos los casos que ajustaste y tus propios casos.
+
+<Aside type="tip">
+Si el workspace está en un repositorio git, también puedes volver a la última versión del archivo que guardaste en un commit. Mira [Llevar un workspace en git](/es/workspaces/git/).
+</Aside>
+
+## Solución de problemas
+
+**La insignia dice YAML inválido pero la línea se ve bien.** Mira las líneas de arriba. YAML lee la sangría de cada línea comparándola con las anteriores, así que el error puede estar antes.
+
+**El texto ya se puede leer, pero los workflows no volvieron.** El texto no tiene el campo `arazzo` en su raíz, así que Luvin ya no lo toma como Arazzo. Agrega el campo, por ejemplo `arazzo: 1.1.0`, en la primera línea.
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="La pestaña YAML" href="/es/design/arazzo-editor/" />
+  <LinkCard title="Qué hay en el disco" href="/es/workspaces/files/" />
+  <LinkCard title="Solución de problemas" href="/es/get-started/troubleshooting/" />
+</CardGrid>

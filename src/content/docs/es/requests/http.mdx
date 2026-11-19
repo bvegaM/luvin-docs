@@ -133,6 +133,15 @@ Escribe `{{` en el campo para elegir una variable. Mira [Variables y secretos](/
 
 **Enviar** queda deshabilitado mientras la URL está vacía. Mientras un request va en camino, el botón pasa a ser **Cancelar**.
 
+## Envía con el teclado
+
+| Teclas | Dónde | Qué hace |
+|---|---|---|
+| **Enter** | En el campo de la URL | Envía el request. Si la lista de `{{variables}}` está abierta, Enter elige la variable. **Shift + Enter** no envía. |
+| **⌘ + Enter** (**Ctrl + Enter**) | En cualquier parte del request: la URL, las pestañas, el editor del body | Envía el request. |
+
+Los dos sirven en los requests HTTP, GraphQL y gRPC. No envían un mensaje de WebSocket. Con un diálogo abierto, ⌘/Ctrl + Enter es de ese diálogo.
+
 ## Lee la respuesta
 
 - **Status.** `2xx` significa éxito, `4xx` significa que el request tiene un problema, `5xx` significa que el servidor falló. Luvin colorea cada familia.
@@ -146,6 +155,7 @@ Cada parte de la respuesta se explica en [Lee una respuesta en detalle](/es/requ
 
 <CardGrid>
   <LinkCard title="Params, headers y body" href="/es/requests/params-headers-body/" description="Completa cada pestaña del request." />
+  <LinkCard title="Variables y comprobaciones" href="/es/requests/variables-and-checks/" description="Guarda valores de la respuesta y compruébala." />
   <LinkCard title="Autorización" href="/es/authorization/overview/" description="Identifícate ante una API protegida." />
   <LinkCard title="Cómo se guarda un request" href="/es/requests/files/" description="El archivo YAML que escribe Luvin." />
 </CardGrid>

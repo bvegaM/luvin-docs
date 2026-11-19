@@ -1,0 +1,152 @@
+---
+title: Tour sections
+description: Each section of the guided tour step by step, what it opens, what it highlights and what it runs, against the real API, in Simulation or against a mock.
+sidebar:
+  order: 5.1
+---
+
+import { Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Each section of the tour gets the screen ready by itself, with the same clicks you would make: it opens a workflow, a tab or a panel, sometimes presses **Run**, and then highlights one area with a card next to it. This page lists, for each section, what each card is called, what the tour does before showing it and what it runs, so you know what to expect and can repeat any step by hand.
+
+All sections work on the **Pokédex** collection of the workspace **Pokédex (tour)**. **Contracts and environments** adds a second collection, **PayPal**. See [The tour workspace](/get-started/guided-tour-workspace/).
+
+## What the sections run
+
+| Section | Runs | Against |
+|---|---|---|
+| **Workflows** | The cases of **Pokemon card** | The mode selected next to **Run**: the real PokéAPI with **Real API** |
+| **Design a workflow** | The cases of **Battle matchup**, after **Type explorer** | The mode selected next to **Run** |
+| **Contracts and environments** | The cases of **Capture order** (PayPal) | **Simulation**, the first time |
+| **Requests** | One request to `pokeapi.co` | The real PokéAPI |
+| **Mock servers** | The cases of **Pokemon card** | The mock, in the desktop app. **Simulation**, in the browser |
+| **Runner and performance** | The workflows of `pokemon.arazzo.yaml`, in the runner | **Simulated** |
+| **History and Dev Tools** | The cases of **Pokemon card** | **Simulation** |
+
+The tour leaves the mode it chose selected. After **Contracts and environments** (the first time), **Mock servers** in the browser, **Runner and performance** or **History and Dev Tools**, the switch next to **Run** reads **Simulation**. Set it back to **Real API** before you start **Workflows** again if you want the real call.
+
+## 1. Workflows
+
+The core of Luvin: a workflow that chains calls and passes data from one step to the next. 7 steps, about 2 minutes.
+
+| Step | Card | What the tour does | What it highlights |
+|---|---|---|---|
+| 1 | **Workflows: the heart of Luvin** | Opens or creates the tour workspace, then opens **Pokemon card** on its **Overview** tab. | Nothing: the card is in the middle. |
+| 2 | **Collections, workflows and steps** | Keeps **Pokemon card** open. | The tree in the sidebar: collection, Arazzo file, workflows and steps. |
+| 3 | **The workflow at a glance** | Shows the **Overview** tab and waits for the diagram. | The diagram, with the 404 that ends the workflow and the data between steps. |
+| 4 | **Input data** | Opens the **Inputs** tab. | The form. You can try another Pokémon, such as `charizard` or `150`. |
+| 5 | **Test cases you don’t have to write** | Opens the **Cases** tab. | The generated cases: happy path, missing or invalid inputs, one per action. |
+| 6 | **Run against the real API** | Presses **Run** and waits for the results, up to 20 seconds. | The results, with a verdict per case. |
+| 7 | **How data travels between steps** | Opens the step `getWeakness` from the tree. | The step, which takes the type from `$steps.getPokemon.outputs.mainType`. |
+
+![The last card of Workflows, step 7 of 7, How data travels between steps, next to the step getWeakness, with Finish, All sections and Next: Design a workflow](/media/en/tour-section-end.webp)
+
+**What it runs.** Step 6 runs the cases with the mode selected next to **Run**. With **Real API**, it calls pokeapi.co and needs internet. The case for the 404 is simulated: it shows what the workflow does on that error without causing it in the API. If **Run** asks to confirm because a step changes data, the tour confirms; the PokéAPI never asks.
+
+Read more: [Run](/test/run/), [Cases](/test/cases/).
+
+## 2. Design a workflow
+
+How a workflow is built: the canvas, the palette, the YAML, workflows that depend on others and events. 5 steps, about 2 minutes.
+
+| Step | Card | What the tour does | What it highlights |
+|---|---|---|---|
+| 1 | **Design the workflow without writing YAML** | Opens **Pokemon card** on the **Design** tab. | The whole builder: palette, canvas and panel. |
+| 2 | **The palette: where steps come from** | Keeps the **Design** tab. | The palette: operations of the contracts, requests and workflows. |
+| 3 | **Edit the Arazzo** | Opens the **YAML** tab. | The editor, with validation and autocomplete. |
+| 4 | **Workflows that depend on others** | Opens **Battle matchup** on its **Cases** tab and presses **Run**. | **Preparation**: **Type explorer** ran once before the cases. |
+| 5 | **APIs and events in the same workflow** | Opens **Register sighting** on its **Overview** tab. | The diagram, with an HTTP call, a SEND and a RECEIVE. |
+
+**What it runs.** Step 4 runs **Battle matchup**, and before it **Type explorer**, with the mode selected next to **Run**. The events of **Register sighting** are fictional: step 5 only shows them, it does not run them.
+
+Read more: [Design a workflow](/design/overview/), [Workflows that use other workflows](/design/dependencies/), [Messaging steps](/design/messaging/).
+
+## 3. Contracts and environments
+
+What each step uses when it calls the API: the contract, the environment and the authorization. 6 steps, about 2 minutes.
+
+| Step | Card | What the tour does | What it highlights |
+|---|---|---|---|
+| 1 | **Contracts like in Swagger Editor** | Opens the contract `pokeapi` from the sidebar. | The contract editor, next to Swagger UI. |
+| 2 | **A step in detail** | Opens **Pokemon card** and its step `getPokemon`. | The step, with its operation, criteria, actions and **▶ Try alone**. The tour does not press it. |
+| 3 | **Environments** | Opens the active environment. | The environment: URLs, credentials, variables and secrets. |
+| 4 | **Another example: charging with PayPal** | The first time, creates the collection **PayPal** with its files, the **Sandbox** environment and the authorization of its workflows, and switches to **Simulation**. Then opens **Create order** on its **Overview** tab. | The diagram of **Create order**. |
+| 5 | **Authorization per API and per workflow** | Opens the **Authorization** tab of **Create order**. | OAuth 2.0 per API, with `{{clientId}}` and `{{clientSecret}}` from **Sandbox**. |
+| 6 | **Simulated without credentials, real with yours** | Opens **Capture order** on its **Cases** tab and presses **Run**. | The results, with the webhook simulated. |
+
+**What it runs.** Step 6 runs **Capture order**. The first time, the tour has just switched to **Simulation**, so no credentials and no network are needed. **Sandbox** comes with an empty `clientId` and `clientSecret`: to use the real PayPal sandbox, fill them in and choose **Real API**.
+
+Read more: [Contracts](/contracts/overview/), [Environments](/environments/overview/), [Authorization overview](/authorization/overview/).
+
+## 4. Requests
+
+Standalone requests, like in Postman, and how one becomes a step. 3 steps, about 2 minutes.
+
+| Step | Card | What the tour does | What it highlights |
+|---|---|---|---|
+| 1 | **Standalone requests, like Postman** | The first time, creates a request from `curl https://pokeapi.co/api/v2/pokemon/pikachu`. Then opens it. | The request. |
+| 2 | **Variables and checks, no scripts** | Gives the request a variable, `pokemonId` from `res.body.id`, and two checks, status 200 and name `pikachu`, and sends it. | The response, with the summary of the checks. |
+| 3 | **The request, inside the workflow** | Opens **Pokemon card** on the **Design** tab. | The palette, where your requests show up as steps to add. |
+
+**What it runs.** Step 2 sends the request to the real PokéAPI and waits up to 15 seconds for the answer. Each time the step runs, it sets that variable and those two checks again, replacing what you changed in them.
+
+Read more: [Single requests](/requests/overview/), [Variables and checks](/requests/variables-and-checks/), [Build from saved requests](/design/from-requests/).
+
+## 5. Mock servers
+
+A server that answers with the examples of the contract, and the workflow running against it. 3 steps, about 1 minute.
+
+| Step | Card | What the tour does | What it highlights |
+|---|---|---|---|
+| 1 | **A mock server from the contract** | The first time, creates the mock **PokéAPI mock** from `pokeapi.openapi.yaml`. Then opens it. | The mock and its routes. |
+| 2 | **Running, on your machine** | Desktop app: starts the mock, if it is not running. Browser: nothing. | The mock. |
+| 3 | **The workflow, against the mock** | Desktop app: clicks **Create mock environment**, opens **Pokemon card** on **Cases**, chooses **Real API** and presses **Run**. Browser: opens **Pokemon card** on **Cases**, chooses **Simulation** and presses **Run**. | The results. |
+
+**What it runs.** In the desktop app, the mock listens on 127.0.0.1, so it only answers on your computer, and the workflow calls it over the network with the environment **Mock · PokéAPI mock**. The browser cannot start a mock, so the cards explain it and the workflow runs in **Simulation**, which also answers with the examples of the contract.
+
+The next section you start stops the mock and selects your usual environment again. The mock and its environment stay in the workspace.
+
+Read more: [Mock servers](/mocks/overview/), [Use a mock with requests and workflows](/mocks/with-workflows/).
+
+## 6. Runner and performance
+
+Several workflows at once, with data, and the load test. 4 steps, about 2 minutes.
+
+| Step | Card | What the tour does | What it highlights |
+|---|---|---|---|
+| 1 | **The runner: several workflows at once** | Opens the menu of `pokemon.arazzo.yaml` in the sidebar and chooses **Run workflows (runner)**. If the runner shows earlier results, it clicks **Configure**. | The list of workflows, in the order they run. |
+| 2 | **Lists without asking** | Keeps the runner settings open. | The settings, where each step that picks from a list uses its saved rule. |
+| 3 | **Results, per iteration and workflow** | Chooses **Simulated** and starts the run. Waits for the results, up to 20 seconds. | The results, per iteration and per workflow. |
+| 4 | **Workflow performance** | Opens the runner settings again and chooses **Performance**. | The load settings: virtual users, duration and load shape. |
+
+**Why step 4 does not start a test.** In a load test, many virtual users repeat the happy path of each workflow for a while. The tour only works with public APIs, and a load test never goes against a public API, so it shows the settings and stops there. Run a performance test with your own environment or with a mock.
+
+Read more: [Run workflows](/runner/workflows/), [Choose an item from a list](/test/lists/), [Performance tests](/runner/performance/).
+
+## 7. History and Dev Tools
+
+Going back to what happened. 5 steps, about 1 minute; 4 in the Simple interface.
+
+| Step | Card | What the tour does | What it highlights |
+|---|---|---|---|
+| 1 | **The collection's history** | Opens **Pokemon card** on **Cases**, chooses **Simulation** and presses **Run**. Then opens the history with **See all** and the filter **Runs**. | The history of the collection. |
+| 2 | **Dev Tools** | Opens Dev Tools on **Network**. Skipped in the Simple interface. | The Dev Tools panel. |
+| 3 | **Search everything** | Opens the search and types `weak`. | The search, with the step `getWeakness`. |
+| 4 | **Preferences** | Closes what was open. | The status bar, where **Preferences** and **Tour** are. |
+| 5 | **Back to a workflow run** | Opens the history again, on **Runs**, and opens the first run. | The run, with **Rerun** and **Open workflow**. |
+
+**What it runs.** Step 1 always runs **Pokemon card** in **Simulation**, so the history has at least one workflow run, without network.
+
+Read more: [History](/workspaces/history/), [Network](/dev-tools/network/), [Preferences and the Simple interface](/get-started/preferences/).
+
+<Aside type="tip">
+To see a step again, go **Back** and then **Next**: the tour gets the screen ready again and, if the step runs something, runs it again.
+</Aside>
+
+## Related
+
+<CardGrid>
+  <LinkCard title="The guided tour" href="/get-started/guided-tour/" />
+  <LinkCard title="The tour workspace" href="/get-started/guided-tour-workspace/" />
+  <LinkCard title="Quick start" href="/get-started/quick-start/" />
+</CardGrid>

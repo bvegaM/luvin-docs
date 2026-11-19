@@ -39,6 +39,7 @@ Cuando una llamada falla así, un desplegable **Request enviado** bajo el mensaj
 Cuando la API responde, una barra muestra, de izquierda a derecha:
 
 - **El estado**, por ejemplo `200 OK` o `404 Not Found`. Luvin lo colorea por familia: 2xx, 3xx, 4xx y 5xx.
+- **Las comprobaciones**, cuando el request tiene comprobaciones o guarda variables: **✓ 9 de 9 comprobaciones** en verde, o **✕ 2 de 9 comprobaciones fallaron** en rojo. Un `200` en verde no lo dice todo; este chip sí. También se pone rojo cuando una variable no se pudo guardar, y su tooltip la nombra: **No se guardó: \{\{token\}\}**. Haz clic en él para abrir la pestaña **Comprobaciones**.
 - **El tiempo**, por ejemplo `985 ms`.
 - **El tamaño**, por ejemplo `1.26 KB`.
 - **Un ícono de globo**, cuando Luvin conoce la dirección del servidor.
@@ -77,7 +78,7 @@ La tarjeta **Tamaño de la respuesta** muestra el total y sus partes: **Headers*
 
 El globo muestra **Versión HTTP**, **Dirección remota**, **Dirección local**, **Protocolo TLS**, **Cifrado**, **Emisor del certificado** y **Certificado válido hasta**. Las filas que Luvin no conoce se omiten. Es el primer lugar donde mirar cuando una llamada falla por un certificado.
 
-## Las cuatro pestañas
+## Las pestañas
 
 | Pestaña | Qué muestra |
 |---|---|
@@ -85,6 +86,7 @@ El globo muestra **Versión HTTP**, **Dirección remota**, **Dirección local**,
 | **Headers** | Una tabla con todos los headers de la respuesta. El número es cuántos hay. |
 | **Cookies** | Las cookies que puso la respuesta, con **Nombre**, **Valor**, **Dominio**, **Path**, **Vence** y **Atributos**. El número es cuántas hay. Si no hay ninguna: **Esta respuesta no puso cookies.** Mira [Cookies y ejemplos guardados](/es/requests/cookies-and-examples/). |
 | **Request enviado** | Lo que Luvin envió realmente. Mira más abajo. |
+| **Comprobaciones** | Solo cuando el request tiene comprobaciones o guarda variables. Cada comprobación con ✓ o ✕ y, en una que falló, **Llegó:** con el valor que vino. Debajo, **Variables guardadas**. El número es cuántas fallaron, en rojo, o cuántas hay, en verde, cuando pasaron todas. Mira [Variables y comprobaciones](/es/requests/variables-and-checks/). |
 
 ## El body
 
@@ -124,5 +126,6 @@ Si el request debería llevar una `Authorization` pero no salió ninguna, un avi
 ## Relacionado
 
 - [Requests sueltos](/es/requests/overview/)
+- [Variables y comprobaciones](/es/requests/variables-and-checks/)
 - [Dev Tools: Network](/es/dev-tools/network/)
 - [Lee los resultados](/es/test/results/)

@@ -1,0 +1,148 @@
+---
+title: Usa un mock con requests y workflows
+description: Crea el ambiente que apunta a un mock, qué copia y qué cambia, el detalle de la ruta del servidor, ejecuta un workflow contra el mock, vuelve a tu ambiente de siempre, y en qué se diferencia un mock de la Simulación.
+sidebar:
+  order: 9
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Tus requests y tus workflows llaman a las URLs del ambiente activo. Para que llamen a un mock, necesitas un ambiente cuyas URLs apunten al mock. **Crear ambiente del mock** lo arma por ti, así no cambias ningún request ni ningún workflow.
+
+## Ejemplo: Pokemon card contra un mock
+
+<Steps>
+1. Crea un mock de la Pokédex con **Respuestas desde** en **Un contrato OpenAPI** y pulsa **Encender**. Mira [Crea un mock server](/es/mocks/create/).
+2. En la pestaña del mock, pulsa **Crear ambiente del mock**. Se crea el ambiente **Mock · Mock de Pokédex** y queda activo.
+3. Abre **Pokemon card**. En la barra de ejecución, elige **API real**. El selector **Ambiente** muestra **Mock · Mock de Pokédex**.
+4. Pulsa **Ejecutar**. Cada paso llama al mock en vez de a la PokéAPI.
+5. Abre la pestaña **Log** del mock. Ves las llamadas de cada caso, con lo que enviaron y lo que respondió el mock.
+</Steps>
+
+Los mismos pasos, los mismos casos, y ninguna llamada a la API real.
+
+## Crea el ambiente del mock
+
+Pulsa **Crear ambiente del mock** en la pestaña del mock, debajo del puerto y la fuente. Al lado, la pestaña dice *Un ambiente que apunta al mock: los requests con `{{baseUrl}}` y los workflows lo usan sin cambios.* El botón también está en el menú **⋯** de arriba de la pestaña.
+
+Luvin crea un ambiente llamado **Mock ·** y el nombre del mock, en morado, y lo deja activo. Parte del ambiente que estaba activo:
+
+| Parte del ambiente | En el ambiente del mock |
+|---|---|
+| Variables cuyo valor es una URL (empieza con `http://` o `https://`) | La URL del mock, por ejemplo `http://127.0.0.1:4010`. Un request con `{{baseUrl}}` va al mock sin cambios. |
+| URLs base de los contratos | La URL del mock más la ruta del servidor del contrato, por ejemplo `http://127.0.0.1:4010/api/v2`. |
+| Otras variables | Se copian tal cual. |
+| Secretos | Solo sus nombres, con los valores vacíos. |
+| Credenciales | Vacías. |
+
+![El ambiente Mock · Mock de Shop, activo y en morado, con la URL base shop del contrato apuntando al mock más /v1 (127.0.0.1:4010/v1)](/media/es/mocks-env.webp)
+
+Qué URLs base cambian depende de la fuente del mock:
+
+| Fuente del mock | URLs base que apuntan al mock |
+|---|---|
+| **Un contrato OpenAPI** | Solo la de ese contrato. Los demás contratos conservan su API real. |
+| **La colección** o **Solo rutas propias** | Las de todos los contratos. |
+
+<Aside type="caution">
+Cambia toda variable cuyo valor es una URL, no solo `baseUrl`. Si tu ambiente tiene la URL de otra API en una variable, como la URL de un token, también apunta al mock. Edítala en el ambiente del mock si esa llamada tiene que seguir llegando al servicio real.
+</Aside>
+
+## El detalle de la ruta del servidor
+
+Una variable recibe solo la URL del mock, sin ruta. Un mock desde un contrato cuyo servidor tiene ruta responde bajo esa ruta: las rutas del contrato de la Pokédex empiezan con `/api/v2`.
+
+| Tu request usa | Llama a | El mock |
+|---|---|---|
+| `{{baseUrl}}/pokemon/pikachu`, con `baseUrl` = `http://127.0.0.1:4010` | `/pokemon/pikachu` | Responde `404`: **Sin ruta (404)** en el Log. |
+| `{{baseUrl}}/pokemon/pikachu`, con `baseUrl` = `http://127.0.0.1:4010/api/v2` | `/api/v2/pokemon/pikachu` | Responde `200`. |
+| Un paso de un workflow, por la URL base del contrato | `/api/v2/pokemon/pikachu` | Responde `200`: la URL base ya tiene `/api/v2`. |
+
+Para arreglar el primer caso:
+
+<Steps>
+1. Haz clic en el ambiente del mock en **Ambientes**, en la barra lateral.
+2. Cambia `baseUrl` a `http://127.0.0.1:4010/api/v2`.
+3. Envía de nuevo el request. El **Log** del mock muestra la llamada con su ruta.
+</Steps>
+
+Un mock desde la colección no tiene este problema: sus rutas salen de lo que va después de `{{baseUrl}}` en tus requests.
+
+<Aside type="note">
+Un request escrito con la URL completa, como `https://pokeapi.co/api/v2/pokemon/pikachu`, no tiene variable que reemplazar: sigue llamando a la API real. Usa `{{baseUrl}}` en la URL para pasar de la API al mock con el ambiente.
+</Aside>
+
+## Actualiza el ambiente
+
+Cuando el ambiente ya existe, la pestaña dice *Ambiente «Mock · Mock de Pokédex»* y el botón dice **Actualizar ambiente**. Púlsalo después de cambiar el **Puerto**, para que las URLs sigan al mock.
+
+| Al actualizar | Qué pasa |
+|---|---|
+| El ambiente del mock está activo | Parte de sí mismo: sus otras variables quedan como las dejaste. |
+| Otro ambiente está activo | Vuelve a partir de las variables de ese ambiente. |
+| Variables cuyo valor es una URL | Vuelven a la URL del mock, sin ruta. Un `baseUrl` que cambiaste a `.../api/v2` vuelve a la URL sola: cámbialo otra vez. |
+| Secretos y credenciales | Se conservan los valores que completaste en el ambiente del mock. |
+| Ambiente activo | El ambiente del mock queda activo. |
+
+El ambiente se busca por su nombre. Si cambias el nombre del mock, la pestaña vuelve a mostrar **Crear ambiente del mock**, y al pulsarlo se crea un ambiente nuevo con el nombre nuevo. El viejo se queda hasta que lo elimines.
+
+## Ejecuta un workflow contra el mock
+
+<Steps>
+1. Comprueba que el mock está encendido: un punto verde junto a él en la barra lateral. Si está apagado, nada responde en su URL y los pasos fallan.
+2. Abre el workflow y elige **API real** en la barra de ejecución.
+3. Comprueba que el **Ambiente** es el del mock.
+4. Pulsa **Ejecutar**.
+</Steps>
+
+Si el workflow tiene pasos que crean, cambian o borran datos, Luvin pregunta primero, como con cualquier ambiente. El aviso nombra el ambiente del mock. Mira [Ejecutar](/es/test/run/).
+
+Los resultados son los de una ejecución contra una API: cada paso muestra el request que envió y la respuesta del mock, y un criterio puede fallar. Abre el **Log** del mock para ver las mismas llamadas desde el lado del mock.
+
+Un ambiente del mock también te deja probar una prueba de carga con **Rendimiento** sin tocar la API real: el rendimiento mide la API del ambiente y no corre en simulación. Mira [Pruebas de rendimiento](/es/runner/performance/).
+
+### Requests sueltos y otros programas
+
+Un request de la colección que usa `{{baseUrl}}` va al mock mientras el ambiente del mock está activo. Los programas fuera de Luvin, como cURL o un frontend en `localhost`, llaman directamente a la URL del mock. Mira [Quién puede llamar a un mock](/es/mocks/security/).
+
+Un proxy en **Preferencias** no estorba: `localhost` y `127.0.0.1` siempre se conectan directo. Mira [Ajustes de red](/es/get-started/network/).
+
+## Vuelve a tu ambiente de siempre
+
+Elige tu ambiente de siempre en el selector **Ambiente** de la barra de ejecución, o haz clic en él en **Ambientes**, en la barra lateral. El ambiente del mock queda en la lista para la próxima vez. Eliminar el mock no lo elimina. Mira [Ambientes](/es/environments/overview/).
+
+## Mock server o Simulación
+
+Los dos te dejan ejecutar un workflow sin la API real. No son lo mismo:
+
+| | **Simulación** | Mock server |
+|---|---|---|
+| Cómo se usa | Elige **Simulación** en la barra de ejecución. | Elige **API real** con el ambiente del mock. |
+| Llamadas | Ninguna. Ningún request sale de tu equipo. | Llamadas HTTP reales a `127.0.0.1`. |
+| Respuestas | Se arman para cada paso desde el contrato. Los valores que piden los criterios se ponen en el body, así que todos los pasos pasan. | Fijas: los ejemplos guardados, los ejemplos del contrato o tus rutas propias. Un criterio puede fallar, como con la API real. |
+| Errores | Solo con casos por respuesta. | Pídelos con `x-mock-response-code` o escribe una ruta. |
+| Demora y Log | No. | Sí. |
+| Requests sueltos y otros programas | No. Solo workflows. | Sí: requests, workflows, cURL o un frontend local. |
+| Dónde | Navegador y app de escritorio. | Solo la app de escritorio. |
+
+Usa la **Simulación** para comprobar rápido la lógica de un workflow. Usa un mock para probar cómo se comportan tu workflow y tus requests por la red, con las respuestas y los errores que elijas. Mira [Simulación](/es/test/simulation/).
+
+## Problemas frecuentes
+
+| Qué ves | Por qué, y qué hacer |
+|---|---|
+| Todos los pasos fallan con un error de conexión. | El mock está apagado, o cambió su puerto. Enciéndelo, y pulsa **Actualizar ambiente** después de cambiar el puerto. |
+| El **Log** muestra **Sin ruta (404)** para tus requests. | A la ruta le falta la ruta del servidor, como `/api/v2`. Mira el detalle de arriba. |
+| El **Log** está vacío después de ejecutar. | La ejecución usó otro ambiente, o la **Simulación**. Revisa la barra de ejecución. |
+| Un request sigue llegando a la API real. | Su URL está escrita completa, sin variable. Usa `{{baseUrl}}`. |
+| Una llamada a otra API ahora falla. | Su URL estaba en una variable y ahora apunta al mock. Edítala en el ambiente del mock. |
+| Hay dos ambientes del mock. | Se cambió el nombre del mock. Elimina el que ya no uses. |
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Mock servers" href="/es/mocks/overview/" />
+  <LinkCard title="El Log de un mock" href="/es/mocks/log/" />
+  <LinkCard title="Ejecutar" href="/es/test/run/" />
+  <LinkCard title="Simulación" href="/es/test/simulation/" />
+</CardGrid>

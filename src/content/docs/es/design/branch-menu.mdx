@@ -1,0 +1,167 @@
+---
+title: El menú de una rama
+description: Cada opción del menú que se abre desde una fila de Si falla, qué escribe en el Arazzo y cómo cambiar o quitar una rama.
+sidebar:
+  order: 7.2
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+El menú de una rama decide, desde la misma tarjeta, qué hace el workflow cuando un paso recibe un error. Se abre desde las filas de **Si falla** y tiene una opción por cada cosa que puede hacer el workflow: un paso nuevo, saltar a un paso posterior, terminar, reintentar o quitar lo que hay.
+
+## Ejemplo: reintenta un 404 de getWeakness
+
+<Steps>
+1. Abre **Pokemon card** y haz clic en la pestaña **Diseño**.
+2. En la tarjeta de `getWeakness`, busca la fila `404 → sin acción` **falla**.
+3. Haz clic en el **+** al final de la fila. Se abre un menú con el título **Si responde 404**.
+4. Haz clic en **Reintentar (hasta 3 veces)**.
+</Steps>
+
+<Tabs>
+<TabItem label="En la tarjeta">
+
+La fila ahora dice `404 → on404` **reintenta ×3**. El **+** se convirtió en un lápiz.
+
+</TabItem>
+<TabItem label="En el YAML">
+
+```yaml title="pokemon.arazzo.yaml" {3-9}
+- stepId: getWeakness
+  # …
+  onFailure:
+    - name: on404
+      type: retry
+      retryAfter: 1
+      retryLimit: 3
+      criteria:
+        - condition: $statusCode == 404
+```
+
+</TabItem>
+</Tabs>
+
+## Abre el menú
+
+Las filas están en la sección **Si falla** de cada tarjeta. Para verlas, **Acciones según la respuesta**, sobre el lienzo, tiene que estar activado. Viene activado.
+
+| Fila | Botón al final | Tooltip |
+|---|---|---|
+| Un error documentado sin acción: `404 → sin acción` **falla** | **+** | **Qué hacer si responde 404** |
+| Un estado con acción: `404 → on404` **fin ✕** | Un lápiz | **Cambiar qué hacer si responde 404** |
+| Un estado que el contrato no documenta | **+ Si responde otro status…**, al final de la sección | Mira [Estados que el contrato no documenta](/es/design/branch-other-status/) |
+
+El menú se abre debajo del botón. Se cierra cuando eliges una opción, con **Esc**, con un clic fuera de él o al desplazar el lienzo.
+
+![La tarjeta de getProduct con la fila 404 → sin acción falla y el menú de su + abierto: Si responde 404, + Un paso nuevo…, Ir a «Create order», Terminar el workflow y Reintentar (hasta 3 veces)](/media/es/design-branch-menu.webp)
+
+Algunas filas no tienen botón:
+
+- Una fila que agrupa varios estados, o una sin estado, como `otro error`.
+- Una fila de `onSuccess`, como `éxito → done` **fin ✓**.
+- Cualquier fila de un paso que llama a otro workflow, de un paso de mensajería o de un paso cuya operación no está en un contrato.
+
+Esas se editan en la [pestaña YAML](/es/design/arazzo-editor/).
+
+## Las opciones, una por una
+
+El menú muestra sus opciones en este orden. Cada opción salvo **+ Un paso nuevo…** es un solo cambio: **Deshacer**, sobre el lienzo, o ⌘Z (Ctrl+Z), lo revierte.
+
+### + Un paso nuevo…
+
+Agrega un paso que se ejecuta solo ante esta respuesta y lo conecta con la rama. Abre un diálogo con la paleta, pone el paso al final del workflow y termina el camino feliz antes de él. Es la primera opción y tiene el foco cuando se abre el menú.
+
+Lee [Un paso nuevo para un error](/es/design/branch-new-step/) para ver todo el recorrido.
+
+### Ir a «paso»
+
+Una opción por cada paso que viene **después** de este, con su nombre en palabras: para `getWeakness`, el menú de `getSpecies` muestra **Ir a «Get weakness»**. El último paso de un workflow no tiene ninguna.
+
+La ejecución salta a ese paso y sigue desde ahí, saltándose los pasos intermedios.
+
+```yaml {3-5}
+onFailure:
+  - name: on404
+    type: goto
+    stepId: getWeakness
+    criteria:
+      - condition: $statusCode == 404
+```
+
+La fila dice `404 → on404` **ir a getWeakness**, y una línea naranja punteada recorre el lado izquierdo desde la fila hasta la tarjeta de `getWeakness`.
+
+Para saltar a un paso anterior, por ejemplo para consultar hasta que algo esté listo, usa el panel del paso: su lista ofrece todos los demás pasos del workflow. Un ciclo que ejecuta más de 200 pasos se detiene con **Se detuvo la ejecución: posible ciclo infinito de acciones goto/retry.**
+
+### Terminar el workflow
+
+La ejecución se detiene en este paso como un resultado conocido. Los pasos de abajo no se ejecutan.
+
+```yaml {3}
+onFailure:
+  - name: on404
+    type: end
+    criteria:
+      - condition: $statusCode == 404
+```
+
+La fila dice `404 → on404` **fin ✕**. En los resultados, el paso muestra **↪ Fin del workflow (acción "on404")**.
+
+### Reintentar (hasta 3 veces)
+
+La ejecución llama al paso otra vez. El menú siempre escribe los mismos valores:
+
+| Campo | Valor | Qué significa |
+|---|---|---|
+| `retryAfter` | `1` | Segundos de espera antes de cada intento. Con la API real, Luvin nunca espera más de 10 segundos. En Simulación no espera. |
+| `retryLimit` | `3` | Intentos después de la primera llamada. Si todos fallan, el paso falla y los resultados dicen **Se agotaron los 3 reintentos**. |
+
+La fila dice `404 → on404` **reintenta ×3**. Para usar otros números, cámbialos en la pestaña YAML, o guarda la acción como [reutilizable](/es/design/reusables/): su panel tiene ambos campos. Mira [Reintentos y llamadas lentas](/es/design/success-and-errors/#reintentos-y-llamadas-lentas).
+
+### Quitar la rama
+
+Aparece solo cuando el estado ya tiene una acción. Quita la acción llamada `on404`. Si el paso no tiene otra acción de falla, también desaparece `onFailure`. La fila vuelve a `404 → sin acción` **falla**, o desaparece si el contrato no documenta ese estado.
+
+No quita un paso creado con **+ Un paso nuevo…**, ni el `done` que vino con él. Mira [Quita una rama a un paso nuevo](/es/design/branch-new-step/#quita-una-rama-a-un-paso-nuevo).
+
+## Cambia una rama
+
+<Steps>
+1. Haz clic en el lápiz de la fila. Se abre el mismo menú, ahora con **Quitar la rama** al final.
+2. Elige otra opción.
+</Steps>
+
+Luvin reemplaza la acción `on404` en su lugar de la lista, así que su posición no cambia.
+
+## El menú y el panel del paso
+
+Los dos escriben la misma acción. Cada uno tiene algo que el otro no tiene:
+
+| | Menú de la tarjeta | Panel del paso |
+|---|---|---|
+| Dónde | **Si falla**, en la tarjeta | **Si responde con error**, en el panel |
+| Un paso nuevo para el error | **+ Un paso nuevo…** | No |
+| Ir a | Solo pasos posteriores | Cualquier otro paso, también los anteriores |
+| Acciones reutilizables | No | Un grupo **Reutilizables**, cuando una maneja ese estado |
+| Estados que el contrato no documenta | **+ Si responde otro status…** | Solo los que ya tienen una acción |
+| Sin acción | **Quitar la rama** | **Sin acción (el workflow falla)** |
+
+## Solución de problemas
+
+**Dos filas para el mismo estado.** El menú y el panel escriben y quitan solo la acción llamada `on` más el estado. Si el estado lo manejaba una acción con otro nombre, como `pokemonNotFound` en `getPokemon`, elegir una opción agrega `on404` después de ella, y **Quitar la rama** la deja en su lugar. La ejecución usa la primera acción de la lista que se cumple, así que `pokemonNotFound` sigue ganando. Cambia o borra la otra acción en la pestaña YAML.
+
+**La fila no tiene + ni lápiz.** Mira la lista de [Abre el menú](#abre-el-menú). Revisa también que estés en la pestaña **Diseño**: el diagrama de la pestaña **Resumen** solo muestra las ramas.
+
+**El menú no tiene ninguna opción Ir a.** El paso es el último, así que no hay pasos posteriores. Usa el panel del paso para saltar a uno anterior.
+
+<Aside type="tip">
+Cada rama también recibe un caso generado que simula esa respuesta, por ejemplo **getWeakness responde 404 → on404**. Ejecútalo para comprobar la rama sin hacer fallar la API. Mira [Casos](/es/test/cases/).
+</Aside>
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Ramas de error" href="/es/design/branches/" />
+  <LinkCard title="Un paso nuevo para un error" href="/es/design/branch-new-step/" />
+  <LinkCard title="Estados que el contrato no documenta" href="/es/design/branch-other-status/" />
+  <LinkCard title="Éxito y errores" href="/es/design/success-and-errors/" />
+</CardGrid>

@@ -1,0 +1,147 @@
+---
+title: Values from the request
+description: Every template a route can use to answer with values of the call (path, query, headers, body, method), what happens when a value is missing, and how values are escaped in JSON.
+sidebar:
+  order: 6
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A fixed response always says the same. With templates, a route answers with values from the call it received: the id in the path, a query parameter, a header or a field of the body. Use them when your workflow checks that the API answers with what it sent, such as the name it asked for.
+
+## Example: answer with the name in the path
+
+<Steps>
+1. Add your own route `GET /api/v2/pokemon/:idOrName`.
+2. Write this **Body**:
+
+   ```json
+   { "name": "{{request.path.idOrName}}", "page": "{{request.query.page}}" }
+   ```
+
+3. Call `http://127.0.0.1:4010/api/v2/pokemon/eevee`. The mock answers:
+
+   ```json
+   { "name": "eevee", "page": "{{request.query.page}}" }
+   ```
+</Steps>
+
+`eevee` comes from the path. The call had no `page`, so that template stays as written.
+
+## Write a template
+
+A template is `{{request.` followed by where the value is, and `}}`: `{{request.path.idOrName}}`. Spaces inside the braces are allowed: `{{ request.path.idOrName }}`.
+
+Below **Body**, a hint lists the most common ones: `{{request.path.id}}`, `{{request.query.page}}`, `{{request.headers.x-id}}` and `{{request.body.name}}`.
+
+![An own route GET /v1/promotions whose Body answers "page" with the request.query.page template, and the hint below Body that lists the most common templates](/media/en/mocks-own-route.webp)
+
+## Every template
+
+| Template | Value | Example call | Result |
+|---|---|---|---|
+| `{{request.path.idOrName}}` | The parameter `:idOrName` (or `{idOrName}`) of the route. | `/api/v2/pokemon/eevee` | `eevee` |
+| `{{request.query.limit}}` | The query parameter `limit`. | `/api/v2/pokemon?limit=5` | `5` |
+| `{{request.headers.x-request-id}}` | The header `x-request-id`. Uppercase does not matter. | `X-Request-Id: abc-1` | `abc-1` |
+| `{{request.body.sku}}` | The field `sku` of the body. | `{"sku": "MUG-01"}` | `MUG-01` |
+| `{{request.body.items.0.sku}}` | A field inside a list, by position from 0. | `{"items": [{"sku": "MUG-01"}]}` | `MUG-01` |
+| `{{request.body}}` | The whole body. | `{"sku": "MUG-01"}` | `{"sku":"MUG-01"}` |
+| `{{request.query}}` | Every query parameter, as a JSON object. | `?limit=5&offset=10` | `{"limit":"5","offset":"10"}` |
+| `{{request.path}}` | Every parameter of the path, as a JSON object. | `/api/v2/pokemon/eevee` | `{"idOrName":"eevee"}` |
+| `{{request.method}}` | The method of the call. | `POST /orders` | `POST` |
+
+- A query parameter that appears twice (`?tag=a&tag=b`) gives the last value: `b`.
+- A header that arrives twice gives both values joined by `, `.
+- Values of the path and the query arrive decoded: `mr%20mime` is `mr mime`.
+- A name can have letters, digits, `_`, `-` and `.`. A query parameter such as `page[size]` cannot be used in a template.
+
+## Where templates work
+
+| Part of the route | Templates |
+|---|---|
+| **Body** | Yes. |
+| The value of a header | Yes. |
+| The name of a header | No. |
+| **Path**, **Status**, **Name** | No. |
+
+They work in every route that answers: your own routes, and also the routes of the source, if a saved example has a template in its body.
+
+## How the body of the call is read
+
+| The call sends | `{{request.body.…}}` reads |
+|---|---|
+| A `content-type` with `json`, or a body that starts with `{` or `[` | The JSON fields. |
+| `application/x-www-form-urlencoded` | The form fields: `sku=MUG-01&quantity=2` gives `sku` and `quantity`. |
+| Anything else (plain text, XML, `multipart/form-data`) | No fields. `{{request.body}}` gives the text as is. |
+
+The mock reads the first 5 MB of the body of a call.
+
+## What each kind of value becomes
+
+| Value in the call | Written as |
+|---|---|
+| Text | The text. In a JSON body, escaped (see below). |
+| A number, `true` or `false` | As is: `2`, `true`. |
+| `null` | `null` |
+| An object or a list | JSON: `{"color":"red"}`. |
+| Nothing (the value is not in the call) | The template stays as written. |
+
+### Text or number in JSON
+
+The quotes around a template are yours. Put them for text, and leave them out for numbers, objects and lists. A route `POST /cart/items` in a shop API, with this **Body**:
+
+```json
+{
+  "sku": "{{request.body.sku}}",
+  "quantity": {{request.body.quantity}},
+  "options": {{request.body.options}},
+  "method": "{{request.method}}"
+}
+```
+
+and this call:
+
+```json
+{ "sku": "MUG-01", "quantity": 2, "options": { "color": "red" } }
+```
+
+answers:
+
+```json
+{
+  "sku": "MUG-01",
+  "quantity": 2,
+  "options": {"color":"red"},
+  "method": "POST"
+}
+```
+
+## Escaping in JSON
+
+When the body of the route is JSON (its `content-type` has `json`, or it has none and starts with `{` or `[`), text values are escaped. A `"` or a line break in the call cannot close the text and add fields.
+
+A route `GET /search` with the body `{"q": "{{request.query.q}}"}` and the call `/search?q=say%20%22hi%22` answers:
+
+```json
+{"q": "say \"hi\""}
+```
+
+In headers, line breaks become spaces. In a body that is not JSON, values go as they are.
+
+## Troubleshooting
+
+| What you see | Why, and what to do |
+|---|---|
+| The template stays as written. | The value is not in the call, or the name is different. `{{request.path.id}}` does not read a route written as `:idOrName`. Use the same name. |
+| A field of the body stays as written. | The call does not send JSON or a form, or the field is inside a list and needs its position: `items.0.sku`. |
+| The response is not valid JSON. | A template without quotes stayed as written because the value was missing, or an object went inside quotes. Check the quotes, or send the value. |
+| A header template stays as written. | The header name in the template has a character not allowed, or the call did not send that header. |
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Responses" href="/mocks/responses/" />
+  <LinkCard title="Routes" href="/mocks/routes/" />
+  <LinkCard title="The Log of a mock" href="/mocks/log/" />
+  <LinkCard title="Credentials and errors" href="/mocks/auth-and-errors/" />
+</CardGrid>

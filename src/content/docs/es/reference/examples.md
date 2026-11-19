@@ -54,7 +54,7 @@ Consulta un Pokémon, luego su especie, a qué es débil su tipo y qué hace su 
 El segundo `successCriteria` usa JSONPath para comprobar que el Pokémon tiene una habilidad visible. Si el Pokémon no existe, `onFailure` termina el workflow sin drama. El paso siguiente toma `$steps.getPokemon.outputs.mainType` como parámetro de ruta.
 
 :::note[Se pausa una vez]
-Contra la **API real**, un paso devuelve una lista que usan pasos posteriores, así que la ejecución se pausa con el diálogo de la lista aunque tenga un solo elemento. Pulsa **Continuar con este elemento**. En **Simulación**, el diálogo aparece solo cuando la lista tiene más de un elemento. Mira [Listas](/es/test/lists/).
+El primer paso devuelve listas que usan los pasos siguientes. Una lista con un solo elemento, como `types` de Pikachu, no pausa la ejecución. `abilities` tiene dos elementos, así que la ejecución se pausa una vez para preguntar con cuál seguir: elígelo y pulsa **Continuar con este elemento**. El runner nunca pregunta: usa el elemento del diseño o una regla guardada en el paso. Mira [Listas](/es/test/lists/).
 :::
 
 ### Type explorer

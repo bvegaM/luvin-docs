@@ -1,0 +1,190 @@
+---
+title: Proxy
+description: Send the desktop app's requests through the system proxy, the HTTP_PROXY variables or a custom proxy with authentication and exceptions, and see which requests use it.
+sidebar:
+  order: 12
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A proxy is a server that your requests pass through on their way to the API. Many companies require one to reach the internet. The **Proxy** section of **Preferences** says which proxy Luvin uses: the one of your operating system, the one in the `HTTP_PROXY` environment variables, or one you write yourself.
+
+<Aside type="note" title="Desktop app only">
+In the browser, the **Proxy** section does not appear: requests use the proxy of the browser.
+</Aside>
+
+## Example: the company proxy, except for internal servers
+
+Your company proxy is `proxy.company.com:8080` and asks for a username and password. The test servers of the shop, under `shop.internal`, must be reached directly.
+
+<Steps>
+
+1. Open **Preferences** (⌘, or Ctrl+,) and click **Proxy**.
+2. Turn on **Use custom proxy**. Its options appear below.
+3. In **Use proxy for**, leave **HTTP** and **HTTPS** ticked.
+4. In **Proxy server**, leave `http`, write `proxy.company.com` in the host and `8080` in the port.
+5. Turn on **Proxy authentication** and write the **Username** and **Password**.
+6. In **Bypass**, write `shop.internal`.
+7. At the top of the section, **HTTPS requests** and **HTTP requests** say `proxy.company.com:8080 · custom proxy`.
+8. Send a request to `https://api.shop.test/orders`: the globe next to the response, **Network**, shows `proxy.company.com:8080` in its **Proxy** row.
+
+</Steps>
+
+![The Proxy section with Use custom proxy on, HTTP and HTTPS ticked and the server http://proxy.example.internal:8080; at the top, HTTPS requests and HTTP requests say proxy.example.internal:8080 · custom proxy](/media/en/prefs-proxy.webp)
+
+Requests to `https://api.shop.internal` skip the custom proxy. If **Use system proxy** is still on and the system has a proxy for that address, they use the system one: see [How Luvin chooses](#how-luvin-chooses).
+
+## What you see at the top
+
+The section starts with *By default Luvin uses the system proxy, like Postman. localhost and 127.0.0.1 always connect directly.* Below, two lines say where requests go right now:
+
+| Line | Example |
+|---|---|
+| **HTTPS requests** | `proxy.company.com:8080 · custom proxy` |
+| **HTTP requests** | *No proxy (direct connection)* |
+
+The source after the dot is **custom proxy**, **system proxy** or **environment variable**. The lines update when you change a setting. They are worked out for a generic address: a host in **Bypass** or in `NO_PROXY` can still connect directly.
+
+## The three sources
+
+| Setting | Default | What it uses |
+|---|---|---|
+| **Use system proxy** | On | The proxy configured in the operating system, including a PAC file. While on, its hint says what it **Detected**. |
+| **Respect HTTP_PROXY, HTTPS_PROXY and NO_PROXY** | On | The environment variables the app was started with. While on, its hint shows them, or *None set.* |
+| **Use custom proxy** | Off | The proxy you write. *Takes priority over the system proxy and environment variables.* |
+
+### How Luvin chooses
+
+For each request, Luvin goes down this list and stops at the first that applies:
+
+<Steps>
+
+1. The address is `localhost`, a `127.x.x.x` address, `::1` or a name ending in `.localhost`: it connects directly, always.
+2. **Use custom proxy** is on, it has a host, the kind of request (**HTTP** or **HTTPS**) is ticked in **Use proxy for**, and the host of the request is not in **Bypass**: the custom proxy.
+3. **Use system proxy** is on and the system has an HTTP or HTTPS proxy for that address: the system proxy.
+4. **Respect HTTP_PROXY, HTTPS_PROXY and NO_PROXY** is on and the variables give a proxy for that address: that proxy.
+5. Otherwise: no proxy.
+
+</Steps>
+
+A host in **Bypass** only skips the custom proxy: Luvin goes on to steps 3 and 4. To reach a host directly, it must also be outside the system proxy (or turn off **Use system proxy**) and in `NO_PROXY` (or turn off the environment variables).
+
+## The system proxy
+
+Luvin asks the operating system which proxy to use for each address, as a browser does. That includes a PAC file (automatic configuration), which can choose a different proxy, or none, per address.
+
+- The hint of **Use system proxy** shows what it **Detected**, for example `PROXY proxy.company.com:8080`, or *No proxy (direct connection)*.
+- A SOCKS proxy is not supported. If the system lists one, Luvin skips it and takes the next HTTP or HTTPS proxy of the list, or none.
+
+## Environment variables
+
+With **Respect HTTP_PROXY, HTTPS_PROXY and NO_PROXY** on, Luvin reads:
+
+| Variable | Used for |
+|---|---|
+| `HTTPS_PROXY` | `https` addresses |
+| `HTTP_PROXY` | `http` addresses |
+| `ALL_PROXY` | Both, when the one above is not set |
+| `NO_PROXY` | Hosts that skip these variables. Same syntax as **Bypass** |
+
+- Names can be in upper or lower case. If both exist, the lower case one wins.
+- The value can be `proxy.company.com:8080`, `http://proxy.company.com:8080`, `https://…`, or include a username and password: `http://ana:secret@proxy.company.com:8080`. A `socks5://` value is ignored.
+- The hint shows `HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY` without the username and password. `ALL_PROXY` is used but not shown.
+- Luvin sees the variables of the moment it was started. Variables you set in a terminal reach Luvin only if you start Luvin from that terminal.
+
+## Custom proxy
+
+<Steps>
+
+1. Turn on **Use custom proxy**.
+2. In **Use proxy for**, tick **HTTP**, **HTTPS** or both. A kind that is not ticked goes on to the system proxy and the environment variables.
+3. In **Proxy server**, choose the protocol of the proxy, `http` or `https`.
+4. Write the host, such as `proxy.company.com`, without `http://` or a path. If you paste `http://`, it is removed.
+5. Write the port. It is `8080` by default, from 1 to 65535.
+6. If the proxy asks for a login, see [Proxy authentication](#proxy-authentication).
+7. In **Bypass**, list the hosts that must not use this proxy.
+
+</Steps>
+
+- Without a host, the section warns *Without a host, requests do not use this proxy.* and Luvin goes on to the next source.
+- A host with spaces, a path or other invalid characters is marked with *Invalid host: type only the domain or IP, without a path.*
+- With the `https` protocol, Luvin talks to the proxy over TLS. **SSL certificate verification** and your **CA certificates** apply to the proxy's certificate too.
+
+### Proxy authentication
+
+<Steps>
+
+1. Turn on **Proxy authentication**. **Username** and **Password** appear.
+2. Write the **Username**. It is saved when you leave the field.
+3. Write the **Password**. The eye button (**Show**, **Hide**) lets you check it. It is saved when you leave the field or press Enter.
+
+</Steps>
+
+- Luvin sends them as Basic authentication (`Proxy-Authorization`) on every request through the proxy.
+- The password is saved encrypted on this computer, with the other secrets of the app, never in the settings file. Empty the field to delete it.
+- Without a username, Luvin does not send a login.
+- If this computer cannot store encrypted passwords (Linux without a system keychain), the field says *This computer cannot store encrypted passwords (no system keychain): it will not be saved.*
+
+If the proxy rejects them, the request fails with *The proxy rejected the username or password (407). Check them in Preferences → Proxy.*
+
+### Bypass
+
+**Bypass** accepts hosts separated by commas, spaces or new lines:
+
+| Entry | Skips the proxy for |
+|---|---|
+| `shop.test` | `shop.test` and its subdomains, such as `api.shop.test` |
+| `*.shop.test` or `.shop.test` | `shop.test` and its subdomains |
+| `api-*.shop.test` | Hosts that match the pattern, such as `api-eu.shop.test`: `*` stands for any characters |
+| `api.shop.test:8443` | That host, only on that port |
+| `10.0.0.5` | That IP address |
+| `[fd00::5]` | That IPv6 address |
+| `*` | Everything |
+
+Upper and lower case do not matter. Address ranges such as `10.0.0.0/8` are not supported: list each address.
+
+## How requests travel through the proxy
+
+| Request | What the proxy sees |
+|---|---|
+| `https://…` | Only the host and the port. Luvin opens a tunnel (`CONNECT`) and encrypts the request inside it, end to end with the API. |
+| `http://…` | The whole request: address, headers and body. |
+
+If the proxy inspects HTTPS traffic with its own certificate, add that certificate as a CA: see [CA certificates](/get-started/network-certificates/#ca-certificates).
+
+## What goes through the proxy
+
+| Part of Luvin | Proxy it uses |
+|---|---|
+| HTTP and GraphQL requests, the runner, workflow runs, **Try it out**, the OAuth 2.0 token requests | Everything on this page |
+| gRPC requests | The proxy chosen for an `https` address with the same host and port, only if it is an `http` proxy. With an `https` proxy, gRPC connects directly. |
+| WebSocket requests and the OAuth 2.0 login window | The custom proxy with its **Bypass** (local addresses always direct), or else the system proxy if **Use system proxy** is on, or else none. They do not use the environment variables. They use the username and password of **Proxy authentication** when the custom proxy asks for them. |
+
+For gRPC, the custom proxy applies only when **HTTPS** is ticked in **Use proxy for**. See [gRPC requests](/requests/grpc/), [WebSocket requests](/requests/websocket/) and [OAuth 2.0](/authorization/oauth2/).
+
+## Check that a request used the proxy
+
+- The globe next to the response, **Network**, has a **Proxy** row with the proxy's host and port. When the row is missing, the request connected directly.
+- The top of the **Proxy** section says where requests go now.
+
+## Troubleshooting
+
+| What you see | Why | What to do |
+|---|---|---|
+| *The proxy rejected the username or password (407)…* | Wrong username or password, or the proxy needs a login and **Proxy authentication** is off | Check them in **Proxy authentication** |
+| *Could not go through the proxy proxy.company.com:8080 (ECONNREFUSED)…* | The proxy is not reachable at that host and port | Check the host and port, or turn the proxy off to connect directly |
+| *Could not go through the proxy … (LUVIN_PROXY)…* | The proxy refused to open the tunnel, or did not answer within 30 seconds | Check with your IT team that the proxy allows that host |
+| An internal host still goes through a proxy | It is in **Bypass**, but the system proxy or `HTTPS_PROXY` also applies | Turn off **Use system proxy** or the environment variables, or add the host to `NO_PROXY` |
+| The environment variables are not detected (*None set.*) | Luvin was opened from the Dock, the Start menu or Finder, not from the terminal where you set them | Start Luvin from that terminal, or use a custom proxy |
+| The system proxy is ignored | It is a SOCKS proxy | Use an HTTP proxy as a custom proxy |
+| *The server certificate is not trusted (…)* only behind the proxy | The proxy inspects HTTPS with its own certificate | Add its CA in **Certificates** |
+| WebSocket ignores `HTTPS_PROXY` | WebSocket uses only the custom or the system proxy | Set a custom proxy |
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Network settings" href="/get-started/network/" />
+  <LinkCard title="Certificates" href="/get-started/network-certificates/" />
+  <LinkCard title="Request settings" href="/get-started/network-requests/" />
+  <LinkCard title="Connection help" href="/dev-tools/connection-help/" />
+</CardGrid>

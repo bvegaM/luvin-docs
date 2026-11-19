@@ -1,0 +1,117 @@
+---
+title: Ejecuta workflows
+description: Elige qué workflows ejecuta el runner y en qué orden, contra la API real o en simulación, con vueltas, ajustes y los avisos que ves antes de empezar.
+sidebar:
+  order: 7
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+El runner de workflows ejecuta varios workflows uno detrás de otro, cada uno con sus casos marcados, y le da a cada caso su veredicto. Es lo mismo que pulsar **Ejecutar** en cada workflow, pero todo de una vez y tantas veces como quieras. No hace falta que nadie mire: nunca se detiene a preguntarte nada.
+
+## Ejemplo: los workflows de la Pokédex contra la API real
+
+<Steps>
+1. En la barra lateral, abre el menú **⋯** de `pokemon.arazzo.yaml` y elige **Ejecutar workflows (runner)**.
+2. En **Orden de ejecución**, haz clic en **Pokemon card**. Debajo aparecen sus dos casos: **Camino feliz** con la etiqueta **API real**, y el caso del 404 con la etiqueta **Simulado**. La fila dice **2 de 2 casos**.
+3. En **Contra**, elige **API real**. La pista dice que los requests van a la API del ambiente.
+4. Pulsa **Ejecutar (n casos)**.
+</Steps>
+
+<video controls muted playsinline preload="metadata" poster="/media/es/runner-workflows.webp" src="/media/es/runner-workflows.mp4"></video>
+
+Los resultados muestran una fila por workflow. Haz clic en **Pokemon card** para ver sus casos, como después de **Ejecutar**. Mira [Lee los resultados de los workflows](/es/runner/workflows-results/).
+
+## La lista de workflows
+
+La lista **Orden de ejecución**, a la izquierda, tiene todos los workflows del archivo Arazzo, o de la colección. Su título dice cuál: el nombre del archivo, por ejemplo `pokemon.arazzo.yaml`, o, para toda la colección, "Workflows de" y su nombre, por ejemplo **Workflows de Shop**.
+
+Cada fila tiene:
+
+| Parte | Qué es |
+|---|---|
+| ⋮⋮ | El asa para arrastrar la fila. |
+| Casilla | Marcada, el workflow se ejecuta. |
+| Número | Su posición en el orden. |
+| Nombre, con una flecha | Haz clic para ver y elegir sus casos. Su tooltip dice **Ver y elegir sus casos**. |
+| **modifica datos** | Con **API real**, el workflow tiene pasos que crean, cambian o borran datos. |
+| **1 de 2 casos** | Casos marcados que se pueden ejecutar en el modo elegido, del total de sus casos. También abre los casos. Sin ninguno, dice **sin casos en este modo**. |
+| ˄ ˅ | **Subir** y **Bajar**. |
+
+Un workflow sin marcar, o con **sin casos en este modo**, queda en gris y no se ejecuta.
+
+## Elige y ordena los workflows
+
+<Steps>
+1. Desmarca los workflows que no quieres.
+2. Arrastra una fila para moverla, o usa **Subir** y **Bajar**.
+3. Para marcar o desmarcar todos los workflows, usa la casilla de arriba de la lista.
+4. **Restablecer** vuelve al orden original y marca todos los workflows.
+</Steps>
+
+Arriba dice cuántos se van a ejecutar, por ejemplo **3 de 4 elegidos**. Un workflow marcado sin casos que ejecutar en el modo elegido no cuenta.
+
+Para elegir los casos de un workflow, mira [Elige los casos](/es/runner/workflows-cases/).
+
+## API real o simulación
+
+En **Contra**, elige dónde se ejecutan los casos:
+
+| Opción | Pista debajo | Qué pasa |
+|---|---|---|
+| **API real** | *Los requests van a la API del ambiente «…».* | Cada paso llama a tu API. Algunos casos se simulan igual, como la mayoría de los casos por respuesta. |
+| **Simulado** | *Responde con los ejemplos del contrato: no se llama a ninguna API.* | Ningún paso llama a una API. Los casos que necesitan la API real no se ejecutan. Mira [Simulación](/es/test/simulation/). |
+
+**Contra** empieza en el mismo modo que la barra de ejecución de tus workflows, o con el modo de tu última ejecución del mismo archivo o colección. Cambiarlo cambia cuántos casos se pueden ejecutar: las cuentas de cada fila y del botón para empezar se actualizan.
+
+## Vueltas y ajustes
+
+| Campo | Por defecto | Qué hace |
+|---|---|---|
+| **Vueltas** | 1 | Cuántas veces se ejecutan todos los workflows marcados, de 1 a 10.000. Con un archivo de datos, empieza en el número de filas. Mira [Archivos de datos](/es/runner/data-files/). |
+| **Detenerse si un workflow falla** | Sin marcar | La ejecución termina en el primer workflow que falla. Su pista: *Falla si algún caso no pasa o si no pudo correr por sus dependencias.* |
+| **Pausa entre workflows de … ms** | Sin marcar | Una pausa entre un workflow y el siguiente, también entre vueltas. Al marcarlo se pone en 500 ms, de 100 en 100. Ponerlo en `0` lo desmarca. |
+
+![La columna derecha del Runner de workflows: Tipo de ejecución Funcional, Contra con API real y Simulado y la pista sobre el ambiente local, Datos por vuelta con Elegir CSV o JSON…, Vueltas 1, los ajustes Detenerse si un workflow falla y Pausa entre workflows, y el botón Ejecutar (7 casos)](/media/es/runner-workflows-setup.webp)
+
+## Elegir de las listas
+
+Cuando un paso devuelve una lista y el paso siguiente usa un elemento, una ejecución a mano te pregunta cuál. El runner nunca pregunta. En **Elegir de las listas** muestra las reglas guardadas en los pasos de los workflows marcados, por ejemplo *el que cumpla status es ACTIVE*, con **Quitar** junto a cada una.
+
+Sin reglas guardadas dice *Sin reglas guardadas: cuando un paso devuelve una lista, el runner usa el elemento que dice el diseño. Al ejecutar a mano puedes guardar una regla desde la pregunta.*
+
+Mira [Listas en el runner](/es/runner/workflows-lists/).
+
+## Avisos antes de ejecutar contra la API real
+
+| Aviso | Qué hacer |
+|---|---|
+| *Faltan credenciales en «…»: las llamadas que las necesitan responderán 401.* | Pulsa **Completar** para abrir el ambiente y complétalas. |
+| Una casilla: *N workflow(s) crean, cambian o borran datos en «…». Marca para ejecutar igual.* | Revisa que el ambiente sea uno donde los datos pueden cambiar, y marca la casilla. **Ejecutar (n casos)** queda apagado hasta que lo hagas. |
+| Un workflow inicia sesión con OAuth 2.0. | El inicio de sesión se abre cuando pulsas el botón para empezar. Si falla, el error aparece arriba del runner, después del nombre del workflow, y la ejecución no empieza. Mira [OAuth 2.0](/es/authorization/oauth2/). |
+
+Con **Simulado** no aparece ninguno: ninguna llamada llega a una API.
+
+## Empieza la ejecución
+
+<Steps>
+1. Revisa el **Ambiente** arriba del runner.
+2. En **Tipo de ejecución**, elige **Funcional**: *Ejecuta los casos marcados de cada workflow y da su veredicto.*
+3. Elige **Contra**, las vueltas y los ajustes.
+4. Pulsa **Ejecutar (n casos)**. El número es los casos que se van a ejecutar por las vueltas: 2 workflows con 3 casos cada uno, en 4 vueltas, dicen **Ejecutar (24 casos)**.
+</Steps>
+
+**Ejecutar (n casos)** queda apagado cuando ningún workflow se puede ejecutar, mientras hay otra ejecución de workflows en curso, incluido un **Ejecutar** en la pestaña de un workflow, o mientras la casilla sobre datos que cambian está sin marcar.
+
+## Workflows que dependen de otros
+
+Si un workflow depende de otros, esos corren primero, cada vez que el workflow se ejecuta, como cuando pulsas **Ejecutar**. En 3 vueltas, corren 3 veces. Si fallan, los casos de ese workflow terminan sin concluir, y el workflow cuenta como fallido en esa vuelta. Si todos los casos que se ejecutan van simulados, los workflows de los que depende también se simulan. Mira [Ejecutar](/es/test/run/#cuando-un-workflow-depende-de-otro).
+
+## Siguiente
+
+<CardGrid>
+  <LinkCard title="Elige los casos" href="/es/runner/workflows-cases/" />
+  <LinkCard title="Listas en el runner" href="/es/runner/workflows-lists/" />
+  <LinkCard title="Lee los resultados de los workflows" href="/es/runner/workflows-results/" />
+  <LinkCard title="Archivos de datos" href="/es/runner/data-files/" />
+</CardGrid>

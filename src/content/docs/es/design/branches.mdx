@@ -1,0 +1,115 @@
+---
+title: Ramas de error
+description: Qué es una rama, cómo sigue una ejecución después de cada tipo de acción en Arazzo y dónde se crean y se leen las ramas en Luvin.
+sidebar:
+  order: 7.1
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Una rama dice qué hace el workflow cuando un paso recibe una respuesta concreta, por ejemplo «si `getSpecies` responde 404, termina el workflow». Sin una rama, cualquier error detiene el workflow con una falla genérica. Agrega una rama para cada error que tu aplicación trata distinto, así el resultado es conocido y queda probado.
+
+Esta página explica cómo avanza una ejecución de un paso a otro. Las páginas que siguen muestran cómo crear cada rama desde el lienzo.
+
+## Ejemplo: terminar ante un 404
+
+En **Pokemon card**, `getPokemon` ya tiene una rama: cuando el Pokémon no existe, el workflow termina ahí en vez de fallar.
+
+<Tabs>
+<TabItem label="En el lienzo">
+
+La tarjeta de `getPokemon`, en la pestaña **Diseño**, tiene una sección **Si falla** con la fila `404 → pokemonNotFound` **fin ✕**.
+
+</TabItem>
+<TabItem label="En el YAML">
+
+```yaml title="pokemon.arazzo.yaml" {4-8}
+- stepId: getPokemon
+  # …
+  onFailure:
+    - name: pokemonNotFound
+      type: end
+      criteria:
+        - condition: $statusCode == 404
+```
+
+</TabItem>
+</Tabs>
+
+## Cómo avanza una ejecución por los pasos
+
+En Arazzo, un paso tiene éxito o falla:
+
+- **Tiene éxito** cuando se cumplen todos sus criterios de éxito, por ejemplo `$statusCode == 200`.
+- **Falla** cuando un criterio no se cumple, por ejemplo porque la API respondió 404.
+
+Luego la ejecución mira las acciones del paso. Después de un éxito lee `onSuccess`; después de una falla lee `onFailure`. Toma la **primera** acción de la lista cuyos criterios se cumplen todos, y hace lo que esa acción dice. Una acción sin criterios vale para cualquier respuesta.
+
+| El paso | Acción que se aplica | Qué hace la ejecución después |
+|---|---|---|
+| Tiene éxito | Ninguna | Sigue con el siguiente paso de la lista. Después del último, el workflow termina. |
+| Tiene éxito | `end` | Termina el workflow aquí. Los pasos de abajo no se ejecutan. |
+| Tiene éxito | `goto` | Salta al paso que nombra. |
+| Falla | Ninguna | Se detiene. El workflow falla con el error del paso. |
+| Falla | `end` | Se detiene en este paso, como un resultado conocido. Los pasos de abajo no se ejecutan. |
+| Falla | `retry` | Llama al paso otra vez, hasta `retryLimit` veces. Si sigue fallando, el workflow falla. |
+| Falla | `goto` | Sigue desde el paso que nombra y, desde ahí, sigue el orden de la lista. |
+
+De esto salen dos reglas, y Luvin las aplica por ti cuando armas ramas en el lienzo:
+
+- **El orden de la lista es el orden de la ejecución.** Un paso puesto después del último paso del camino feliz igual se ejecuta después de él, salvo que algo termine la ejecución antes. Por eso Luvin agrega una acción llamada `done` cuando pone un paso al final para un error. Mira [Un paso nuevo para un error](/es/design/branch-new-step/).
+- **Un salto no vuelve.** Cuando el destino de un `goto` tiene éxito, la ejecución sigue con el paso que está debajo del destino, no con el paso que saltó.
+
+### Qué ves en los resultados
+
+| Qué pasó | Línea bajo el paso |
+|---|---|
+| Se activó una acción `end` | **↪ Fin del workflow (acción "pokemonNotFound")** |
+| Se activó una acción `goto` | **↪ Va al paso "listPokemon" (acción "on404")** |
+| Se activó una acción `retry` | **↪ Reintento 1 de 3 (acción "on429")** |
+| Fallaron todos los reintentos | **↪ Se agotaron los 3 reintentos** |
+
+Los pasos que no se ejecutaron dicen por qué:
+
+| Por qué | Mensaje |
+|---|---|
+| Un paso anterior falló, o un `end` lo detuvo después de un error | **No se ejecutó porque el paso "getPokemon" falló.** |
+| Un `end` o un `goto` los saltó en una ejecución que salió bien | **No se ejecutó: el workflow terminó antes por una acción end/goto.** |
+
+Una ejecución que da vueltas con saltos o reintentos más de 200 veces se detiene con **Se detuvo la ejecución: posible ciclo infinito de acciones goto/retry.**
+
+## Qué puedes armar desde el lienzo
+
+| Tipo de rama | Dónde | Lee |
+|---|---|---|
+| Terminar, reintentar o ir a un paso posterior, para un estado que documenta el contrato | El **+** o el lápiz de una fila de **Si falla** | [El menú de una rama](/es/design/branch-menu/) |
+| Lo mismo, para un estado que el contrato no documenta | **+ Si responde otro status…** | [Estados que el contrato no documenta](/es/design/branch-other-status/) |
+| Un paso nuevo solo para esa respuesta | **+ Un paso nuevo…** en el menú | [Un paso nuevo para un error](/es/design/branch-new-step/) |
+| Terminar, reintentar o ir a cualquier paso, también a los anteriores | El panel del paso, **Si responde con error** | [Éxito y errores](/es/design/success-and-errors/) |
+| Acciones de éxito, acciones que dependen de un campo de la respuesta, varios estados en una acción | La pestaña **YAML** | [La pestaña YAML](/es/design/arazzo-editor/) |
+
+Cada rama que creas con el menú de la tarjeta o con las acciones del panel del paso, salvo un reutilizable, se escribe igual: una acción llamada `on` seguido del estado, como `on404`, con el criterio `$statusCode == 404`.
+
+<Aside type="note">
+Solo los pasos de operación tienen ramas en el lienzo. Un paso que llama a otro workflow, un paso de mensajería (un mensaje no tiene estado) y un paso cuya operación no está en ningún contrato de la colección no tienen **+** en **Si falla**.
+</Aside>
+
+## Dónde lees las ramas
+
+<Steps>
+1. **En la tarjeta.** Con **Acciones según la respuesta** activado, sobre el lienzo, cada tarjeta lista sus ramas y los errores documentados sin acción. Un salto se dibuja como una línea naranja punteada. Mira [Mira las acciones en el lienzo](/es/design/success-and-errors/#mira-las-acciones-en-el-lienzo).
+2. **En el panel del paso.** **Si responde con error** lista una fila por estado, con la acción elegida.
+3. **En la pestaña Resumen.** **Cobertura de respuestas** dice, para cada estado que documenta el contrato, si algo lo maneja.
+4. **En la pestaña Casos.** Cada rama recibe su propio caso generado, por ejemplo **getSpecies responde 404 → on404**, que simula esa respuesta y comprueba que la acción se active. Mira [Casos](/es/test/cases/).
+</Steps>
+
+![Tarjetas en el lienzo con Acciones según la respuesta encendido: getProduct tiene 404 → on404 ir a openTicket, con una línea naranja discontinua hasta openTicket, y createOrder tiene éxito → done fin ✓ y 409 → sin acción falla](/media/es/design-branch-done.webp)
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="El menú de una rama" href="/es/design/branch-menu/" />
+  <LinkCard title="Un paso nuevo para un error" href="/es/design/branch-new-step/" />
+  <LinkCard title="Insertar un paso" href="/es/design/insert-step/" />
+  <LinkCard title="Reintenta, salta y termina ante errores" href="/es/recipes/error-branches/" />
+</CardGrid>

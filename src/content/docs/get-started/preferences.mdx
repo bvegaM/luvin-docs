@@ -1,50 +1,57 @@
 ---
 title: Preferences and the Simple interface
-description: Change the language, your role, the interface (Simple or Full) and the theme, and read what the Simple interface hides.
+description: Change the language, your role, the interface (Simple or Full), the theme, the history and the network settings, and read what the Simple interface hides.
 sidebar:
   order: 9
 ---
 
 import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
 
-**Preferences** holds the settings that belong to you, not to a workspace: language, role, interface and theme. Open it when Luvin shows too much (or too little) technical detail, or when you want another language or theme.
+**Preferences** holds the settings that belong to you and to this computer, not to a workspace: language, role, interface, theme, history and how requests go out to the network. Open it when Luvin shows too much (or too little) technical detail, when you want another language or theme, or when your company uses a proxy or certificates.
 
-![The Preferences dialog with the language, role, interface and theme options](/media/en/preferences.webp)
+![The Preferences dialog open on General: the sections on the left, the Requests settings with their defaults, and Language and Interface below them](/media/en/preferences.webp)
 
 ## Open Preferences
 
 <Steps>
 
-1. Click the gear icon at the bottom left of the window (the status bar).
-2. The **Preferences** dialog opens over the app.
-3. Change what you need. Each change applies at once; there is no save button.
+1. Click the gear icon at the bottom left of the window (the status bar), or press ⌘, (Ctrl+,).
+2. The **Preferences** dialog opens over the app, on **General**. The sections are on the left.
+3. Change what you need. Each change applies at once; there is no save button. Text and number fields save when you leave the field or press Enter.
 4. Press Esc, click the **✕** or click outside the dialog to close it.
 
 </Steps>
 
 Luvin remembers every setting on this computer. It does not save them in your workspace or in your files.
 
-## Each setting
+## The sections
+
+| Section | What it holds |
+|---|---|
+| **General** | **Requests**, **Application**, **Workspaces** and **History** (see below). |
+| **Theme** | **System**, **Light** or **Dark**. **System** follows the macOS or Windows appearance and switches on its own. |
+| **Shortcuts** | The keyboard shortcuts, in groups: **General**, **Tabs** (desktop app only) and **Workflow canvas**. The full list is in [Keyboard shortcuts](/reference/shortcuts/). |
+| **Certificates** | CA certificates and client certificates. Desktop app only. |
+| **Proxy** | System proxy, environment variables and a custom proxy. Desktop app only. |
+| **About** | The version of Luvin, **Privacy** and the **Guided tour**, with **Start the tour**. |
+
+In the browser, **Certificates** and **Proxy** do not appear: the browser handles them.
+
+## General
+
+### Requests
+
+How requests go out: **Request timeout**, **Max response size**, **SSL certificate verification**, **Follow redirects**, **Max redirects** and **Automatic cookies**. They work in the desktop app. In the browser this group says *Desktop app only: in the browser, requests use the browser settings.* and only **Automatic cookies** can be changed. Each one, with its default, is explained in [Network settings](/get-started/network/).
+
+### Application
 
 | Setting | Options | What it does |
 |---|---|---|
 | **Language** | **Español**, **English** | Changes every label of the app. The first time, Luvin follows the language of your browser. |
-| **Your role** | **Product Manager / Owner**, **Business or partners**, **QA / Testing**, **Development**, **Architecture**, **Other** | Also sets the interface, as the next table shows. Empty (**—**) until you choose one. |
 | **Interface** | **Full (development)**, **Simple (product)** | How much technical detail Luvin shows. |
-| **Theme** | **System**, **Light**, **Dark** | **System** follows your operating system. |
+| **Your role** | **Product Manager / Owner**, **Business or partners**, **QA / Testing**, **Development**, **Architecture**, **Other** | Also sets the interface, as the next table shows. Empty (**—**) until you choose one. |
 
-Below the settings, the dialog also shows:
-
-- **Privacy**: where your data lives. In the browser: *Everything runs in your browser. Your session is saved only on this device, without credentials.* In the desktop app: *Everything runs on your computer. Requests go out from the app, never through a server of ours.* With a workspace open, it says that every change is saved in the workspace files and that secrets are encrypted on this computer.
-- **Keyboard shortcuts**: the three main ones (**⌘Enter**, **⌘K**, **Esc**). The full list is in [Keyboard shortcuts](/reference/shortcuts/).
-- **Guided tour**, with **Start the tour**. See [The guided tour](/get-started/guided-tour/).
-- The version of Luvin, at the bottom.
-
-### The theme, without opening Preferences
-
-The sun or moon icon next to the gear, in the status bar, changes the theme in one click. Each click goes to the next one: **System**, **Light**, **Dark**, and back to **System**. Its tooltip says the current theme and the next one.
-
-### Role and interface go together
+#### Role and interface go together
 
 Choosing a role changes the interface. Changing only the interface does not change the role.
 
@@ -58,6 +65,27 @@ Choosing a role changes the interface. Changing only the interface does not chan
 | **Other** | **Full (development)** |
 
 The welcome screen offers the same choice the first time. See [A tour of the interface](/get-started/interface/).
+
+### Workspaces
+
+Desktop app only. **Location for new workspaces** says where new workspaces are suggested: `Documents/Luvin` until you click **Choose…** and pick another folder. **Reset** goes back to the default.
+
+### History
+
+| Setting | What it does |
+|---|---|
+| **Save history** | On by default. Keeps the requests you send and your workflow runs, per collection and only on this computer. Environment secrets and credentials are saved masked. Turn it off and nothing new is saved. |
+| **Clear all history** | Clears the history of every collection on this computer. Click **Clear history**, then confirm with **Clear history** in *Clear the history of every collection?* It says **History cleared** when done. |
+
+![General further down: Language, Interface and Your role under Application, Location for new workspaces with Choose…, and Save history and Clear history under History](/media/en/prefs-general.webp)
+
+## The theme, without opening Preferences
+
+The sun or moon icon next to the gear, in the status bar, changes the theme in one click. Each click goes to the next one: **System**, **Light**, **Dark**, and back to **System**. Its tooltip says the current theme and the next one.
+
+## About
+
+**Privacy** says where your data lives. In the browser: *Everything runs in your browser. Your session is saved only on this device, without credentials.* In the desktop app: *Everything runs on your computer. Requests go out from the app, never through a server of ours. Your session is saved without credentials.* With a workspace open: *Every change is saved in the workspace files automatically. Secrets and credentials are encrypted on this computer, never in the files.* See [The guided tour](/get-started/guided-tour/) for **Start the tour**.
 
 ## Example: a product manager opens Pokemon card
 
@@ -108,7 +136,7 @@ The YAML, the inputs, the cases, the environments and the contracts are the same
 <Steps>
 
 1. Open **Preferences**.
-2. Next to **Interface**, click **Simple (product)** or **Full (development)**. The hint under the name says what each one means.
+2. In **General**, next to **Interface**, click **Simple (product)** or **Full (development)**. The hint under the name says what each one means.
 3. Look at the app behind the dialog: it changes at once.
 
 </Steps>
@@ -117,6 +145,7 @@ The YAML, the inputs, the cases, the environments and the contracts are the same
 
 <CardGrid>
   <LinkCard title="A tour of the interface" href="/get-started/interface/" />
+  <LinkCard title="Network settings" href="/get-started/network/" />
   <LinkCard title="Keyboard shortcuts" href="/reference/shortcuts/" />
   <LinkCard title="Read the results" href="/test/results/" />
 </CardGrid>

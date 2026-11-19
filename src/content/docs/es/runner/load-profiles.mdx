@@ -1,0 +1,109 @@
+---
+title: Formas de la carga
+description: Define cuántos usuarios virtuales corren, durante cuánto tiempo y con qué forma en el tiempo, mueve cada fase en la vista previa con el mouse o el teclado, y define la pausa entre vueltas.
+sidebar:
+  order: 14
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+La forma de la carga es cómo se ve la prueba en el tiempo: todos los usuarios desde el principio, usuarios que llegan de a poco, una ráfaga repentina, o una subida y una bajada. Elige la forma que se parece al momento que quieres probar, por ejemplo la apertura de una oferta.
+
+## Ejemplo: una subida gradual hasta 20 usuarios
+
+<Steps>
+1. En la configuración de una prueba de rendimiento, pon **Forma de la carga** en **Subida gradual**.
+2. Deja **Usuarios virtuales** en `20` y **Duración** en `1` **min**.
+3. Lee la frase bajo el gráfico: *5 usuarios virtuales durante 15 s, suben a 20 en 15 s y se mantienen en 20 durante 30 s, cada uno ejecutando todos los requests en orden.*
+4. Arrastra el segundo marcador del gráfico hacia la derecha, hasta que el tiempo bajo él diga `0:40`.
+5. Ahora la frase dice *suben a 20 en 25 s y se mantienen en 20 durante 20 s*.
+</Steps>
+
+## Usuarios virtuales y duración
+
+| Campo | Por defecto | Límites |
+|---|---|---|
+| **Usuarios virtuales** | 20 | De 1 a 500. Un número mayor queda en 500. |
+| **Duración** | 1 **min** | De 1 segundo a 60 minutos. Una duración mayor queda en 60 minutos. |
+
+- Junto a **Duración**, elige la unidad: **seg** o **min**. Las flechas del campo avanzan de 5 en 5 segundos o de medio en medio minuto.
+- La duración siempre es un número entero de segundos: 1,25 **min** pasa a 75 segundos.
+- **Usuarios virtuales** es el punto más alto de la carga. Con **Fija**, todos corren de principio a fin. Con las demás formas, solo en lo más alto.
+
+## Las formas
+
+| Forma | Cómo es | Fases por defecto | La frase, con 20 usuarios, 1 min y una carga inicial de 5 |
+|---|---|---|---|
+| **Fija** | Todos los usuarios de principio a fin. | — | *20 usuarios virtuales durante 1 min, cada uno ejecutando todos los requests en orden.* |
+| **Subida gradual** | Empieza con la carga inicial, sube en línea recta hasta todos los usuarios y se mantiene. | Empieza a subir al 25 % del tiempo y llega al 50 %. | *5 usuarios virtuales durante 15 s, suben a 20 en 15 s y se mantienen en 20 durante 30 s, cada uno ejecutando todos los requests en orden.* |
+| **Pico repentino** | Empieza con la carga inicial, salta de golpe a todos los usuarios y vuelve. | El pico va del 40 % al 60 % del tiempo. | *5 usuarios virtuales durante 24 s, suben de golpe a 20 durante 12 s y vuelven a 5 durante 24 s, cada uno ejecutando todos los requests en orden.* |
+| **Pico sostenido** | Sube de la carga inicial a todos los usuarios, se mantiene y vuelve a bajar. | Llega al 25 % del tiempo y empieza a bajar al 75 %. | *Suben de 5 a 20 usuarios virtuales en 15 s, se mantienen en 20 durante 30 s y bajan a 5 en 15 s, cada uno ejecutando todos los requests en orden.* |
+
+En una prueba de workflows, la frase termina con *cada uno ejecutando el camino feliz de los workflows elegidos.*
+
+Elegir otra forma vuelve sus fases a los valores por defecto.
+
+### Cuál elegir
+
+- **Fija**: una carga pareja, para medir los tiempos normales.
+- **Subida gradual**: para ver con cuántos usuarios los tiempos empiezan a crecer.
+- **Pico repentino**: una ráfaga de golpe, como una oferta que abre a una hora fija, y si la API se recupera después.
+- **Pico sostenido**: una hora punta que llega y se va.
+
+## Carga inicial
+
+**Carga inicial (usuarios)** aparece con **Subida gradual**, **Pico repentino** y **Pico sostenido**. Es cuántos usuarios hay al empezar, y también al terminar en **Pico repentino** y **Pico sostenido**.
+
+- Empieza en 5.
+- Va de 1 a **Usuarios virtuales**. Si bajas **Usuarios virtuales** por debajo de ella, baja con él.
+
+## La vista previa
+
+El gráfico bajo los campos dibuja la forma: los usuarios virtuales en el tiempo.
+
+- A la izquierda, el número de usuarios en lo más alto, por ejemplo **20 VU**, y la carga inicial, por ejemplo **5 VU**, cuando hay espacio para los dos.
+- Abajo, `0` y la duración, por ejemplo **1 min**.
+- Bajo el gráfico, la frase dice lo mismo en palabras.
+
+## Mueve las fases
+
+**Subida gradual**, **Pico repentino** y **Pico sostenido** tienen dos marcadores en el gráfico, uno donde empieza cada fase y otro donde termina. La pista bajo el gráfico dice *Arrastra los marcadores (o usa las flechas del teclado) para mover cada fase.*
+
+<Steps>
+1. Presiona sobre un marcador: su asa de arriba, o su línea.
+2. Arrástralo a la izquierda o a la derecha. El tiempo aparece bajo él, como `minutos:segundos`, por ejemplo `0:40`.
+3. Suéltalo. La forma y la frase cambian.
+</Steps>
+
+![La configuración de la prueba de rendimiento con Forma de la carga Pico sostenido, 8 usuarios virtuales y 24 seg: la vista previa de 1 a 8 VU con dos marcadores, la frase que cuenta la subida, la meseta y la bajada, Carga inicial (usuarios) 1 y la pista sobre arrastrar los marcadores](/media/es/runner-perf-setup.webp)
+
+- Los marcadores se mueven en segundos enteros.
+- Un marcador no puede pasar al otro: siempre queda al menos un segundo entre ellos.
+
+### Con el teclado
+
+<Steps>
+1. Pulsa Tab hasta que un marcador tenga el foco. Los lectores de pantalla los llaman **Inicio de la fase** y **Fin de la fase**.
+2. Pulsa → o ← para moverlo un segundo.
+3. Mantén Mayúsculas para moverlo de diez en diez segundos.
+</Steps>
+
+## Pausa entre vueltas
+
+**Pausa entre vueltas (ms)** es cuánto espera cada usuario después de una vuelta antes de empezar la siguiente. Por defecto es 0: cada usuario vuelve a empezar de inmediato. Las flechas avanzan de 100 en 100 ms.
+
+Con una pausa, cada usuario envía menos requests por segundo, más parecido a cómo una persona usa una app. Con 0, la prueba envía tantos como permitan tu API y tu equipo.
+
+## Cómo llegan y se van los usuarios
+
+- Cuando la forma agrega usuarios, los nuevos empiezan su primera vuelta.
+- Cuando la forma quita usuarios, cada uno termina la vuelta en la que está y después espera.
+- Cuando se acaba el tiempo, todos los usuarios se detienen, y los requests que iban en camino se cortan y no se cuentan.
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Pruebas de rendimiento" href="/es/runner/performance/" />
+  <LinkCard title="Criterios para pasar" href="/es/runner/pass-criteria/" />
+  <LinkCard title="El gráfico de rendimiento" href="/es/runner/performance-chart/" />
+</CardGrid>

@@ -1,6 +1,6 @@
 ---
 title: Elige un elemento de una lista
-description: Cuando un paso devuelve una lista y los pasos siguientes dependen de ella, la ejecución se pausa para que elijas con qué probar.
+description: Cuando un paso devuelve una lista y los pasos siguientes dependen de ella, la ejecución se pausa para que elijas con qué probar, o una regla guardada elige por ti.
 sidebar:
   order: 6
 ---
@@ -13,15 +13,14 @@ Muchas APIs devuelven listas: las tarjetas de un cliente, los productos de un ca
 
 ## Ejemplo: Pokemon card contra la API real
 
-El primer paso de **Pokemon card** devuelve dos listas que usan los pasos siguientes: `types` (1 elemento) y `abilities` (2 elementos). La ejecución se pausa dos veces, un diálogo después del otro.
+El primer paso de **Pokemon card** devuelve dos listas que usan los pasos siguientes: `types` (1 elemento) y `abilities` (2 elementos). La ejecución se pausa una vez, por `abilities`. Con un solo elemento, en `types` no hay nada que elegir, así que la ejecución sigue con ese.
 
 <Steps>
 1. Elige **API real** y pulsa **Ejecutar**.
-2. En el primer diálogo, `types` tiene un elemento. Pulsa **Continuar con este elemento**.
-3. En el segundo diálogo, `abilities` tiene dos elementos. Haz clic en el que quieras y pulsa **Continuar con este elemento**.
+2. El diálogo se abre por `abilities`, que tiene dos elementos. Haz clic en el que quieras y pulsa **Continuar con este elemento**.
 </Steps>
 
-En **Simulación** el diálogo solo aparece cuando la lista tiene más de un elemento. Para una versión paso a paso, mira la receta [Elige un elemento de una lista](/es/recipes/list-pick/).
+El diálogo solo aparece cuando la lista tiene dos elementos o más, contra la API real y en **Simulación**. Para una versión paso a paso, mira la receta [Elige un elemento de una lista](/es/recipes/list-pick/).
 
 ## Elige y continúa
 
@@ -72,20 +71,61 @@ Cuando ejecutas varios casos, el diálogo ofrece **Usar esta elección en los de
 
 Luvin recuerda tu última elección y la propone la próxima vez que ejecutes.
 
+## Reglas para las próximas veces
+
+Para que el diálogo no pregunte cada vez, guarda una regla. La regla elige por ti en las próximas ejecuciones, y es la que usa el [runner](/es/runner/workflows/), donde no hay nadie para responder.
+
+<Steps>
+1. Ejecuta el caso. Se abre el diálogo.
+2. Abajo, abre la lista **Las próximas veces:** y elige una regla.
+3. Elige el elemento para esta ejecución como siempre y pulsa **Continuar con este elemento**.
+</Steps>
+
+![La parte de abajo del diálogo con la lista Las próximas veces: abierta: Preguntarme, Usar el que dice el diseño, Elegir uno al azar, Uno distinto en cada vuelta y El que cumpla…](/media/es/list-pick-rule.webp)
+
+| Regla | Qué elige |
+|---|---|
+| **Preguntarme** | No se guarda nada: el diálogo vuelve a preguntar. En el runner se usa el elemento que dice el diseño. |
+| **Usar el que dice el diseño** | El elemento al que apunta el diseño del workflow. |
+| **Elegir uno al azar** | Cualquier elemento, distinto cada vez. |
+| **Uno distinto en cada vuelta** | El primer elemento en la primera vuelta del runner, el segundo en la segunda, y así. Cuando ejecutas varios casos a mano, uno distinto para cada caso. |
+| **El que cumpla…** | El primer elemento que cumple una condición. Elige el **Campo**, la **Condición** (**es**, **no es**, **contiene**, **es mayor que**, **es menor que**) y el **Valor**. |
+| **Todos** | Toda la lista. Solo cuando los pasos siguientes pueden recibir varios elementos. |
+
+La regla se guarda en el paso del archivo Arazzo, bajo la extensión `x-luvin-pick`. Las demás herramientas de Arazzo la ignoran.
+
+```yaml title="shop.arazzo.yaml" {3-8}
+- stepId: getCustomer
+  operationId: getCustomer
+  x-luvin-pick:
+    "#/activeCreditCards":
+      rule: match
+      field: bank
+      op: eq
+      value: Banco Sur
+```
+
+Con una regla guardada, el diálogo ya no aparece para esa lista, ni en tus ejecuciones ni en el runner. Para borrar una regla, pulsa **Quitar** junto a ella en **Elegir de las listas**, en el runner de workflows. Mira [Ejecuta workflows](/es/runner/workflows/#elegir-de-las-listas).
+
+### Cuando «El que cumpla…» no encuentra nada
+
+Si ningún elemento cumple la condición:
+
+- En el runner, y en una prueba de rendimiento, el paso falla con *Ningún elemento de la lista (3) cumple la regla: bank es Banco Sur.* La ejecución no sigue con otro elemento como si nada.
+- Cuando ejecutas a mano, el diálogo te pregunta, como si no hubiera regla.
+
 ## Qué queda registrado
 
 El paso que devolvió la lista guarda una nota, **Elegido al ejecutar**. Por ejemplo: *De la lista activeCreditCards se siguió con «Banco Sur» (elemento 2 de 3).* Debajo, la nota dice qué valor recibió cada parámetro.
 
 ## Cuándo no aparece el diálogo
 
-- En **Simulación**, si el ejemplo tiene un solo elemento. La respuesta se arma desde el contrato, así que no hay nada que revisar.
+- Si la lista tiene un solo elemento, en cualquier modo. La ejecución sigue con ese, y el paso guarda una nota: *De la lista: La lista types trajo un solo elemento («…»): se usó ese.*
+- Si el paso tiene una regla guardada para esa lista. Mira [Reglas para las próximas veces](#reglas-para-las-próximas-veces).
+- En el [runner](/es/runner/workflows/). Nunca se detiene a preguntar: usa la regla guardada o el elemento que dice el diseño.
 - Si la lista llega vacía.
 - Si ningún paso posterior usa datos de la lista.
 - Si el paso que devuelve la lista falló.
-
-<Aside type="note">
-Contra la API real el diálogo siempre aparece, también con un solo elemento, para que veas lo que devolvió el servicio.
-</Aside>
 
 **Detener ejecución**, en el diálogo, cancela la ejecución.
 
@@ -95,5 +135,6 @@ Contra la API real el diálogo siempre aparece, también con un solo elemento, p
   <LinkCard title="Ejecutar" href="/es/test/run/" />
   <LinkCard title="Lee el resultado de un paso" href="/es/test/step-results/" />
   <LinkCard title="Simulación" href="/es/test/simulation/" />
+  <LinkCard title="Ejecuta workflows en el runner" href="/es/runner/workflows/" />
   <LinkCard title="Elige un elemento de una lista (receta)" href="/es/recipes/list-pick/" />
 </CardGrid>

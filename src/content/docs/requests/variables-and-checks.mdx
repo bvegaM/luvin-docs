@@ -1,0 +1,130 @@
+---
+title: Variables and checks
+description: Save values from a response to use them as {{variables}} in the next requests, and check that each response is the one you expect, without scripts.
+sidebar:
+  order: 7
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+After a response arrives, a request can do two more things. It can **save values** from the response, such as a token or an id, to use them as `{{name}}` in the next requests. And it can **check** the response, so a `200` with the wrong data does not pass as a success. Both are tabs of the request, **Variables** and **Checks**, and neither needs code.
+
+Use them when one request feeds the next (log in, then call with the token) and when "it answered" is not enough to say "it worked".
+
+## The two tabs
+
+| Tab | What it does | When it runs | Where you see the result |
+|---|---|---|---|
+| **Variables** | Reads a value of the response and keeps it as `{{name}}` | After every response | **Saved variables**, in the **Checks** tab of the response, and **Saved now**, in the **Variables** tab |
+| **Checks** | Compares a value of the response with what you expect | After every response, in the runner and in load tests | A chip next to the status, such as **✓ 4 of 4 checks**, and the **Checks** tab of the response |
+
+They work in HTTP and GraphQL requests. gRPC and WebSocket requests do not have them.
+
+<Aside type="note" title="GraphQL has two Variables tabs">
+In a GraphQL request, the **Variables** tab next to **Query** holds the GraphQL variables of the query. The one that saves values from the response is the **Variables** tab next to **Checks**.
+</Aside>
+
+## Example: Pikachu and its species
+
+Two requests against the [PokéAPI](https://pokeapi.co). The first one reads a Pokémon and saves its id. The second one uses that id to read its species and checks that it is the same Pokémon.
+
+<Steps>
+
+1. Create a request **Get pokemon**: `GET https://pokeapi.co/api/v2/pokemon/pikachu`.
+2. In its **Variables** tab, click **Variable** twice and fill the two rows:
+
+   | Name | From the response |
+   |---|---|
+   | `pokemonId` | `res.body.id` |
+   | `speciesName` | `res.body.species.name` |
+
+3. In its **Checks** tab, click **Check** four times and fill the rows:
+
+   | From the response | Check | Expected value |
+   |---|---|---|
+   | `res.status` | **equals** | `200` |
+   | `res.body.name` | **equals** | `pikachu` |
+   | `res.body.types[0].type.name` | **equals** | `electric` |
+   | `res.responseTime` | **is less than** | `1000` |
+
+4. Press **Send** (⌘/Ctrl + Enter). Next to the status you see **✓ 4 of 4 checks**. The **Checks** tab of the response lists the four checks and, under **Saved variables**, `{{pokemonId}}` with `25` and `{{speciesName}}` with `pikachu`.
+5. Create a request **Get species**: `GET https://pokeapi.co/api/v2/pokemon-species/{{pokemonId}}`.
+6. In its **Checks** tab, add three checks:
+
+   | From the response | Check | Expected value |
+   |---|---|---|
+   | `res.status` | **equals** | `200` |
+   | `res.body.id` | **equals** | `{{pokemonId}}` |
+   | `res.body.name` | **equals** | `{{speciesName}}` |
+
+7. Press **Send**. Luvin sends `GET https://pokeapi.co/api/v2/pokemon-species/25` and the chip says **✓ 3 of 3 checks**. In the **Checks** tab of the response, each expected value shows what it became, for example `{{pokemonId}}` (25).
+
+</Steps>
+
+![The response of GET products with 200 OK and the red chip ✕ 1 of 4 checks failed; its Checks tab lists three passed checks, one failed with Got: 40 and, under Saved variables, firstSku with SKU-100 and total with 10](/media/en/response-checks-tab.webp)
+
+To send both in order with one click, use the runner: see [Read the check results](/requests/check-results/#in-the-runner).
+
+## What happens when you press Send
+
+<Steps>
+
+1. Luvin sends the request with every `{{name}}` replaced: the variables of the active environment and the values saved before.
+2. The response arrives. If there is no response (the API did not answer in time, the connection failed), nothing else happens: no variable is saved and no check runs.
+3. Each active row of **Variables** that has a name and an expression reads the response. What it finds is saved. A row that finds nothing is reported as not saved.
+4. Each active row of **Checks** reads the response and compares the value with its expected value. The `{{variables}}` of the expected value are replaced first, including the ones this same response just saved.
+5. The response shows the summary next to the status and the details in its **Checks** tab. The send goes to the history with the secret values masked.
+
+</Steps>
+
+## In the request file
+
+Variables and checks are saved in the request file, so they travel with the collection in git. The value a variable saved is never written there. For **Get pokemon**:
+
+```yaml
+vars:
+  - name: pokemonId
+    from: res.body.id
+  - name: speciesName
+    from: res.body.species.name
+asserts:
+  - expr: res.status
+    op: eq
+    value: "200"
+  - expr: res.body.name
+    op: eq
+    value: pikachu
+  - expr: res.body.types[0].type.name
+    op: eq
+    value: electric
+  - expr: res.responseTime
+    op: lt
+    value: "1000"
+```
+
+- A row you turned off is saved with `enabled: false`.
+- A secret variable has `secret: true`.
+- Checks without an expected value, such as **exists**, have no `value`.
+- A variable row with no name and no expression, or a check with no expression, is not saved.
+
+The name of each `op` is in [The checks, one by one](/requests/check-operators/). See also [How a request is saved](/requests/files/).
+
+## Learn each part
+
+| To… | Read |
+|---|---|
+| Save a token or an id, mark it as secret and know where it lives | [Save values from a response](/requests/save-variables/) |
+| Add checks, use the quick chips and write the expected value | [Check the response](/requests/checks/) |
+| Know exactly when each check passes, with examples | [The checks, one by one](/requests/check-operators/) |
+| Read the status, a header, a field or an item of a list | [Response expressions](/requests/check-expressions/) |
+| Understand the chip, the **Checks** tab, the runner and the history | [Read the check results](/requests/check-results/) |
+| Bring the tests you already have in Postman or Bruno | [Checks from Postman and Bruno](/requests/checks-from-postman/) |
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Save values from a response" href="/requests/save-variables/" />
+  <LinkCard title="Check the response" href="/requests/checks/" />
+  <LinkCard title="Read a response in detail" href="/requests/response-details/" />
+  <LinkCard title="Variables and secrets" href="/environments/variables-and-secrets/" />
+</CardGrid>

@@ -1,0 +1,152 @@
+---
+title: Las secciones del tour
+description: Cada sección del tour guiado paso a paso, qué abre, qué resalta y qué ejecuta, contra la API real, en Simulación o contra un mock.
+sidebar:
+  order: 5.1
+---
+
+import { Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Cada sección del tour prepara la pantalla por sí sola, con los mismos clics que harías tú: abre un workflow, una pestaña o un panel, a veces pulsa **Ejecutar**, y luego resalta una zona con una tarjeta al lado. Esta página lista, para cada sección, cómo se llama cada tarjeta, qué hace el tour antes de mostrarla y qué ejecuta, así sabes qué esperar y puedes repetir cualquier paso a mano.
+
+Todas las secciones trabajan sobre la colección **Pokédex** del workspace **Pokédex (tour)**. **Contratos y ambientes** agrega una segunda colección, **PayPal**. Mira [El workspace del tour](/es/get-started/guided-tour-workspace/).
+
+## Qué ejecutan las secciones
+
+| Sección | Ejecuta | Contra |
+|---|---|---|
+| **Workflows** | Los casos de **Pokemon card** | El modo elegido junto a **Ejecutar**: la PokéAPI real con **API real** |
+| **Diseñar un workflow** | Los casos de **Battle matchup**, después de **Type explorer** | El modo elegido junto a **Ejecutar** |
+| **Contratos y ambientes** | Los casos de **Capture order** (PayPal) | **Simulación**, la primera vez |
+| **Requests** | Un request a `pokeapi.co` | La PokéAPI real |
+| **Mock servers** | Los casos de **Pokemon card** | El mock, en la app de escritorio. **Simulación**, en el navegador |
+| **Runner y rendimiento** | Los workflows de `pokemon.arazzo.yaml`, en el runner | **Simulado** |
+| **Historial y Dev Tools** | Los casos de **Pokemon card** | **Simulación** |
+
+El tour deja elegido el modo que usó. Después de **Contratos y ambientes** (la primera vez), **Mock servers** en el navegador, **Runner y rendimiento** o **Historial y Dev Tools**, el selector junto a **Ejecutar** dice **Simulación**. Vuelve a **API real** antes de empezar otra vez **Workflows** si quieres la llamada real.
+
+## 1. Workflows
+
+El centro de Luvin: un workflow que encadena llamadas y pasa datos de un paso al siguiente. 7 pasos, unos 2 minutos.
+
+| Paso | Tarjeta | Qué hace el tour | Qué resalta |
+|---|---|---|---|
+| 1 | **Workflows: el centro de Luvin** | Abre o crea el workspace del tour y abre **Pokemon card** en su pestaña **Resumen**. | Nada: la tarjeta va al centro. |
+| 2 | **Colecciones, workflows y pasos** | Deja abierto **Pokemon card**. | El árbol de la barra lateral: colección, archivo Arazzo, workflows y pasos. |
+| 3 | **El workflow de un vistazo** | Muestra la pestaña **Resumen** y espera el diagrama. | El diagrama, con el 404 que termina el workflow y los datos entre pasos. |
+| 4 | **Los datos de entrada** | Abre la pestaña **Inputs**. | El formulario. Puedes probar otro Pokémon, como `charizard` o `150`. |
+| 5 | **Casos de prueba, sin escribirlos** | Abre la pestaña **Casos**. | Los casos generados: camino feliz, inputs faltantes o inválidos, uno por acción. |
+| 6 | **Ejecutar contra la API real** | Pulsa **Ejecutar** y espera los resultados, hasta 20 segundos. | Los resultados, con un veredicto por caso. |
+| 7 | **Cómo viaja el dato entre pasos** | Abre el paso `getWeakness` desde el árbol. | El paso, que toma el tipo de `$steps.getPokemon.outputs.mainType`. |
+
+![La última tarjeta de Workflows, paso 7 de 7, Cómo viaja el dato entre pasos, junto al paso getWeakness, con Terminar, Ver las secciones y Siguiente: Diseñar un workflow](/media/es/tour-section-end.webp)
+
+**Qué ejecuta.** El paso 6 ejecuta los casos con el modo elegido junto a **Ejecutar**. Con **API real**, llama a pokeapi.co y necesita internet. El caso del 404 va simulado: muestra qué hace el workflow ante ese error sin provocarlo en la API. Si **Ejecutar** pide confirmar porque un paso modifica datos, el tour confirma; la PokéAPI nunca lo pide.
+
+Más información: [Ejecutar](/es/test/run/), [Casos](/es/test/cases/).
+
+## 2. Diseñar un workflow
+
+Cómo se arma un workflow: el lienzo, la paleta, el YAML, workflows que dependen de otros y eventos. 5 pasos, unos 2 minutos.
+
+| Paso | Tarjeta | Qué hace el tour | Qué resalta |
+|---|---|---|---|
+| 1 | **Diseñar el workflow sin escribir YAML** | Abre **Pokemon card** en la pestaña **Diseño**. | Todo el constructor: paleta, lienzo y panel. |
+| 2 | **La paleta: de dónde salen los pasos** | Deja la pestaña **Diseño**. | La paleta: operaciones de los contratos, requests y workflows. |
+| 3 | **Editar el Arazzo** | Abre la pestaña **YAML**. | El editor, con validación y autocompletado. |
+| 4 | **Workflows que dependen de otros** | Abre **Battle matchup** en su pestaña **Casos** y pulsa **Ejecutar**. | **Preparación**: **Type explorer** se ejecutó una vez antes de los casos. |
+| 5 | **APIs y eventos en el mismo workflow** | Abre **Register sighting** en su pestaña **Resumen**. | El diagrama, con una llamada HTTP, un SEND y un RECEIVE. |
+
+**Qué ejecuta.** El paso 4 ejecuta **Battle matchup**, y antes **Type explorer**, con el modo elegido junto a **Ejecutar**. Los eventos de **Register sighting** son ficticios: el paso 5 solo los muestra, no los ejecuta.
+
+Más información: [Diseñar un workflow](/es/design/overview/), [Workflows que usan otros workflows](/es/design/dependencies/), [Pasos de mensajería](/es/design/messaging/).
+
+## 3. Contratos y ambientes
+
+Lo que cada paso usa al llamar a la API: el contrato, el ambiente y la autorización. 6 pasos, unos 2 minutos.
+
+| Paso | Tarjeta | Qué hace el tour | Qué resalta |
+|---|---|---|---|
+| 1 | **Contratos como en Swagger Editor** | Abre el contrato `pokeapi` desde la barra lateral. | El editor del contrato, junto a la Swagger UI. |
+| 2 | **Un paso, en detalle** | Abre **Pokemon card** y su paso `getPokemon`. | El paso, con su operación, criterios, acciones y **▶ Probar sola**. El tour no lo pulsa. |
+| 3 | **Ambientes** | Abre el ambiente activo. | El ambiente: URLs, credenciales, variables y secretos. |
+| 4 | **Otro ejemplo: cobrar con PayPal** | La primera vez, crea la colección **PayPal** con sus archivos, el ambiente **Sandbox** y la autorización de sus workflows, y cambia a **Simulación**. Luego abre **Create order** en su pestaña **Resumen**. | El diagrama de **Create order**. |
+| 5 | **Autorización por API y por workflow** | Abre la pestaña **Autorización** de **Create order**. | OAuth 2.0 por API, con `{{clientId}}` y `{{clientSecret}}` de **Sandbox**. |
+| 6 | **Simulado sin credenciales, real con las tuyas** | Abre **Capture order** en su pestaña **Casos** y pulsa **Ejecutar**. | Los resultados, con el webhook simulado. |
+
+**Qué ejecuta.** El paso 6 ejecuta **Capture order**. La primera vez, el tour acaba de cambiar a **Simulación**, así que no hacen falta credenciales ni red. **Sandbox** viene con `clientId` y `clientSecret` vacíos: para usar el sandbox real de PayPal, complétalos y elige **API real**.
+
+Más información: [Contratos](/es/contracts/overview/), [Ambientes](/es/environments/overview/), [Resumen de la autorización](/es/authorization/overview/).
+
+## 4. Requests
+
+Requests sueltos, como en Postman, y cómo uno se vuelve un paso. 3 pasos, unos 2 minutos.
+
+| Paso | Tarjeta | Qué hace el tour | Qué resalta |
+|---|---|---|---|
+| 1 | **Requests sueltos, como en Postman** | La primera vez, crea un request desde `curl https://pokeapi.co/api/v2/pokemon/pikachu`. Luego lo abre. | El request. |
+| 2 | **Variables y comprobaciones, sin scripts** | Le pone al request una variable, `pokemonId` desde `res.body.id`, y dos comprobaciones, status 200 y nombre `pikachu`, y lo envía. | La respuesta, con el resumen de las comprobaciones. |
+| 3 | **El request, dentro del workflow** | Abre **Pokemon card** en la pestaña **Diseño**. | La paleta, donde tus requests aparecen como pasos para agregar. |
+
+**Qué ejecuta.** El paso 2 envía el request a la PokéAPI real y espera la respuesta hasta 15 segundos. Cada vez que el paso se ejecuta, vuelve a poner esa variable y esas dos comprobaciones, y reemplaza lo que hayas cambiado en ellas.
+
+Más información: [Requests sueltos](/es/requests/overview/), [Variables y comprobaciones](/es/requests/variables-and-checks/), [Armar desde requests guardados](/es/design/from-requests/).
+
+## 5. Mock servers
+
+Un servidor que responde con los ejemplos del contrato, y el workflow corriendo contra él. 3 pasos, alrededor de 1 minuto.
+
+| Paso | Tarjeta | Qué hace el tour | Qué resalta |
+|---|---|---|---|
+| 1 | **Un mock server desde el contrato** | La primera vez, crea el mock **Mock de la PokéAPI** desde `pokeapi.openapi.yaml`. Luego lo abre. | El mock y sus rutas. |
+| 2 | **Encendido, en tu equipo** | App de escritorio: enciende el mock, si no está encendido. Navegador: nada. | El mock. |
+| 3 | **El workflow, contra el mock** | App de escritorio: hace clic en **Crear ambiente del mock**, abre **Pokemon card** en **Casos**, elige **API real** y pulsa **Ejecutar**. Navegador: abre **Pokemon card** en **Casos**, elige **Simulación** y pulsa **Ejecutar**. | Los resultados. |
+
+**Qué ejecuta.** En la app de escritorio, el mock escucha en 127.0.0.1, así que solo responde en tu equipo, y el workflow lo llama por la red con el ambiente **Mock · Mock de la PokéAPI**. El navegador no puede encender un mock, así que las tarjetas lo explican y el workflow se ejecuta en **Simulación**, que también responde con los ejemplos del contrato.
+
+La siguiente sección que empieces apaga el mock y vuelve a elegir tu ambiente de siempre. El mock y su ambiente quedan en el workspace.
+
+Más información: [Mock servers](/es/mocks/overview/), [Usa un mock con requests y workflows](/es/mocks/with-workflows/).
+
+## 6. Runner y rendimiento
+
+Varios workflows de una vez, con datos, y la prueba de carga. 4 pasos, unos 2 minutos.
+
+| Paso | Tarjeta | Qué hace el tour | Qué resalta |
+|---|---|---|---|
+| 1 | **El runner: varios workflows de una vez** | Abre el menú de `pokemon.arazzo.yaml` en la barra lateral y elige **Ejecutar workflows (runner)**. Si el runner muestra resultados anteriores, hace clic en **Configurar**. | La lista de workflows, en el orden en que se ejecutan. |
+| 2 | **Listas sin preguntar** | Deja abierta la configuración del runner. | La configuración, donde cada paso que elige de una lista usa su regla guardada. |
+| 3 | **Los resultados, por vuelta y por workflow** | Elige **Simulado** e inicia la ejecución. Espera los resultados, hasta 20 segundos. | Los resultados, por vuelta y por workflow. |
+| 4 | **Rendimiento del workflow** | Vuelve a abrir la configuración del runner y elige **Rendimiento**. | La configuración de carga: usuarios virtuales, duración y forma de la carga. |
+
+**Por qué el paso 4 no inicia una prueba.** En una prueba de carga, muchos usuarios virtuales repiten el camino feliz de cada workflow durante un tiempo. El tour solo trabaja con APIs públicas, y una prueba de carga nunca va contra una API pública, así que muestra la configuración y se queda ahí. Haz las pruebas de rendimiento con tu propio ambiente o con un mock.
+
+Más información: [Ejecuta workflows](/es/runner/workflows/), [Elige un elemento de una lista](/es/test/lists/), [Pruebas de rendimiento](/es/runner/performance/).
+
+## 7. Historial y Dev Tools
+
+Volver a lo que pasó. 5 pasos, alrededor de 1 minuto; 4 en la interfaz Simple.
+
+| Paso | Tarjeta | Qué hace el tour | Qué resalta |
+|---|---|---|---|
+| 1 | **El historial de la colección** | Abre **Pokemon card** en **Casos**, elige **Simulación** y pulsa **Ejecutar**. Luego abre el historial con **Ver todo** y el filtro **Ejecuciones**. | El historial de la colección. |
+| 2 | **Dev Tools** | Abre Dev Tools en **Network**. Se salta en la interfaz Simple. | El panel de Dev Tools. |
+| 3 | **Buscar en todo** | Abre la búsqueda y escribe `weak`. | La búsqueda, con el paso `getWeakness`. |
+| 4 | **Preferencias** | Cierra lo que quedó abierto. | La barra de estado, donde están **Preferencias** y **Tour**. |
+| 5 | **Volver a la ejecución de un workflow** | Abre otra vez el historial, en **Ejecuciones**, y abre la primera ejecución. | La ejecución, con **Repetir** y **Abrir workflow**. |
+
+**Qué ejecuta.** El paso 1 siempre ejecuta **Pokemon card** en **Simulación**, así el historial tiene al menos una ejecución de un workflow, sin red.
+
+Más información: [Historial](/es/workspaces/history/), [Network](/es/dev-tools/network/), [Preferencias y la interfaz Simple](/es/get-started/preferences/).
+
+<Aside type="tip">
+Para ver un paso otra vez, ve **Atrás** y luego **Siguiente**: el tour vuelve a preparar la pantalla y, si el paso ejecuta algo, lo ejecuta otra vez.
+</Aside>
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="El tour guiado" href="/es/get-started/guided-tour/" />
+  <LinkCard title="El workspace del tour" href="/es/get-started/guided-tour-workspace/" />
+  <LinkCard title="Inicio rápido" href="/es/get-started/quick-start/" />
+</CardGrid>

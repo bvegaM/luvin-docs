@@ -1,0 +1,114 @@
+---
+title: Read a performance test
+description: The top, the status, the verdict and the key numbers of a performance test, what each one counts, and how the results fill in while it runs.
+sidebar:
+  order: 17
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+The results of a performance test fill in while it runs and stay when it ends. They answer three questions: did the test pass, how did the API behave over time, and which request was the slowest. This page covers the top of the results. The chart and the table have their own pages.
+
+![The results of a performance test of runner-shop.arazzo.yaml, 8 users · 24 s · Peak, Finished: the red banner Test failed with average and p95 passing and the error rate above 1 %, the four key numbers, the line Slowest naming View product · getProduct, the chart and the table Details for the whole test](/media/en/runner-perf-results.webp)
+
+## Example: find the slow request
+
+A test of a shop folder with **List products** and **Get product**, 20 users for 1 minute, has ended.
+
+<Steps>
+1. Read the banner at the top: **✓ Test passed** or **✕ Test failed**, with each threshold.
+2. Under the key numbers, read the line *Slowest: "Get product", with a p95 of 420 ms (average 180 ms).* In the table, **Get product** has the tag **slowest**.
+3. In the chart, drag over the part where the response time goes up. The table changes to **Details from 0:20 to 0:35**.
+4. Choose **Get product** in **All requests** to see only that request in the chart and the table.
+5. Press **Clear filter** to go back to the whole test.
+</Steps>
+
+## The top
+
+| Line | Example |
+|---|---|
+| The name of what ran | **Catalog**, or the name of the Arazzo file |
+| The date and time, the environment and the data file, if any | *Nov 19, 2026, 10:30 AM · staging · products.csv* |
+| The load | *20 users · 1 min · Ramp up · from 5*. **from 5** is the initial load, for every profile except **Fixed**. |
+
+On the right, the status:
+
+| Status | When |
+|---|---|
+| **12 s of 1 min 0 s** | While it runs, with a bar under the top. |
+| **Finished** | The time was up. |
+| **Stopped** | You pressed **Stop**, or closed the Runner and chose **Stop and close**. |
+
+When the test ends, the status takes a color: green, red or amber. See [Pass criteria](/runner/pass-criteria/#the-status-color).
+
+| Button | When | What it does |
+|---|---|---|
+| **Stop** | While it runs. | Ends the test. What was measured stays. |
+| **Configure** | When it ends. | Goes back to the setup. |
+| **Run again…** | When it ends. | Opens the setup, so you confirm the load again. See [Confirm before sending load](/runner/safety/). |
+
+## While it runs
+
+- Every half second, the key numbers, the chart and the table update.
+- The time line of the chart already covers the whole duration: the lines grow to the right.
+- The banner of the verdict only appears when the test ends.
+
+## The verdict
+
+With thresholds in **Pass test if…**, a banner under the top says **✓ Test passed** or **✕ Test failed**, with each threshold and its value:
+
+- ✓ *p95 380 ms (had to be below 1 s)*
+- ✕ *error rate 2.5 % (had to be below 1 %)*
+- ✕ *error rate 0.4 % (had to be 0 %)*, when the limit was 0 %.
+
+If no request finished, the banner says **No data**: *No request finished within 1 min, so there is nothing to measure. Check that the API responds, or make the test longer.* With thresholds, a test with no data never passes: the banner says **✕ Test failed**.
+
+Without thresholds, there is no banner. See [Pass criteria](/runner/pass-criteria/).
+
+## Key numbers
+
+Four numbers sum up the whole test:
+
+| Number | Below it | What it counts |
+|---|---|---|
+| **Total requests** | *in 1 min 0 s* | Requests, or workflow steps, that finished. Requests cut at the end and the rows of a whole workflow do not count. |
+| **Requests per second** | *peak of 48* | The total divided by the time the test ran. The peak is the busiest second. |
+| **Average response time** | *p95 420 ms · p99 610 ms* | The average of all the response times, with the p95 and the p99. |
+| **Error rate** | *12 of 2,840* | The share of requests that failed, and how many. It turns red with any error. |
+
+The key numbers are always for the whole test: choosing a time range or a request in the chart does not change them.
+
+### Percentiles
+
+The p95 is the time under which 95 % of the requests finished. If the p95 is 420 ms, 5 requests out of 100 took longer than that.
+
+The average hides the slow ones: 95 requests of 100 ms and 5 of 2 s give an average under 200 ms, but those 5 users waited 2 seconds. The p95 and the p99 show them. The table also has the p90. See [The table and the errors](/runner/performance-table/).
+
+Luvin groups the times in narrow bands to compute the percentiles, so a percentile can differ by a few percent from the exact time of one request. It is never above the slowest time.
+
+### How numbers are written
+
+- Numbers follow the format of the app's language, for example `2,840` and `2.5 %` in English.
+- Times under a second are in ms. From a second on, in s: `1.2 s`.
+- An error rate under 1 % keeps two decimals, for example `0.04 %`.
+
+## Summary and Errors
+
+Under the key numbers, two tabs:
+
+| Tab | What it has |
+|---|---|
+| **Summary** | The line about the slowest request, the filters, the chart and the table. See [The performance chart](/runner/performance-chart/) and [The table and the errors](/runner/performance-table/). |
+| **Errors** | The failures grouped by reason. Its title shows how many errors there were, in red when there is at least one. See [Errors](/runner/performance-table/#the-errors-tab). |
+
+## In the history
+
+Every performance test is saved in **History**, under **Runs**, with the tag **Performance**: the users, the requests, the p95 and the environment, for example *20 users · 950 requests · p95 180 ms · staging*. Click it to see these same results again, with the chart and the table. See [Runs, tabs and history](/runner/lifecycle/#history).
+
+## Related
+
+<CardGrid>
+  <LinkCard title="The performance chart" href="/runner/performance-chart/" />
+  <LinkCard title="The table and the errors" href="/runner/performance-table/" />
+  <LinkCard title="Pass criteria" href="/runner/pass-criteria/" />
+</CardGrid>

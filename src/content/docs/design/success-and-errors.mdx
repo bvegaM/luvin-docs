@@ -1,13 +1,15 @@
 ---
 title: Success and errors
-description: Set what counts as a successful step and what the workflow does on each documented error, end, retry or jump.
+description: Set what counts as a successful step and what the workflow does on each error, end, retry, jump or a new step.
 sidebar:
   order: 7
 ---
 
 import { Steps, Tabs, TabItem, Aside, Badge, LinkCard, CardGrid } from '@astrojs/starlight/components';
 
-Every step needs two decisions: which response means it went well, and what to do when the API answers with an error. Luvin sets the first from the contract and leaves the second to you. Both are in the step panel.
+Every step needs two decisions: which response means it went well, and what to do when the API answers with an error. Luvin sets the first from the contract and leaves the second to you. Both are in the step panel, and the second is also on the card of the step.
+
+This page is the overview. For how a run moves from step to step after each action, read [Error branches](/design/branches/).
 
 ## Example: a Pokémon that does not exist
 
@@ -77,9 +79,27 @@ See [JSONPath and regex criteria](/recipes/criteria/) for runnable examples.
 | **Retry (up to 3 times)** | Calls the step again, up to 3 times, waiting 1 second before each try. If it still fails, the workflow fails. |
 | **Go to “step”** | Jumps to another step of the workflow and continues from there. |
 
+You can choose the action from the card on the canvas or from the step panel. Both write the same thing in the file.
+
+### From the card
+
+In the **Design** tab, each card has an **On failure** section with one row per error status the contract documents. **Actions by response**, above the canvas, must be on to see the rows. It is on by default.
+
+| The row shows | Button at the end of the row |
+|---|---|
+| `404 → no action` **fails** | **+**. Its tooltip says **What to do if it responds 404**. |
+| `404 → on404` **end ✕**, or another action | A pencil. Its tooltip says **Change what to do if it responds 404**. |
+
+Click the button and choose in the menu **If it responds 404**: **+ A new step…**, **Go to “Get weakness”** (only later steps), **End the workflow**, **Retry (up to 3 times)** or, when the status already has an action, **Remove the branch**. For a status the contract does not document, use **+ If it responds another status…** at the end of the section.
+
+Each option is explained in [The branch menu](/design/branch-menu/). Statuses such as 429 or 503 are in [Statuses the contract doesn't document](/design/branch-other-status/).
+
+### From the step panel
+
 <Steps>
-1. Open the list next to the status, for example **404**.
-2. Choose the action.
+1. Click the step on the canvas. Its panel opens on the right.
+2. Under **If it responds with an error**, open the list next to the status, for example **404**.
+3. Choose the action.
 </Steps>
 
 ![The section If it responds with an error of createOrder: 400 with no action, 401 End the workflow, 409 Go to “List products” and 429 Retry (up to 3 times)](/media/en/design-error-actions.webp)
@@ -106,6 +126,12 @@ Two more things can show in this section:
 
 - A **Reusables** group at the top of the list, when a saved action handles that status. Choosing it applies the reusable.
 - The line **There are 2 error action(s) with custom criteria.** with **Edit in the YAML**. Those actions do not depend on a single status, for example they depend on a field of the response. The panel does not edit them.
+
+### A new step for an error
+
+Sometimes an error needs its own call, for example to list Pokémon when the species is not found. **+ A new step…**, in the menu of the card, opens a dialog with the palette, titled **New step if it responds 404**. The step you pick goes at the end of the workflow, the error jumps to it with an action `on404` of type `goto`, and the last step of the happy path gets an action on success named `done` that ends the run before the new step.
+
+[A new step for an error](/design/branch-new-step/) shows the whole flow, the YAML before and after, several branch steps and how to undo it. To add a step in another place of the workflow, use the **+** on the arrows between steps: see [Insert a step](/design/insert-step/).
 
 Runnable examples: [Retry, jump and end on errors](/recipes/error-branches/) and [Prove the API rejects bad data](/recipes/expected-error/).
 
@@ -214,6 +240,15 @@ The table has one row per step and documented status:
 You do not have to handle everything. Handle the errors your application treats differently, such as "not found" or "not approved".
 
 ![Response coverage with 7/11 handled: one row per step and status, with Success, Action or Unhandled](/media/en/design-coverage.webp)
+
+## Branches in depth
+
+<CardGrid>
+  <LinkCard title="Error branches" href="/design/branches/" description="How a run continues after each kind of action." />
+  <LinkCard title="The branch menu" href="/design/branch-menu/" description="Each option of the menu on the card." />
+  <LinkCard title="Statuses the contract doesn't document" href="/design/branch-other-status/" description="429, 500, 503 and other statuses." />
+  <LinkCard title="A new step for an error" href="/design/branch-new-step/" description="A step that runs only for one response." />
+</CardGrid>
 
 ## Related
 

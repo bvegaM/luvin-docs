@@ -1,0 +1,115 @@
+---
+title: Error branches
+description: What a branch is, how a run continues after each kind of action in Arazzo, and where you create and read branches in Luvin.
+sidebar:
+  order: 7.1
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A branch says what the workflow does when a step gets a given response, for example "if `getSpecies` responds 404, end the workflow". Without a branch, any error stops the workflow with a generic failure. Add a branch for each error your application treats differently, so that the outcome is known and tested.
+
+This page explains how a run moves from step to step. The pages that follow show how to create each branch from the canvas.
+
+## Example: end on a 404
+
+In **Pokemon card**, `getPokemon` already has a branch: when the Pokémon does not exist, the workflow ends there instead of failing.
+
+<Tabs>
+<TabItem label="On the canvas">
+
+The card of `getPokemon`, in the **Design** tab, has a section **On failure** with the row `404 → pokemonNotFound` **end ✕**.
+
+</TabItem>
+<TabItem label="In the YAML">
+
+```yaml title="pokemon.arazzo.yaml" {4-8}
+- stepId: getPokemon
+  # …
+  onFailure:
+    - name: pokemonNotFound
+      type: end
+      criteria:
+        - condition: $statusCode == 404
+```
+
+</TabItem>
+</Tabs>
+
+## How a run moves through the steps
+
+In Arazzo, a step either succeeds or fails:
+
+- It **succeeds** when all its success criteria hold, for example `$statusCode == 200`.
+- It **fails** when one criterion does not hold, for example because the API answered 404.
+
+Then the run looks at the actions of the step. After a success it reads `onSuccess`, after a failure it reads `onFailure`. It takes the **first** action of the list whose criteria all hold, and does what that action says. An action without criteria matches any response.
+
+| The step | Action that applies | What the run does next |
+|---|---|---|
+| Succeeds | None | Goes on with the next step of the list. After the last step, the workflow ends. |
+| Succeeds | `end` | Ends the workflow here. The steps below do not run. |
+| Succeeds | `goto` | Jumps to the step it names. |
+| Fails | None | Stops. The workflow fails with the error of the step. |
+| Fails | `end` | Stops at this step, as a known outcome. The steps below do not run. |
+| Fails | `retry` | Calls the step again, up to `retryLimit` times. If it keeps failing, the workflow fails. |
+| Fails | `goto` | Goes on from the step it names, then follows the list from there. |
+
+Two rules follow from this, and Luvin applies them for you when you build branches on the canvas:
+
+- **The order of the list is the order of the run.** A step placed after the last step of the happy path still runs after it, unless something ends the run before. That is why Luvin adds an action named `done` when it puts a step at the end for an error. See [A new step for an error](/design/branch-new-step/).
+- **A jump does not come back.** After the target of a `goto` succeeds, the run goes on with the step below the target, not with the step that jumped.
+
+### What you see in the results
+
+| What happened | Line under the step |
+|---|---|
+| An `end` action fired | **↪ End of workflow (action "pokemonNotFound")** |
+| A `goto` action fired | **↪ Goes to step "listPokemon" (action "on404")** |
+| A `retry` action fired | **↪ Retry 1 of 3 (action "on429")** |
+| All the retries failed | **↪ The 3 retries were exhausted** |
+
+Steps that did not run show why:
+
+| Why | Message |
+|---|---|
+| An earlier step failed, or an `end` stopped it after an error | **Not run because step "getPokemon" failed.** |
+| An `end` or a `goto` skipped them in a run that went well | **Not run: the workflow ended earlier due to an end/goto action.** |
+
+A run that loops through jumps or retries more than 200 times stops with **The run was stopped: possible infinite loop of goto/retry actions.**
+
+## What you can build from the canvas
+
+| Kind of branch | Where | Read |
+|---|---|---|
+| End, retry or go to a later step, for a status the contract documents | The **+** or the pencil of a row in **On failure** | [The branch menu](/design/branch-menu/) |
+| The same, for a status the contract does not document | **+ If it responds another status…** | [Statuses the contract doesn't document](/design/branch-other-status/) |
+| A new step only for that response | **+ A new step…** in the menu | [A new step for an error](/design/branch-new-step/) |
+| End, retry or go to any step, earlier ones too | The step panel, **If it responds with an error** | [Success and errors](/design/success-and-errors/) |
+| Actions on success, actions that depend on a field of the response, several statuses in one action | The **YAML** tab | [The YAML tab](/design/arazzo-editor/) |
+
+Every branch you create with the card menu or with the actions of the step panel, other than a reusable, is written the same way: an action named `on` followed by the status, such as `on404`, with the criterion `$statusCode == 404`.
+
+<Aside type="note">
+Only operation steps have branches on the canvas. A step that calls another workflow, a messaging step (a message has no status) and a step whose operation is not in any contract of the collection have no **+** in **On failure**.
+</Aside>
+
+## Where you read the branches
+
+<Steps>
+1. **On the card.** With **Actions by response** on, above the canvas, each card lists its branches and the documented errors with no action. A jump is drawn as an orange dashed line. See [See the actions on the canvas](/design/success-and-errors/#see-the-actions-on-the-canvas).
+2. **In the step panel.** **If it responds with an error** lists one row per status, with the action chosen.
+3. **In the Overview tab.** **Response coverage** says, for each status the contract documents, whether something handles it.
+4. **In the Cases tab.** Each branch gets its own generated case, for example **getSpecies responds 404 → on404**, which simulates that response and checks that the action fires. See [Cases](/test/cases/).
+</Steps>
+
+![Cards on the canvas with Actions by response on: getProduct has 404 → on404 go to openTicket, with an orange dashed line down to openTicket, and createOrder has success → done end ✓ and 409 → no action fails](/media/en/design-branch-done.webp)
+
+## Related
+
+<CardGrid>
+  <LinkCard title="The branch menu" href="/design/branch-menu/" />
+  <LinkCard title="A new step for an error" href="/design/branch-new-step/" />
+  <LinkCard title="Insert a step" href="/design/insert-step/" />
+  <LinkCard title="Retry, jump and end on errors" href="/recipes/error-branches/" />
+</CardGrid>

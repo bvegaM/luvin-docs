@@ -1,0 +1,137 @@
+---
+title: Request settings
+description: The timeout, the maximum response size, SSL verification, redirects and automatic cookies of the desktop app, with their defaults, limits and the errors they give.
+sidebar:
+  order: 11
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+The **Requests** group, in **Preferences** → **General**, says how every request goes out: how long Luvin waits, how large a response can be, whether it trusts the server's certificate, whether it follows redirects and whether it keeps cookies. The defaults work for most APIs. Change them when an API is slow, sends large files, uses a test certificate or redirects you.
+
+<Aside type="note" title="Desktop app only">
+These settings apply to the desktop app. In the browser, the group says *Desktop app only: in the browser, requests use the browser settings.* and only **Automatic cookies** can be changed.
+</Aside>
+
+## The settings
+
+| Setting | Default | Range | What it does |
+|---|---|---|---|
+| **Request timeout** | `0` ms (no limit) | 0 to 3,600,000 ms (one hour) | How long to wait for a response before giving up |
+| **Max response size** | `50` MB | 0 (no limit) to 2048 MB | A larger response is not downloaded |
+| **SSL certificate verification** | On | | Rejects servers with an expired, self-signed or wrong-domain certificate |
+| **Follow redirects** | On | | When off, a 301/302 is shown as is instead of following it |
+| **Max redirects** | `10` | 0 to 50 | How many redirects to follow. Only appears while **Follow redirects** is on |
+| **Automatic cookies** | On | | Stores the cookies responses set and sends them on later requests to the same domain |
+
+![The Requests group in General with its defaults: Request timeout 0 ms, Max response size 50 MB, Max redirects 10, and SSL certificate verification, Follow redirects and Automatic cookies on](/media/en/preferences.webp)
+
+### Change a number
+
+<Steps>
+
+1. Open **Preferences** (⌘, or Ctrl+,). It opens on **General**.
+2. In **Requests**, click the field, for example **Request timeout**, and write the new value, such as `30000`.
+3. Press Enter or click outside the field. The value is saved.
+
+</Steps>
+
+A value out of range takes the nearest limit: `5000000` in **Request timeout** becomes `3600000`. Decimals are rounded. An empty field goes back to the value it had.
+
+## Request timeout
+
+The time, in milliseconds, that Luvin waits for a request to finish. `0` means no limit. `30000` is 30 seconds.
+
+- It covers the whole request: connecting, sending, waiting for the server, downloading, and every redirect Luvin follows.
+- When it runs out, the request fails with *The API did not respond within 30 s, the limit in Preferences → General. Raise it (or set 0 for no limit) if this API takes longer.* (with your limit in seconds).
+- It applies to HTTP and GraphQL requests everywhere: a single send, the runner, workflow runs and **Try it out**. gRPC requests have their own deadline.
+- Through a proxy, opening the tunnel for an HTTPS request has its own limit of 30 seconds, even with no timeout.
+
+**Example.** A report endpoint of the shop takes a minute to answer. With a timeout of `30000`, it fails after 30 s. Set `90000`, or `0`, and send again.
+
+## Max response size
+
+The largest response, in megabytes, that Luvin downloads. `0` means no limit.
+
+- A response larger than the limit fails with *The response is larger than 50 MB, the limit in Preferences → General. Raise it (or set 0 for no limit) to download it.* Luvin stops downloading as soon as it passes the limit, so it does not fill the memory.
+- A compressed response (`gzip`, `br` or `deflate`) is measured twice: as it arrives and after decompressing. A small compressed response that grows past the limit when decompressed also fails.
+- Even with no limit (`0`), a decompressed body cannot pass 512 MB.
+- If a body cannot be decompressed, Luvin shows it as it arrived.
+
+The **Response size** card of the response shows the size as it arrived and, if it was compressed, **Body, uncompressed**. See [Read a response in detail](/requests/response-details/).
+
+## SSL certificate verification
+
+On, Luvin checks the certificate of every HTTPS server and rejects it if it expired, is self-signed, or belongs to another domain. The request fails with *The server certificate is not trusted (…). If it belongs to your company, add its CA in Preferences → Certificates; for testing you can turn off SSL verification in Preferences → General.* The code in parentheses says why, for example `DEPTH_ZERO_SELF_SIGNED_CERT` or `CERT_HAS_EXPIRED`.
+
+Turn it off only to test against a server with a self-signed or expired certificate. While it is off, the setting warns: *Off: Luvin accepts any certificate. Use it for testing only.*
+
+- When it is off, it also applies to gRPC with TLS, WebSocket, the OAuth 2.0 login window and an `https` proxy.
+- For a company certificate, a better fix is to add its CA and leave the verification on. See [CA certificates](/get-started/network-certificates/#ca-certificates).
+
+The globe next to the response, **Network**, shows **TLS protocol**, **Cipher**, **Certificate issuer** and **Certificate valid until** of the server you reached.
+
+## Redirects
+
+When **Follow redirects** is on, Luvin follows `301`, `302`, `303`, `307` and `308` responses that have a `Location` header, up to **Max redirects** times.
+
+| Redirect | What Luvin sends next |
+|---|---|
+| `303` | A `GET` without a body |
+| `301` or `302` after a `POST`, `PUT`, `PATCH` or `DELETE` | A `GET` without a body, as browsers do |
+| `301` or `302` after a `GET` or `HEAD` | The same method |
+| `307` or `308` | The same request, with its method and body |
+
+When the method changes to `GET`, the `Content-Type` and `Content-Length` headers are dropped with the body.
+
+### Your credentials stay with the server you called
+
+The `Authorization` and `Cookie` headers are dropped when a redirect goes:
+
+- To another server. The host and the port must be the same: `api.shop.test` to `api.shop.test:8443` counts as another server.
+- From `https` to `http`, even on the same server.
+
+A token never travels unencrypted, nor to a server you did not call.
+
+### Cookies during a redirect
+
+The cookies set by each step of a redirect are sent to the next steps that match their domain and path, as a browser does. A login that answers `302` with `Set-Cookie` reaches its destination with the session. With **Automatic cookies** on, they are also stored for later requests.
+
+### What you see
+
+- The response is the last one. The **Response time** card says *Followed N redirect(s); times are from the last one.*, and its total includes every step.
+- With **Follow redirects** off, or **Max redirects** at `0`, you see the `301` or `302` itself, with its `Location` header.
+- When the limit is reached, Luvin does not fail: it shows the last redirect it got.
+
+**Example.** `http://shop.test/orders` answers `301` to `https://shop.test/orders`. With the defaults, you see the `200` of the `https` address and the note *Followed 1 redirect(s)…*. Turn off **Follow redirects** to check that the `301` and its `Location` are right.
+
+## Automatic cookies
+
+On, Luvin stores the cookies that responses set and sends them on later requests to the same domain, as a browser does. Off, Luvin neither stores nor sends cookies, in single requests and in the runner.
+
+- If the request has its own `Cookie` header, Luvin does not add the stored ones.
+- The runner has its own options: **Start with the saved cookies** and **Save cookies after the run**. With **Automatic cookies** off, a run uses no cookies.
+- This is the only setting of the group that also works in the browser.
+
+See [Cookies and saved examples](/requests/cookies-and-examples/) and [Headers that Luvin adds](/requests/auto-headers/).
+
+## Troubleshooting
+
+| What you see | Why | What to do |
+|---|---|---|
+| *The API did not respond within …* | The API takes longer than **Request timeout** | Raise it, or set `0` |
+| A request hangs for a long time | **Request timeout** is `0` and the API does not answer | Set a limit, such as `60000`, or cancel the request |
+| *The response is larger than …* | The response, or its decompressed body, passes **Max response size** | Raise it, or set `0` |
+| *The server certificate is not trusted (…)* | Self-signed, expired or company certificate | Add the CA in **Certificates**; for a test server, turn off **SSL certificate verification** |
+| The API answers `401` after a redirect | The redirect went to another server or from `https` to `http`, so `Authorization` was dropped | Call the final address directly |
+| A `POST` became a `GET` | The server answered `301`, `302` or `303` | Call the final address, or ask for a `307`/`308` |
+| A login does not keep the session | **Automatic cookies** is off, or the request has its own `Cookie` header | Turn it on, or remove the header |
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Network settings" href="/get-started/network/" />
+  <LinkCard title="Certificates" href="/get-started/network-certificates/" />
+  <LinkCard title="Read a response in detail" href="/requests/response-details/" />
+  <LinkCard title="Connection help" href="/dev-tools/connection-help/" />
+</CardGrid>

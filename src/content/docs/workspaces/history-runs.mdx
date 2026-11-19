@@ -1,0 +1,124 @@
+---
+title: Runs in history
+description: What history keeps of workflow runs, runner runs and performance tests, what each row and each detail shows, and how to open the workflow, run it again or export a past run.
+sidebar:
+  order: 8.7
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+The **Runs** part of the **History** tab keeps three kinds of runs: the runs of a workflow, the runs of the runner, and the performance tests. Each one opens with the same view you saw when it finished, so you can compare a run with the one before or export it later.
+
+## Example: compare two runs of Pokemon card
+
+You ran **Pokemon card** this morning and it passed. Now one case fails, and you want to see what changed.
+
+<Steps>
+1. Press ⌘K (Ctrl+K on Windows and Linux) and choose **Open history**.
+2. Click **Runs**. Both runs of **Pokemon card** are under **Today**, each with ✓ and ✕ counts.
+3. Click this morning's run. Open the case that fails now and read the response of each step.
+4. Click the newest run and open the same case. Compare the step that changed.
+5. To try again, press **Rerun**.
+</Steps>
+
+## The three kinds of runs
+
+| Kind | Marked | Saved when |
+|---|---|---|
+| Workflow run | Nothing: the name of the workflow. | At least one case finished. |
+| Runner run | **Runner** | At least one request ran, or one case of a workflow finished. |
+| Performance test | **Performance** | The test ends. |
+
+Each kind keeps its last 50 entries per collection. Runner runs of requests and of workflows share those 50.
+
+## Workflow runs
+
+### The row
+
+| Part | Example |
+|---|---|
+| The dot | The worst result: failed if a case failed; then warning; then inconclusive, also for a cancelled run; passed if every case passed. |
+| The name | `Pokemon card` |
+| Below the name | `4 case(s) · Mock · Pokédex mock`, plus `· Simulated` for a run in **Simulation** and `· Cancelled` for a cancelled run. |
+| The counts | `✓ 2` passed, `✕ 1` failed, `! 1` with a warning or inconclusive. `✕` and `!` appear only when they are not 0. |
+| The time | `10:42` |
+
+### The detail
+
+The top shows the current name of the workflow, then *Run on* with the date, the environment, **Real API** or **Simulated**, the duration and, if it applies, **Cancelled**.
+
+Below are the results, as in the results panel: the summary, each case with its verdict, and each step with its request and response. If the workflow ran other workflows first (`dependsOn`), they are shown too. See [Read the results](/test/results/).
+
+| Button | What it does |
+|---|---|
+| **Open workflow** | Opens the workflow. If it is no longer in the collection, the top says *The workflow is no longer in the collection*. |
+| **Rerun** | Runs the workflow again (see below). |
+| **JSON** | *Export the results as JSON*, this past run. |
+| **Report** | *Download a self-contained HTML report (no credentials)* of this past run. See [Reports](/test/reports/). |
+| **Delete** | Removes this entry from history, without asking. |
+
+![A View product run open from the Runs list: Run on with the date, local, Real API and the duration, Open workflow and Delete, Rerun, JSON and Report, the Happy path case passed and its two steps](/media/en/history-run.webp)
+
+### Rerun
+
+**Rerun** appears when the workflow is still in the collection and nothing else is running.
+
+<Steps>
+1. Press **Rerun**.
+2. The run bar switches to the mode of the past run: **Real API** or **Simulation**.
+3. The workflow opens and runs, as if you pressed **Run**.
+</Steps>
+
+It runs the workflow **as it is now**, with its current cases and the active environment, not the ones of the past run. As with **Run**, Luvin asks before steps that create, change or delete data, and opens the sign-in if the authorization needs one.
+
+### Cut bodies
+
+Each body of a step is saved up to 32 KB. If the whole run is above 4 MB, each body is saved up to 2 KB. The run then says *Some responses were very large: they were saved cut short.*
+
+## Runner runs
+
+### The row
+
+| Part | Example |
+|---|---|
+| The dot | Failed if something failed, warning if the run did not finish, passed otherwise. |
+| The name | **Runner** and the folder or collection that ran. |
+| Below the name, a requests run | `5 request(s) · 3 iteration(s)`, plus the data file and `· Cancelled` if it applies. |
+| Below the name, a workflows run | `2 workflow(s) · 1 iteration(s) · Real API`, plus the data file and `· Cancelled` if it applies. |
+| The counts | `✓` passed and `✕` failed: requests, or cases for a workflows run. |
+
+### The detail
+
+The top shows the name and *Run on* with the date, and **Delete**. Below are the results as the runner showed them: each iteration, each request or workflow, and its outcome.
+
+- In a requests run, each response is saved up to 32 KB, and you can open a request that is still in the collection.
+- In a workflows run, the cases and steps are saved as in a workflow run.
+- The variables at the end of the run are not saved: they hold real values, such as tokens.
+
+See [Run requests](/runner/requests/) and [Run workflows](/runner/workflows/).
+
+## Performance tests
+
+### The row
+
+| Part | Example |
+|---|---|
+| The dot | The result of the test, as its screen showed it: passed, warning or failed. |
+| The name | **Performance** and the name of what ran. |
+| Below the name | `10 users · 1200 requests · p95 180 ms · Mock · Pokédex mock` |
+| The counts | Requests per second, such as `40/s`, and `✕` with the errors, if any. |
+
+### The detail
+
+The top shows the name, *Run on* with the date, and **Delete**. Below are the results of the test, as the runner showed them when it ended. A performance test keeps only metrics: no response is saved. See [Read a performance test](/runner/performance-results/).
+
+![A performance test open in History, marked Performance in the list: Shop requests, Run on with the date, Delete, Finished, 3 users · 5 s, cards with total requests, requests per second, average response time and error rate, and the chart](/media/en/history-perf.webp)
+
+## Related
+
+<CardGrid>
+  <LinkCard title="History" href="/workspaces/history/" />
+  <LinkCard title="Requests in history" href="/workspaces/history-requests/" />
+  <LinkCard title="Read the results" href="/test/results/" />
+  <LinkCard title="The Runner" href="/runner/overview/" />
+</CardGrid>

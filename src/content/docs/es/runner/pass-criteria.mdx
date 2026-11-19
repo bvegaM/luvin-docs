@@ -1,0 +1,114 @@
+---
+title: Criterios para pasar
+description: Define los umbrales que debe cumplir una prueba de rendimiento, cómo se mide cada uno, la regla de una tasa de error de 0 %, el aviso con el veredicto, una prueba sin datos y el color del estado.
+sidebar:
+  order: 15
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Los criterios para pasar convierten una prueba de rendimiento en un sí o un no. Defines los límites antes de la prueba, y cuando termina dice si cumplió cada uno. Sin ellos, la prueba solo da números, y tú decides si son buenos.
+
+## Ejemplo: un catálogo que debe responder rápido y nunca fallar
+
+<Steps>
+1. En la configuración de una prueba de rendimiento, abre **Pasar la prueba si…**. La pista dice *Opcional. Al terminar, la prueba dice si pasó o no según estos umbrales.*
+2. Marca **El tiempo de respuesta promedio es menor que** y escribe `300`.
+3. Marca **El p95 es menor que** y escribe `800`.
+4. Marca **La tasa de error es menor que** y escribe `0`.
+5. Empieza la prueba.
+</Steps>
+
+![Pasar la prueba si… abierto con su pista y tres umbrales marcados: El tiempo de respuesta promedio es menor que 500 ms, El p95 es menor que 1000 ms y La tasa de error es menor que 1 %](/media/es/runner-perf-criteria.webp)
+
+Cuando termina, un aviso dice, por ejemplo:
+
+**✕ La prueba no pasó** · ✓ *promedio 210 ms (debía ser menor que 300 ms)* · ✓ *p95 640 ms (debía ser menor que 800 ms)* · ✕ *tasa de error 0,4 % (debía ser 0 %)*
+
+## Los umbrales
+
+| Umbral | Valor al marcarlo | Unidad | Flechas |
+|---|---|---|---|
+| **El tiempo de respuesta promedio es menor que** | 500 | ms | De 50 en 50 |
+| **El p95 es menor que** | 1000 | ms | De 50 en 50 |
+| **La tasa de error es menor que** | 1 | % | De 0,5 en 0,5 |
+
+- Marca un umbral para usarlo. Su campo se activa con el valor de la tabla. Desmárcalo para dejarlo fuera.
+- Los valores no pueden ser negativos.
+- Con al menos un umbral marcado, **Pasar la prueba si…** queda abierto cuando vuelves a la configuración.
+
+## Cómo se mide cada uno
+
+Los tres se miden sobre toda la prueba, con cada request, o cada paso de un workflow, que terminó:
+
+| Umbral | Qué se compara |
+|---|---|
+| Promedio | El tiempo de respuesta promedio de todos los requests. |
+| p95 | El tiempo bajo el que terminó el 95 % de los requests. |
+| Tasa de error | Los requests que fallaron, sobre todos, como porcentaje. |
+
+- Mirar un tramo de tiempo o un solo request en los resultados no cambia el veredicto.
+- Las filas de un workflow completo no cuentan. Mira [Rendimiento de workflows](/es/runner/performance-workflows/#la-fila-del-workflow-completo).
+- Los requests cortados cuando se acabó el tiempo no cuentan.
+
+## Menor quiere decir menor
+
+El valor tiene que ser estrictamente menor que el límite: un promedio de exactamente 500 ms no cumple **El tiempo de respuesta promedio es menor que** `500`.
+
+### Una tasa de error de 0 %
+
+**La tasa de error es menor que** `0` quiere decir ningún error. Un solo request fallido hace fallar el umbral, y el aviso dice *tasa de error 0,04 % (debía ser 0 %)*.
+
+Con un límite como 0,5, una tasa de error de 0,4 % pasa y una de 0,5 % no.
+
+## El veredicto
+
+Cuando la prueba termina, un aviso bajo la parte de arriba muestra el veredicto y cada umbral:
+
+| Aviso | Cuándo |
+|---|---|
+| **✓ La prueba pasó** | Se cumplieron todos los umbrales marcados. |
+| **✕ La prueba no pasó** | Al menos uno no se cumplió. |
+
+Cada umbral tiene su propia línea, con ✓ o ✕, su valor y su límite:
+
+- ✓ *promedio 210 ms (debía ser menor que 300 ms)*
+- ✓ *p95 380 ms (debía ser menor que 1 s)*
+- ✕ *tasa de error 2,5 % (debía ser menor que 1 %)*
+
+Los tiempos de un segundo o más se muestran en segundos. El aviso aparece cuando la prueba termina, ya sea porque se acabó el tiempo o porque la detuviste.
+
+## Sin datos
+
+Si ningún request terminó, no hay nada que medir. El aviso dice:
+
+*Ningún request alcanzó a terminar en 1 min: no hay con qué medir. Revisa que la API responda o alarga la prueba.*
+
+![La parte de arriba de los resultados de una prueba de 5 segundos: el aviso ámbar Sin datos, que dice que ningún request alcanzó a terminar en 5 s, y los números clave todos en 0](/media/es/runner-perf-nodata.webp)
+
+- Sin umbrales, su título es **Sin datos**.
+- Con umbrales, su título es **✕ La prueba no pasó**: una prueba sin datos nunca pasa. Un promedio de 0 ms no es un resultado.
+
+Las causas habituales: la API no responde en esa dirección, cada request tarda más que la prueba, o la prueba se detuvo apenas empezó.
+
+## El color del estado
+
+El estado arriba de los resultados, y el punto de la prueba en **Historial**, toman un color cuando la prueba termina:
+
+| Color | Cuándo |
+|---|---|
+| Verde | Con umbrales: la prueba pasó. Sin umbrales: terminó, con requests y sin errores. |
+| Rojo | Con umbrales: la prueba no pasó, incluida una prueba sin datos. |
+| Ámbar | Sin umbrales: tuvo errores, no tuvo datos o se detuvo. |
+
+## Sin umbrales
+
+Deja **Pasar la prueba si…** sin nada marcado cuando estás explorando: no hay aviso, solo los números, el gráfico y la tabla. Mira [Lee una prueba de rendimiento](/es/runner/performance-results/).
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Lee una prueba de rendimiento" href="/es/runner/performance-results/" />
+  <LinkCard title="Pruebas de rendimiento" href="/es/runner/performance/" />
+  <LinkCard title="La tabla y los errores" href="/es/runner/performance-table/" />
+</CardGrid>

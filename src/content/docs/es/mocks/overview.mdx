@@ -1,0 +1,84 @@
+---
+title: Mock servers
+description: Qué es un mock server, cuándo usarlo, con qué responde, en qué se diferencia de la Simulación, y un mapa de esta sección.
+sidebar:
+  order: 1
+---
+
+import { Steps, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Un mock server es un servidor pequeño en tu equipo que responde como tu API. Tus requests y tus workflows lo llaman como si fuera la API real, y nada llega a la real. Úsalo cuando la API todavía no existe, cuando está caída, o cuando no quieres gastar sus datos ni crear pedidos de verdad.
+
+Un mock responde con respuestas que ya tienes: los ejemplos que guardaste en los requests de la colección o los ejemplos de un contrato OpenAPI. También puedes escribir rutas propias.
+
+## Cuándo usar un mock
+
+| Situación | Cómo ayuda un mock |
+|---|---|
+| La API todavía no está hecha, pero su contrato sí. | Un mock desde el contrato responde cada operación con sus ejemplos. |
+| La API está caída, es lenta o tiene un límite de llamadas. | Sigues trabajando contra el mock. Una **Demora (ms)** muestra cómo se comporta tu workflow con una API lenta. |
+| Una llamada crea datos reales, como un pedido en PayPal. | El mock responde la respuesta documentada y no se crea nada. |
+| Necesitas un error que la API casi nunca da, como un `404` o un `422`. | Lo pides con un header, o escribes una ruta que siempre lo responde. |
+| Un frontend en `localhost` necesita la API. | Un frontend local en tu navegador puede llamar al mock. |
+| Quieres ver exactamente qué envía tu workflow. | El **Log** del mock muestra cada llamada que recibió y qué respondió. |
+
+## Ejemplo: un mock de la Pokédex en un minuto
+
+La colección de la Pokédex tiene el contrato `pokeapi.openapi.yaml`. Su servidor es `https://pokeapi.co/api/v2`.
+
+<Steps>
+1. En la barra lateral, haz clic en el **+** junto a **Mock servers**. Se abre el diálogo **Nuevo mock server**.
+2. En **Respuestas desde**, elige **Un contrato OpenAPI** y pulsa **Crear mock**. El mock se abre en su propia pestaña, apagado.
+3. Pulsa **Encender**. Arriba de la pestaña aparece `http://127.0.0.1:4010`.
+4. Llama a `http://127.0.0.1:4010/api/v2/pokemon/pikachu`, desde un request o desde cURL. El mock responde `200` con el ejemplo de `getPokemon` del contrato: Pikachu, número 25.
+5. Llama a `http://127.0.0.1:4010/api/v2/pokemon/eevee`. Responde el mismo Pikachu.
+</Steps>
+
+![La pestaña del Mock de Shop, encendido en 127.0.0.1:4010 con Copiar URL y Apagar, sus campos Puerto, Demora y Respuestas desde, y la pestaña Rutas con las rutas de shop.openapi.yaml, incluidas las alternativas 404 y 422](/media/es/mocks-running.webp)
+
+El último paso muestra qué es un mock: no busca nada. Responde la respuesta de la ruta que coincide con la llamada, sea cual sea el valor en la ruta. Para responder otra cosa a `eevee`, escribe una ruta propia. Mira [Rutas](/es/mocks/routes/).
+
+## Con qué responde un mock
+
+Cada mock tiene una fuente para sus respuestas. La eliges al crear el mock y puedes cambiarla después:
+
+| Fuente | Qué responde el mock |
+|---|---|
+| **La colección** | Los ejemplos guardados de los requests HTTP y GraphQL. Se mantiene al día cuando guardas, cambias o borras un ejemplo. |
+| **Un contrato OpenAPI** | Cada operación del contrato, con cada status documentado. El body es el ejemplo del contrato o un dato armado desde su schema. |
+| **Solo rutas propias** | Solo las rutas que escribas. |
+
+Tus rutas propias siempre responden primero, sea cual sea la fuente. Mira [Crea un mock server](/es/mocks/create/).
+
+## Las partes de un mock
+
+| Parte | Dónde | Qué contiene |
+|---|---|---|
+| La definición | Un archivo en la carpeta `mocks/` de la colección. | Nombre, puerto, demora, fuente y rutas propias. Viaja con la colección, también en git. |
+| El servidor | Tu equipo, en `http://127.0.0.1` y el puerto. | Responde solo mientras lo tengas encendido, en la app de escritorio. |
+| Las rutas | La pestaña **Rutas** del mock. | Tus rutas propias y las rutas de la fuente. |
+| El Log | La pestaña **Log** del mock. | Las últimas llamadas que recibió. Se guarda solo en memoria. |
+
+## Solo en la app de escritorio
+
+Un mock server abre un puerto, y un navegador no puede hacerlo. En la versión del navegador puedes crear mocks y escribir sus rutas, pero **Encender** está desactivado. La pestaña dice *Los mock servers se encienden en la app de escritorio: el navegador no puede abrir un puerto. Aquí puedes definir sus rutas.*
+
+![El Mock de Shop en la versión del navegador: un aviso dice que los mock servers se encienden en la app de escritorio, y el botón Encender está desactivado](/media/es/mocks-web-desktop-only.webp)
+
+## Mock server o Simulación
+
+Los dos te dejan ejecutar un workflow sin la API real. La **Simulación** no hace llamadas: arma una respuesta para cada paso de modo que el paso pase. Un mock responde llamadas HTTP reales en tu equipo con respuestas fijas, así que un paso puede fallar como fallaría con la API. La comparación completa está en [Usa un mock con requests y workflows](/es/mocks/with-workflows/).
+
+## En esta sección
+
+<CardGrid>
+  <LinkCard title="Crea un mock server" href="/es/mocks/create/" description="Las tres fuentes, el nombre y el archivo en disco." />
+  <LinkCard title="Enciende y apaga un mock" href="/es/mocks/start-stop/" description="Puerto, demora, y por qué un mock no enciende." />
+  <LinkCard title="Rutas" href="/es/mocks/routes/" description="Tus rutas, las de la fuente y cuál responde." />
+  <LinkCard title="Respuestas" href="/es/mocks/responses/" description="Status, headers, body, demora y respuestas alternativas." />
+  <LinkCard title="Valores del request" href="/es/mocks/templates/" description="Responde con el id, la query o el body de la llamada." />
+  <LinkCard title="Credenciales y errores" href="/es/mocks/auth-and-errors/" description="401 sin credenciales, 404 sin ruta, 500." />
+  <LinkCard title="El Log de un mock" href="/es/mocks/log/" description="Cada llamada que recibió y qué respondió." />
+  <LinkCard title="Usa un mock con requests y workflows" href="/es/mocks/with-workflows/" description="El ambiente del mock y cómo ejecutar contra él." />
+  <LinkCard title="Quién puede llamar a un mock" href="/es/mocks/security/" description="Solo 127.0.0.1, frontends locales y la comprobación del Host." />
+</CardGrid>

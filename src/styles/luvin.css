@@ -127,6 +127,8 @@ h1 {
   min-width: 0;
   overflow-x: auto;
   scrollbar-width: none;
+  /* Con muchas secciones el menú se desplaza: los bordes se desvanecen para que se note que sigue. */
+  mask-image: linear-gradient(to right, transparent 0, #000 0.75rem, #000 calc(100% - 2.5rem), transparent 100%);
 }
 .lv-tabs-scroll::-webkit-scrollbar {
   display: none;
@@ -136,7 +138,7 @@ h1 {
   display: flex;
   align-items: center;
   flex: none;
-  padding: 0 0.7rem;
+  padding: 0 0.55rem;
   font-size: var(--sl-text-sm);
   font-weight: 500;
   color: var(--sl-color-gray-2);
@@ -154,8 +156,8 @@ h1 {
 .lv-tabs a[aria-current='page']::after {
   content: '';
   position: absolute;
-  left: 0.7rem;
-  right: 0.7rem;
+  left: 0.55rem;
+  right: 0.55rem;
   bottom: -1px;
   height: 3px;
   border-radius: 3px 3px 0 0;

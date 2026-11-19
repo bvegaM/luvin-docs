@@ -1,13 +1,15 @@
 ---
 title: Éxito y errores
-description: "Define qué cuenta como un paso exitoso y qué hace el workflow ante cada error documentado: terminar, reintentar o saltar."
+description: "Define qué cuenta como un paso exitoso y qué hace el workflow ante cada error: terminar, reintentar, saltar o un paso nuevo."
 sidebar:
   order: 7
 ---
 
 import { Steps, Tabs, TabItem, Aside, Badge, LinkCard, CardGrid } from '@astrojs/starlight/components';
 
-Cada paso necesita dos decisiones: qué respuesta significa que salió bien, y qué hacer cuando la API responde con un error. Luvin define la primera a partir del contrato y deja la segunda a ti. Ambas están en el panel del paso.
+Cada paso necesita dos decisiones: qué respuesta significa que salió bien, y qué hacer cuando la API responde con un error. Luvin define la primera a partir del contrato y deja la segunda a ti. Ambas están en el panel del paso, y la segunda también en la tarjeta del paso.
+
+Esta página es el resumen. Para ver cómo avanza una ejecución de un paso a otro después de cada acción, lee [Ramas de error](/es/design/branches/).
 
 ## Ejemplo: un Pokémon que no existe
 
@@ -77,9 +79,27 @@ Mira [Criterios JSONPath y regex](/es/recipes/criteria/) para ejemplos ejecutabl
 | **Reintentar (hasta 3 veces)** | Llama al paso otra vez, hasta 3 veces, esperando 1 segundo antes de cada intento. Si sigue fallando, el workflow falla. |
 | **Ir a «paso»** | Salta a otro paso del workflow y continúa desde ahí. |
 
+Puedes elegir la acción desde la tarjeta en el lienzo o desde el panel del paso. Las dos escriben lo mismo en el archivo.
+
+### Desde la tarjeta
+
+En la pestaña **Diseño**, cada tarjeta tiene una sección **Si falla** con una fila por cada estado de error que documenta el contrato. Para ver las filas, **Acciones según la respuesta**, sobre el lienzo, tiene que estar activado. Viene activado.
+
+| La fila muestra | Botón al final de la fila |
+|---|---|
+| `404 → sin acción` **falla** | **+**. Su tooltip dice **Qué hacer si responde 404**. |
+| `404 → on404` **fin ✕**, u otra acción | Un lápiz. Su tooltip dice **Cambiar qué hacer si responde 404**. |
+
+Haz clic en el botón y elige en el menú **Si responde 404**: **+ Un paso nuevo…**, **Ir a «Get weakness»** (solo pasos posteriores), **Terminar el workflow**, **Reintentar (hasta 3 veces)** o, cuando el estado ya tiene una acción, **Quitar la rama**. Para un estado que el contrato no documenta, usa **+ Si responde otro status…**, al final de la sección.
+
+Cada opción se explica en [El menú de una rama](/es/design/branch-menu/). Los estados como 429 o 503 están en [Estados que el contrato no documenta](/es/design/branch-other-status/).
+
+### Desde el panel del paso
+
 <Steps>
-1. Abre la lista junto al estado, por ejemplo **404**.
-2. Elige la acción.
+1. Haz clic en el paso, en el lienzo. Su panel se abre a la derecha.
+2. Bajo **Si responde con error**, abre la lista junto al estado, por ejemplo **404**.
+3. Elige la acción.
 </Steps>
 
 ![La sección Si responde con error de createOrder: 400 sin acción, 401 Terminar el workflow, 409 Ir a «List products» y 429 Reintentar (hasta 3 veces)](/media/es/design-error-actions.webp)
@@ -107,7 +127,13 @@ En esta sección pueden aparecer dos cosas más:
 - Un grupo **Reutilizables** al comienzo de la lista, cuando una acción guardada maneja ese estado. Al elegirlo se aplica el reutilizable.
 - La línea **Hay 2 acción(es) de error con criterios propios.** con **Editar en el YAML**. Esas acciones no dependen de un solo estado, por ejemplo dependen de un campo de la respuesta. El panel no las edita.
 
-Ejemplos ejecutables: [Reintentar, saltar y terminar ante errores](/es/recipes/error-branches/) y [Demostrar que la API rechaza datos inválidos](/es/recipes/expected-error/).
+### Un paso nuevo para un error
+
+A veces un error necesita su propia llamada, por ejemplo para listar Pokémon cuando no se encuentra la especie. **+ Un paso nuevo…**, en el menú de la tarjeta, abre un diálogo con la paleta, con el título **Paso nuevo si responde 404**. El paso que eliges queda al final del workflow, el error salta a él con una acción `on404` de tipo `goto`, y el último paso del camino feliz recibe una acción de éxito llamada `done` que termina la ejecución antes del paso nuevo.
+
+[Un paso nuevo para un error](/es/design/branch-new-step/) muestra todo el recorrido, el YAML antes y después, varios pasos de rama y cómo deshacerlo. Para agregar un paso en otro lugar del workflow, usa el **+** de las flechas entre pasos: mira [Insertar un paso](/es/design/insert-step/).
+
+Ejemplos ejecutables: [Reintenta, salta y termina ante errores](/es/recipes/error-branches/) y [Demostrar que la API rechaza datos inválidos](/es/recipes/expected-error/).
 
 ## Reintentos y llamadas lentas
 
@@ -214,6 +240,15 @@ La tabla tiene una fila por paso y estado documentado:
 No tienes que manejarlo todo. Maneja los errores que tu aplicación trata distinto, como «no encontrado» o «no aprobado».
 
 ![Cobertura de respuestas con 7/11 manejadas: una fila por paso y status, con Éxito, Acción o Sin manejo](/media/es/design-coverage.webp)
+
+## Las ramas en detalle
+
+<CardGrid>
+  <LinkCard title="Ramas de error" href="/es/design/branches/" description="Cómo sigue una ejecución después de cada tipo de acción." />
+  <LinkCard title="El menú de una rama" href="/es/design/branch-menu/" description="Cada opción del menú de la tarjeta." />
+  <LinkCard title="Estados que el contrato no documenta" href="/es/design/branch-other-status/" description="429, 500, 503 y otros estados." />
+  <LinkCard title="Un paso nuevo para un error" href="/es/design/branch-new-step/" description="Un paso que se ejecuta solo ante una respuesta." />
+</CardGrid>
 
 ## Relacionado
 

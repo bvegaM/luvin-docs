@@ -40,6 +40,9 @@ Usa $steps.getPokemn.outputs.id, pero el paso "getPokemn" no existe.
 
 El lienzo y el YAML son dos vistas del mismo archivo. Cada cambio que haces en el lienzo se escribe en el YAML, y cada cambio que escribes en el YAML se ve en el lienzo. No se guarda nada aparte, así que lo que escribes a mano se conserva.
 
+- **Un Arazzo escrito en JSON sigue en JSON.** Editarlo en el lienzo conserva el formato y su sangría.
+- **Deshacer sobrevive a una visita a otra pestaña.** **Deshacer** y **Rehacer** de la pestaña **Diseño** conservan su historial cuando abres la pestaña YAML, u otra pestaña del workflow, y vuelves. Si editaste el YAML entre medio, el historial empieza de nuevo, así deshacer no borra lo que escribiste.
+
 ![La pestaña YAML con el archivo Arazzo y una lista de problemas debajo](/media/es/yaml-editor.webp)
 
 <Steps>
@@ -61,13 +64,28 @@ Un momento después de que dejas de escribir, Luvin vuelve a leer el archivo y l
 | **2 error(es)** / **1 advertencia(s)** | Hay problemas. Cada uno aparece subrayado en el texto. |
 | **YAML inválido** | No se puede leer el texto, por ejemplo por una sangría incorrecta. |
 
-Mientras el YAML es inválido, el lienzo no puede mostrarlo. La pestaña **Diseño** dice **El YAML no se puede leer** y ofrece **Ver el YAML**. Corrige la línea y el lienzo vuelve.
+Mientras el YAML es inválido, el workflow no se puede dibujar ni ejecutar. Mira [Cuando el YAML no se puede leer](#cuando-el-yaml-no-se-puede-leer).
 
 Cuando hay algo que informar, aparece bajo el texto una lista llamada **Problemas**. Haz clic en un problema y el cursor va al lugar del texto. Cuando la lista solo tiene información, se llama **Notas** y empieza plegada. Una nota no es un error, por ejemplo **Paso receive sin "timeout"**.
 
 ![La pestaña YAML con la insignia 1 error(es), el valor equivocado subrayado y la lista Problemas con una nota y el error del paso que no existe](/media/es/design-yaml-problems.webp)
 
-![La pestaña Diseño mientras el YAML no se puede leer: el mensaje con la línea del problema y el enlace Ver el YAML](/media/es/design-yaml-broken.webp)
+## Cuando el YAML no se puede leer
+
+Basta una sangría incorrecta o una comilla que falta para que el texto deje de ser YAML. La insignia dice **YAML inválido**. Hasta que lo corrijas:
+
+| Dónde | Qué ves |
+|---|---|
+| El botón **Ejecutar** | Está desactivado. Su tooltip dice **No se puede ejecutar: el YAML de pokemon.arazzo.yaml tiene un error. Corrígelo en la pestaña YAML.** **⌘Enter** (**Ctrl+Enter**) tampoco lo ejecuta. |
+| La pestaña **Diseño** | El aviso **El YAML tiene un error y no se puede dibujar. Corrígelo en la pestaña YAML y el diseño vuelve.**, con el botón **Ir al YAML**. |
+
+Luvin no ejecuta la última versión que pudo leer, porque no es lo que dice el archivo ahora. Corrige la línea y vuelven el lienzo y **Ejecutar**.
+
+![La pestaña Diseño mientras el YAML no se puede leer: el aviso y el botón Ir al YAML](/media/es/design-yaml-broken.webp)
+
+Si vuelves a abrir el workspace con el archivo todavía roto, sus workflows no se cargan y su fila en la barra lateral dice **No se puede leer**. Haz clic en la fila, corrige la línea y los workflows vuelven con sus inputs y casos.
+
+[Cuando el YAML no se puede leer](/es/design/broken-yaml/) explica qué se bloquea, los mensajes antes y después de volver a abrir, los errores frecuentes y cómo se conservan tus casos.
 
 ## Autocompletado
 

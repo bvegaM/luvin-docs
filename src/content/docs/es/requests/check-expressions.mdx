@@ -1,0 +1,149 @@
+---
+title: Expresiones de la respuesta
+description: Cómo leer el status, el tiempo, un header, un campo del body o un elemento de una lista en las pestañas Variables y Comprobaciones, y qué pasa cuando el camino no está en la respuesta.
+sidebar:
+  order: 11
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Una expresión dice qué parte de la respuesta leer: el status, un header, un campo del body. Las mismas expresiones sirven en la pestaña **Variables** (qué guardar) y en la pestaña **Comprobaciones** (qué comprobar). Son caminos cortos, no código.
+
+## La respuesta de los ejemplos
+
+Los ejemplos usan esta respuesta de una tienda, para `GET https://api.shop.test/products/7`, que tardó 180 ms:
+
+```http
+HTTP/1.1 200 OK
+content-type: application/json; charset=utf-8
+x-request-id: 9f2c
+
+{
+  "id": 7,
+  "name": "Red T-shirt",
+  "price": 19.9,
+  "tags": ["clothes", "sale"],
+  "discount": null,
+  "dimensions": { "weight": 200 },
+  "variants": [
+    { "size": "S", "stock": 4 },
+    { "size": "M", "stock": 0 }
+  ],
+  "first name": "Ana",
+  "reviews": []
+}
+```
+
+## Lo que puedes leer
+
+| Expresión | Qué lee | En el ejemplo |
+|---|---|---|
+| `res.status` | El código de status, como número | `200` |
+| `res.statusText` | El texto del status (vacío si el servidor no envía ninguno) | `OK` |
+| `res.responseTime` | El tiempo total, en milisegundos, redondeado | `180` |
+| `res.headers.content-type` | Un header | `application/json; charset=utf-8` |
+| `res.headers["content-type"]` | El mismo header, escrito entre corchetes | `application/json; charset=utf-8` |
+| `res.headers` | Todos los headers, como un objeto | |
+| `res.body` | Todo el body | El objeto de arriba |
+| `res.body.name` | Un campo del body | `Red T-shirt` |
+| `$.name` | Lo mismo: `$` es la forma corta de `res.body` | `Red T-shirt` |
+| `$` | Todo el body | El objeto de arriba |
+
+Cualquier otra cosa, como `status` o `res.Status`, falla con **Usa res.status, res.body…, res.headers.nombre o res.responseTime**. El principio de la expresión va en minúsculas, exactamente como en la tabla.
+
+## El body
+
+Luvin lee el body como JSON cuando es JSON válido. Entonces `res.body` es ese valor y puedes seguir caminos dentro de él.
+
+- Si el body no es JSON (HTML, XML, texto plano), `res.body` es todo el texto. Un camino dentro de él, como `res.body.name`, no lee nada. `res.body.length` da la cantidad de caracteres.
+- Si el body está vacío, `res.body` no lee nada: **existe** falla y **está vacío** pasa.
+- Si el body es una lista, empieza el camino con un índice: `res.body[0].id` o `$[0].id`.
+
+### Caminos
+
+Une las partes una detrás de otra: `res.body.variants[0].size`.
+
+| Parte | Qué lee | Ejemplo | En el ejemplo |
+|---|---|---|---|
+| `.campo` | Un campo de un objeto | `res.body.dimensions.weight` | `200` |
+| `["campo"]` o `['campo']` | Un campo cuyo nombre tiene espacios, puntos o corchetes | `res.body["first name"]` | `Ana` |
+| `[0]` | El primer elemento de una lista | `res.body.tags[0]` | `clothes` |
+| `[1]`, `[2]`… | Los elementos siguientes | `res.body.variants[1].size` | `M` |
+| `[-1]` | El último elemento. `[-2]` es el penúltimo | `res.body.tags[-1]` | `sale` |
+| `.length` | Cuántos elementos tiene una lista, o cuántos caracteres tiene un texto | `res.body.tags.length` | `2` |
+
+- Los nombres de los campos distinguen mayúsculas: `res.body.Name` no lee nada.
+- Después de un punto, un nombre puede tener cualquier carácter salvo `.`, `[` y `]`: `res.body.first-name` funciona. Para los demás, usa corchetes.
+- `.length` sobre un objeto lee su campo llamado `length`, si lo tiene.
+
+### Listas
+
+| Para leer… | Expresión | En el ejemplo |
+|---|---|---|
+| El primer elemento | `res.body.tags[0]` | `clothes` |
+| El último elemento | `res.body.tags[-1]` | `sale` |
+| Cuántos elementos hay | `res.body.variants.length` | `2` |
+| Un campo de un elemento | `res.body.variants[1].stock` | `0` |
+| Toda la lista (se guarda como JSON) | `res.body.tags` | `["clothes","sale"]` |
+| Un elemento que no está | `res.body.tags[5]` | Nada |
+
+Para saber si una lista tiene un valor, comprueba la lista con **contiene**: `res.body.tags` **contiene** `sale`. En una lista de objetos, **contiene** necesita el objeto completo, con sus campos en el mismo orden: `{"size":"M","stock":0}`. Para comprobar un campo, usa su índice: `res.body.variants[1].stock` **es igual a** `0`.
+
+Las expresiones leen caminos fijos. No hay filtros (`[?(@.size=="M")]`), comodines (`[*]`) ni búsqueda en profundidad (`$..size`): fallan con **No se entiende el camino «…»**.
+
+## Headers
+
+- El nombre se puede escribir con mayúsculas o minúsculas: `res.headers.Content-Type` y `res.headers.content-type` leen el mismo header.
+- Después del punto, el nombre puede tener letras, números, `_` y `-`. Para otros caracteres, usa corchetes: `res.headers["x.trace"]`.
+- Los valores de los headers son siempre texto. **es mayor que** y similares igual los comparan como números: `res.headers.content-length` **es menor que** `1000`.
+- Un header que llega varias veces se lee como un solo texto, con sus valores unidos por comas.
+- Un header que no está no lee nada.
+
+## El tiempo de respuesta
+
+`res.responseTime` es el tiempo total del request en milisegundos, redondeado. En la app de escritorio es el mismo total que muestra la tarjeta **Tiempo de respuesta**, e incluye las redirecciones que siguió Luvin. Úsalo con **es menor que** o **es menor o igual a**: `res.responseTime` **es menor o igual a** `800`.
+
+## Cuando el camino no existe
+
+Un camino no lee nada cuando:
+
+| Caso | Ejemplo |
+|---|---|
+| El campo no está | `res.body.color` |
+| Una parte del medio es `null` | `res.body.discount.amount` |
+| El índice pasa del final de la lista | `res.body.tags[5]` |
+| Se usa un índice sobre algo que no es una lista | `res.body.dimensions[0]` |
+| Se lee un campo de un texto o de un número | `res.body.name.first` |
+| El body no es JSON, o está vacío | `res.body.id` sobre una página HTML |
+
+Qué pasa entonces:
+
+| En | Resultado |
+|---|---|
+| **Variables** | El valor no se guarda y la variable conserva su valor anterior. La respuesta dice **no estaba en la respuesta** y el chip junto al status se pone rojo. La vista previa de la fila dice **no está en la última respuesta**. |
+| **Comprobaciones** | La fila que falló dice **Llegó: (no está)**. **existe**, **es null**, las de tipo, **es igual a**, **contiene**, **empieza con** y **termina con** fallan. **no existe**, **está vacío**, **no es igual a** y **no contiene** pasan. **es mayor que** y similares fallan con **No son números**. **coincide con (regex)** lee un texto vacío, así que un patrón como `.*` igual pasa. |
+
+Un camino que lee `null` sí está: `res.body.discount` **existe** y **es null**.
+
+## Expresiones que Luvin no entiende
+
+| Escribes | Mensaje | Escribe en cambio |
+|---|---|---|
+| `status`, `res.Status`, `response.body.id` | **Usa res.status, res.body…, res.headers.nombre o res.responseTime** | `res.status`, `res.body.id` |
+| `res.headers.content type` | **Usa res.status, res.body…, res.headers.nombre o res.responseTime** | `res.headers["content type"]` |
+| `res.body.tags[first]` | **No se entiende el camino «.tags[first]»** | `res.body.tags[0]` |
+| `$..size` | **No se entiende el camino «..size»** | `$.variants[0].size` |
+| `$.variants[*].size` | **No se entiende el camino «.variants[*].size»** | Un índice por comprobación |
+
+En **Variables**, la vista previa de la fila dice **expresión no válida**; apunta para leer el mensaje. En **Comprobaciones**, la fila falla con el mensaje.
+
+Las expresiones no admiten `{{variables}}`: `res.body.tags[{{i}}]` no se puede leer. Solo el valor esperado de una comprobación las admite.
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Guarda valores de una respuesta" href="/es/requests/save-variables/" />
+  <LinkCard title="Comprueba la respuesta" href="/es/requests/checks/" />
+  <LinkCard title="Las comprobaciones, una por una" href="/es/requests/check-operators/" />
+  <LinkCard title="Lee una respuesta en detalle" href="/es/requests/response-details/" />
+</CardGrid>

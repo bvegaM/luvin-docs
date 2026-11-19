@@ -1,0 +1,83 @@
+---
+title: Choose the cases
+description: See and tick the cases of each workflow in the Runner, which ones go to the real API and which are simulated, and why a case cannot run.
+sidebar:
+  order: 8
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Each workflow runs its ticked cases. In the Runner you can see them under each workflow, tick or untick them, and check where each one goes before you start: to the real API, simulated, or nowhere because it cannot run in that mode.
+
+## Example: Place order in both modes
+
+**Place order**, a shop workflow, has nine cases, all ticked: the happy path, five data validation cases, **Without credentials** and two response cases. See [Cases](/test/cases/#every-kind-of-case-in-one-workflow).
+
+<Steps>
+1. Open the Runner for `shop.arazzo.yaml` with **Run workflows (runner)**.
+2. Under **Against**, choose **Simulated**. The row of **Place order** says **3 of 9 cases**.
+3. Click **Place order**. The happy path and the two response cases have the tag **Simulated**. The six other cases say *Needs the real API: the simulation does not validate the data sent.*
+4. Under **Against**, choose **Real API**. The row now says **9 of 9 cases**: seven with the tag **Real API** and the two response cases with **Simulated**.
+</Steps>
+
+## See the cases of a workflow
+
+Click the name of a workflow, or the count next to it, for example **3 of 9 cases**. Its cases appear below it. Click again to hide them.
+
+![The Run order of pokemon.arazzo.yaml with Pokemon card open: Happy path with the tag Real API and getPokemon responds 404 → pokemonNotFound with the tag Simulated; each row shows its count, like 2 of 2 cases](/media/en/runner-workflows-cases.webp)
+
+Each case has:
+
+| Part | What it is |
+|---|---|
+| Checkbox | Ticked, the case runs, if it can run in the chosen mode. |
+| Name | The name of the case, as in the **Cases** tab. |
+| **Real API** or **Simulated** | Where it goes in the chosen mode. |
+| A reason, in grey | Instead of the tag, when it cannot run in this mode. Rest the pointer on the name to read it whole. |
+
+A case that is unticked, or that cannot run, turns grey.
+
+## Tick and untick cases
+
+The checkbox of a case is the same one as in the **Cases** tab of the workflow. Ticking it here ticks it there too, and the other way around. See [Choose which cases run](/test/cases/#choose-which-cases-run).
+
+The row of the workflow counts the cases that are ticked and can run in this mode, out of all its cases, for example **1 of 2 cases**. With none, it says **no cases in this mode**, and the workflow does not run. The start button adds them up for every ticked workflow and multiplies by the iterations.
+
+## Real API or simulated, case by case
+
+**Against** is a default. Some kinds of case always go one way:
+
+| Kind of case | With **Real API** | With **Simulated** |
+|---|---|---|
+| **Happy path** | **Real API** | **Simulated** |
+| **Data validation** | **Real API** | Cannot run |
+| **Security** | **Real API** | Cannot run |
+| **Custom data cases** | **Real API** | Cannot run |
+| Response case | **Simulated** | **Simulated** |
+| Response case switched to **Real API**, with its inputs changed | **Real API** | **Real API** |
+| Response case switched to **Real API**, with no input changed | Cannot run | Cannot run |
+| Message case | **Simulated** | **Simulated** |
+
+A response case simulates that one step answers a given response, so it does not need the API. To check the same thing against your API, give it data that causes that response. See [Adjust a case](/test/adjust-cases/#run-a-response-case-against-the-real-api).
+
+## Why a case cannot run
+
+| Reason | Which cases | What to do |
+|---|---|---|
+| *Needs the real API: the simulation does not validate the data sent.* | **Data validation** and **Security**, with **Simulated**. | Choose **Real API** under **Against**. |
+| *Custom data cases only make sense against the real API.* | **Custom data cases**, with **Simulated**. | Choose **Real API**. |
+| *To test it against the real API, change in the case inputs the values that cause this response.* | A response case switched to **Real API** without changing its inputs, in either mode. | Change its inputs in the **Cases** tab, or set it back to **Simulated**. |
+
+A ticked case that cannot run is skipped. The other cases of the workflow run.
+
+## In a performance test
+
+With **Performance**, the list shows the cases with the tags they would have against the real API, and one of them has the tag **Repeated in the load test**. The row of the workflow says which, for example **Load: Happy path**. See [Performance of workflows](/runner/performance-workflows/).
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Run workflows" href="/runner/workflows/" />
+  <LinkCard title="Cases" href="/test/cases/" />
+  <LinkCard title="Simulation" href="/test/simulation/" />
+</CardGrid>

@@ -1,0 +1,249 @@
+---
+title: The checks, one by one
+description: Each of the 21 checks of a request, with its name in English and Spanish, its name in the file, what it compares, and examples that pass and fail.
+sidebar:
+  order: 10
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+The **Check** menu of a row has 21 ways to compare what the response brings with what you expect. This page says exactly when each one passes, so you can choose the right one and understand a ✕. To add checks, see [Check the response](/requests/checks/).
+
+![The Check menu open on a row of the Checks tab, listing equals, does not equal, is greater than (highlighted), is at least, is less than, is at most, contains and the next checks down to is empty](/media/en/request-checks.webp)
+
+## The response in the examples
+
+Every example on this page uses this response of a shop, for `GET https://api.shop.test/products/7`:
+
+```http
+HTTP/1.1 200 OK
+content-type: application/json; charset=utf-8
+content-length: 213
+
+{
+  "id": 7,
+  "sku": "TSHIRT-RED-M",
+  "name": "Red T-shirt",
+  "price": 19.9,
+  "stock": 0,
+  "active": true,
+  "tags": ["clothes", "sale"],
+  "discount": null,
+  "dimensions": { "weight": 200 },
+  "reviews": [],
+  "note": ""
+}
+```
+
+It took 180 ms. There is no `color` field: the examples use `res.body.color` for a field that is missing.
+
+## All the checks
+
+| Check | In Spanish | In the file (`op`) | Expected value |
+|---|---|---|---|
+| **equals** | **es igual a** | `eq` | Yes |
+| **does not equal** | **no es igual a** | `neq` | Yes |
+| **is greater than** | **es mayor que** | `gt` | Yes |
+| **is at least** | **es mayor o igual a** | `gte` | Yes |
+| **is less than** | **es menor que** | `lt` | Yes |
+| **is at most** | **es menor o igual a** | `lte` | Yes |
+| **contains** | **contiene** | `contains` | Yes |
+| **does not contain** | **no contiene** | `notContains` | Yes |
+| **starts with** | **empieza con** | `startsWith` | Yes |
+| **ends with** | **termina con** | `endsWith` | Yes |
+| **matches (regex)** | **coincide con (regex)** | `matches` | Yes |
+| **exists** | **existe** | `isDefined` | No |
+| **does not exist** | **no existe** | `isUndefined` | No |
+| **is null** | **es null** | `isNull` | No |
+| **is empty** | **está vacío** | `isEmpty` | No |
+| **is not empty** | **no está vacío** | `isNotEmpty` | No |
+| **is text** | **es texto** | `isString` | No |
+| **is a number** | **es número** | `isNumber` | No |
+| **is true/false** | **es true/false** | `isBoolean` | No |
+| **is a list** | **es una lista** | `isArray` | No |
+| **is an object** | **es un objeto** | `isObject` | No |
+
+The names in the file are the same as the assert operators of Bruno. Before comparing, the expected value is read as a number, `true`/`false`, `null`, text or JSON: see [The expected value](/requests/checks/#the-expected-value).
+
+## Compare values
+
+### equals
+
+Passes when what the expression reads is the expected value.
+
+- A number and the same number written as text are equal: `19.9` equals `"19.9"`.
+- A `true`/`false` of the response equals the text `"true"`/`"false"`. A text `"true"` in the response does not equal `true`: write `"true"` in quotes.
+- Text is compared exactly: upper and lower case and spaces count.
+- Lists and objects are compared whole, as JSON: the items must be in the same order, and the fields of an object too.
+- A missing field never equals anything, not even an empty expected value.
+
+| Expression | Expected value | Result | Why |
+|---|---|---|---|
+| `res.status` | `200` | ✓ | |
+| `res.body.price` | `"19.9"` | ✓ | Number and text with the same number |
+| `res.body.active` | `"true"` | ✓ | `true` and the text `"true"` |
+| `res.body.name` | `red t-shirt` | ✕ | The case is different |
+| `res.body.tags` | `["clothes","sale"]` | ✓ | Same list, same order |
+| `res.body.tags` | `["sale","clothes"]` | ✕ | Other order |
+| `res.body.dimensions` | `{"weight":200}` | ✓ | Same object |
+| `res.body.discount` | `null` | ✓ | |
+| `res.body.color` | `red` | ✕ | **Got: (missing)** |
+
+### does not equal
+
+Passes exactly when **equals** would fail. A missing field passes, because it is not equal to anything.
+
+| Expression | Expected value | Result | Why |
+|---|---|---|---|
+| `res.body.stock` | `0` | ✕ | It is `0` |
+| `res.body.sku` | `TSHIRT-BLUE-M` | ✓ | |
+| `res.body.color` | `red` | ✓ | Missing: add an **exists** check if the field must be there |
+
+## Compare numbers
+
+**is greater than**, **is at least**, **is less than** and **is at most** compare as numbers. A text with a number, such as a header (`"213"`), counts as that number. If one of the two sides is not a number, or the field is missing, the check fails with **They are not numbers**.
+
+| Check | Expression | Expected value | Result | Why |
+|---|---|---|---|---|
+| **is greater than** | `res.body.price` | `10` | ✓ | 19.9 is greater than 10 |
+| **is greater than** | `res.body.stock` | `0` | ✕ | 0 is not greater than 0 |
+| **is at least** | `res.body.stock` | `0` | ✓ | 0 is at least 0 |
+| **is less than** | `res.responseTime` | `1000` | ✓ | 180 ms |
+| **is at most** | `res.body.price` | `19.9` | ✓ | |
+| **is less than** | `res.headers.content-length` | `1000` | ✓ | The header `213` counts as a number |
+| **is greater than** | `res.body.name` | `1` | ✕ | **They are not numbers** |
+| **is less than** | `res.body.color` | `5` | ✕ | **They are not numbers**: the field is missing |
+
+## Search in text, lists and objects
+
+### contains
+
+Depends on what the expression reads:
+
+| It reads | Passes when |
+|---|---|
+| A list | One item equals the expected value, as in **equals** |
+| An object | It has a field with that name |
+| A text | It contains the expected text, with the same case |
+| A number, `true`/`false` | Its text contains the expected text: `200` contains `20` |
+| Nothing (missing) | It is treated as an empty text |
+
+| Expression | Expected value | Result | Why |
+|---|---|---|---|
+| `res.body.name` | `T-shirt` | ✓ | |
+| `res.body.name` | `t-shirt` | ✕ | The case is different |
+| `res.body.tags` | `sale` | ✓ | One item is `sale` |
+| `res.body.tags` | `sal` | ✕ | In a list, an item must be equal, not just start the same |
+| `res.body.dimensions` | `weight` | ✓ | It has a field `weight` |
+| `res.body.dimensions` | `200` | ✕ | In an object it looks at the field names, not the values |
+| `res.headers.content-type` | `json` | ✓ | |
+| `res.status` | `20` | ✓ | `200` read as text |
+| `res.body.color` | `red` | ✕ | Missing |
+
+<Aside type="caution">
+An empty expected value passes on any text, even a missing field. Always write what you are looking for.
+</Aside>
+
+### does not contain
+
+Passes exactly when **contains** would fail. A missing field passes.
+
+| Expression | Expected value | Result |
+|---|---|---|
+| `res.body.tags` | `outlet` | ✓ |
+| `res.body.tags` | `sale` | ✕ |
+| `res.body.color` | `red` | ✓ (missing) |
+
+### starts with, ends with
+
+Compare the beginning or the end of the text, with the same case. A number is read as text. A missing field is an empty text, so it fails.
+
+| Check | Expression | Expected value | Result |
+|---|---|---|---|
+| **starts with** | `res.body.sku` | `TSHIRT` | ✓ |
+| **starts with** | `res.body.sku` | `tshirt` | ✕ |
+| **starts with** | `res.body.price` | `19` | ✓ |
+| **ends with** | `res.body.sku` | `-M` | ✓ |
+| **ends with** | `res.headers.content-type` | `utf-8` | ✓ |
+| **starts with** | `res.body.color` | `r` | ✕ |
+
+### matches (regex)
+
+Passes when the text matches a regular expression. Write the pattern as is, such as `^TSHIRT`, or between slashes with flags, such as `/^tshirt/i` (`i` ignores case). It looks for the pattern anywhere in the text: use `^` and `$` to match the whole text. A number is read as text. If the pattern has an error, the check fails with **The regular expression is not valid**.
+
+| Expression | Expected value | Result | Why |
+|---|---|---|---|
+| `res.body.sku` | `^TSHIRT-[A-Z]+-[SML]$` | ✓ | |
+| `res.body.sku` | `/^tshirt/i` | ✓ | The `i` flag ignores case |
+| `res.body.sku` | `RED` | ✓ | Found in the middle |
+| `res.body.id` | `^\d+$` | ✓ | `7` read as text |
+| `res.body.sku` | `[A-Z` | ✕ | **The regular expression is not valid** |
+
+The value is not read as a number or JSON, and quotes are part of the pattern. It accepts `{{variables}}`.
+
+## Is it there?
+
+These checks have no expected value.
+
+| Check | Passes when what the expression reads… |
+|---|---|
+| **exists** | Is in the response, even if it is `null` or empty |
+| **does not exist** | Is not in the response |
+| **is null** | Is exactly `null` |
+| **is empty** | Is missing, `null`, an empty text `""`, an empty list `[]` or an empty object `{}` |
+| **is not empty** | Is anything else. `0`, `false` and a text with a space are not empty |
+
+| Check | Expression | Result | Why |
+|---|---|---|---|
+| **exists** | `res.body.id` | ✓ | |
+| **exists** | `res.body.discount` | ✓ | It is `null`, but it is there |
+| **exists** | `res.body.color` | ✕ | |
+| **exists** | `res.body.reviews[0]` | ✕ | The list is empty |
+| **does not exist** | `res.body.color` | ✓ | |
+| **does not exist** | `res.body.discount` | ✕ | A `null` field is there |
+| **is null** | `res.body.discount` | ✓ | |
+| **is null** | `res.body.color` | ✕ | Missing is not `null` |
+| **is null** | `res.body.note` | ✕ | `""` is not `null` |
+| **is empty** | `res.body.reviews` | ✓ | `[]` |
+| **is empty** | `res.body.note` | ✓ | `""` |
+| **is empty** | `res.body.color` | ✓ | Missing |
+| **is empty** | `res.body.stock` | ✕ | `0` is a number, not empty |
+| **is not empty** | `res.body.tags` | ✓ | |
+
+An expression Luvin cannot read does not count as missing: **does not exist** fails with the reason, such as **Use res.status, res.body…, res.headers.name or res.responseTime**.
+
+## What type is it?
+
+These checks have no expected value. They look at the type of the value in the response, not at its look: the text `"7"` is text, not a number.
+
+| Check | Passes with | Example that passes | Example that fails |
+|---|---|---|---|
+| **is text** | A text, even empty | `res.body.name`, `res.body.note`, `res.headers.content-length` | `res.body.id` |
+| **is a number** | A number | `res.body.price`, `res.status`, `res.responseTime` | `res.headers.content-length` (headers are text) |
+| **is true/false** | `true` or `false` | `res.body.active` | `res.body.discount` |
+| **is a list** | A list, even empty | `res.body.tags`, `res.body.reviews` | `res.body.dimensions` |
+| **is an object** | An object, not a list and not `null` | `res.body.dimensions` | `res.body.tags`, `res.body.discount` |
+
+A missing field fails every type check.
+
+## Choose the right check
+
+| You want to know… | Use |
+|---|---|
+| That a field has one exact value | **equals** |
+| That a field is there, whatever its value | **exists** |
+| That a list has something | **is not empty** |
+| How many items a list has | **equals** on `res.body.items.length` |
+| That a list includes a value | **contains** on the list |
+| That a text includes a word | **contains**, or **matches (regex)** with `/word/i` to ignore case |
+| That a value is in a range | Two checks: **is at least** and **is at most** |
+| That a field is not there | **does not exist** |
+| That a field must be there and must not be a value | **exists** and **does not equal**, together |
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Check the response" href="/requests/checks/" />
+  <LinkCard title="Response expressions" href="/requests/check-expressions/" />
+  <LinkCard title="Read the check results" href="/requests/check-results/" />
+</CardGrid>

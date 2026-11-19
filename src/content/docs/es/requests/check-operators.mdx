@@ -1,0 +1,249 @@
+---
+title: Las comprobaciones, una por una
+description: Cada una de las 21 comprobaciones de un request, con su nombre en español y en inglés, su nombre en el archivo, qué compara y ejemplos que pasan y que fallan.
+sidebar:
+  order: 10
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+El menú **Comprobación** de una fila tiene 21 formas de comparar lo que trae la respuesta con lo que esperas. Esta página dice exactamente cuándo pasa cada una, para que elijas la correcta y entiendas un ✕. Para agregar comprobaciones, mira [Comprueba la respuesta](/es/requests/checks/).
+
+![El menú Comprobación abierto en una fila de la pestaña Comprobaciones, con es igual a, no es igual a, es mayor que (resaltado), es mayor o igual a, es menor que, es menor o igual a, contiene y las siguientes hasta está vacío](/media/es/request-checks.webp)
+
+## La respuesta de los ejemplos
+
+Todos los ejemplos de esta página usan esta respuesta de una tienda, para `GET https://api.shop.test/products/7`:
+
+```http
+HTTP/1.1 200 OK
+content-type: application/json; charset=utf-8
+content-length: 213
+
+{
+  "id": 7,
+  "sku": "TSHIRT-RED-M",
+  "name": "Red T-shirt",
+  "price": 19.9,
+  "stock": 0,
+  "active": true,
+  "tags": ["clothes", "sale"],
+  "discount": null,
+  "dimensions": { "weight": 200 },
+  "reviews": [],
+  "note": ""
+}
+```
+
+Tardó 180 ms. No tiene un campo `color`: los ejemplos usan `res.body.color` para un campo que no está.
+
+## Todas las comprobaciones
+
+| Comprobación | En inglés | En el archivo (`op`) | Valor esperado |
+|---|---|---|---|
+| **es igual a** | **equals** | `eq` | Sí |
+| **no es igual a** | **does not equal** | `neq` | Sí |
+| **es mayor que** | **is greater than** | `gt` | Sí |
+| **es mayor o igual a** | **is at least** | `gte` | Sí |
+| **es menor que** | **is less than** | `lt` | Sí |
+| **es menor o igual a** | **is at most** | `lte` | Sí |
+| **contiene** | **contains** | `contains` | Sí |
+| **no contiene** | **does not contain** | `notContains` | Sí |
+| **empieza con** | **starts with** | `startsWith` | Sí |
+| **termina con** | **ends with** | `endsWith` | Sí |
+| **coincide con (regex)** | **matches (regex)** | `matches` | Sí |
+| **existe** | **exists** | `isDefined` | No |
+| **no existe** | **does not exist** | `isUndefined` | No |
+| **es null** | **is null** | `isNull` | No |
+| **está vacío** | **is empty** | `isEmpty` | No |
+| **no está vacío** | **is not empty** | `isNotEmpty` | No |
+| **es texto** | **is text** | `isString` | No |
+| **es número** | **is a number** | `isNumber` | No |
+| **es true/false** | **is true/false** | `isBoolean` | No |
+| **es una lista** | **is a list** | `isArray` | No |
+| **es un objeto** | **is an object** | `isObject` | No |
+
+Los nombres del archivo son los mismos que los operadores de assert de Bruno. Antes de comparar, el valor esperado se lee como número, `true`/`false`, `null`, texto o JSON: mira [El valor esperado](/es/requests/checks/#el-valor-esperado).
+
+## Compara valores
+
+### es igual a
+
+Pasa cuando lo que lee la expresión es el valor esperado.
+
+- Un número y el mismo número escrito como texto son iguales: `19.9` es igual a `"19.9"`.
+- Un `true`/`false` de la respuesta es igual al texto `"true"`/`"false"`. Un texto `"true"` en la respuesta no es igual a `true`: escribe `"true"` entre comillas.
+- El texto se compara exacto: cuentan las mayúsculas, las minúsculas y los espacios.
+- Las listas y los objetos se comparan completos, como JSON: los elementos tienen que estar en el mismo orden, y los campos de un objeto también.
+- Un campo que no está nunca es igual a nada, ni siquiera a un valor esperado vacío.
+
+| Expresión | Valor esperado | Resultado | Por qué |
+|---|---|---|---|
+| `res.status` | `200` | ✓ | |
+| `res.body.price` | `"19.9"` | ✓ | Número y texto con el mismo número |
+| `res.body.active` | `"true"` | ✓ | `true` y el texto `"true"` |
+| `res.body.name` | `red t-shirt` | ✕ | Cambian las mayúsculas |
+| `res.body.tags` | `["clothes","sale"]` | ✓ | Misma lista, mismo orden |
+| `res.body.tags` | `["sale","clothes"]` | ✕ | Otro orden |
+| `res.body.dimensions` | `{"weight":200}` | ✓ | Mismo objeto |
+| `res.body.discount` | `null` | ✓ | |
+| `res.body.color` | `red` | ✕ | **Llegó: (no está)** |
+
+### no es igual a
+
+Pasa exactamente cuando **es igual a** fallaría. Un campo que no está pasa, porque no es igual a nada.
+
+| Expresión | Valor esperado | Resultado | Por qué |
+|---|---|---|---|
+| `res.body.stock` | `0` | ✕ | Es `0` |
+| `res.body.sku` | `TSHIRT-BLUE-M` | ✓ | |
+| `res.body.color` | `red` | ✓ | No está: agrega una comprobación **existe** si el campo tiene que estar |
+
+## Compara números
+
+**es mayor que**, **es mayor o igual a**, **es menor que** y **es menor o igual a** comparan como números. Un texto con un número, como un header (`"213"`), cuenta como ese número. Si uno de los dos lados no es un número, o el campo no está, la comprobación falla con **No son números**.
+
+| Comprobación | Expresión | Valor esperado | Resultado | Por qué |
+|---|---|---|---|---|
+| **es mayor que** | `res.body.price` | `10` | ✓ | 19.9 es mayor que 10 |
+| **es mayor que** | `res.body.stock` | `0` | ✕ | 0 no es mayor que 0 |
+| **es mayor o igual a** | `res.body.stock` | `0` | ✓ | 0 es mayor o igual a 0 |
+| **es menor que** | `res.responseTime` | `1000` | ✓ | 180 ms |
+| **es menor o igual a** | `res.body.price` | `19.9` | ✓ | |
+| **es menor que** | `res.headers.content-length` | `1000` | ✓ | El header `213` cuenta como número |
+| **es mayor que** | `res.body.name` | `1` | ✕ | **No son números** |
+| **es menor que** | `res.body.color` | `5` | ✕ | **No son números**: el campo no está |
+
+## Busca en textos, listas y objetos
+
+### contiene
+
+Depende de lo que lee la expresión:
+
+| Lee | Pasa cuando |
+|---|---|
+| Una lista | Un elemento es igual al valor esperado, como en **es igual a** |
+| Un objeto | Tiene un campo con ese nombre |
+| Un texto | Contiene el texto esperado, con las mismas mayúsculas |
+| Un número, `true`/`false` | Su texto contiene el texto esperado: `200` contiene `20` |
+| Nada (no está) | Se trata como un texto vacío |
+
+| Expresión | Valor esperado | Resultado | Por qué |
+|---|---|---|---|
+| `res.body.name` | `T-shirt` | ✓ | |
+| `res.body.name` | `t-shirt` | ✕ | Cambian las mayúsculas |
+| `res.body.tags` | `sale` | ✓ | Un elemento es `sale` |
+| `res.body.tags` | `sal` | ✕ | En una lista, un elemento tiene que ser igual, no solo empezar igual |
+| `res.body.dimensions` | `weight` | ✓ | Tiene un campo `weight` |
+| `res.body.dimensions` | `200` | ✕ | En un objeto mira los nombres de los campos, no los valores |
+| `res.headers.content-type` | `json` | ✓ | |
+| `res.status` | `20` | ✓ | `200` leído como texto |
+| `res.body.color` | `red` | ✕ | No está |
+
+<Aside type="caution">
+Un valor esperado vacío pasa con cualquier texto, incluso con un campo que no está. Escribe siempre lo que buscas.
+</Aside>
+
+### no contiene
+
+Pasa exactamente cuando **contiene** fallaría. Un campo que no está pasa.
+
+| Expresión | Valor esperado | Resultado |
+|---|---|---|
+| `res.body.tags` | `outlet` | ✓ |
+| `res.body.tags` | `sale` | ✕ |
+| `res.body.color` | `red` | ✓ (no está) |
+
+### empieza con, termina con
+
+Comparan el principio o el final del texto, con las mismas mayúsculas. Un número se lee como texto. Un campo que no está es un texto vacío, así que falla.
+
+| Comprobación | Expresión | Valor esperado | Resultado |
+|---|---|---|---|
+| **empieza con** | `res.body.sku` | `TSHIRT` | ✓ |
+| **empieza con** | `res.body.sku` | `tshirt` | ✕ |
+| **empieza con** | `res.body.price` | `19` | ✓ |
+| **termina con** | `res.body.sku` | `-M` | ✓ |
+| **termina con** | `res.headers.content-type` | `utf-8` | ✓ |
+| **empieza con** | `res.body.color` | `r` | ✕ |
+
+### coincide con (regex)
+
+Pasa cuando el texto coincide con una expresión regular. Escribe el patrón tal cual, como `^TSHIRT`, o entre barras con opciones, como `/^tshirt/i` (`i` ignora las mayúsculas). Busca el patrón en cualquier parte del texto: usa `^` y `$` para que coincida el texto completo. Un número se lee como texto. Si el patrón tiene un error, la comprobación falla con **La expresión regular no es válida**.
+
+| Expresión | Valor esperado | Resultado | Por qué |
+|---|---|---|---|
+| `res.body.sku` | `^TSHIRT-[A-Z]+-[SML]$` | ✓ | |
+| `res.body.sku` | `/^tshirt/i` | ✓ | La opción `i` ignora las mayúsculas |
+| `res.body.sku` | `RED` | ✓ | Lo encuentra en el medio |
+| `res.body.id` | `^\d+$` | ✓ | `7` leído como texto |
+| `res.body.sku` | `[A-Z` | ✕ | **La expresión regular no es válida** |
+
+El valor no se lee como número ni como JSON, y las comillas son parte del patrón. Admite `{{variables}}`.
+
+## ¿Está o no está?
+
+Estas comprobaciones no llevan valor esperado.
+
+| Comprobación | Pasa cuando lo que lee la expresión… |
+|---|---|
+| **existe** | Está en la respuesta, aunque sea `null` o esté vacío |
+| **no existe** | No está en la respuesta |
+| **es null** | Es exactamente `null` |
+| **está vacío** | No está, es `null`, un texto vacío `""`, una lista vacía `[]` o un objeto vacío `{}` |
+| **no está vacío** | Es cualquier otra cosa. `0`, `false` y un texto con un espacio no están vacíos |
+
+| Comprobación | Expresión | Resultado | Por qué |
+|---|---|---|---|
+| **existe** | `res.body.id` | ✓ | |
+| **existe** | `res.body.discount` | ✓ | Es `null`, pero está |
+| **existe** | `res.body.color` | ✕ | |
+| **existe** | `res.body.reviews[0]` | ✕ | La lista está vacía |
+| **no existe** | `res.body.color` | ✓ | |
+| **no existe** | `res.body.discount` | ✕ | Un campo `null` está |
+| **es null** | `res.body.discount` | ✓ | |
+| **es null** | `res.body.color` | ✕ | No estar no es `null` |
+| **es null** | `res.body.note` | ✕ | `""` no es `null` |
+| **está vacío** | `res.body.reviews` | ✓ | `[]` |
+| **está vacío** | `res.body.note` | ✓ | `""` |
+| **está vacío** | `res.body.color` | ✓ | No está |
+| **está vacío** | `res.body.stock` | ✕ | `0` es un número, no está vacío |
+| **no está vacío** | `res.body.tags` | ✓ | |
+
+Una expresión que Luvin no entiende no cuenta como "no está": **no existe** falla con el motivo, como **Usa res.status, res.body…, res.headers.nombre o res.responseTime**.
+
+## ¿De qué tipo es?
+
+Estas comprobaciones no llevan valor esperado. Miran el tipo del valor en la respuesta, no cómo se ve: el texto `"7"` es texto, no un número.
+
+| Comprobación | Pasa con | Ejemplo que pasa | Ejemplo que falla |
+|---|---|---|---|
+| **es texto** | Un texto, aunque esté vacío | `res.body.name`, `res.body.note`, `res.headers.content-length` | `res.body.id` |
+| **es número** | Un número | `res.body.price`, `res.status`, `res.responseTime` | `res.headers.content-length` (los headers son texto) |
+| **es true/false** | `true` o `false` | `res.body.active` | `res.body.discount` |
+| **es una lista** | Una lista, aunque esté vacía | `res.body.tags`, `res.body.reviews` | `res.body.dimensions` |
+| **es un objeto** | Un objeto, que no sea lista ni `null` | `res.body.dimensions` | `res.body.tags`, `res.body.discount` |
+
+Un campo que no está falla en todas las comprobaciones de tipo.
+
+## Elige la comprobación correcta
+
+| Quieres saber… | Usa |
+|---|---|
+| Que un campo tiene un valor exacto | **es igual a** |
+| Que un campo está, sea cual sea su valor | **existe** |
+| Que una lista tiene algo | **no está vacío** |
+| Cuántos elementos tiene una lista | **es igual a** sobre `res.body.items.length` |
+| Que una lista incluye un valor | **contiene** sobre la lista |
+| Que un texto incluye una palabra | **contiene**, o **coincide con (regex)** con `/palabra/i` para ignorar las mayúsculas |
+| Que un valor está en un rango | Dos comprobaciones: **es mayor o igual a** y **es menor o igual a** |
+| Que un campo no está | **no existe** |
+| Que un campo tiene que estar y no puede tener un valor | **existe** y **no es igual a**, juntas |
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Comprueba la respuesta" href="/es/requests/checks/" />
+  <LinkCard title="Expresiones de la respuesta" href="/es/requests/check-expressions/" />
+  <LinkCard title="Lee los resultados de las comprobaciones" href="/es/requests/check-results/" />
+</CardGrid>

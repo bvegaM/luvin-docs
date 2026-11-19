@@ -1,0 +1,104 @@
+---
+title: Statuses the contract doesn't document
+description: Add a branch for a status the contract does not list, such as 429, 500 or 503, which statuses are allowed and how they show in the app.
+sidebar:
+  order: 7.3
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+APIs answer statuses their contract never mentions: a 429 when you send too many requests, a 500 when the server breaks, a 503 during maintenance. The rows of **On failure** only list what the contract documents, so these have their own entry: **+ If it responds another status…**.
+
+## Example: retry a 429 of getPokemon
+
+The PokéAPI contract documents 200 and 404 for `GET /pokemon/{idOrName}`, not 429.
+
+<Steps>
+1. In the **Design** tab of **Pokemon card**, find the card of `getPokemon`.
+2. At the end of its **On failure** section, click **+ If it responds another status…**. A small field appears, with `429` as placeholder.
+3. Type `429`.
+4. Click **Choose**, or press Enter. The menu **If it responds 429** opens.
+5. Click **Retry (up to 3 times)**.
+</Steps>
+
+![The On failure section of the getProduct card, below the row 404 → no action, with 429 typed in the field and the Choose button](/media/en/design-branch-other.webp)
+
+<Tabs>
+<TabItem label="On the card">
+
+A new row appears below the others: `429 → on429` **retries ×3**, with a pencil to change it.
+
+</TabItem>
+<TabItem label="In the YAML">
+
+```yaml title="pokemon.arazzo.yaml" {7-13}
+- stepId: getPokemon
+  # …
+  onFailure:
+    - name: pokemonNotFound
+      type: end
+      criteria:
+        - condition: $statusCode == 404
+    - name: on429
+      type: retry
+      retryAfter: 1
+      retryLimit: 3
+      criteria:
+        - condition: $statusCode == 429
+```
+
+</TabItem>
+</Tabs>
+
+## Which statuses you can type
+
+| Rule | Detail |
+|---|---|
+| Three digits | The field takes only digits, up to three. Letters and spaces are dropped as you type. |
+| From 100 to 599 | The first digit must be 1 to 5. **Choose** stays disabled until the status is valid. |
+| Any status in that range | Including 2xx and 3xx. A branch only fires when the step fails, so a status that already counts as success never reaches it. |
+
+To leave the field without choosing, press **Esc**, or click outside it with the field empty.
+
+## Common statuses
+
+| Status | Usual meaning | A sensible branch |
+|---|---|---|
+| 429 | Too many requests | **Retry (up to 3 times)**. Raise `retryAfter` in the YAML if the API asks to wait longer. |
+| 500 | The server failed | **End the workflow**, if your application shows a known error page, or no branch, so the run fails and you see it. |
+| 503 | Service unavailable, for example during maintenance | **Retry (up to 3 times)**, or **End the workflow**. |
+
+Luvin waits only what `retryAfter` says. It does not read a `Retry-After` header of the response.
+
+## What you see afterwards
+
+| Where | What appears |
+|---|---|
+| The card | The row `429 → on429` with its effect, and a pencil to change or remove it. |
+| The step panel | **If it responds with an error** now has a row **429**, with the action chosen. |
+| **Response coverage**, in **Overview** | Nothing new. Coverage only counts the statuses the contract documents. |
+| **Cases** | A generated case, **getPokemon responds 429 → on429**, that simulates that response. |
+| Results of a real run that got a 429 | The **Contract** tab of the step notes **Status 429 is not documented in the contract of `GET /pokemon/{idOrName}`.** |
+
+The last message is a hint, not a mistake in your workflow. If the API really answers that status, add it to the contract. Once it is documented, it shows as a normal row with its description.
+
+<Aside type="note">
+If you type a status the contract does document, or one that already has an action, the menu opens the same way. With an action already there, the menu includes **Remove the branch**.
+</Aside>
+
+## Troubleshooting
+
+**There is no + If it responds another status… link.** The step calls another workflow, is a messaging step, or its operation is not in a contract. Write the action in the [YAML tab](/design/arazzo-editor/).
+
+**Choose stays disabled.** The status has fewer than three digits, or starts with 0, 6, 7, 8 or 9.
+
+**The field closed by itself.** It closes when it loses the focus while empty. Click the link again.
+
+## Related
+
+<CardGrid>
+  <LinkCard title="The branch menu" href="/design/branch-menu/" />
+  <LinkCard title="Error branches" href="/design/branches/" />
+  <LinkCard title="Edit a contract" href="/contracts/edit/" />
+  <LinkCard title="Read a step result" href="/test/step-results/" />
+</CardGrid>

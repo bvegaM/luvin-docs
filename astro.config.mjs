@@ -15,19 +15,22 @@ const inDir = (dir) =>
     ? readdirSync(new URL(dir + '/', DOCS)).filter((f) => /\.mdx?$/.test(f)).map((f) => `${dir}/${f.replace(/\.mdx?$/, '')}`).sort()
     : []
 function section(label, es, dir, groups) {
-  const listed = new Set(groups.flatMap((g) => (Array.isArray(g) ? g[2] : [g])).map((x) => `${dir}/${x}`))
-  const items = groups
-    .map((g) => {
-      if (!Array.isArray(g)) return exists(`${dir}/${g}`) ? `${dir}/${g}` : undefined
-      const pages = g[2].map((x) => `${dir}/${x}`).filter(exists)
-      return pages.length ? { label: g[0], translations: { es: g[1] }, items: pages } : undefined
-    })
-    .filter(Boolean)
+  // Un subtema es [nombre, nombre en español, [páginas o subtemas]]: los subtemas se pueden anidar.
+  const listed = new Set()
+  const build = (g) => {
+    if (!Array.isArray(g)) {
+      listed.add(`${dir}/${g}`)
+      return exists(`${dir}/${g}`) ? `${dir}/${g}` : undefined
+    }
+    const items = g[2].map(build).filter(Boolean)
+    return items.length ? { label: g[0], translations: { es: g[1] }, items, collapsed: false } : undefined
+  }
+  const items = groups.map(build).filter(Boolean)
   const rest = inDir(dir).filter((x) => !listed.has(x))
   return { label, translations: { es }, items: [...items, ...rest] }
 }
 const sidebar = [
-  section('Get started', 'Empieza aquí', 'get-started', ['welcome', 'use-cases', 'quick-start', 'install', 'interface', 'sidebar', 'preferences', 'guided-tour', 'import', 'troubleshooting']),
+  section('Get started', 'Empieza aquí', 'get-started', ['welcome', 'use-cases', 'quick-start', 'install', 'interface', 'sidebar', 'preferences', ['Network settings', 'Ajustes de red', ['network', 'network-requests', 'network-proxy', 'network-certificates']], ['Guided tour', 'Tour guiado', ['guided-tour', 'guided-tour-sections', 'guided-tour-workspace']], 'import', 'troubleshooting']),
   section('Examples', 'Ejemplos', 'recipes', [
     'overview',
     ['Business processes', 'Procesos de negocio', ['place-order', 'session-refresh']],
@@ -37,11 +40,16 @@ const sidebar = [
   ]),
   section('Tutorials', 'Tutoriales', 'tutorials', ['first-workflow', 'from-postman', 'oauth-payment', 'negative-cases', 'debug-failure', 'team-git']),
   section('Design workflows', 'Diseñar workflows', 'design', [
-    ['Basics', 'Lo básico', ['overview', 'common-situations', 'create', 'add-steps', 'organize', 'arazzo-file']],
+    ['Basics', 'Lo básico', ['overview', 'common-situations', 'create', 'add-steps', 'insert-step', 'organize', 'arazzo-file']],
     ['Data between steps', 'Datos entre pasos', ['wire-data', 'parameters-and-body', 'outputs', 'complete-gaps', 'required-fields']],
-    ['Control the flow', 'Controlar el recorrido', ['success-and-errors', 'dependencies', 'reusables']],
+    ['Control the flow', 'Controlar el recorrido', [
+      'success-and-errors',
+      ['Error branches', 'Ramas de error', ['branches', 'branch-menu', 'branch-other-status', 'branch-new-step']],
+      'dependencies',
+      'reusables',
+    ]],
     ['Other kinds of steps', 'Otros tipos de pasos', ['messaging', 'from-requests']],
-    ['The Arazzo file', 'El archivo Arazzo', ['arazzo-editor']],
+    ['The Arazzo file', 'El archivo Arazzo', ['arazzo-editor', 'broken-yaml']],
   ]),
   section('Test workflows', 'Probar workflows', 'test', [
     ['Start here', 'Para empezar', ['overview', 'what-to-test']],
@@ -49,10 +57,30 @@ const sidebar = [
     ['Run', 'Ejecutar', ['run', 'lists', 'simulation']],
     ['Results', 'Resultados', ['results', 'step-results', 'overview-tab', 'reports']],
   ]),
+  section('Runner', 'Runner', 'runner', [
+    ['Start here', 'Empieza aquí', ['overview', 'open-and-environment', 'lifecycle']],
+    ['Run requests', 'Ejecutar requests', ['requests', 'requests-settings', 'requests-results']],
+    ['Run workflows', 'Ejecutar workflows', ['workflows', 'workflows-cases', 'workflows-lists', 'workflows-results']],
+    ['Data files', 'Archivos de datos', ['data-files', 'data-mapping']],
+    ['Performance', 'Rendimiento', [
+      'performance',
+      'load-profiles',
+      'pass-criteria',
+      'safety',
+      ['Results', 'Resultados', ['performance-results', 'performance-chart', 'performance-table']],
+      'performance-workflows',
+    ]],
+  ]),
   section('Send requests', 'Enviar requests', 'requests', [
     ['Basics', 'Lo básico', ['overview', 'http', 'params-headers-body', 'auto-headers', 'send-files', 'response-details', 'files', 'cookies-and-examples']],
+    ['Variables and checks', 'Variables y comprobaciones', ['variables-and-checks', 'save-variables', 'checks', 'check-operators', 'check-expressions', 'check-results', 'checks-from-postman']],
     ['Other protocols', 'Otros protocolos', ['graphql', 'grpc', 'websocket']],
     ['Create requests faster', 'Crear requests más rápido', ['curl', 'generate-from-contract']],
+  ]),
+  section('Mock servers', 'Mock servers', 'mocks', [
+    ['Start here', 'Para empezar', ['overview', 'create', 'start-stop']],
+    ['Routes and responses', 'Rutas y respuestas', ['routes', 'responses', 'templates', 'auth-and-errors']],
+    ['Use and inspect', 'Usar y revisar', ['with-workflows', 'log', 'security']],
   ]),
   section('Contracts', 'Contratos', 'contracts', ['overview', 'edit', 'try-it-out', 'asyncapi', 'remote-and-refs']),
   section('Environments', 'Ambientes', 'environments', ['overview', 'variables-and-secrets', 'dynamic-variables']),
@@ -64,6 +92,7 @@ const sidebar = [
   ]),
   section('Workspaces', 'Workspaces', 'workspaces', [
     ['Workspaces and collections', 'Workspaces y colecciones', ['overview', 'create-and-open', 'collections', 'collection-authorization', 'collection-overview']],
+    ['History', 'Historial', ['history', 'history-requests', 'history-runs', 'history-settings']],
     ['Documentation', 'Documentación', ['documentation']],
     ['Files and teams', 'Archivos y equipos', ['files', 'git', 'without-workspace']],
   ]),

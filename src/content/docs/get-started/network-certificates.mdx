@@ -1,0 +1,162 @@
+---
+title: Certificates
+description: Trust your company's certificates with a CA file, and send client certificates (mTLS) in CRT + KEY or PFX format to the hosts that require them, in the desktop app.
+sidebar:
+  order: 13
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+The **Certificates** section of **Preferences** has two parts. **CA certificates** makes Luvin trust servers signed by your company, such as an internal API or a proxy that inspects HTTPS. **Client certificates** lets Luvin prove who you are to APIs that require mutual TLS (mTLS), common in banks and payment providers.
+
+<Aside type="note" title="Desktop app only">
+In the browser, the **Certificates** section does not appear: requests use the certificates of the browser and the operating system.
+</Aside>
+
+## Example: the staging server of a shop
+
+The staging API of the shop, `https://api.shop.test`, has a certificate signed by the company's own authority and asks every caller for a client certificate. IT gave you three files: `company-ca.pem`, `client.crt` and `client.key`, whose key has a passphrase.
+
+<Steps>
+
+1. Open **Preferences** (⌘, or Ctrl+,) and click **Certificates**.
+2. Turn on **CA certificates**. Under **PEM file**, click **Select file** and choose `company-ca.pem`. Its name appears next to the button.
+3. Click **Add certificate**. A form opens.
+4. In **Host**, write `api.shop.test`. Leave **Port** empty.
+5. In **Format**, leave **CRT + KEY**.
+6. Next to **CRT file**, click **Select file** and choose `client.crt`. Next to **KEY file**, choose `client.key`.
+7. Write the **Passphrase** of the key.
+8. Click **Add**. The list shows `api.shop.test` and `CRT: client.crt · KEY: client.key · with passphrase`.
+9. Send `GET https://api.shop.test/orders`. The server trusts you, and Luvin trusts the server. The globe next to the response, **Network**, shows the **Certificate issuer**.
+
+</Steps>
+
+## CA certificates
+
+Turn this on to trust certificates signed by an authority that is not public: your company's, a test environment's, or the one of a proxy that inspects HTTPS. They are added to the usual public authorities; they do not replace them.
+
+<Steps>
+
+1. Open **Certificates** and turn on **CA certificates**.
+2. Under **PEM file**, click **Select file**.
+3. Choose the file. The dialog shows `.pem`, `.crt` and `.cer` files, and can show all files.
+4. The file name appears next to the button, which now says **Change**. The ✕ (**Remove file**) clears it.
+
+</Steps>
+
+- The file can hold one or more certificates in PEM format (`-----BEGIN CERTIFICATE-----`). A DER file, the binary `.cer` common on Windows, also works.
+- Luvin checks the file when you pick it. A file that is not a certificate is rejected at once: *“company.txt” is not a certificate (PEM or DER).*
+- While **CA certificates** is on without a file, it says *Choose the file: it can hold one or more PEM certificates.*
+- You do not need to turn off **SSL certificate verification**: with the CA, the verification passes.
+
+If the file stops being there, or stops being a certificate, requests keep using the usual authorities. A server that only your CA could vouch for then fails, and the error names the file: *Could not read the certificate file … Check that it still exists or pick it again in Preferences → Certificates.*
+
+## Client certificates
+
+For APIs that require mTLS. Each certificate is sent only to its host and port.
+
+<Steps>
+
+1. Open **Certificates** and click **Add certificate**. A form **Add certificate** opens.
+2. In **Host** (required), write the domain or the IP, without `https://` or a path, for example `api.shop.test`. If you paste `https://`, it is removed.
+3. Leave **Port** empty for `443`, or write another one, such as `8443`.
+4. In **Format**, choose **CRT + KEY** or **PFX / P12**.
+5. Pick the files with **Select file**.
+6. If the key or the PFX has a passphrase, write it in **Passphrase**.
+7. Click **Add**. Or **Cancel** to close the form without saving.
+
+</Steps>
+
+![The Certificates section with the Add certificate form open: host api.example.com, port 443, format CRT + KEY, Select file for the CRT file and the KEY file, Passphrase, and Add and Cancel](/media/en/prefs-certificates.webp)
+
+### The formats
+
+| Format | Files | Extensions in the dialog |
+|---|---|---|
+| **CRT + KEY** | *Two files: the certificate (.crt, .pem or .cer) and its private key (.key).* | **CRT file**: `.crt`, `.pem`, `.cer`. **KEY file**: `.key`, `.pem` |
+| **PFX / P12** | *A single file with the certificate and key (.pfx or .p12), common on Windows.* | **PFX file**: `.pfx`, `.p12` |
+
+Luvin checks each file when you pick it:
+
+| File | It must be | If not |
+|---|---|---|
+| **CRT file** | A certificate, PEM or DER | *“server.txt” is not a certificate (PEM or DER).* |
+| **KEY file** | A private key in PEM (`-----BEGIN PRIVATE KEY-----`, `-----BEGIN RSA PRIVATE KEY-----`…) | *“client.crt” is not a PEM private key.* |
+| **PFX file** | A PKCS#12 file | *“client.pem” is not a PFX / P12 file.* |
+
+When you click **Add**, the form also checks that it has what it needs: *Invalid host: type only the domain or IP, without a path.*, *Choose the CRT and KEY files.* or *Choose the PFX file.*
+
+### Which requests get the certificate
+
+Luvin sends at most one client certificate per request: the first in the list whose host and port match the address.
+
+- Only `https` addresses (and gRPC with TLS) get a client certificate.
+- **Host** must be the same host as in the address. Upper and lower case do not matter.
+- A `*` stands for exactly one part of the name: `*.shop.test` matches `api.shop.test`, but not `shop.test` or `v2.api.shop.test`.
+- **Port** empty means `443`. It must be the port of the address, which is `443` when the address has none.
+
+| Certificate (Host, Port) | Address | Sent? |
+|---|---|---|
+| `api.shop.test`, empty | `https://api.shop.test/orders` | Yes |
+| `api.shop.test`, empty | `https://api.shop.test:8443/orders` | No: the port is 8443 |
+| `api.shop.test`, `8443` | `https://api.shop.test:8443/orders` | Yes |
+| `*.shop.test`, empty | `https://pay.shop.test/charge` | Yes |
+| `*.shop.test`, empty | `https://shop.test/` | No: `*` needs one part before `.shop.test` |
+| `api.shop.test`, empty | `http://api.shop.test/orders` | No: it is not `https` |
+
+To use one certificate for `shop.test` and its subdomains, add it twice: once with `shop.test` and once with `*.shop.test`.
+
+### The passphrase
+
+- It is saved encrypted on this computer, with the other secrets of the app, never in the settings file.
+- The eye button (**Show**, **Hide**) lets you check what you typed.
+- If it is wrong, requests to that host fail with *The client certificate passphrase is wrong (…). Remove the certificate in Preferences → Certificates and add it again with the right passphrase.* You can also edit the certificate and type the right one.
+
+<Aside type="caution">
+If this computer cannot store encrypted passwords (Linux without a system keychain), the field says *This computer cannot store encrypted passwords (no system keychain): it will not be saved.* Without the passphrase, a key that has one cannot be used.
+</Aside>
+
+### The list of certificates
+
+Each certificate appears with its host (and port, if it has one) and its files: `CRT: client.crt · KEY: client.key` or `PFX: client.pfx`, plus **with passphrase** when it has one.
+
+| To | Do |
+|---|---|
+| Change a certificate | Click the pencil (**Edit the certificate for api.shop.test**). The form **Edit certificate** opens with its values. Leave **Passphrase** empty to keep the current one (*Leave empty to keep the current one*). Click **Save**. |
+| Remove a certificate | Click the trash (**Remove the certificate for api.shop.test**). Its passphrase is deleted too. |
+| Change the order | Remove and add again: a new certificate goes to the end, and the first match wins. |
+
+### The files stay where they are
+
+Luvin remembers the path of each file, not a copy, and only reads files you chose in the dialog. If you move or delete a file, the list marks it: *The file is no longer there: choose it again.* If it changes and is no longer valid: *The file is no longer a valid certificate: choose it again.* Edit the certificate and pick the file again.
+
+## Where certificates apply
+
+| Part of Luvin | CA certificates | Client certificates |
+|---|---|---|
+| HTTP and GraphQL requests, the runner, workflow runs, **Try it out**, the OAuth 2.0 token requests | Yes | Yes |
+| gRPC requests with TLS | Yes | Yes, matched with the host and port of the gRPC address |
+| A custom proxy with the `https` protocol | Yes, to trust the proxy | No |
+| WebSocket requests and the OAuth 2.0 login window | Yes: a server signed by your CA is accepted | No |
+
+See [gRPC requests](/requests/grpc/), [WebSocket requests](/requests/websocket/) and [Proxy](/get-started/network-proxy/).
+
+## Troubleshooting
+
+| What you see | Why | What to do |
+|---|---|---|
+| *The server certificate is not trusted (UNABLE_TO_VERIFY_LEAF_SIGNATURE)* or `SELF_SIGNED_CERT_IN_CHAIN` | The server uses a certificate of an authority Luvin does not know | Add that authority as a CA. For a test server only, turn off **SSL certificate verification** |
+| *Could not read the certificate file …* | The CA or client certificate file moved or was deleted | Pick it again |
+| *The file … is not a valid certificate or key…* | The file changed and is no longer valid | Choose another one |
+| *The client certificate passphrase is wrong (…)* | The passphrase does not open the key or the PFX | Edit the certificate and type the right one |
+| The API rejects the call as if no certificate was sent | No certificate matched: another host, another port, `http`, or `*` used for the bare domain | Compare **Host** and **Port** with the address. See [Which requests get the certificate](#which-requests-get-the-certificate) |
+| A certificate for the right host is not used | Another certificate higher in the list also matches | Remove the other one, or make its **Host** more specific |
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Network settings" href="/get-started/network/" />
+  <LinkCard title="Request settings" href="/get-started/network-requests/" />
+  <LinkCard title="Proxy" href="/get-started/network-proxy/" />
+  <LinkCard title="Connection help" href="/dev-tools/connection-help/" />
+</CardGrid>

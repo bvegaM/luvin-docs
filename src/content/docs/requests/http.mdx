@@ -133,6 +133,15 @@ Type `{{` in the field to pick a variable. See [Variables and secrets](/environm
 
 **Send** stays disabled while the URL is empty. While a request is on its way the button becomes **Cancel**.
 
+## Send from the keyboard
+
+| Keys | Where | What it does |
+|---|---|---|
+| **Enter** | In the URL field | Sends the request. If the list of `{{variables}}` is open, Enter picks the variable instead. **Shift + Enter** does not send. |
+| **⌘ + Enter** (**Ctrl + Enter**) | Anywhere in the request: the URL, the tabs, the body editor | Sends the request. |
+
+Both work in HTTP, GraphQL and gRPC requests. They do not send a WebSocket message. With a dialog open, ⌘/Ctrl + Enter belongs to the dialog.
+
 ## Read the answer
 
 - **Status.** `2xx` means success, `4xx` means the request has a problem, `5xx` means the server failed. Luvin colors each family.
@@ -146,6 +155,7 @@ Every part of the response is explained in [Read a response in detail](/requests
 
 <CardGrid>
   <LinkCard title="Params, headers and body" href="/requests/params-headers-body/" description="Fill in each tab of the request." />
+  <LinkCard title="Variables and checks" href="/requests/variables-and-checks/" description="Save values from the response and check it." />
   <LinkCard title="Authorization" href="/authorization/overview/" description="Identify yourself to a protected API." />
   <LinkCard title="How a request is saved" href="/requests/files/" description="The YAML file that Luvin writes." />
 </CardGrid>

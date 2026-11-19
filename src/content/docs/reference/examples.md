@@ -54,7 +54,7 @@ It gets a Pokémon, then its species, what its type is weak to and what its abil
 The second `successCriteria` uses JSONPath to check that the Pokémon has a visible ability. If the Pokémon does not exist, `onFailure` ends the workflow cleanly. The next step takes `$steps.getPokemon.outputs.mainType` as its path parameter.
 
 :::note[It pauses once]
-Against the **Real API**, a step returns a list that later steps use, so the run pauses with the list dialog even if the list has one item. Press **Continue with this item**. In **Simulation**, the dialog appears only when the list has more than one item. See [Lists](/test/lists/).
+The first step returns lists that later steps use. A list with a single item, like `types` for Pikachu, doesn't pause the run. `abilities` has two items, so the run pauses once to ask which one to continue with: pick it and press **Continue with this item**. The Runner never asks: it uses the design's item or a rule saved in the step. See [Lists](/test/lists/).
 :::
 
 ### Type explorer

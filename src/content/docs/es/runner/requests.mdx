@@ -1,0 +1,85 @@
+---
+title: Ejecuta requests
+description: Elige qué requests guardados envía el runner y en qué orden, para que cada uno use lo que guardaron los anteriores, y empieza la ejecución.
+sidebar:
+  order: 4
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+El runner de requests envía los requests guardados de una carpeta, o de toda la colección, uno detrás de otro, en el orden que elijas. Cada request puede usar las variables que guardaron los anteriores. Úsalo para revisar que una cadena de llamadas sigue funcionando, una o muchas veces.
+
+## Ejemplo: una carpeta de la tienda, tres veces
+
+Una colección de una tienda tiene una carpeta **Orders** con tres requests: **Log in** guarda una variable `token`, y **Get product** y **Create order** la usan como `{{token}}`.
+
+<Steps>
+1. En la barra lateral, abre el menú **⋯** de la carpeta **Orders** y elige **Ejecutar carpeta (runner)**.
+2. En **Orden de ejecución**, los tres requests están marcados. Arriba de la lista dice **3 de 3 elegidos**.
+3. En **Tipo de ejecución**, deja **Funcional**.
+4. Pon **Vueltas** en `3`. El botón dice **Ejecutar (9)**: 3 requests × 3 vueltas.
+5. Pulsa **Ejecutar (9)**.
+</Steps>
+
+Los resultados se abren con **Vuelta 1**, **Vuelta 2** y **Vuelta 3**, cada una con sus tres requests. **Log in** va primero en cada vuelta, así **Get product** siempre tiene un `token`. Mira [Lee los resultados de los requests](/es/runner/requests-results/).
+
+## Qué requests aparecen
+
+La lista **Orden de ejecución**, a la izquierda, tiene todos los requests de la carpeta, con sus subcarpetas, o de toda la colección. Van en el mismo orden que en la barra lateral: primero los requests de cada subcarpeta y después los de la carpeta misma.
+
+![El Runner en Requests: el Orden de ejecución de los requests de Shop con tres requests marcados, Lista los productos, Detalle de un producto y Crea un pedido, y a la derecha Funcional, Datos por vuelta, Vueltas 1, los Ajustes y el botón Ejecutar (3)](/media/es/runner-requests-setup.webp)
+
+| Tipo | En la lista | Notas |
+|---|---|---|
+| HTTP | Su método: **GET**, **POST**, **PUT**, **PATCH**, **DEL** para DELETE, **OPT** para OPTIONS… | |
+| GraphQL | **GQL** | |
+| gRPC | **gRPC** | Pasa cuando la llamada termina con el código 0. |
+| WebSocket | No está en la lista. | Los requests WebSocket no van en el runner. |
+
+Si no hay nada que ejecutar, la lista dice *No hay requests que ejecutar aquí (los WebSocket no van en el runner).*
+
+## Cada fila de la lista
+
+| Parte | Qué es |
+|---|---|
+| ⋮⋮ | El asa para arrastrar la fila. |
+| Casilla | Marcada, el request se ejecuta. Sin marcar, se salta y su fila queda en gris. |
+| Número | Su posición en el orden. |
+| Método | El método o el tipo, como en la tabla de arriba. |
+| Nombre | El nombre del request. Deja el puntero encima para ver su URL. |
+| **2 comprob.** | Cuántas comprobaciones activas tiene. Aparece cuando el request tiene comprobaciones o guarda variables. Su tooltip dice **Tiene comprobaciones o guarda variables**. Un request que solo guarda variables muestra **0 comprob.** |
+| ˄ ˅ | **Subir** y **Bajar**. |
+
+## Elige y ordena los requests
+
+<Steps>
+1. Desmarca los requests que no quieres. Arriba de la lista dice cuántos se van a ejecutar, por ejemplo **2 de 3 elegidos**.
+2. Para mover un request, arrástralo por su fila y suéltalo sobre otro. O usa **Subir** y **Bajar** al final de la fila.
+3. Para marcar o desmarcar todos a la vez, usa la casilla de arriba de la lista. Cuando solo algunos están marcados, muestra un guion.
+4. Para volver al orden original con todos los requests marcados, pulsa **Restablecer**.
+</Steps>
+
+El orden importa: un request que usa `{{token}}` tiene que ir después del que guarda `token`. Durante una ejecución, un valor que guarda un request lo usan todos los requests que vienen después, en esa vuelta y en las siguientes.
+
+## Empieza la ejecución
+
+<Steps>
+1. Revisa el **Ambiente** arriba del runner. Mira [Abre el runner y elige el ambiente](/es/runner/open-and-environment/).
+2. En **Tipo de ejecución**, elige **Funcional**: *Revisa que cada request responda bien y cumpla sus comprobaciones.*
+3. Define las **Vueltas** y los **Ajustes**. Mira [Ajustes para ejecutar requests](/es/runner/requests-settings/).
+4. Si cada vuelta necesita sus propios datos, elige un archivo en **Datos por vuelta**. Mira [Archivos de datos](/es/runner/data-files/).
+5. Pulsa **Ejecutar (n)**. El número es los requests marcados por las vueltas.
+</Steps>
+
+**Ejecutar (n)** queda apagado cuando no hay ningún request marcado, o mientras hay otra ejecución de requests en curso.
+
+Con **Rendimiento** en lugar de **Funcional**, muchos usuarios virtuales envían los requests marcados al mismo tiempo. Mira [Pruebas de rendimiento](/es/runner/performance/).
+
+## Siguiente
+
+<CardGrid>
+  <LinkCard title="Ajustes para ejecutar requests" href="/es/runner/requests-settings/" />
+  <LinkCard title="Lee los resultados de los requests" href="/es/runner/requests-results/" />
+  <LinkCard title="Archivos de datos" href="/es/runner/data-files/" />
+  <LinkCard title="Variables y comprobaciones" href="/es/requests/variables-and-checks/" />
+</CardGrid>

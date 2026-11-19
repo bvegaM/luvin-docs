@@ -1,0 +1,137 @@
+---
+title: Credentials and errors
+description: When a mock answers 401 because the call has no credentials, 404 because no route matches, 403 for a host that is not local and 500 when it cannot answer, and what happens when nothing answers.
+sidebar:
+  order: 7
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Besides the responses of its routes, a mock answers on its own in a few cases: a call without credentials, a call no route matches, a call to a name that is not local, and a route it cannot answer. This page lists each one, with the exact body, so you can tell them apart from the responses you wrote.
+
+## At a glance
+
+| Status | When | Body |
+|---|---|---|
+| `401` | The operation of the contract needs credentials and the call brings none. | The `401` of the contract. |
+| `404` | No route matches the method and path. | `"error": "mock_not_found"` |
+| `403` | The call uses a host name that is not local. | `"error": "mock_host"` |
+| `500` | The route has a status the mock cannot send. | `"error": "mock_error"` |
+| `204` | A browser asks before calling (`OPTIONS`) and no route matches. | None. See [Who can call a mock](/mocks/security/). |
+| No answer | The mock is stopped, or the port is wrong. | The call fails with a connection error. |
+
+## 401: calls without credentials
+
+A mock from a contract answers like an API that asks for credentials. If an operation needs them and documents a `401`, a call that brings none of them gets that `401`.
+
+### Example: an order in the PayPal contract
+
+The PayPal contract asks for an OAuth 2.0 token on every operation, and `createOrder` documents `201` and `401`.
+
+<Steps>
+1. Create a mock from `paypal-orders.openapi.yaml` and press **Start**.
+2. In the **Routes** tab, the `201` row of `POST /v2/checkout/orders` says *answers 401 without credentials*.
+3. Send `POST http://127.0.0.1:4010/v2/checkout/orders` without an `Authorization` header. The mock answers `401` with the example of the contract:
+
+   ```json
+   {
+     "name": "UNAUTHORIZED",
+     "message": "Authorization failed due to insufficient permissions.",
+     "debug_id": "9d7d4b1e2c3a1"
+   }
+   ```
+
+4. Send it again with `Authorization: Bearer test`. The mock answers `201` with the created order of the contract.
+</Steps>
+
+### When the mock checks
+
+All of these must be true:
+
+- The source of the mock is an OpenAPI contract.
+- The operation needs credentials: it has `security`, or the contract has a global `security` and the operation does not replace it.
+- None of its options is empty. A `security` with an empty entry (`- {}`) means the call can go without credentials, and the mock does not check.
+- The operation documents a `401`.
+- The call asks for the response by default. A call with `x-mock-response-code` or `x-mock-response-name` skips the check.
+
+Your own routes never check credentials.
+
+### What counts as credentials
+
+The mock looks where the security scheme of the contract says:
+
+| Security scheme | The call must bring |
+|---|---|
+| API key in a header | That header, for example `X-API-Key`. |
+| API key in the query | That query parameter, for example `api_key`. |
+| API key in a cookie | A `Cookie` header. |
+| HTTP (Basic, Bearer), OAuth 2.0 or OpenID Connect | An `Authorization` header. |
+
+If the operation accepts several schemes, one of them is enough. The mock only checks that the value is there and is not empty. It does not check the value: any token works.
+
+## 404: no route
+
+If no active route matches the method and path, the mock answers `404` at once, without delay:
+
+```json
+{"error":"mock_not_found","message":"No hay una ruta del mock para GET /pokemon/pikachu"}
+```
+
+The `message` is always in Spanish and names the method and path. The **Log** shows the call with **No route (404)**.
+
+Check, in this order:
+
+1. The start of the path. A mock from the Pokédex contract answers under `/api/v2`. See [Use a mock with requests and workflows](/mocks/with-workflows/).
+2. The method. A `POST` does not match a `GET` route, and a `HEAD` needs a `HEAD` or **Any** route.
+3. That the route is **Active**.
+4. That the source has that route: the example is saved, or the operation is in the contract.
+
+A `404` that comes from a route, such as the `404` of `getPokemon`, is not this one: it has the body of the route, and the **Log** names the route.
+
+## 403: a host that is not local
+
+The mock answers only to calls addressed to `localhost`, a name ending in `.localhost`, `127.0.0.1` or `::1`. Any other `Host` gets `403` at once:
+
+```json
+{"error":"mock_host","message":"El mock solo responde a localhost o 127.0.0.1."}
+```
+
+This stops a website that points its own domain at your computer from reading your mock. See [Who can call a mock](/mocks/security/).
+
+## 500: the mock cannot answer
+
+If a route cannot be sent, the mock answers `500`:
+
+```json
+{"error":"mock_error","message":"El mock no pudo responder: status 150 no válido (de 200 a 599)"}
+```
+
+The usual cause is a **Status** below 200: the field takes 100 to 599, but a `1xx` is not a final response. Change it to a status from 200 to 599.
+
+This call does not appear in the **Log**.
+
+## Nothing answers
+
+When the mock is stopped, or the call goes to another port, nothing answers at that URL. The request in Luvin fails with a connection error, and the steps of a workflow fail as with an API that is down. The **Log** stays empty.
+
+<Steps>
+1. Check that the mock is running: a green dot in the sidebar.
+2. Check that the port of the URL is the port of the mock.
+3. If you changed the port, press **Update environment** in the mock tab.
+</Steps>
+
+## Ask for errors on purpose
+
+The errors above are the mock's own. To test how your workflow handles the errors of the API, use its documented responses:
+
+- Send `x-mock-response-code: 422` to get the `422` of `createOrder`. See [Responses](/mocks/responses/).
+- Or write your own route that always answers that error. See [Routes](/mocks/routes/).
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Responses" href="/mocks/responses/" />
+  <LinkCard title="Routes" href="/mocks/routes/" />
+  <LinkCard title="Who can call a mock" href="/mocks/security/" />
+  <LinkCard title="The Log of a mock" href="/mocks/log/" />
+</CardGrid>

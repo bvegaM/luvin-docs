@@ -1,0 +1,124 @@
+---
+title: Settings for running requests
+description: Iterations and each setting of a functional run of requests, with its default, what it changes and when to use it.
+sidebar:
+  order: 5
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+The settings decide how many times the requests run, what happens when one fails, and what the run leaves behind: responses to look at, variables and cookies. They appear under **Run type** when **Functional** is chosen.
+
+## Example: a long run without slowing down
+
+You want to send the **Catalog** folder of a shop 500 times with a small pause, and you do not need to read every response.
+
+<Steps>
+1. Set **Iterations** to `500`.
+2. Under **Settings**, untick **Keep responses to see them**.
+3. Tick **Delay between requests of … ms**. It sets `500`. Change it to `200`.
+4. Press **Run (n)**.
+</Steps>
+
+![The right column of the requests Runner with Iterations at 3, the settings ticked except Stop if a request fails, Delay between requests of 200 ms and the button Run (9)](/media/en/runner-requests-settings.webp)
+
+Each row of the results still shows the status, the time and the checks. Opening a row says *The response was not kept ("Keep responses" setting).*
+
+## Iterations
+
+**Iterations** is how many times the whole sequence of ticked requests runs.
+
+- From 1 to 10,000. A larger number becomes 10,000, and an empty field becomes 1.
+- Choosing a data file sets it to the number of rows of the file. You can change it afterwards. See [Data files](/runner/data-files/#rows-and-iterations).
+- The start button shows the ticked requests times the iterations: 4 requests and 25 iterations read **Run (100)**.
+
+## The settings at a glance
+
+| Setting | Default | In one line |
+|---|---|---|
+| **Keep responses to see them** | On | Keeps each response so you can open it in the results. |
+| **Stop if a request fails** | Off | Ends the run at the first request that fails. |
+| **Keep variable values at the end** | On | What the requests saved stays for the collection. |
+| **Start with the saved cookies** | On | The run starts with the cookies of the collection. |
+| **Save cookies after the run** | On | The cookies of the run stay for the collection. |
+| **Delay between requests of … ms** | Off | A pause between one request and the next. |
+
+Rest the pointer on a setting to read its explanation in the app.
+
+## Keep responses to see them
+
+*Turn it off for long runs: status, time and checks are still shown, but not the body.*
+
+- **On**: click a row of the results to see its response, as in the request tab. The history keeps each response up to 32 KB.
+- **Off**: the row still shows the status, the time, the size and the checks. Opening it shows the checks and the saved variables, and says *The response was not kept ("Keep responses" setting).*
+
+Turn it off when the run has many iterations or large responses: it keeps the Runner light.
+
+## Stop if a request fails
+
+*It fails when it does not answer, when a check fails or, without checks, when the status is an error.*
+
+- **Off**: the run goes on after a failure, to the end.
+- **On**: the run ends at the first request that fails. That request is the last row of the results, and the status says **Stopped on an error**.
+
+Use it when the next requests make no sense after a failure, for example when **Log in** fails and every request after it would answer 401. See [When a request passes or fails](/runner/requests-results/#when-a-request-passes-or-fails).
+
+## Keep variable values at the end
+
+*Values saved by the requests stay for the collection (otherwise they are dropped at the end).*
+
+During the run, a value that a request saves is always used by the requests after it, whatever this setting says. The setting decides what happens when the run ends:
+
+- **On**: the values that changed during the run stay for the collection, so the next request you send by hand uses them. For example, the `token` that **Log in** saved.
+- **Off**: they are dropped. The collection keeps the values it had before the run.
+
+Only values that changed are kept: a value equal to the one in the environment, or equal to a value of the same column of the data file, is not. Like any value a request saves, they live in memory while the collection is open: they are not written to the environment. See [Checks and variables](/requests/variables-and-checks/).
+
+## Start with the saved cookies
+
+*Off, the run starts with no cookies.*
+
+- **On**: the run starts with the cookies that the collection has saved, for example the session cookie of your last **Log in**.
+- **Off**: the run starts with no cookies at all. Use it to check that the sequence works from a clean session.
+
+## Save cookies after the run
+
+*Cookies set by the responses stay for the next requests.*
+
+- **On**: when the run ends, the cookies of the run become the cookies of the collection.
+- **Off**: the collection keeps the cookies it had before the run.
+
+<Aside type="caution" title="Both cookie settings together">
+With **Start with the saved cookies** off and **Save cookies after the run** on, the run starts with no cookies and, at the end, its cookies replace those of the collection. The cookies the collection had before are lost.
+</Aside>
+
+The Runner only stores and sends cookies when **Automatic cookies** is on in **Preferences**. With it off, both cookie settings have no effect. See [Cookies](/requests/cookies-and-examples/#the-cookie-jar) and [Preferences](/get-started/preferences/).
+
+## Delay between requests of … ms
+
+- **Off**: each request goes as soon as the previous one ends.
+- Ticking it sets 500 ms. Type another value, or use the arrows, in steps of 100 ms. Setting it to `0` unticks it.
+- The pause goes between every request and the next one, also from the last request of an iteration to the first of the next one. There is no pause before the first request.
+
+Use it when your API limits how many calls you can make per second, or to follow the results at a calm pace while they fill in.
+
+## Common setups
+
+| What you want | Settings |
+|---|---|
+| A quick check after a change | The defaults. |
+| A clean session every time | **Start with the saved cookies** off and **Save cookies after the run** off. |
+| Use the token of the run afterwards, by hand | **Keep variable values at the end** on. |
+| Leave the collection as it was | **Keep variable values at the end** off and **Save cookies after the run** off. |
+| Hundreds of iterations | **Keep responses to see them** off. |
+| Stop wasting calls after a broken login | **Stop if a request fails** on. |
+
+The Runner remembers these settings: when you open it again for the same folder or collection, it starts with the settings of your last run there.
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Run requests" href="/runner/requests/" />
+  <LinkCard title="Read the results of requests" href="/runner/requests-results/" />
+  <LinkCard title="Data files" href="/runner/data-files/" />
+</CardGrid>

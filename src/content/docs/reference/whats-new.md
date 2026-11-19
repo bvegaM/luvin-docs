@@ -5,7 +5,34 @@ sidebar:
   order: 12
 ---
 
-This page lists what Luvin can do and when each capability arrived. The newest is first. The current version is **0.1.0**.
+This page lists what Luvin can do and when each capability arrived. The newest is first. The current version is **0.1.5**.
+
+## 19 November 2026 · versions 0.1.4 and 0.1.5
+
+**Runner, performance tests, mock servers, history and network.**
+
+- **Requests and workflows runner.** Run several requests or workflows in order, one or more iterations, with a CSV or JSON data file. For workflows you see and choose each one's cases, and lists are picked by a rule saved in the step. See [The Runner](/runner/overview/).
+- **Performance tests** for requests and workflows: virtual users, load profiles (fixed, ramp up, spike, peak), pass criteria and per-step results with the bottleneck. See [Performance tests](/runner/performance/).
+- **Local mock servers** per collection, with routes from saved examples or a contract, templates and alternative responses. See [Mock servers](/mocks/overview/).
+- **History** of requests and runs per collection, searchable and ready to run again. See [History](/workspaces/history/).
+- **Post-response variables and checks**, without scripts. Postman and Bruno tests are converted on import. See [Variables and checks](/requests/variables-and-checks/).
+- **Network in the desktop app:** proxy, client certificates and request settings in Preferences. gRPC, WebSocket and OAuth login use the same settings. See [Network settings](/get-started/network/).
+- **In the designer, a + for each branch and between steps.** "If it responds 404, go to a new step" is built from the step card, and the (+) on each arrow inserts a step there. See [Success and errors](/design/success-and-errors/).
+- **The guided tour comes in short sections**, starting with workflows. See [The guided tour](/get-started/guided-tour/).
+- **A YAML typo no longer breaks the collection.** The file shows as "can't be read", Run is blocked and, once fixed, its workflows come back with their cases.
+- **Safer:** secrets saved by a request don't show in history or Network; a mock server only answers your machine; a huge compressed response no longer fills the memory; an https to http redirect doesn't carry the authorization.
+- **Other improvements:** Enter in the URL sends the request and ⌘/Ctrl+Enter sends it from anywhere; undo in the designer survives switching tabs; a JSON Arazzo stays JSON; the ⌘K palette has actions and mock servers.
+
+## 18 November 2026 · versions 0.1.2 and 0.1.3
+
+**More than 70 fixes from testers.**
+
+- **Path variables with their own value** in requests, and suggestions to create them.
+- **More faithful runs:** `goto` and `retry` loops across workflows stop, a request is never sent with an empty path parameter, the servers an operation declares are used, JSONPath filters follow the specification (RFC 9535) and a value the response doesn't have no longer passes a check.
+- **Authorization:** AWS SigV4, OAuth 2.0 (client credentials and refresh), Digest and NTLM fixed.
+- **Requests:** binary responses download intact, cookies set during a redirect are kept, large JSON numbers stay exact and a GET body is sent.
+- **Design:** YAML anchors and aliases are respected, and renaming steps, outputs, components or workflows updates what uses them, also in other Arazzo files.
+- **Workspaces, environments and secrets:** each environment keeps its own file, an unreadable file is never overwritten, pending changes are saved before closing, and secrets follow each environment and request even when renamed.
 
 ## 17 November 2026
 

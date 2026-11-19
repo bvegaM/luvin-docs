@@ -1,0 +1,124 @@
+---
+title: Ajustes para ejecutar requests
+description: Las vueltas y cada ajuste de una ejecución funcional de requests, con su valor por defecto, qué cambia y cuándo usarlo.
+sidebar:
+  order: 5
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Los ajustes deciden cuántas veces se ejecutan los requests, qué pasa cuando uno falla y qué deja la ejecución: respuestas para mirar, variables y cookies. Aparecen bajo **Tipo de ejecución** cuando está elegido **Funcional**.
+
+## Ejemplo: una ejecución larga sin ponerse lenta
+
+Quieres enviar la carpeta **Catalog** de una tienda 500 veces con una pausa corta, y no necesitas leer cada respuesta.
+
+<Steps>
+1. Pon **Vueltas** en `500`.
+2. En **Ajustes**, desmarca **Guardar las respuestas para verlas**.
+3. Marca **Pausa entre requests de … ms**. Se pone en `500`. Cámbialo a `200`.
+4. Pulsa **Ejecutar (n)**.
+</Steps>
+
+![La columna derecha del Runner de requests con Vueltas en 3, los ajustes marcados salvo Detenerse si un request falla, Pausa entre requests de 200 ms y el botón Ejecutar (9)](/media/es/runner-requests-settings.webp)
+
+Cada fila de los resultados sigue mostrando el status, el tiempo y las comprobaciones. Al abrir una fila dice *La respuesta no se guardó (ajuste «Guardar las respuestas»).*
+
+## Vueltas
+
+**Vueltas** es cuántas veces se ejecuta la secuencia completa de requests marcados.
+
+- De 1 a 10.000. Un número mayor queda en 10.000, y un campo vacío queda en 1.
+- Elegir un archivo de datos lo pone en el número de filas del archivo. Puedes cambiarlo después. Mira [Archivos de datos](/es/runner/data-files/#filas-y-vueltas).
+- El botón para empezar muestra los requests marcados por las vueltas: 4 requests y 25 vueltas dicen **Ejecutar (100)**.
+
+## Los ajustes de un vistazo
+
+| Ajuste | Por defecto | En una línea |
+|---|---|---|
+| **Guardar las respuestas para verlas** | Marcado | Guarda cada respuesta para que puedas abrirla en los resultados. |
+| **Detenerse si un request falla** | Sin marcar | Termina la ejecución en el primer request que falla. |
+| **Conservar las variables al terminar** | Marcado | Lo que guardaron los requests queda para la colección. |
+| **Empezar con las cookies guardadas** | Marcado | La ejecución empieza con las cookies de la colección. |
+| **Guardar las cookies al terminar** | Marcado | Las cookies de la ejecución quedan para la colección. |
+| **Pausa entre requests de … ms** | Sin marcar | Una pausa entre un request y el siguiente. |
+
+Deja el puntero sobre un ajuste para leer su explicación en la app.
+
+## Guardar las respuestas para verlas
+
+*En corridas largas conviene apagarlo: se ve el status, el tiempo y las comprobaciones, pero no el body.*
+
+- **Marcado**: haz clic en una fila de los resultados para ver su respuesta, como en la pestaña del request. El historial guarda cada respuesta hasta 32 KB.
+- **Sin marcar**: la fila sigue mostrando el status, el tiempo, el tamaño y las comprobaciones. Al abrirla se ven las comprobaciones y las variables guardadas, y dice *La respuesta no se guardó (ajuste «Guardar las respuestas»).*
+
+Desmárcalo cuando la ejecución tiene muchas vueltas o respuestas grandes: mantiene liviano el runner.
+
+## Detenerse si un request falla
+
+*Falla si no responde, si no cumple una comprobación o, sin comprobaciones, si el status es un error.*
+
+- **Sin marcar**: la ejecución sigue después de un fallo, hasta el final.
+- **Marcado**: la ejecución termina en el primer request que falla. Ese request es la última fila de los resultados, y el estado dice **Se detuvo en un error**.
+
+Úsalo cuando los requests siguientes no tienen sentido después de un fallo, por ejemplo cuando **Log in** falla y todos los requests que vienen después responderían 401. Mira [Cuándo pasa o falla un request](/es/runner/requests-results/#cuándo-pasa-o-falla-un-request).
+
+## Conservar las variables al terminar
+
+*Las que guardaron los requests quedan para la colección (si no, se descartan al terminar).*
+
+Durante la ejecución, un valor que guarda un request siempre lo usan los requests que vienen después, diga lo que diga este ajuste. El ajuste decide qué pasa cuando la ejecución termina:
+
+- **Marcado**: los valores que cambiaron durante la ejecución quedan para la colección, así el próximo request que envíes a mano los usa. Por ejemplo, el `token` que guardó **Log in**.
+- **Sin marcar**: se descartan. La colección conserva los valores que tenía antes de la ejecución.
+
+Solo se conservan los valores que cambiaron: un valor igual al del ambiente, o igual a un valor de la misma columna del archivo de datos, no. Como cualquier valor que guarda un request, viven en memoria mientras la colección está abierta: no se escriben en el ambiente. Mira [Variables y comprobaciones](/es/requests/variables-and-checks/).
+
+## Empezar con las cookies guardadas
+
+*Apagado, la corrida empieza sin ninguna cookie.*
+
+- **Marcado**: la ejecución empieza con las cookies que tiene guardadas la colección, por ejemplo la cookie de sesión de tu último **Log in**.
+- **Sin marcar**: la ejecución empieza sin ninguna cookie. Úsalo para revisar que la secuencia funciona desde una sesión limpia.
+
+## Guardar las cookies al terminar
+
+*Las que pusieron las respuestas quedan para los requests siguientes.*
+
+- **Marcado**: cuando la ejecución termina, las cookies de la ejecución pasan a ser las cookies de la colección.
+- **Sin marcar**: la colección conserva las cookies que tenía antes de la ejecución.
+
+<Aside type="caution" title="Los dos ajustes de cookies juntos">
+Con **Empezar con las cookies guardadas** sin marcar y **Guardar las cookies al terminar** marcado, la ejecución empieza sin cookies y, al terminar, sus cookies reemplazan las de la colección. Las cookies que tenía la colección antes se pierden.
+</Aside>
+
+El runner solo guarda y envía cookies cuando **Cookies automáticas** está activado en **Preferencias**. Si está apagado, los dos ajustes de cookies no tienen efecto. Mira [Cookies](/es/requests/cookies-and-examples/#el-almacén-de-cookies) y [Preferencias](/es/get-started/preferences/).
+
+## Pausa entre requests de … ms
+
+- **Sin marcar**: cada request sale apenas termina el anterior.
+- Al marcarlo se pone en 500 ms. Escribe otro valor, o usa las flechas, de 100 en 100 ms. Ponerlo en `0` lo desmarca.
+- La pausa va entre cada request y el siguiente, también entre el último request de una vuelta y el primero de la siguiente. No hay pausa antes del primer request.
+
+Úsalo cuando tu API limita cuántas llamadas puedes hacer por segundo, o para seguir los resultados con calma mientras se llenan.
+
+## Configuraciones habituales
+
+| Qué quieres | Ajustes |
+|---|---|
+| Una revisión rápida después de un cambio | Los valores por defecto. |
+| Una sesión limpia cada vez | **Empezar con las cookies guardadas** y **Guardar las cookies al terminar** sin marcar. |
+| Usar después, a mano, el token de la ejecución | **Conservar las variables al terminar** marcado. |
+| Dejar la colección como estaba | **Conservar las variables al terminar** y **Guardar las cookies al terminar** sin marcar. |
+| Cientos de vueltas | **Guardar las respuestas para verlas** sin marcar. |
+| No gastar llamadas después de un login roto | **Detenerse si un request falla** marcado. |
+
+El runner recuerda estos ajustes: cuando lo vuelves a abrir para la misma carpeta o colección, empieza con los ajustes de tu última ejecución ahí.
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Ejecuta requests" href="/es/runner/requests/" />
+  <LinkCard title="Lee los resultados de los requests" href="/es/runner/requests-results/" />
+  <LinkCard title="Archivos de datos" href="/es/runner/data-files/" />
+</CardGrid>

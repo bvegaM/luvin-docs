@@ -16,7 +16,7 @@ Luvin tests a chain of API calls, called a **workflow**, where each call uses da
 ### What does Luvin not do?
 
 - **It is not an automation or orchestration tool.** Luvin is for designing, debugging and demonstrating API workflows. It does not run integrations in production.
-- **It is not a CI runner.** The Arazzo files it writes are what you take to your pipeline, with any Arazzo runner.
+- **It is not a CI runner.** Its runner runs workflows and requests inside the app, on your computer. The Arazzo files it writes are what you take to your pipeline, with any Arazzo runner.
 - **It does not replace your API client.** Luvin sends single requests to help you debug one step. Keep your API client for single requests and use Luvin for the chain.
 - **It is not a hosted service.** Everything runs on your computer, in the browser or in the desktop app. There is no backend and no account.
 - **It does not connect to message brokers yet.** Messaging steps are simulated. See [Known limitations](/reference/limitations/).
@@ -53,7 +53,7 @@ No. You design on the canvas and Luvin writes the Arazzo file. See [Design a wor
 
 ### Can I edit the YAML by hand?
 
-Yes. The **YAML** tab is the same file the canvas edits. What you write by hand is kept, and the tab validates it as you type. See [The YAML tab](/design/arazzo-editor/).
+Yes. The **YAML** tab is the same file the canvas edits. What you write by hand is kept, and the tab validates it as you type. While the text can't be read, **Run** is disabled until you fix it. See [The YAML tab](/design/arazzo-editor/).
 
 ### Where are my files stored?
 
@@ -71,7 +71,7 @@ Yes. A workspace is a folder of plain files and secret values are not in them, s
 
 ### Why does the run pause with a dialog about a list?
 
-A step returned a list and a later step uses it, so Luvin asks which item to continue with. Against the **Real API** it asks even when the list has one item. In **Simulation** it asks only when the list has more than one. See [Choose an item from a list](/test/lists/).
+A step returned a list and a later step uses it, so Luvin asks which item to continue with. Against the **Real API** it asks even when the list has one item. In **Simulation** it asks only when the list has more than one. Under **Next times:** you can save a rule, such as a random item, so it does not ask again. The runner never asks: it uses the saved rule, or the item in the design. See [Choose an item from a list](/test/lists/).
 
 ### Why did a case end in Warning?
 
@@ -92,6 +92,18 @@ In the browser the API under test must allow CORS from the app's origin. Luvin s
 ### Will a real run change data in my API?
 
 It can. Steps with POST, PUT, PATCH or DELETE send real requests to the environment, and Luvin asks you to confirm before it runs them. Choose a test environment or use Simulation. See [Run](/test/run/).
+
+### Can I run several workflows at once, or with data from a file?
+
+Yes, with the runner. It runs the chosen workflows in order, one or more iterations. With a CSV or JSON file, each row is an iteration: columns named like an input replace it. See [The runner](/runner/overview/).
+
+### Can I test without the real API?
+
+Yes, in two ways. **Simulation** answers from the contract examples, with no network. A [mock server](/mocks/overview/) answers on your computer like your API, so requests and workflows go over the network without touching the real one. Mock servers start only in the desktop app.
+
+### Can Luvin run load or performance tests?
+
+Yes. In the runner, choose **Performance**: many virtual users repeat the requests, or the happy path of each workflow, for a while. The load comes from your computer, so it is meant for tens or about a hundred users. It measures only the real API, and Luvin asks you to confirm before it starts. If the environment looks like production, you type its name to confirm. See [Performance](/runner/performance/).
 
 ### How do I share the results?
 
@@ -117,7 +129,7 @@ Luvin is a tool to design, debug and show workflows. It is not a CI runner. The 
 
 ### Should I use the desktop app or the browser?
 
-Use the desktop app if you need cookies, no CORS limits, real folders, the system keychain, gRPC or a terminal. The browser works for a quick try. See [Install and open Luvin](/get-started/install/).
+Use the desktop app if you need cookies, no CORS limits, real folders, the system keychain, gRPC, mock servers or a terminal. The browser works for a quick try. See [Install and open Luvin](/get-started/install/).
 
 ### How do I generate random data, such as a new email each run?
 

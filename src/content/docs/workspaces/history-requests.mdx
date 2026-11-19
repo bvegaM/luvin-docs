@@ -1,0 +1,115 @@
+---
+title: Requests in history
+description: What a request entry of history shows, its response tabs, how to open the request again, save the response as an example or download it, and what to do to send it again.
+sidebar:
+  order: 8.6
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Each request you send is saved with the response it got. A request entry lets you read that response again, with the same tabs as the request screen, and keep it as an example even after you have sent the request many more times.
+
+## Example: keep the 404 of missingno as an example
+
+You sent **Get pokemon** for `missingno` an hour ago and got `404`. Since then you sent it for other Pokémon.
+
+<Steps>
+1. In the sidebar, click **See all** in the **History** section. The **History** tab opens on **Requests**.
+2. In **Search history**, type `404`. Only the sends that got `404` remain.
+3. Click the one for `missingno`. Its response opens on the right.
+4. Press **Save response**. The **Save response as example** dialog suggests the name `404 - Get pokemon`.
+5. Press **Save example**. The example opens, under **Get pokemon** in the sidebar.
+</Steps>
+
+## A row of the list
+
+| Part | Example |
+|---|---|
+| The kind and method | `GET`, `POST`, `DEL` for `DELETE`, `GQL` for GraphQL, `gRPC`. |
+| The name of the request | **Get pokemon** |
+| The URL that was sent, below the name | `https://pokeapi.co/api/v2/pokemon/pikachu` |
+| The status | `200`, in the color of its group. **No response** in red when nothing came back. |
+| The time | `10:42` |
+
+Hover over a row to read the whole URL.
+
+## The top of an entry
+
+The top shows the method, the name and *Sent on* with the full date and time, then the buttons:
+
+| Button | What it does |
+|---|---|
+| **Open request** | Opens the request in its tab, as it is now. |
+| **Delete** | Removes this entry from history, without asking. |
+
+If the request is no longer in the collection (deleted, or moved to another folder), **Open request** is replaced by *The request is no longer in the collection*.
+
+## The response
+
+Below the top is the response, as the request screen shows it:
+
+| Tab | What it shows |
+|---|---|
+| **Body** | The body, with **Pretty**, **Raw** and, for JSON and HTML, **Preview**. A small image or file is kept and shown. |
+| **Headers** | The response headers, with their count. |
+| **Cookies** | The cookies the response set, with their count. |
+| **Sent request** | The method, URL, headers and body that went out, with secrets masked. |
+| **Checks** | Only if the request has checks or saves variables: the result of each check and the values saved. |
+
+Above the tabs are the status, the result of the checks, the time, the size and **Copy**, which copies the body. See [Read a response in detail](/requests/response-details/).
+
+![A GET SKU-103 entry in History: Sent on with the date, Open request and Delete at the top, then 200 OK, the time, the size, Copy and Save response, and the Body, Headers, Cookies and Sent request tabs with the JSON body](/media/en/history-request.webp)
+
+### When there was no response
+
+A request that got no answer, such as a network error or a timeout, shows the error and the request that was sent. There is nothing to save as an example.
+
+### A gRPC request
+
+A gRPC entry shows the status code and its name (for example `0 OK`), the duration, the details if there are any, and the messages received as JSON. If the call failed, it shows the error.
+
+## Save the response as an example
+
+**Save response** appears when the request is still in the collection and there was a response.
+
+<Steps>
+1. Press **Save response**. The **Save response as example** dialog opens.
+2. In **Example name**, keep the suggestion (the status and the name of the request, such as `200 - Get pokemon`) or write another.
+3. Press **Save example**. The example opens.
+</Steps>
+
+The example keeps the request **as it was written** when you sent it, with its `{{variables}}`, not with their values, and the response as it arrived. Secrets in it stay masked as `••••`. See [Cookies and saved examples](/requests/cookies-and-examples/).
+
+A saved example is also a response for a mock of the collection. See [Create a mock server](/mocks/create/).
+
+## Download the body
+
+**Download as file** saves the body of the response to a file, and creates no example.
+
+| The entry | Where **Download as file** is |
+|---|---|
+| The request is still in the collection | Inside the **Save response as example** dialog. For a file or an image, also next to **Save response**. |
+| The request is no longer in the collection | Next to **Copy**, in place of **Save response**. |
+
+## Send it again
+
+A request entry has no button to send it again. Press **Open request** and send it from its tab: it goes out as the request is now, with the active environment. To send the version from history, save it as an example first, open the example and press **Use in the request**.
+
+## What is masked
+
+Before it is saved, Luvin replaces with `••••`:
+
+- the secrets of the active environment;
+- the credentials of the authorization, the `Authorization` header and an OAuth 2.0 access token;
+- the values the request saves as secret variables, in the body, the headers and the cookies of the response.
+
+Everything else is saved as it arrived. See [Turn off and clear history](/workspaces/history-settings/).
+
+## Related
+
+<CardGrid>
+  <LinkCard title="History" href="/workspaces/history/" />
+  <LinkCard title="Runs in history" href="/workspaces/history-runs/" />
+  <LinkCard title="Cookies and saved examples" href="/requests/cookies-and-examples/" />
+  <LinkCard title="Read a response in detail" href="/requests/response-details/" />
+</CardGrid>

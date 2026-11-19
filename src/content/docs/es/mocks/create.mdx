@@ -1,0 +1,224 @@
+---
+title: Crea un mock server
+description: Todas las formas de crear un mock, las tres fuentes de sus respuestas en detalle, su nombre y el archivo en el que se guarda.
+sidebar:
+  order: 2
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Para crear un mock hace falta un nombre y una fuente para sus respuestas. Esta página explica por dónde empezar, qué rutas salen de cada fuente y qué escribe Luvin en el disco.
+
+## Ejemplo: un mock del contrato de la Pokédex
+
+<Steps>
+1. En la barra lateral, haz clic en el **+** junto a **Mock servers** (**Nuevo mock server**).
+2. El diálogo propone el nombre **Mock de Pokédex**. Déjalo.
+3. En **Respuestas desde**, elige **Un contrato OpenAPI**.
+4. Pulsa **Crear mock**.
+</Steps>
+
+El mock se abre en su propia pestaña, apagado. Su pestaña **Rutas** lista una ruta por cada status documentado de cada operación de `pokeapi.openapi.yaml`, y el archivo `mocks/mock-de-pokedex.mock.yaml` aparece en la colección. Pulsa **Encender** para usarlo. Mira [Enciende y apaga un mock](/es/mocks/start-stop/).
+
+## Por dónde empezar
+
+Usa cualquiera de estas opciones. Todas abren el mismo diálogo **Nuevo mock server**:
+
+| Dónde | Qué hacer |
+|---|---|
+| La sección **Mock servers** de la barra lateral | Haz clic en el **+** junto al título (**Nuevo mock server**). |
+| La misma sección, sin mocks todavía | Haz clic en el enlace **Nuevo mock server**. Al lado, la sección dice *Responde las rutas de la colección sin la API real.* |
+| La paleta de comandos | Pulsa ⌘K (Ctrl+K en Windows y Linux) y elige la acción **Nuevo mock server**, *Responde sin la API real*. |
+
+## El diálogo Nuevo mock server
+
+El diálogo empieza con *Un servidor en este equipo que responde como tu API. Sus rutas se guardan en la colección (mocks/) y viajan con git.*
+
+<Steps>
+1. **Nombre**: Luvin propone `Mock de` y el nombre de la colección, ya seleccionado para que escribas encima. **Crear mock** queda desactivado mientras el nombre está vacío.
+2. **Respuestas desde**: haz clic en una de las tres opciones. Cada una dice qué responde (mira abajo).
+3. Si elegiste **Un contrato OpenAPI** y la colección tiene más de uno, elígelo en la lista **Un contrato OpenAPI**. Con uno solo, no hay lista.
+4. Pulsa **Crear mock**, o **Cancelar** para cerrar sin crear nada.
+</Steps>
+
+![El diálogo Nuevo mock server con el nombre Mock de Shop y Un contrato OpenAPI elegido en Respuestas desde, sobre Cancelar y Crear mock](/media/es/mocks-new-dialog.webp)
+
+El mock nuevo se abre en su propia pestaña, apagado. También aparece en la sección **Mock servers** de la barra lateral, en orden alfabético, con un punto gris y su puerto.
+
+| Opción | Qué dice en el diálogo |
+|---|---|
+| **La colección** | *Responde con los ejemplos guardados de los requests y se mantiene al día.* |
+| **Un contrato OpenAPI** | *Responde cada operación con los ejemplos del contrato o datos armados desde su schema.* Está desactivada si la colección no tiene un contrato OpenAPI: *La colección no tiene contratos OpenAPI.* |
+| **Solo rutas propias** | *Solo las rutas que escribas.* |
+
+## Fuente: la colección
+
+El mock responde con los ejemplos que guardaste en los requests de la colección. Para guardar uno, envía un request y pulsa **Guardar respuesta**. Mira [Cookies y ejemplos guardados](/es/requests/cookies-and-examples/).
+
+### Qué se convierte en ruta
+
+- Cada ejemplo guardado de un request **HTTP** o **GraphQL** se convierte en una ruta. Los requests gRPC y WebSocket no.
+- El método es el del ejemplo. Un request GraphQL sin método usa `POST`.
+- El status, los headers y el body son los de la respuesta guardada.
+- Los headers que describen la conexión original no se responden: `content-length`, `transfer-encoding`, `connection`, `keep-alive`, `date`, `content-encoding`, `set-cookie`, `server`, `via`, `alt-svc`, `strict-transport-security` y todos los `access-control-`.
+
+### La ruta de cada una
+
+La ruta es la URL del ejemplo, tal como estaba escrita cuando lo guardaste, sin lo que va antes de la ruta:
+
+| URL del ejemplo | Ruta |
+|---|---|
+| `{{baseUrl}}/pokemon/:idOrName` | `/pokemon/:idOrName` |
+| `https://pokeapi.co/api/v2/pokemon/pikachu` | `/api/v2/pokemon/pikachu` |
+| `{{baseUrl}}/pokemon/{{pokemon}}` | `/pokemon/{{pokemon}}`: la variable funciona como parámetro y coincide con cualquier valor. |
+| `{{baseUrl}}/pokemon?limit=5` | `/pokemon`: la query y la parte con `#` quedan fuera. |
+
+Solo se quita una variable al principio. El ejemplo conserva la URL que tenía cuando lo guardaste: si después cambias la URL del request, los ejemplos viejos siguen respondiendo en la ruta vieja.
+
+### Varios ejemplos en la misma ruta
+
+Los ejemplos con el mismo método y la misma ruta son una sola ruta con varias respuestas, aunque vengan de requests distintos. El mock responde el primer `2xx` (o el primero, si no hay `2xx`). Los demás se piden con el header `x-mock-response-code` o `x-mock-response-name`. Mira [Respuestas](/es/mocks/responses/).
+
+### Al día por sí solo
+
+Cuando guardas, cambias o borras un ejemplo, el mock responde la versión nueva al momento, aunque esté encendido.
+
+Si ningún request tiene ejemplos, el grupo dice *Ningún request tiene ejemplos guardados todavía. Envía un request y usa «Guardar respuesta» para que el mock la responda.*
+
+## Fuente: un contrato OpenAPI
+
+El mock responde cada operación de un contrato OpenAPI de la colección. Un contrato AsyncAPI no puede ser fuente.
+
+### Qué se convierte en ruta
+
+- Cada status documentado de cada operación se convierte en una ruta: el `200` y el `404` de `getPokemon` son dos respuestas de `GET /api/v2/pokemon/{idOrName}`.
+- Solo cuentan los status escritos con tres dígitos. `default` y los rangos como `4XX` se saltan. Una operación sin ningún status responde `200`.
+- La respuesta por defecto es el primer `2xx` de la operación.
+
+### La ruta de cada una
+
+La ruta es la ruta del primer servidor del contrato más la ruta de la operación:
+
+| Servidor del contrato | Operación | Ruta |
+|---|---|---|
+| `https://pokeapi.co/api/v2` | `/pokemon/{idOrName}` | `/api/v2/pokemon/{idOrName}` |
+| `https://api-m.sandbox.paypal.com` | `/v2/checkout/orders` | `/v2/checkout/orders` |
+| Un servidor con una variable, como `/{version}` | | Va el valor por defecto de la variable. |
+| Un servidor escrito con `{{…}}` | | Sin prefijo: solo la ruta de la operación. |
+
+### El body de cada respuesta
+
+| El contrato tiene | El mock responde |
+|---|---|
+| Un `example` en la respuesta (o el primero de sus `examples`) | Ese ejemplo, como JSON. |
+| Solo un schema | Un dato armado desde el schema. |
+| Ninguno de los dos | `{}`. |
+| Un `204`, un `304` o una respuesta sin contenido | Sin body. |
+
+Una respuesta con body lleva `content-type: application/json`.
+
+### El nombre de cada respuesta
+
+El nombre es la descripción de la respuesta en el contrato, por ejemplo `El Pokémon` para el `200` de `getPokemon`. Cuando la respuesta apunta a una compartida (`$ref`), como el `404` de la Pokédex, el nombre es el status: `404`. Estos nombres se usan con `x-mock-response-name`.
+
+### Al día por sí solo
+
+Cuando editas el contrato, el mock responde la versión nueva al momento. Si el archivo del contrato se borra o cambia de nombre, la lista **Respuestas desde** lo muestra como *(ya no está)* y el grupo dice *El contrato no tiene operaciones o no se pudo leer.* Elige otra fuente.
+
+## Fuente: solo rutas propias
+
+El mock responde solo las rutas que escribas en **Rutas propias**. Cualquier otra llamada recibe `404`. Úsala para una API sin contrato, o para unas pocas respuestas fijas. Mira [Rutas](/es/mocks/routes/).
+
+## Cambia la fuente
+
+En la pestaña del mock, abre la lista **Respuestas desde**. Muestra **La colección**, una entrada **Contrato** por cada contrato OpenAPI de la colección y **Solo rutas propias**. El cambio se aplica al momento, también en un mock encendido. Tus rutas propias se quedan.
+
+## Cambia el nombre de un mock
+
+Haz clic en el nombre arriba de la pestaña del mock, escribe el nuevo y pulsa Enter o haz clic fuera. Un nombre vacío vuelve al anterior.
+
+El archivo conserva el nombre que recibió al crear el mock. El ambiente del mock se busca por nombre: después de cambiarlo, **Crear ambiente del mock** crea un ambiente nuevo. Mira [Usa un mock con requests y workflows](/es/mocks/with-workflows/).
+
+## El archivo en disco
+
+Cada mock es un archivo en la carpeta `mocks/` de la colección. El nombre del archivo es el nombre del mock en minúsculas, sin tildes y con guiones, seguido de `.mock.yaml`: **Mock de Pokédex** se guarda como `mocks/mock-de-pokedex.mock.yaml`. Si ese archivo ya existe, Luvin agrega `-2`, `-3` y así.
+
+Luvin lo guarda solo, un momento después de cada cambio. Viaja con la colección, también en git. Si el mock está encendido o no, no se guarda.
+
+```yaml title="mocks/mock-de-pokedex.mock.yaml"
+# Mock server de Luvin: rutas propias y la fuente de sus respuestas.
+id: 6f1c…
+name: Mock de Pokédex
+port: 4010
+delay: 500
+source:
+  contract: pokeapi.openapi.yaml
+routes:
+  - id: m3k…
+    name: Pokémon no encontrado
+    method: GET
+    path: /api/v2/pokemon/missingno
+    status: 404
+    headers:
+      content-type: application/json
+    body: '{"detail": "Not found."}'
+```
+
+| Clave | Qué guarda |
+|---|---|
+| `id` | Un identificador que crea Luvin. |
+| `name` | El nombre del mock. |
+| `port` | El puerto. |
+| `delay` | La demora en ms. Solo si no es 0. |
+| `source` | `collection`, `standalone` (solo rutas propias) o `contract:` con el archivo del contrato. |
+| `routes` | Tus rutas propias. Cada una tiene `id`, `method`, `path` y `status`, y, cuando tienen valor, `name`, `delay`, `headers`, `body` y `enabled: false` para una ruta inactiva. |
+
+Las rutas de la fuente no están en el archivo: salen de los ejemplos o del contrato cada vez.
+
+### Edita el archivo a mano
+
+Puedes escribir o cambiar un archivo `.mock.yaml` en una carpeta `mocks/` y volver a abrir la colección. Luvin completa lo que falta o está fuera de rango:
+
+| Valor | Cuando falta o no es válido |
+|---|---|
+| `name` | El nombre del archivo sin `.mock.yaml`. |
+| `port` | `4010` (válido: de 1 a 65535). |
+| `delay` | `0` (válido: de 0 a 120000). |
+| `source` | `collection`. |
+| `method`, `path`, `status` de una ruta | `GET`, `/`, `200` (status válido: de 100 a 599). |
+| `body` escrito como YAML | Se guarda como texto JSON. |
+
+Un archivo que no es YAML válido se salta. Cuando Luvin guarda el mock, vuelve a escribir el archivo: los comentarios que agregaste se pierden.
+
+<Aside type="note">
+Sin workspace no hay carpeta de colección, así que un mock no se escribe en ningún archivo. Mira [Usar Luvin sin workspace](/es/workspaces/without-workspace/).
+</Aside>
+
+## Elimina un mock
+
+<Steps>
+1. Abre el menú **⋯** del mock en la barra lateral, o el menú **⋯** de arriba de su pestaña.
+2. Elige **Eliminar mock**. Luvin pregunta *¿Eliminar «Mock de Pokédex»? Se borra mocks/mock-de-pokedex.mock.yaml.*
+3. Pulsa **Eliminar** para confirmar, o **Cancelar**.
+</Steps>
+
+Eliminar un mock lo apaga, cierra su pestaña y borra su archivo. El ambiente del mock se queda: elimínalo como cualquier otro ambiente.
+
+## Problemas frecuentes
+
+| Qué ves | Por qué, y qué hacer |
+|---|---|
+| **Un contrato OpenAPI** está desactivado. | La colección no tiene un contrato OpenAPI. Agrega uno, o usa **La colección** o **Solo rutas propias**. |
+| El grupo **Desde la colección** está vacío. | Ningún request HTTP o GraphQL tiene un ejemplo guardado. Envía uno y pulsa **Guardar respuesta**. |
+| El grupo del contrato dice *El contrato no tiene operaciones o no se pudo leer.* | El contrato tiene errores, no tiene rutas o ya no está en la colección. Ábrelo en **Contratos** y corrígelo, o cambia la fuente. |
+| Una ruta de la colección tiene una ruta que no esperabas. | Sale de la URL del ejemplo cuando lo guardaste. Vuelve a guardar el ejemplo desde el request actual. |
+| El mock desapareció al recargar. | No había un workspace abierto, así que no se guardó. |
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Enciende y apaga un mock" href="/es/mocks/start-stop/" />
+  <LinkCard title="Rutas" href="/es/mocks/routes/" />
+  <LinkCard title="Cookies y ejemplos guardados" href="/es/requests/cookies-and-examples/" />
+  <LinkCard title="Contratos" href="/es/contracts/overview/" />
+</CardGrid>

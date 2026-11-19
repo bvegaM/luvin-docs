@@ -17,7 +17,7 @@ The workflow sends the requests for real. Point the environment at a test server
 
 1. Click **+** (**Create or import**) to the right of the open tabs, then **Import from Postman or Bruno**. If no workspace is open, Luvin says **Open or create a workspace to import.** Open one first.
 2. For Postman, click **Choose .json files** and pick the exported collection. Pick its environment files too, to bring the variables. For Bruno, click **Choose folder** and pick the collection folder.
-3. Read the summary: requests, folders, examples and environments, and a list of what is not imported, such as scripts. Luvin checks responses with success criteria instead of scripts.
+3. Read the summary: requests, folders, examples and environments, and how many tests became checks. Postman tests and `pm.environment.set` lines become [variables and checks](/requests/variables-and-checks/); what can't be converted, such as an `if` block, is listed in a warning.
 4. Change the collection name if you want, then click **Import (N requests)**.
 
 ![The Import from Postman or Bruno dialog with a card for Postman and a card for Bruno](/media/en/import-postman.webp)

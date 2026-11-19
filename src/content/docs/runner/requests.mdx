@@ -1,0 +1,85 @@
+---
+title: Run requests
+description: Choose which saved requests the Runner sends and in what order, so each one can use what the previous ones saved, and start the run.
+sidebar:
+  order: 4
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+The requests runner sends the saved requests of a folder, or of the whole collection, one after another, in the order you choose. Each request can use the variables that the previous ones saved. Use it to check that a chain of calls still works, once or many times.
+
+## Example: a shop folder, three times
+
+A shop collection has a folder **Orders** with three requests: **Log in** saves a `token` variable, and **Get product** and **Create order** use it as `{{token}}`.
+
+<Steps>
+1. In the sidebar, open the **⋯** menu of the folder **Orders** and choose **Run folder (runner)**.
+2. Under **Run order**, the three requests are ticked. The top of the list says **3 of 3 selected**.
+3. Under **Run type**, leave **Functional**.
+4. Set **Iterations** to `3`. The button reads **Run (9)**: 3 requests × 3 iterations.
+5. Press **Run (9)**.
+</Steps>
+
+The results open with **Iteration 1**, **Iteration 2** and **Iteration 3**, each with its three requests. **Log in** runs first in each iteration, so **Get product** always has a `token`. See [Read the results of requests](/runner/requests-results/).
+
+## Which requests appear
+
+The **Run order** list, on the left, has every request of the folder, its subfolders included, or of the whole collection. They come in the same order as in the sidebar: first the requests of each subfolder, then the requests of the folder itself.
+
+![The Runner on Requests: the Run order of Shop requests with three ticked requests, List products, Product detail and Create an order, and on the right Functional, Iteration data, Iterations 1, the Settings and the button Run (3)](/media/en/runner-requests-setup.webp)
+
+| Kind | In the list | Notes |
+|---|---|---|
+| HTTP | Its method: **GET**, **POST**, **PUT**, **PATCH**, **DEL** for DELETE, **OPT** for OPTIONS… | |
+| GraphQL | **GQL** | |
+| gRPC | **gRPC** | It passes when the call ends with code 0. |
+| WebSocket | Not in the list. | WebSocket requests are not part of the Runner. |
+
+If there is nothing to run, the list says *There are no requests to run here (WebSocket ones are not part of the runner).*
+
+## Each row of the list
+
+| Part | What it is |
+|---|---|
+| ⋮⋮ | The handle to drag the row. |
+| Checkbox | Ticked, the request runs. Unticked, it is skipped and its row turns grey. |
+| Number | Its position in the order. |
+| Method | The method or the kind, as in the table above. |
+| Name | The name of the request. Rest the pointer on it to see its URL. |
+| **2 checks** | How many active checks it has. It appears when the request has checks or saves variables. Its tooltip says **Has checks or saves variables**. A request that only saves variables shows **0 checks**. |
+| ˄ ˅ | **Move up** and **Move down**. |
+
+## Choose and order the requests
+
+<Steps>
+1. Untick the requests you do not want. The top of the list says how many will run, for example **2 of 3 selected**.
+2. To move a request, drag it by its row and drop it on another one. Or use **Move up** and **Move down** at the end of the row.
+3. To tick or untick all of them at once, use the checkbox at the top of the list. When only some are ticked, it shows a dash.
+4. To go back to the original order with every request ticked, press **Reset**.
+</Steps>
+
+The order matters: a request that uses `{{token}}` must come after the one that saves `token`. During a run, a value that a request saves is used by every request after it, in that iteration and in the next ones.
+
+## Start the run
+
+<Steps>
+1. Check the **Environment** at the top of the Runner. See [Open the Runner and choose the environment](/runner/open-and-environment/).
+2. Under **Run type**, choose **Functional**: *Checks that every request answers well and meets its checks.*
+3. Set **Iterations** and the **Settings**. See [Settings for running requests](/runner/requests-settings/).
+4. If each iteration needs its own data, choose a file under **Iteration data**. See [Data files](/runner/data-files/).
+5. Press **Run (n)**. The number is the ticked requests times the iterations.
+</Steps>
+
+**Run (n)** stays off when no request is ticked, or while another run of requests is going on.
+
+With **Performance** instead of **Functional**, many virtual users send the ticked requests at the same time. See [Performance tests](/runner/performance/).
+
+## Next
+
+<CardGrid>
+  <LinkCard title="Settings for running requests" href="/runner/requests-settings/" />
+  <LinkCard title="Read the results of requests" href="/runner/requests-results/" />
+  <LinkCard title="Data files" href="/runner/data-files/" />
+  <LinkCard title="Checks and variables of a request" href="/requests/variables-and-checks/" />
+</CardGrid>

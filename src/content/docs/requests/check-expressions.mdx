@@ -1,0 +1,149 @@
+---
+title: Response expressions
+description: How to read the status, the time, a header, a field of the body or an item of a list in the Variables and Checks tabs, and what happens when the path is not in the response.
+sidebar:
+  order: 11
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+An expression says which part of the response to read: the status, a header, a field of the body. The same expressions work in the **Variables** tab (what to save) and in the **Checks** tab (what to check). They are short paths, not code.
+
+## The response in the examples
+
+The examples use this response of a shop, for `GET https://api.shop.test/products/7`, which took 180 ms:
+
+```http
+HTTP/1.1 200 OK
+content-type: application/json; charset=utf-8
+x-request-id: 9f2c
+
+{
+  "id": 7,
+  "name": "Red T-shirt",
+  "price": 19.9,
+  "tags": ["clothes", "sale"],
+  "discount": null,
+  "dimensions": { "weight": 200 },
+  "variants": [
+    { "size": "S", "stock": 4 },
+    { "size": "M", "stock": 0 }
+  ],
+  "first name": "Ana",
+  "reviews": []
+}
+```
+
+## What you can read
+
+| Expression | What it reads | In the example |
+|---|---|---|
+| `res.status` | The status code, as a number | `200` |
+| `res.statusText` | The text of the status (empty if the server sends none) | `OK` |
+| `res.responseTime` | The total time, in milliseconds, rounded | `180` |
+| `res.headers.content-type` | A header | `application/json; charset=utf-8` |
+| `res.headers["content-type"]` | The same header, written in brackets | `application/json; charset=utf-8` |
+| `res.headers` | All the headers, as an object | |
+| `res.body` | The whole body | The object above |
+| `res.body.name` | A field of the body | `Red T-shirt` |
+| `$.name` | The same: `$` is short for `res.body` | `Red T-shirt` |
+| `$` | The whole body | The object above |
+
+Anything else, such as `status` or `res.Status`, fails with **Use res.status, res.body…, res.headers.name or res.responseTime**. The start of the expression is written in lower case, exactly as in the table.
+
+## The body
+
+Luvin reads the body as JSON when it is valid JSON. Then `res.body` is that value and you can follow paths into it.
+
+- If the body is not JSON (HTML, XML, plain text), `res.body` is the whole text. A path into it, such as `res.body.name`, reads nothing. `res.body.length` gives the number of characters.
+- If the body is empty, `res.body` reads nothing: **exists** fails and **is empty** passes.
+- If the body is a list, start the path with an index: `res.body[0].id` or `$[0].id`.
+
+### Paths
+
+Join the parts one after another: `res.body.variants[0].size`.
+
+| Part | What it reads | Example | In the example |
+|---|---|---|---|
+| `.field` | A field of an object | `res.body.dimensions.weight` | `200` |
+| `["field"]` or `['field']` | A field whose name has spaces, dots or brackets | `res.body["first name"]` | `Ana` |
+| `[0]` | The first item of a list | `res.body.tags[0]` | `clothes` |
+| `[1]`, `[2]`… | The next items | `res.body.variants[1].size` | `M` |
+| `[-1]` | The last item. `[-2]` is the second to last | `res.body.tags[-1]` | `sale` |
+| `.length` | How many items a list has, or how many characters a text has | `res.body.tags.length` | `2` |
+
+- Field names are case sensitive: `res.body.Name` reads nothing.
+- After a dot, a name can have any character except `.`, `[` and `]`: `res.body.first-name` works. For the others, use brackets.
+- `.length` on an object reads its field called `length`, if it has one.
+
+### Lists
+
+| To read… | Expression | In the example |
+|---|---|---|
+| The first item | `res.body.tags[0]` | `clothes` |
+| The last item | `res.body.tags[-1]` | `sale` |
+| How many items | `res.body.variants.length` | `2` |
+| A field of an item | `res.body.variants[1].stock` | `0` |
+| The whole list (saved as JSON) | `res.body.tags` | `["clothes","sale"]` |
+| An item that is not there | `res.body.tags[5]` | Nothing |
+
+To know if a list has a value, check the list with **contains**: `res.body.tags` **contains** `sale`. In a list of objects, **contains** needs the whole object, with its fields in the same order: `{"size":"M","stock":0}`. To check one field, use its index: `res.body.variants[1].stock` **equals** `0`.
+
+Expressions read fixed paths. There are no filters (`[?(@.size=="M")]`), wildcards (`[*]`) or recursive search (`$..size`): they fail with **Can’t read the path “…”**.
+
+## Headers
+
+- The name can be written in any case: `res.headers.Content-Type` and `res.headers.content-type` read the same header.
+- After the dot, the name can have letters, digits, `_` and `-`. For other characters, use brackets: `res.headers["x.trace"]`.
+- Header values are always text. **is greater than** and the like still compare them as numbers: `res.headers.content-length` **is less than** `1000`.
+- A header that comes several times is read as one text, with its values joined by commas.
+- A header that is not there reads nothing.
+
+## The response time
+
+`res.responseTime` is the total time of the request in milliseconds, rounded. In the desktop app it is the same total that the **Response time** card shows, and it includes the redirects Luvin followed. Use it with **is less than** or **is at most**: `res.responseTime` **is at most** `800`.
+
+## What a missing path gives
+
+A path reads nothing when:
+
+| Case | Example |
+|---|---|
+| The field is not there | `res.body.color` |
+| A part in the middle is `null` | `res.body.discount.amount` |
+| The index is past the end of the list | `res.body.tags[5]` |
+| An index is used on something that is not a list | `res.body.dimensions[0]` |
+| A field is read from a text or a number | `res.body.name.first` |
+| The body is not JSON, or is empty | `res.body.id` on an HTML page |
+
+What happens then:
+
+| In | Result |
+|---|---|
+| **Variables** | The value is not saved and the variable keeps its previous value. The response says **was not in the response** and the chip next to the status turns red. The preview of the row says **not in the last response**. |
+| **Checks** | The failed row says **Got: (missing)**. **exists**, **is null**, the type checks, **equals**, **contains**, **starts with** and **ends with** fail. **does not exist**, **is empty**, **does not equal** and **does not contain** pass. **is greater than** and the like fail with **They are not numbers**. **matches (regex)** reads an empty text, so a pattern like `.*` still passes. |
+
+A path that reads `null` is not missing: `res.body.discount` **exists** and **is null**.
+
+## Expressions Luvin cannot read
+
+| You write | Message | Write instead |
+|---|---|---|
+| `status`, `res.Status`, `response.body.id` | **Use res.status, res.body…, res.headers.name or res.responseTime** | `res.status`, `res.body.id` |
+| `res.headers.content type` | **Use res.status, res.body…, res.headers.name or res.responseTime** | `res.headers["content type"]` |
+| `res.body.tags[first]` | **Can’t read the path “.tags[first]”** | `res.body.tags[0]` |
+| `$..size` | **Can’t read the path “..size”** | `$.variants[0].size` |
+| `$.variants[*].size` | **Can’t read the path “.variants[*].size”** | One index per check |
+
+In **Variables**, the preview of the row says **invalid expression**; point at it to read the message. In **Checks**, the row fails with the message.
+
+Expressions do not accept `{{variables}}`: `res.body.tags[{{i}}]` cannot be read. Only the expected value of a check accepts them.
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Save values from a response" href="/requests/save-variables/" />
+  <LinkCard title="Check the response" href="/requests/checks/" />
+  <LinkCard title="The checks, one by one" href="/requests/check-operators/" />
+  <LinkCard title="Read a response in detail" href="/requests/response-details/" />
+</CardGrid>

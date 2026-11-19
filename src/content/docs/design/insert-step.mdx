@@ -1,0 +1,174 @@
+---
+title: Insert a step
+description: Put a step exactly where it goes with the + on each arrow of the canvas, from Start to End of workflow, and what happens after the end of the happy path.
+sidebar:
+  order: 3.5
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Dragging a step onto the canvas is quick, but it is easy to drop it one card too high or too low. The **+** in the middle of each arrow puts the new step exactly between the two cards that arrow joins.
+
+## Example: list Pokémon before everything else
+
+<Steps>
+1. Open **Pokemon card** and click the **Design** tab.
+2. Point at the arrow that goes from **Start** to `getPokemon`. A **+** sits in its middle. Its tooltip says **Insert a step here**.
+3. Click the **+**. A dialog opens, titled **Insert a step**.
+4. In the group **pokeapi**, click the row `GET /pokemon`.
+</Steps>
+
+![The + on the arrow between listProducts and getProduct, with the label Insert a step here](/media/en/design-insert-step.webp)
+
+The dialog closes. `listPokemon` is now the first card, numbered **1**, and `getPokemon` becomes number **2**. The new step is selected and its panel is open.
+
+<Tabs>
+<TabItem label="Before">
+
+```yaml title="pokemon.arazzo.yaml"
+steps:
+  - stepId: getPokemon
+    # …
+  - stepId: getSpecies
+    # …
+```
+
+</TabItem>
+<TabItem label="After">
+
+```yaml title="pokemon.arazzo.yaml" {2-6}
+steps:
+  - stepId: listPokemon
+    description: Lista Pokémon (paginado)
+    operationId: $sourceDescriptions.pokeapi.listPokemon
+    successCriteria:
+      - condition: $statusCode == 200
+  - stepId: getPokemon
+    # …
+```
+
+</TabItem>
+</Tabs>
+
+## Where each + puts the step
+
+Every arrow of the order of the workflow has its **+**, from **Start** down to **End of workflow**. In **Pokemon card**:
+
+| Arrow | The new step goes |
+|---|---|
+| **Start** → `getPokemon` | First, before `getPokemon`. |
+| `getPokemon` → `getSpecies` | Between them. |
+| `getSpecies` → `getWeakness` | Between them. |
+| `getWeakness` → `getAbility` | Between them. |
+| `getAbility` → **End of workflow** | Last. |
+| An empty workflow: **Start** → **End of workflow** | As its only step. |
+
+When the workflow depends on others, the box **Depends on** sits above **Start**. Its arrow has no **+**: nothing goes before the workflows it depends on.
+
+The **+** only shows in the **Design** tab. The diagram of the **Overview** tab has none.
+
+## The dialog
+
+The dialog shows the help line *Choose the operation, request or workflow that goes here.* and the palette: the search box **Search operation…**, **Collection requests**, **Workflows in this Arazzo**, **From other Arazzo files** and one group per contract. It has no **Reusables**, because a reusable is applied to a step, not added as one.
+
+<Steps>
+1. Find what you want. Type in **Search operation…** to filter.
+2. Click its row. You can also focus the row with Tab and press Enter, or click the **+** at the end of the row, whose tooltip here is **Insert a step here**.
+</Steps>
+
+To close without inserting, click **×**, press **Esc** or click outside the dialog.
+
+## What the new step gets
+
+Luvin fills it in as any new step. See [What a new step gets automatically](/design/add-steps/#what-a-new-step-gets-automatically). One difference matters here: the step can only take data from what runs before it.
+
+| Position | Where its data can come from |
+|---|---|
+| First, under **Start** | The inputs of the workflow and the workflows it depends on. No step runs before it. |
+| Anywhere else | The same, plus every step above it. |
+
+A required parameter that nothing above can give becomes a new input of the workflow, listed in **Start**.
+
+## After the end of the happy path
+
+When a workflow has [a step for an error](/design/branch-new-step/), its happy path ends before the end of the list: the last step of the happy path has an action on success named `done`, and the branch steps sit below it.
+
+If you insert right below that step, Luvin moves `done` to the new step. The happy path gets longer by one step and still ends before the branch steps.
+
+Starting from **Pokemon card** with `listPokemon` as the step for the 404 of `getSpecies`:
+
+<Steps>
+1. Click the **+** on the arrow from `getAbility` to `listPokemon`.
+2. Click the row `GET /evolution-chain/{id}`.
+</Steps>
+
+<Tabs>
+<TabItem label="Before">
+
+```yaml title="pokemon.arazzo.yaml" {3-5}
+  - stepId: getAbility
+    # …
+    onSuccess:
+      - name: done
+        type: end
+  - stepId: listPokemon
+    # …
+```
+
+</TabItem>
+<TabItem label="After">
+
+```yaml title="pokemon.arazzo.yaml" {3-7}
+  - stepId: getAbility
+    # …
+  - stepId: getEvolutionChain
+    # …
+    onSuccess:
+      - name: done
+        type: end
+  - stepId: listPokemon
+    # …
+```
+
+</TabItem>
+</Tabs>
+
+On the canvas, the row `success → done` **end ✓** moves from the card of `getAbility` to the card of `getEvolutionChain`.
+
+Luvin only moves an action that is named `done`, of type `end` and without criteria. If the step above ends the happy path with an action you wrote by hand, with another name, Luvin leaves it there and the new step comes after the end. Move that action in the YAML tab.
+
+### Other positions after the end
+
+| Where you insert | What happens |
+|---|---|
+| Between two branch steps | The new step runs after the branch step above it, only on that branch. If that step has its own `done`, it moves to the new step. |
+| The **+** above **End of workflow**, below the last branch step | The new step runs after that branch step, not on the happy path. |
+
+## Insert compared with dragging
+
+| | **+** on an arrow | Drag onto the canvas | **+** on a palette row |
+|---|---|---|---|
+| Where it goes | Exactly between the two cards | Below the last card whose middle is above the drop point | At the end of the workflow |
+| Moves `done` | Yes, when inserted right below it | No | No |
+| Choose from | A dialog with the palette | The palette on the left | The palette on the left |
+
+## Undo
+
+**Undo** above the canvas, or ⌘Z (Ctrl+Z), removes the inserted step. If `done` moved, the same Undo puts it back. For a saved request that moved `done`, press Undo twice: the first one puts `done` back, the second one removes the step.
+
+## Troubleshooting
+
+**The new step never runs.** It is below the end of the happy path. In a run that goes well it shows **Not run: the workflow ended earlier due to an end/goto action.** Undo, and insert it with the **+** right below the step with `success → done`.
+
+**There is no + on the arrows.** You are in the **Overview** tab, or on the arrow that comes from **Depends on**. Open the **Design** tab.
+
+**A parameter took its data from the wrong step.** Luvin chooses by rules, and marks with **?** the connections it is less sure about. Change the source in the panel of the step. See [Connect data between steps](/design/wire-data/).
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Add steps" href="/design/add-steps/" />
+  <LinkCard title="A new step for an error" href="/design/branch-new-step/" />
+  <LinkCard title="Organize a workflow" href="/design/organize/" />
+  <LinkCard title="Connect data between steps" href="/design/wire-data/" />
+</CardGrid>

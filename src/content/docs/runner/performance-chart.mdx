@@ -1,0 +1,116 @@
+---
+title: The performance chart
+description: The four series of the performance chart, its axes, how to read one moment, how to hide a series, select a time range and filter by request or metric.
+sidebar:
+  order: 18
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+The chart shows the whole performance test on one time line: how many requests per second the API answered, how long they took, how many failed and how many virtual users were sending them. Use it to find the moment when something changed, and then look at that moment alone.
+
+## Example: when did the times go up?
+
+A ramp up test of 1 minute, from 5 to 20 users, has ended.
+
+<Steps>
+1. Look at the response time line. It stays flat and starts to climb around `0:30`, when the dashed line of the users reaches the top.
+2. Rest the pointer on `0:35`. The tooltip shows the time since the start, the clock time, the requests per second, the response time, the error rate and the users.
+3. Drag over the chart from `0:30` to `0:45`. The legend says *15 s selected* while you drag.
+4. Release. The table below says **Details from 0:30 to 0:45** and shows only that part of the test.
+5. Press **Clear filter** to see the whole test again.
+</Steps>
+
+## The series
+
+| Series | How it looks | Scale |
+|---|---|---|
+| **Requests per second** | A filled area. | On the left, titled `req/s`. Large numbers are short: `1.2 k`. |
+| **Response time (Average)** | A line. The metric in its name follows the filter: **Average**, **p90**, **p95**, **p99** or **Max**. | On the right, in `ms`, or in `s` when times reach a second. |
+| **Virtual users** | A dashed line. | None: the number of users is written at its end, for example **20 VUs**. |
+| **Error rate** | Bars in a strip below the chart, only where there were errors. | Its own, on the left of the strip, titled `% err`. It goes from 0 to at least 1 %. |
+
+The two scales of the main chart share the same grid lines, with four steps each.
+
+The users line has no scale of its own: it shows the shape of the load, as high as 90 % of the chart when all users run. Read the number at its end, or in the tooltip.
+
+## The time line
+
+- It goes from `0:00` to the duration of the test, with marks at round steps: every 5 or 10 seconds in a short test, every minute or more in a long one.
+- It covers the whole duration from the start: while the test runs, the series grow to the right.
+- Each point groups the requests that finished in a short slice of time. A test has up to about 120 points, none shorter than a quarter of a second.
+- In tests of a minute or less, points are shorter than a second, and the series are averaged over about a second so short bumps do not hide the trend.
+- The last slice, cut by the end of the test, is not drawn, so the lines do not fall to 0 at the end. While the test runs, the slice in progress is not drawn either.
+
+## Read one moment
+
+Rest the pointer on the chart. A vertical line marks the point under it, and a tooltip shows:
+
+| Line | Example |
+|---|---|
+| Time since the start · clock time | **0:35** · 10:30:35 |
+| **Requests per second** | `38.5` |
+| **Response time (Average)** | `240 ms`, or `—` if no request finished in that point |
+| **Error rate** | `2.6 % (1)`: the share and how many |
+| **Virtual users** | `20` |
+
+## Hide or highlight a series
+
+The legend under the chart has a button for each series.
+
+- Click a name to hide its series. Click it again to show it.
+- Rest the pointer on a name to fade the other series.
+
+Next to the legend, a hint says *Drag over the chart to see a time range.*
+
+## Select a time range
+
+<Steps>
+1. Press on the chart at one time and drag to another. The selection is shaded, and the legend says how many seconds you selected, for example *10 s selected*.
+2. Release. The table below shows only that range, and its title says **Details from 0:20 to 0:30**.
+3. Press **Clear filter**, next to that title, to see the whole test again: **Details for the whole test**.
+</Steps>
+
+![The performance chart with a shaded range from 0:08 to 0:16, and under it the table Details from 0:08 to 0:16 with the button Clear filter](/media/en/runner-perf-range.webp)
+
+- A click without dragging does not select anything.
+- Moving the pointer out of the chart while you drag cancels the selection.
+- When no request finished in the range, the table says *No requests in this range.*
+
+What the range changes and what it does not:
+
+| Changes | Does not change |
+|---|---|
+| The table, and the line next to its title. | The chart, which still shows the whole test. |
+| The line about the slowest request and its tag in the table are hidden. | The key numbers and the verdict. |
+| | The **Errors** tab, which is always for the whole test. |
+
+## Filters
+
+Above the chart, on the right, two lists:
+
+| List | Options | What it changes |
+|---|---|---|
+| **All requests** | Each request, or each workflow step, and each whole workflow. | Choose one and the chart and the table show only that one. The line about the slowest request is hidden. |
+| The metric | **Average**, **p90**, **p95**, **p99** or **Max**. | The response time line of the chart, the column highlighted in the table, and the time in the line next to the title of the table. |
+
+A request filter and a time range work together: the chart follows the request, and the table follows both.
+
+## The line next to the table title
+
+Next to **Details for the whole test**, or the range, a short line sums up what you are looking at:
+
+| Part | Example |
+|---|---|
+| Requests per second | `38.5 req/s` |
+| Response time, with the chosen metric | `240 ms` |
+| Error rate | `0.4 %` |
+| The most virtual users at once | `20 VU` |
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Read a performance test" href="/runner/performance-results/" />
+  <LinkCard title="The table and the errors" href="/runner/performance-table/" />
+  <LinkCard title="Load profiles" href="/runner/load-profiles/" />
+</CardGrid>

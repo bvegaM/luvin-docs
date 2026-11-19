@@ -1,0 +1,94 @@
+---
+title: Pruebas de rendimiento
+description: Muchos usuarios virtuales repiten tus requests o workflows durante un tiempo. Qué mide una prueba de rendimiento, una primera prueba paso a paso y cada campo de su configuración.
+sidebar:
+  order: 13
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Una prueba de rendimiento muestra cómo se comporta una API cuando mucha gente la usa a la vez. Los usuarios virtuales repiten tus requests, o tus workflows, al mismo tiempo durante el tiempo que definas. Cada request se mide: cuántos por segundo, cuánto tardan y cuántos fallan.
+
+<Aside type="caution" title="Solo contra tus propias APIs">
+Una prueba de rendimiento manda muchos requests. Ejecútala contra un ambiente tuyo, o contra un mock server, nunca contra una API pública ni contra una API que no es tuya. El ejemplo de la Pokédex usa una API pública: no lo uses para pruebas de rendimiento.
+</Aside>
+
+La carga sale de tu equipo. La configuración lo dice: *La carga sale de este equipo: sirve para decenas o un centenar de usuarios.*
+
+## Tu primera prueba, paso a paso
+
+Una colección de una tienda tiene una carpeta **Catalog** con **List products** y **Get product**. El ambiente `staging` apunta a tu servidor de pruebas. Si no tienes uno, apunta un ambiente a un mock server: mira [Mock servers](/es/mocks/overview/).
+
+<Steps>
+1. Abre el menú **⋯** de **Catalog** y elige **Ejecutar carpeta (runner)**.
+2. Arriba a la izquierda, elige el ambiente `staging`.
+3. En **Tipo de ejecución**, elige **Rendimiento**: *Muchos usuarios a la vez: tiempos y errores bajo carga.* Aparece **Configura la prueba de rendimiento**.
+4. Deja **Forma de la carga** en **Fija**. Pon **Usuarios virtuales** en `10`. Junto a **Duración**, elige **seg** y escribe `30`.
+5. Lee la frase bajo el gráfico: *10 usuarios virtuales durante 30 s, cada uno ejecutando todos los requests en orden.*
+6. Abre **Pasar la prueba si…**, marca **El p95 es menor que** y deja `1000` ms.
+7. Marca *Voy a mandar muchas requests al ambiente «staging».*
+8. Pulsa **Iniciar prueba de rendimiento**.
+</Steps>
+
+<video controls muted playsinline preload="metadata" poster="/media/es/runner-perf.webp" src="/media/es/runner-perf.mp4"></video>
+
+Los resultados se abren de inmediato. El estado cuenta el tiempo, por ejemplo **12 s de 30 s**, y el gráfico crece hacia la derecha cada medio segundo. A los 30 segundos el estado dice **Terminó**, y un aviso dice **✓ La prueba pasó** o **✕ La prueba no pasó**. Mira [Lee una prueba de rendimiento](/es/runner/performance-results/).
+
+## Qué hace un usuario virtual
+
+Un usuario virtual es un ciclo que corre en tu equipo. Cada uno repite una vuelta hasta que se acaba el tiempo:
+
+| Prueba de | Una vuelta es |
+|---|---|
+| **Requests** | Todos los requests marcados, en orden. |
+| **Workflows** | Un caso de cada workflow marcado, en orden. Mira [Rendimiento de workflows](/es/runner/performance-workflows/). |
+
+- Después de cada vuelta, el usuario espera **Pausa entre vueltas (ms)** y empieza la siguiente.
+- En una prueba de requests, cada usuario tiene sus propias variables y cookies. Parten de las variables del ambiente y de las cookies de la colección. Lo que guarda un usuario lo usan sus requests siguientes, y nunca queda para la colección.
+- Con un archivo de datos, las filas se reparten entre los usuarios. Mira [Archivos de datos](/es/runner/data-files/#en-una-prueba-de-rendimiento).
+- Cuántos usuarios están activos en cada momento depende de la forma de la carga. Mira [Formas de la carga](/es/runner/load-profiles/).
+
+## La configuración, campo por campo
+
+| Campo | Por defecto | Qué es | Más |
+|---|---|---|---|
+| **Forma de la carga** | **Fija** | Cómo cambia el número de usuarios en el tiempo: **Fija**, **Subida gradual**, **Pico repentino** o **Pico sostenido**. | [Formas de la carga](/es/runner/load-profiles/) |
+| **Usuarios virtuales** | 20 | Usuarios que corren a la vez en el punto más alto de la carga. De 1 a 500. | [Formas de la carga](/es/runner/load-profiles/#usuarios-virtuales-y-duración) |
+| **Duración** | 1 **min** | Cuánto dura la prueba, en **seg** o **min**. Hasta 60 minutos. | [Formas de la carga](/es/runner/load-profiles/#usuarios-virtuales-y-duración) |
+| El gráfico y la frase | | La forma de la carga, dibujada y contada en palabras. | [Formas de la carga](/es/runner/load-profiles/#la-vista-previa) |
+| **Carga inicial (usuarios)** | 5 | Usuarios al empezar, en todas las formas salvo **Fija**. | [Formas de la carga](/es/runner/load-profiles/#carga-inicial) |
+| **Pausa entre vueltas (ms)** | 0 | Cuánto espera cada usuario entre vueltas. | [Formas de la carga](/es/runner/load-profiles/#pausa-entre-vueltas) |
+| **Pasar la prueba si…** | Nada marcado | Umbrales para el veredicto. Opcional. | [Criterios para pasar](/es/runner/pass-criteria/) |
+| **Datos por vuelta** | Sin archivo | Filas repartidas entre los usuarios. | [Archivos de datos](/es/runner/data-files/#en-una-prueba-de-rendimiento) |
+| La confirmación | Sin marcar | Confirmas la carga antes de que empiece. | [Confirma antes de mandar carga](/es/runner/safety/) |
+
+Los ajustes de una ejecución funcional no se aplican aquí: no hay **Vueltas**, ni detenerse en un fallo, ni respuestas guardadas, ni cookies o variables que queden para la colección. Con workflows, **Contra** queda fijo en la API real y **Elegir de las listas** no aparece. La configuración de la carga es la misma para **Requests** y **Workflows**: lo que defines en un lado está en el otro.
+
+## Qué se mide
+
+Cada request, o cada paso de un workflow, es una medición, con su tiempo de respuesta y si pasó:
+
+- El tiempo es el tiempo de respuesta. Un request que no respondió se mide hasta que falló. Un paso de un workflow que no recibió respuesta no se mide.
+- Un request pasa o falla igual que en una ejecución funcional: falla cuando no responde, cuando no cumple una comprobación o, sin comprobaciones, cuando el status es 400 o más. Mira [Cuándo pasa o falla un request](/es/runner/requests-results/#cuándo-pasa-o-falla-un-request).
+- Un paso de un workflow falla cuando falla en el workflow, por ejemplo cuando no cumple sus criterios de éxito.
+
+Las mediciones llenan el gráfico, los números clave y la tabla de los resultados.
+
+## Ejecuta y detén
+
+<Steps>
+1. Confirma y pulsa **Iniciar prueba de rendimiento**.
+2. Se abren los resultados. Arriba dice cuánto lleva, por ejemplo **12 s de 30 s**, con una barra.
+3. Para terminar antes de que se acabe el tiempo, pulsa **Detener**. El estado pasa a **Detenida**.
+</Steps>
+
+Cuando se acaba el tiempo, o cuando la detienes, los requests que iban en camino se cortan. No se cuentan, ni como errores ni de ninguna forma: un request cortado no es una falla de la API.
+
+## Siguiente
+
+<CardGrid>
+  <LinkCard title="Formas de la carga" href="/es/runner/load-profiles/" />
+  <LinkCard title="Criterios para pasar" href="/es/runner/pass-criteria/" />
+  <LinkCard title="Confirma antes de mandar carga" href="/es/runner/safety/" />
+  <LinkCard title="Lee una prueba de rendimiento" href="/es/runner/performance-results/" />
+</CardGrid>

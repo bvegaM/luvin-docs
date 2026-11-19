@@ -1,0 +1,100 @@
+---
+title: Quién puede llamar a un mock
+description: Un mock escucha solo en 127.0.0.1, qué programas y qué páginas del navegador pueden leerlo, cómo funcionan CORS y la comprobación del Host, y qué no puede hacer un sitio web que tengas abierto.
+sidebar:
+  order: 10
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Un mock abre un puerto en tu equipo, así que importa quién puede llegar a él. En resumen: los programas de tu equipo pueden llamarlo, un frontend servido desde `localhost` puede leerlo, y nada más. Esta página explica cada regla y qué ves cuando se aplica.
+
+## De un vistazo
+
+| Quién llama | ¿Llega al mock? | ¿Puede leer la respuesta? |
+|---|---|---|
+| Luvin (requests, workflows, runner) | Sí. | Sí. |
+| cURL, un script o un backend en tu equipo | Sí. | Sí. |
+| Un frontend en tu navegador servido desde `localhost` o `127.0.0.1` | Sí. | Sí, también con cookies. |
+| Cualquier otro sitio web abierto en tu navegador | La llamada puede llegar. | No: el navegador lo bloquea. |
+| Un sitio web que apunta su propio dominio a tu equipo | Recibe `403`. | No. |
+| Otro equipo de tu red | No. | No. |
+
+## Solo en tu equipo
+
+El mock escucha solo en `127.0.0.1`, la dirección de tu propio equipo. Los demás equipos de tu red, o de internet, no pueden abrir una conexión con él, sea cual sea su puerto.
+
+Por eso también su URL es `http://127.0.0.1:4010` y no `http://localhost:4010`: en algunos sistemas `localhost` va a la dirección IPv6, donde el mock no escucha.
+
+Además, un mock solo está encendido mientras Luvin está abierto con esa colección. Mira [Enciende y apaga un mock](/es/mocks/start-stop/).
+
+## Los programas de tu equipo
+
+Un programa que no es un navegador, como cURL, un script o un backend que corres, puede llamar al mock y leer todas sus respuestas. El mock le responde con `access-control-allow-origin: *`, que solo les importa a los navegadores.
+
+```bash
+curl -i http://127.0.0.1:4010/api/v2/pokemon/pikachu
+```
+
+## Un frontend en tu navegador
+
+Un navegador deja que una página lea una respuesta de otra dirección solo si esa dirección lo permite (CORS). El mock lo permite a las páginas cuya dirección es local:
+
+| La página se sirve desde | El mock responde con |
+|---|---|
+| `http://localhost:3000`, `http://127.0.0.1:5173`, `https://app.localhost` (cualquier puerto) | `access-control-allow-origin` con esa dirección, `access-control-allow-credentials: true` y `access-control-expose-headers: *`. La página lee la respuesta, cookies incluidas. |
+| Cualquier otra dirección, como un sitio de internet | Sin `access-control-allow-origin`. El navegador no deja que la página lea la respuesta. |
+
+### La llamada antes de la llamada
+
+Para algunas llamadas, como un `POST` con JSON, el navegador primero envía una llamada `OPTIONS` para preguntar. Cuando ninguna ruta del mock responde `OPTIONS`, el mock la responde él mismo con `204` y:
+
+| Header | Valor |
+|---|---|
+| `access-control-allow-methods` | `GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS` |
+| `access-control-allow-headers` | Los headers por los que preguntó el navegador. |
+| `access-control-max-age` | `600`: el navegador puede no preguntar durante 10 minutos. |
+| `access-control-allow-origin` | La dirección de la página, solo si es local. |
+
+<Aside type="caution">
+Una ruta con método **Cualquiera** también coincide con `OPTIONS`. Responde la pregunta del navegador con su propia respuesta, sin `access-control-allow-methods` ni `access-control-allow-headers`, y el navegador puede rechazar la llamada real. Dale a esa ruta un método concreto.
+</Aside>
+
+Un header que escribe tu ruta, como `access-control-allow-origin`, reemplaza al que agrega el mock. Las rutas de la colección nunca llevan estos headers: se quitan de los ejemplos guardados.
+
+## Qué no puede hacer un sitio web que tengas abierto
+
+Cualquier sitio web puede hacer que tu navegador envíe un request a `127.0.0.1:4010`. Dos reglas mantienen privado tu mock:
+
+- **No puede leer la respuesta.** Su dirección no es local, así que el navegador lo bloquea. La llamada igual puede llegar, y la ves en el **Log**.
+- **No puede hacerse pasar por local.** Un sitio web puede apuntar su propio dominio a tu equipo, para que sus páginas y el mock compartan un nombre. El mock revisa el `Host` de cada llamada: si no es `localhost`, un nombre que termina en `.localhost`, `127.0.0.1` ni `::1`, responde `403` con `"error": "mock_host"` y no envía nada más.
+
+## Qué no puede llevar la respuesta
+
+Un valor de la llamada no puede romper una respuesta:
+
+- En los headers, los saltos de línea se convierten en espacios, así un valor no puede agregar otro header.
+- En un body JSON, los valores de texto se escapan, así una `"` no puede cerrar el texto y agregar campos. Mira [Valores del request](/es/mocks/templates/).
+
+## Qué hay en los archivos
+
+El archivo de un mock (`mocks/….mock.yaml`) tiene tus rutas propias, tal como las escribiste, y viaja con la colección y con git. No pongas tokens reales ni datos personales en sus bodies ni en sus headers. Las rutas de la colección salen de los ejemplos guardados de los requests, que tienen el mismo consejo. Mira [Cookies y ejemplos guardados](/es/requests/cookies-and-examples/).
+
+El **Log** queda solo en la memoria de la app, y se vacía cuando recargas o la cierras.
+
+## Problemas frecuentes
+
+| Qué ves | Por qué, y qué hacer |
+|---|---|
+| Tu frontend recibe un error de CORS. | Su dirección no es local, o una ruta con **Cualquiera** responde la llamada `OPTIONS`. Sirve el frontend desde `localhost`, y dale un método a la ruta. |
+| Una llamada recibe `403` con `mock_host`. | Usó un nombre que no es local, como el nombre de tu equipo o un dominio propio. Usa `127.0.0.1`. |
+| Un compañero no llega a tu mock. | Solo escucha en tu equipo. Comparte el archivo del mock: viaja con la colección. |
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Credenciales y errores" href="/es/mocks/auth-and-errors/" />
+  <LinkCard title="El Log de un mock" href="/es/mocks/log/" />
+  <LinkCard title="Privacidad y seguridad" href="/es/reference/privacy/" />
+  <LinkCard title="Enciende y apaga un mock" href="/es/mocks/start-stop/" />
+</CardGrid>

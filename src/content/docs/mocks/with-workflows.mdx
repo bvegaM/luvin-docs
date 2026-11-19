@@ -1,0 +1,148 @@
+---
+title: Use a mock with requests and workflows
+description: Create the environment that points to a mock, what it copies and changes, the server path caveat, run a workflow against the mock, go back to your usual environment, and how a mock differs from Simulation.
+sidebar:
+  order: 9
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Your requests and workflows call the URLs of the active environment. To make them call a mock, you need an environment whose URLs point to the mock. **Create mock environment** builds it for you, so you do not change any request or workflow.
+
+## Example: Pokemon card against a mock
+
+<Steps>
+1. Create a mock of the Pokédex with **Responses from** set to **An OpenAPI contract**, and press **Start**. See [Create a mock server](/mocks/create/).
+2. In the mock tab, press **Create mock environment**. The environment **Mock · Pokédex mock** is created and becomes active.
+3. Open **Pokemon card**. In the run bar, choose **Real API**. The **Environment** selector shows **Mock · Pokédex mock**.
+4. Press **Run**. Each step calls the mock instead of the PokéAPI.
+5. Open the **Log** tab of the mock. You see the calls of each case, with what they sent and what the mock answered.
+</Steps>
+
+Same steps, same cases, and no call to the real API.
+
+## Create the mock environment
+
+Press **Create mock environment** in the mock tab, below the port and the source. Next to it, the tab says *An environment that points to the mock: requests with `{{baseUrl}}` and workflows use it as is.* The button is also in the **⋯** menu at the top of the tab.
+
+Luvin creates an environment named **Mock ·** and the name of the mock, in purple, and makes it the active one. It starts from the environment that was active:
+
+| Part of the environment | In the mock environment |
+|---|---|
+| Variables whose value is a URL (starts with `http://` or `https://`) | The URL of the mock, for example `http://127.0.0.1:4010`. A request with `{{baseUrl}}` goes to the mock as is. |
+| Base URLs of the contracts | The URL of the mock plus the path of the contract's server, for example `http://127.0.0.1:4010/api/v2`. |
+| Other variables | Copied as they are. |
+| Secrets | Only their names, with empty values. |
+| Credentials | Empty. |
+
+![The environment Mock · Shop mock, active and in purple, with the base URL shop from the contract pointing to the mock plus /v1 (127.0.0.1:4010/v1)](/media/en/mocks-env.webp)
+
+Which base URLs change depends on the source of the mock:
+
+| Source of the mock | Base URLs that point to the mock |
+|---|---|
+| **An OpenAPI contract** | Only that contract's. The other contracts keep their real API. |
+| **The collection** or **Only your routes** | Every contract's. |
+
+<Aside type="caution">
+Every variable whose value is a URL changes, not only `baseUrl`. If your environment has the URL of another API in a variable, such as a token URL, it also points to the mock. Edit it in the mock environment if that call must still reach the real service.
+</Aside>
+
+## The server path caveat
+
+A variable gets the mock's URL alone, without a path. A mock from a contract whose server has a path answers under that path: the Pokédex contract's routes start with `/api/v2`.
+
+| Your request uses | It calls | The mock |
+|---|---|---|
+| `{{baseUrl}}/pokemon/pikachu`, with `baseUrl` = `http://127.0.0.1:4010` | `/pokemon/pikachu` | Answers `404`: **No route (404)** in the Log. |
+| `{{baseUrl}}/pokemon/pikachu`, with `baseUrl` = `http://127.0.0.1:4010/api/v2` | `/api/v2/pokemon/pikachu` | Answers `200`. |
+| A step of a workflow, through the contract's base URL | `/api/v2/pokemon/pikachu` | Answers `200`: the base URL already has `/api/v2`. |
+
+To fix the first case:
+
+<Steps>
+1. Click the mock environment under **Environments** in the sidebar.
+2. Change `baseUrl` to `http://127.0.0.1:4010/api/v2`.
+3. Send the request again. The **Log** of the mock shows the call with its route.
+</Steps>
+
+A mock from the collection does not have this problem: its paths come from what follows `{{baseUrl}}` in your requests.
+
+<Aside type="note">
+A request written with a full URL, such as `https://pokeapi.co/api/v2/pokemon/pikachu`, has no variable to replace: it still calls the real API. Use `{{baseUrl}}` in the URL to switch between the API and the mock with the environment.
+</Aside>
+
+## Update the environment
+
+Once the environment exists, the tab says *Environment “Mock · Pokédex mock”* and the button reads **Update environment**. Press it after you change the **Port**, so the URLs follow the mock.
+
+| When you update | What happens |
+|---|---|
+| The mock environment is active | It starts from itself: its other variables stay as you left them. |
+| Another environment is active | It starts again from that environment's variables. |
+| Variables whose value is a URL | Set again to the URL of the mock, without a path. A `baseUrl` you changed to `.../api/v2` goes back to the bare URL: change it again. |
+| Secrets and credentials | The values you filled in the mock environment stay. |
+| Active environment | The mock environment becomes active. |
+
+The environment is found by its name. If you rename the mock, the tab shows **Create mock environment** again, and pressing it creates a new environment with the new name. The old one stays until you delete it.
+
+## Run a workflow against the mock
+
+<Steps>
+1. Make sure the mock is running: a green dot next to it in the sidebar. If it is stopped, nothing answers at its URL and the steps fail.
+2. Open the workflow and choose **Real API** in the run bar.
+3. Check that the **Environment** is the mock environment.
+4. Press **Run**.
+</Steps>
+
+If the workflow has steps that create, change or delete data, Luvin asks first, as with any environment. The notice names the mock environment. See [Run](/test/run/).
+
+The results are those of a run against an API: each step shows the request it sent and the response of the mock, and a criterion can fail. Open the **Log** of the mock to see the same calls from the side of the mock.
+
+A mock environment also lets you try a load test with **Performance** without touching the real API: performance measures the API of the environment and does not run in simulation. See [Performance tests](/runner/performance/).
+
+### Single requests and other programs
+
+A request of the collection that uses `{{baseUrl}}` goes to the mock while the mock environment is active. Programs outside Luvin, such as cURL or a frontend on `localhost`, call the URL of the mock directly. See [Who can call a mock](/mocks/security/).
+
+A proxy in **Preferences** does not get in the way: `localhost` and `127.0.0.1` always connect directly. See [Network settings](/get-started/network/).
+
+## Go back to your usual environment
+
+Choose your usual environment in the **Environment** selector of the run bar, or click it under **Environments** in the sidebar. The mock environment stays in the list for the next time. Deleting the mock does not delete it. See [Environments](/environments/overview/).
+
+## Mock server or Simulation
+
+Both let you run a workflow without the real API. They are not the same:
+
+| | **Simulation** | Mock server |
+|---|---|---|
+| How you use it | Choose **Simulation** in the run bar. | Choose **Real API** with the mock environment. |
+| Calls | None. No request leaves your computer. | Real HTTP calls to `127.0.0.1`. |
+| Responses | Built for each step from the contract. The values the criteria need are set in the body, so every step passes. | Fixed: the saved examples, the examples of the contract, or your own routes. A criterion can fail, as with the real API. |
+| Errors | Only with response cases. | Ask for them with `x-mock-response-code`, or write a route. |
+| Delay and Log | No. | Yes. |
+| Single requests and other programs | No. Only workflows. | Yes: requests, workflows, cURL or a local frontend. |
+| Where | Browser and desktop app. | Desktop app only. |
+
+Use **Simulation** to check the logic of a workflow fast. Use a mock to test how your workflow and your requests behave over the network, with the responses and errors you choose. See [Simulation](/test/simulation/).
+
+## Troubleshooting
+
+| What you see | Why, and what to do |
+|---|---|
+| Every step fails with a connection error. | The mock is stopped, or its port changed. Start it, and press **Update environment** after a port change. |
+| The **Log** shows **No route (404)** for your requests. | The path is missing the server path, such as `/api/v2`. See the caveat above. |
+| The **Log** is empty after the run. | The run used another environment, or **Simulation**. Check the run bar. |
+| A request still reaches the real API. | Its URL is written in full, without a variable. Use `{{baseUrl}}`. |
+| A call to another API now fails. | Its URL was in a variable and now points to the mock. Edit it in the mock environment. |
+| There are two mock environments. | The mock was renamed. Delete the one you no longer use. |
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Mock servers" href="/mocks/overview/" />
+  <LinkCard title="The Log of a mock" href="/mocks/log/" />
+  <LinkCard title="Run" href="/test/run/" />
+  <LinkCard title="Simulation" href="/test/simulation/" />
+</CardGrid>

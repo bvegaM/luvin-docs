@@ -1,0 +1,137 @@
+---
+title: Credenciales y errores
+description: Cuándo un mock responde 401 porque la llamada no trae credenciales, 404 porque ninguna ruta coincide, 403 por un host que no es local y 500 cuando no puede responder, y qué pasa cuando nada responde.
+sidebar:
+  order: 7
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Además de las respuestas de sus rutas, un mock responde por su cuenta en algunos casos: una llamada sin credenciales, una llamada con la que no coincide ninguna ruta, una llamada a un nombre que no es local y una ruta que no puede responder. Esta página lista cada uno, con el body exacto, para que los distingas de las respuestas que escribiste.
+
+## De un vistazo
+
+| Status | Cuándo | Body |
+|---|---|---|
+| `401` | La operación del contrato pide credenciales y la llamada no trae ninguna. | El `401` del contrato. |
+| `404` | Ninguna ruta coincide con el método y la ruta. | `"error": "mock_not_found"` |
+| `403` | La llamada usa un nombre de host que no es local. | `"error": "mock_host"` |
+| `500` | La ruta tiene un status que el mock no puede enviar. | `"error": "mock_error"` |
+| `204` | Un navegador pregunta antes de llamar (`OPTIONS`) y ninguna ruta coincide. | Ninguno. Mira [Quién puede llamar a un mock](/es/mocks/security/). |
+| Sin respuesta | El mock está apagado, o el puerto no es el suyo. | La llamada falla con un error de conexión. |
+
+## 401: llamadas sin credenciales
+
+Un mock desde un contrato responde como una API que pide credenciales. Si una operación las pide y documenta un `401`, una llamada que no trae ninguna recibe ese `401`.
+
+### Ejemplo: un pedido en el contrato de PayPal
+
+El contrato de PayPal pide un token de OAuth 2.0 en todas las operaciones, y `createOrder` documenta `201` y `401`.
+
+<Steps>
+1. Crea un mock desde `paypal-orders.openapi.yaml` y pulsa **Encender**.
+2. En la pestaña **Rutas**, la fila `201` de `POST /v2/checkout/orders` dice *sin credenciales responde 401*.
+3. Envía `POST http://127.0.0.1:4010/v2/checkout/orders` sin header `Authorization`. El mock responde `401` con el ejemplo del contrato:
+
+   ```json
+   {
+     "name": "UNAUTHORIZED",
+     "message": "Authorization failed due to insufficient permissions.",
+     "debug_id": "9d7d4b1e2c3a1"
+   }
+   ```
+
+4. Envíalo de nuevo con `Authorization: Bearer test`. El mock responde `201` con el pedido creado del contrato.
+</Steps>
+
+### Cuándo comprueba el mock
+
+Tiene que cumplirse todo esto:
+
+- La fuente del mock es un contrato OpenAPI.
+- La operación pide credenciales: tiene `security`, o el contrato tiene un `security` global y la operación no lo reemplaza.
+- Ninguna de sus opciones está vacía. Un `security` con una entrada vacía (`- {}`) significa que se puede llamar sin credenciales, y el mock no comprueba.
+- La operación documenta un `401`.
+- La llamada pide la respuesta por defecto. Una llamada con `x-mock-response-code` o `x-mock-response-name` se salta la comprobación.
+
+Tus rutas propias nunca comprueban credenciales.
+
+### Qué cuenta como credenciales
+
+El mock busca donde dice el esquema de seguridad del contrato:
+
+| Esquema de seguridad | La llamada tiene que traer |
+|---|---|
+| API key en un header | Ese header, por ejemplo `X-API-Key`. |
+| API key en la query | Ese parámetro de query, por ejemplo `api_key`. |
+| API key en una cookie | Un header `Cookie`. |
+| HTTP (Basic, Bearer), OAuth 2.0 u OpenID Connect | Un header `Authorization`. |
+
+Si la operación acepta varios esquemas, basta con uno. El mock solo comprueba que el valor esté y no esté vacío. No comprueba el valor: cualquier token sirve.
+
+## 404: ninguna ruta
+
+Si ninguna ruta activa coincide con el método y la ruta, el mock responde `404` al momento, sin demora:
+
+```json
+{"error":"mock_not_found","message":"No hay una ruta del mock para GET /pokemon/pikachu"}
+```
+
+El `message` nombra el método y la ruta. El **Log** muestra la llamada con **Sin ruta (404)**.
+
+Revisa, en este orden:
+
+1. El inicio de la ruta. Un mock desde el contrato de la Pokédex responde bajo `/api/v2`. Mira [Usa un mock con requests y workflows](/es/mocks/with-workflows/).
+2. El método. Un `POST` no coincide con una ruta `GET`, y un `HEAD` necesita una ruta `HEAD` o **Cualquiera**.
+3. Que la ruta esté **Activa**.
+4. Que la fuente tenga esa ruta: el ejemplo está guardado, o la operación está en el contrato.
+
+Un `404` que sale de una ruta, como el `404` de `getPokemon`, no es este: tiene el body de la ruta, y el **Log** nombra la ruta.
+
+## 403: un host que no es local
+
+El mock responde solo a llamadas dirigidas a `localhost`, un nombre que termina en `.localhost`, `127.0.0.1` o `::1`. Cualquier otro `Host` recibe `403` al momento:
+
+```json
+{"error":"mock_host","message":"El mock solo responde a localhost o 127.0.0.1."}
+```
+
+Así un sitio web que apunta su propio dominio a tu equipo no puede leer tu mock. Mira [Quién puede llamar a un mock](/es/mocks/security/).
+
+## 500: el mock no puede responder
+
+Si una ruta no se puede enviar, el mock responde `500`:
+
+```json
+{"error":"mock_error","message":"El mock no pudo responder: status 150 no válido (de 200 a 599)"}
+```
+
+La causa habitual es un **Status** menor que 200: el campo acepta de 100 a 599, pero un `1xx` no es una respuesta final. Cámbialo a un status de 200 a 599.
+
+Esta llamada no aparece en el **Log**.
+
+## Nada responde
+
+Cuando el mock está apagado, o la llamada va a otro puerto, nada responde en esa URL. El request en Luvin falla con un error de conexión, y los pasos de un workflow fallan como con una API caída. El **Log** queda vacío.
+
+<Steps>
+1. Comprueba que el mock está encendido: un punto verde en la barra lateral.
+2. Comprueba que el puerto de la URL es el del mock.
+3. Si cambiaste el puerto, pulsa **Actualizar ambiente** en la pestaña del mock.
+</Steps>
+
+## Pide errores a propósito
+
+Los errores de arriba son del mock. Para probar cómo maneja tu workflow los errores de la API, usa sus respuestas documentadas:
+
+- Envía `x-mock-response-code: 422` para recibir el `422` de `createOrder`. Mira [Respuestas](/es/mocks/responses/).
+- O escribe una ruta propia que siempre responda ese error. Mira [Rutas](/es/mocks/routes/).
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Respuestas" href="/es/mocks/responses/" />
+  <LinkCard title="Rutas" href="/es/mocks/routes/" />
+  <LinkCard title="Quién puede llamar a un mock" href="/es/mocks/security/" />
+  <LinkCard title="El Log de un mock" href="/es/mocks/log/" />
+</CardGrid>

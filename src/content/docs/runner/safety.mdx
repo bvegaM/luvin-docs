@@ -1,0 +1,104 @@
+---
+title: Confirm before sending load
+description: The confirmation every performance test asks for, the extra step for environments that look like production, what makes you confirm again, and good practices before sending load.
+sidebar:
+  order: 16
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A performance test sends hundreds or thousands of requests in a short time. Before it starts, Luvin asks you to confirm where they go, so a load test never reaches the wrong API by accident.
+
+<Aside type="caution" title="Only against your own APIs">
+Never run a performance test against a public API or an API you do not own. Use an environment of your own, or a mock server.
+</Aside>
+
+## Example: confirm a test against staging
+
+<Steps>
+1. Set up the load. See [Performance tests](/runner/performance/).
+2. Above **Start performance test**, read the box: *I am about to send many requests to the "staging" environment.* The button is off.
+3. Check that `staging` is the environment you want.
+4. Tick the box. **Start performance test** turns on.
+5. Press it.
+</Steps>
+
+## The confirmation box
+
+The box is above **Start performance test**, in amber. Its text names the environment: *I am about to send many requests to the "…" environment.*
+
+If the selection creates, changes or deletes data, the box adds how many: *1 of the selection creates, changes or deletes data: it will be repeated many times.*
+
+| Test of | What counts as changing data |
+|---|---|
+| **Requests** | Each ticked request with the method POST, PUT, PATCH or DELETE. |
+| **Workflows** | Each ticked workflow with steps that create, change or delete data, the same ones that show the tag **changes data**. |
+
+A test of workflows that creates orders creates one order per iteration of each user: hundreds in a minute. Use test data, or a mock server.
+
+## Environments that look like production
+
+When the name of the environment looks like production, the box turns red and asks for more: *"…" looks like production. Type its name to confirm:*
+
+<Steps>
+1. Tick the box.
+2. In the field below it, type the name of the environment exactly, with the same upper and lower case. Spaces at the ends do not matter.
+3. **Start performance test** turns on.
+</Steps>
+
+![The red confirmation box, ticked, for the production environment: it warns that 1 of the selection creates, changes or deletes data, asks to type its name, with production typed in the field, and the button Start performance test turned on](/media/en/runner-perf-confirm.webp)
+
+A name looks like production when it has one of these words on its own, in upper or lower case: `prod`, `production`, `producción`, `produccion`, `prd` or `live`.
+
+| Name of the environment | Looks like production |
+|---|---|
+| `prod`, `Production`, `PRD` | Yes |
+| `shop-live`, `prod eu`, `Producción` | Yes: hyphens and spaces separate words. |
+| `preprod`, `products`, `prod_eu` | No: the word is part of a longer one. |
+| `staging`, `local`, `qa` | No |
+
+Even when a name does not look like production, it can be. Read the name in the box every time.
+
+## What makes you confirm again
+
+The confirmation is for what you confirmed. It is cleared, and the button turns off again, when you change:
+
+| Change | Confirm again |
+|---|---|
+| The environment | Yes |
+| The requests or workflows that are ticked, or their order | Yes |
+| **Virtual users** | Yes |
+| **Duration** | Yes |
+| **Load profile** | Yes |
+| **Initial load (users)** | Yes |
+| The markers of the phases | No |
+| **Pause between iterations (ms)** | No |
+| **Pass test if…** | No |
+| The data file | No |
+
+It is also cleared every time you leave the setup. **Run again…**, in the results, opens the setup on purpose: a performance test never starts again without a new confirmation.
+
+## When the start button stays off
+
+**Start performance test** stays off when:
+
+- the confirmation is not ticked, or the name of a production-looking environment is not typed exactly;
+- no request is ticked, or no workflow has a case to repeat against the real API;
+- another run of the same kind is going on.
+
+## Good practices
+
+- **Start small.** A first test of 5 users for 30 seconds shows whether everything answers, before you send more.
+- **Use your own environment, or a mock server.** A mock server answers without touching your API. See [Mock servers](/mocks/overview/).
+- **Check the credentials.** A test with missing credentials only measures 401 answers. In a test of workflows, the setup warns you: *Credentials are missing in "…": calls that need them will answer 401.*
+- **Avoid production.** If you must, agree on a time with the people who run it, and start with a few users.
+- **Watch the first seconds.** If the error rate goes up at once, press **Stop**: there is no point in waiting until the end.
+- **Remember where the load comes from.** It is your computer: tens or about a hundred users. More users than that can measure your computer more than your API.
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Performance tests" href="/runner/performance/" />
+  <LinkCard title="Load profiles" href="/runner/load-profiles/" />
+  <LinkCard title="Mock servers" href="/mocks/overview/" />
+</CardGrid>

@@ -1,0 +1,156 @@
+---
+title: Archivos de datos
+description: Dale al runner un archivo CSV o JSON para que cada fila sea una vuelta. Cómo escribir el archivo, cómo las filas se vuelven vueltas y qué hacer cuando no se puede leer.
+sidebar:
+  order: 11
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Un archivo de datos le permite al runner repetir los mismos requests o workflows con distintos datos. Cada fila del archivo es una vuelta. Úsalo para probar una lista de productos, usuarios o Pokémon sin editar nada entre ejecuciones.
+
+## Ejemplo: Pokemon card con tres Pokémon
+
+**Pokemon card** tiene un input, `pokemon`. Este archivo tiene una columna con el mismo nombre:
+
+```csv title="pokemon.csv"
+pokemon
+pikachu
+bulbasaur
+charmander
+```
+
+<Steps>
+1. Abre el runner de workflows para `pokemon.arazzo.yaml`. Mira [Ejecuta workflows](/es/runner/workflows/).
+2. En **Datos por vuelta**, pulsa **Elegir CSV o JSON…** y elige `pokemon.csv`.
+3. El runner muestra **pokemon.csv · 3 fila(s)** y **Llenan inputs: pokemon · Quedan como `{{variables}}`: —**. **Vueltas** cambia a `3`.
+4. Pulsa **Ejecutar (n casos)**.
+</Steps>
+
+![Datos por vuelta con el botón Cambiar archivo…, pokemon-data.csv · 3 fila(s), Quitar, y la línea Llenan inputs: pokemon · Quedan como variables: nickname](/media/es/runner-data-file.webp)
+
+La **Vuelta 1** muestra `pokemon=pikachu`, la **Vuelta 2** `pokemon=bulbasaur` y la **Vuelta 3** `pokemon=charmander`.
+
+## Elige un archivo
+
+<Steps>
+1. En **Datos por vuelta**, pulsa **Elegir CSV o JSON…**. Hasta que elijas uno, una pista al lado dice para qué sirve cada fila.
+2. Elige un archivo `.csv` o `.json`.
+3. Junto al botón ves su nombre y sus filas, por ejemplo **products.csv · 25 fila(s)**. **Vueltas** cambia al número de filas.
+</Steps>
+
+Lo que ves debajo depende de lo que ejecuta el runner:
+
+- **Requests**: una tabla con las columnas como `{{sku}}`, `{{quantity}}`… y las primeras 3 filas. Con más filas dice, por ejemplo, **y 22 fila(s) más**.
+- **Workflows**: una línea que dice qué columnas llenan inputs y cuáles quedan como variables, por ejemplo **Llenan inputs: sku, quantity · Quedan como `{{variables}}`: coupon**. Mira [Columnas, inputs y variables](/es/runner/data-mapping/).
+
+Luvin lee el archivo cuando lo eliges. Si cambias el archivo después, vuelve a elegirlo con **Cambiar archivo…**.
+
+| Botón | Qué hace |
+|---|---|
+| **Cambiar archivo…** | Reemplaza el archivo por otro. |
+| **Quitar** | Saca el archivo. Las vueltas usan solo el ambiente. **Vueltas** se queda como está. |
+
+## Escribe el archivo
+
+<Tabs>
+<TabItem label="CSV">
+
+```csv title="products.csv"
+sku,quantity,coupon
+SKU-100,2,WELCOME
+SKU-200,1,
+"SKU-300",5,"SUMMER, 10%"
+"SKU-400",1,"He said ""hi"""
+```
+
+- La primera fila tiene los nombres de las columnas. Se quitan los espacios alrededor de un nombre.
+- Una columna con el nombre vacío se ignora.
+- Las columnas se separan con comas o con punto y coma. Luvin cuenta los dos en la primera fila y usa el que más aparece. Si empatan, comas.
+- Un valor con el separador, una comilla o un salto de línea va entre comillas dobles. Escribe `""` para una comilla dentro de un valor entre comillas: `"He said ""hi"""` es `He said "hi"`.
+- Una comilla solo abre un valor entre comillas al principio. En `5" screen`, la comilla es parte del valor.
+- Los valores conservan sus espacios: en `SKU-100, 2`, la cantidad es ` 2`, con un espacio. No pongas espacios después del separador.
+- Las líneas vacías, y las que solo tienen separadores, se saltan.
+- Una fila con menos valores que columnas deja vacías las últimas. Los valores de más se ignoran.
+- Las líneas pueden terminar a la manera de Windows o de Unix. Un BOM al principio del archivo, como el que escribe Excel, se ignora.
+
+</TabItem>
+<TabItem label="JSON">
+
+```json title="products.json"
+[
+  { "sku": "SKU-100", "quantity": 2, "coupon": "WELCOME" },
+  { "sku": "SKU-200", "quantity": 1 },
+  { "sku": "SKU-300", "quantity": 5, "options": { "size": "M" } }
+]
+```
+
+- Una lista de objetos. Cada objeto es una fila y sus campos son las columnas.
+- Un solo objeto, fuera de una lista, es un archivo con una fila.
+- Las columnas son todos los campos de todos los objetos, en el orden en que aparecen por primera vez: `sku`, `quantity`, `coupon`, `options`.
+- Un objeto sin un campo no tiene valor para esa columna en esa fila.
+
+Los valores que no son texto pasan a su texto JSON:
+
+| En el archivo | El valor |
+|---|---|
+| `"SKU-100"` | `SKU-100` |
+| `2` | `2` |
+| `true` | `true` |
+| `null` | `null` |
+| `{ "size": "M" }` | `{"size":"M"}` |
+
+Un input de tipo `object` de un workflow vuelve a convertir ese texto en el objeto. Mira [Columnas, inputs y variables](/es/runner/data-mapping/#conversión-de-tipos).
+
+</TabItem>
+</Tabs>
+
+Un archivo `.json`, o cualquier archivo que empiece con `[` o `{`, se lee como JSON. Cualquier otro archivo se lee como CSV.
+
+## Filas y vueltas
+
+- Elegir un archivo pone **Vueltas** en su número de filas. Puedes cambiarlo.
+- Con más vueltas que filas, las filas vuelven a empezar.
+- Con menos vueltas que filas, solo se usan las primeras filas.
+
+Con 3 filas y 5 vueltas:
+
+| Vuelta | 1 | 2 | 3 | 4 | 5 |
+|---|---|---|---|---|---|
+| Fila | 1 | 2 | 3 | 1 | 2 |
+
+Junto a cada **Vuelta** en los resultados ves hasta cuatro valores de su fila, por ejemplo `sku=SKU-100 · quantity=2 · coupon=WELCOME`.
+
+## En una prueba de rendimiento
+
+Una prueba de rendimiento no tiene vueltas que contar: cada usuario virtual repite hasta que se acaba el tiempo. Las filas se reparten entre los usuarios. En su primera vuelta, el usuario 1 toma la fila 1, el usuario 2 la fila 2, y así. En la siguiente, cada usuario toma la fila que sigue a las que se usaron en la ronda anterior.
+
+Con 3 usuarios virtuales y 6 filas:
+
+| | 1.ª vuelta | 2.ª vuelta | 3.ª vuelta |
+|---|---|---|---|
+| Usuario 1 | Fila 1 | Fila 4 | Fila 1 |
+| Usuario 2 | Fila 2 | Fila 5 | Fila 2 |
+| Usuario 3 | Fila 3 | Fila 6 | Fila 3 |
+
+Los usuarios van a su propio ritmo, así que en los resultados las filas no llegan en este orden exacto. Mira [Pruebas de rendimiento](/es/runner/performance/).
+
+## Cuando el archivo no se puede leer
+
+El mensaje aparece bajo **Elegir CSV o JSON…**, y el runner conserva el archivo que tenía antes, si había uno.
+
+| Mensaje | Qué hacer |
+|---|---|
+| *El archivo no es un JSON válido.* | Corrige el JSON. Una coma o una comilla que falta es la causa habitual. Recuerda que un CSV que empieza con `[` o `{` se lee como JSON. |
+| *El JSON tiene que ser una lista de objetos:* `[{ "user": "ana" }, …]` | Pon las filas en una lista de objetos. Una lista de valores sueltos, como `["ana", "luis"]`, no es válida. |
+| *El archivo está vacío o no tiene encabezados.* | Agrega una primera fila con los nombres de las columnas. |
+
+Un archivo con solo la fila de nombres, o una lista JSON vacía `[]`, se lee sin error pero muestra **0 fila(s)**: las vueltas usan entonces solo el ambiente.
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Columnas, inputs y variables" href="/es/runner/data-mapping/" />
+  <LinkCard title="Ejecuta requests" href="/es/runner/requests/" />
+  <LinkCard title="Ejecuta workflows" href="/es/runner/workflows/" />
+</CardGrid>

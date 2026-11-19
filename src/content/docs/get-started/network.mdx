@@ -1,0 +1,86 @@
+---
+title: Network settings
+description: How the desktop app sends requests, and where to change it in Preferences, with the timeout, the response size, SSL, redirects, cookies, the proxy and certificates.
+sidebar:
+  order: 10
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+The network settings say how Luvin sends requests: how long it waits, how big a response can be, which certificates it trusts, whether it follows redirects and which proxy it goes through. Change them when your company uses a proxy, when an API asks for a client certificate (mTLS), when a test server has a self-signed certificate, or when an API is slow or answers with a large file.
+
+<Aside type="note" title="Desktop app only">
+Everything on this page applies to the desktop app, except **Automatic cookies**. In the browser, requests go out with the settings of the browser: the **Requests** group says *Desktop app only: in the browser, requests use the browser settings.*, its options are greyed out, and **Certificates** and **Proxy** do not appear.
+</Aside>
+
+## Where they are
+
+All of them are in **Preferences**. Open it with the gear icon at the bottom left, or with ⌘, (Ctrl+,). See [Preferences](/get-started/preferences/).
+
+| Section of Preferences | Settings | Read |
+|---|---|---|
+| **General**, group **Requests** | **Request timeout**, **Max response size**, **SSL certificate verification**, **Follow redirects**, **Max redirects**, **Automatic cookies** | [Request settings](/get-started/network-requests/) |
+| **Proxy** | **Use system proxy**, **Respect HTTP_PROXY, HTTPS_PROXY and NO_PROXY**, **Use custom proxy**, with its server, authentication and **Bypass** | [Proxy](/get-started/network-proxy/) |
+| **Certificates** | **CA certificates** and **Client certificates** | [Certificates](/get-started/network-certificates/) |
+
+![Preferences open on General, with the sections Certificates and Proxy on the left and the Requests group: Request timeout, Max response size, SSL certificate verification, Follow redirects, Max redirects and Automatic cookies](/media/en/preferences.webp)
+
+Each change applies at once; there is no save button. Number and text fields save when you leave the field or press Enter.
+
+## Example: a shop API behind a company proxy
+
+Your company sends all traffic through `proxy.company.com:8080`, which asks for a username and password. The test server of the shop, `api.shop.test`, asks for a client certificate. A local mock answers at `localhost:4010`.
+
+<Steps>
+
+1. Open **Preferences** and click **Proxy**.
+2. Turn on **Use custom proxy**.
+3. In **Proxy server**, leave `http`, write `proxy.company.com` and the port `8080`.
+4. Turn on **Proxy authentication** and write the **Username** and **Password**.
+5. At the top, **HTTPS requests** and **HTTP requests** now say `proxy.company.com:8080 · custom proxy`.
+6. Click **Certificates**, then **Add certificate**. Write `api.shop.test` in **Host**, choose **CRT + KEY**, pick the two files and click **Add**.
+7. Send a request to `https://api.shop.test/orders`. It goes through the proxy and carries the certificate. The globe next to the response, **Network**, shows the proxy in its **Proxy** row.
+
+</Steps>
+
+Requests to `localhost:4010` do not go through the proxy: `localhost` and `127.0.0.1` always connect directly.
+
+## What each part of Luvin uses
+
+| | Proxy | SSL verification and CA | Client certificates | Timeout, size and redirects |
+|---|---|---|---|---|
+| HTTP and GraphQL requests, the runner, workflow runs, **Try it out** and the OAuth 2.0 token requests | Custom, system or environment variables | Yes | Yes | Yes |
+| gRPC requests | Only an `http` proxy | Yes, with TLS | Yes, with TLS | No |
+| WebSocket requests and the OAuth 2.0 login window | Custom or system (not the environment variables) | Yes | No | No |
+
+Details for each one are in [Proxy](/get-started/network-proxy/#what-goes-through-the-proxy) and [Certificates](/get-started/network-certificates/#where-certificates-apply).
+
+## When a change applies
+
+From the next request. A request that is already on its way, for example during a workflow run, finishes with the settings it started with.
+
+## Where they are saved
+
+The settings belong to this computer, not to a workspace: they are not in your files or in git, and each person of a team sets their own. Luvin keeps them in a `settings.json` file in its data folder. The proxy password and the passphrases of the certificates are encrypted with the other secrets of the app, never in that file.
+
+## Errors and where to look
+
+| The request fails with | Read |
+|---|---|
+| *The API did not respond within 30 s, the limit in Preferences → General…* | [Timeout](/get-started/network-requests/#request-timeout) |
+| *The response is larger than 50 MB, the limit in Preferences → General…* | [Max response size](/get-started/network-requests/#max-response-size) |
+| *The server certificate is not trusted (…)* | [SSL verification](/get-started/network-requests/#ssl-certificate-verification) and [CA certificates](/get-started/network-certificates/#ca-certificates) |
+| *The proxy rejected the username or password (407)…* | [Proxy authentication](/get-started/network-proxy/#proxy-authentication) |
+| *Could not go through the proxy … (…)* | [Proxy troubleshooting](/get-started/network-proxy/#troubleshooting) |
+| *Could not read the certificate file …*, *The file … is not a valid certificate or key…* | [Certificates troubleshooting](/get-started/network-certificates/#troubleshooting) |
+| *The client certificate passphrase is wrong (…)* | [Passphrase](/get-started/network-certificates/#the-passphrase) |
+| *Could not connect to the API (…)* | [Connection help](/dev-tools/connection-help/) |
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Request settings" href="/get-started/network-requests/" />
+  <LinkCard title="Proxy" href="/get-started/network-proxy/" />
+  <LinkCard title="Certificates" href="/get-started/network-certificates/" />
+  <LinkCard title="Preferences" href="/get-started/preferences/" />
+</CardGrid>

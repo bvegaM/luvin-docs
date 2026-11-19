@@ -1,0 +1,106 @@
+---
+title: El Log de un mock
+description: Qué muestra la pestaña Log de un mock para cada llamada, qué contienen Llegó y Respondió, cuántas llamadas guarda y cómo usarla para ver qué envía un workflow.
+sidebar:
+  order: 8
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+La pestaña **Log** lista cada llamada que recibió el mock y qué respondió. Úsala para comprobar que tus requests y tus workflows de verdad llaman al mock, con qué ruta, headers y body, y qué ruta respondió.
+
+## Ejemplo: qué envía Pokemon card
+
+<Steps>
+1. Enciende un mock del contrato de la Pokédex y pulsa **Crear ambiente del mock**. Mira [Usa un mock con requests y workflows](/es/mocks/with-workflows/).
+2. Ejecuta **Pokemon card** con **API real**.
+3. Abre el mock y haz clic en la pestaña **Log**. El número de la pestaña cuenta las llamadas, y la línea de arriba de la lista lo repite: *n llamada(s), la más reciente primero*. Cada caso de la ejecución hace sus propias llamadas.
+4. Haz clic en una llamada a `/api/v2/pokemon/pikachu`. Se despliega en **Llegó** y **Respondió**.
+5. En **Llegó**, lee los headers que envió tu paso. En **Respondió**, lee el body que devolvió el mock.
+</Steps>
+
+![La pestaña Log del Mock de Shop con 6 llamadas, la más reciente primero: una fila GET /v1/customers marcada Sin ruta (404) y una llamada POST /v1/orders desplegada en Llegó, con sus headers y su body, y Respondió, con los headers y el body de su 201](/media/es/mocks-log.webp)
+
+Si un paso no aparece, no llegó al mock: revisa su URL en los resultados de la ejecución.
+
+## Qué muestra cada llamada
+
+Cada fila de la lista, de izquierda a derecha:
+
+| Parte | Ejemplo | Qué es |
+|---|---|---|
+| Hora | `10:42:07` | Cuándo llegó la llamada, con segundos. |
+| Método | `GET` | El método de la llamada. |
+| Ruta | `/api/v2/pokemon?limit=5` | La ruta, con la query. |
+| Status | `200` | El status que respondió el mock, con el color de su grupo (2xx, 3xx, 4xx, 5xx). |
+| Duración | `3004 ms` | Desde que llegó la llamada hasta la respuesta, con la demora incluida. |
+| Ruta que respondió | `El Pokémon` | La ruta que respondió (mira abajo). |
+
+La última columna muestra:
+
+| Respondió | La columna muestra |
+|---|---|
+| Una ruta propia con **Nombre** | El nombre, por ejemplo `Pago caído`. |
+| Una ruta propia sin nombre | Su ruta, por ejemplo `/orders`. |
+| Una ruta de la colección | El nombre del ejemplo, por ejemplo `200 - Get pokemon`. |
+| Una ruta de un contrato | La descripción de la respuesta, por ejemplo `El Pokémon`, o su status, como `404`. |
+| Ninguna ruta | **Sin ruta (404)**, resaltado. |
+
+## Llegó y Respondió
+
+Haz clic en una llamada para desplegarla. Haz clic de nuevo para plegarla.
+
+| Sección | Qué contiene |
+|---|---|
+| **Llegó** | Todos los headers que trajo la llamada, tal como llegaron (como `host`, `user-agent`, `authorization` o `x-mock-response-code`), y su body. |
+| **Respondió** | Todos los headers que envió el mock, incluidos los que agrega él (`content-type` y los de CORS), y el body que envió. |
+
+Los headers se muestran uno por línea, como `nombre: valor`. El body se muestra como texto. Un body vacío no se muestra.
+
+<Aside type="caution">
+**Llegó** muestra los headers tal como llegaron, también `authorization` con su token. El Log queda en la memoria de la app y no se escribe en disco, pero cualquiera que vea tu pantalla los ve.
+</Aside>
+
+## Cuánto guarda el Log
+
+| Regla | Detalle |
+|---|---|
+| Cuántas | Las últimas 300 llamadas de cada mock. Las más viejas se descartan. |
+| Bodies largos | Se recortan a 16 KB, seguidos de `… [recortado]`. |
+| Dónde | Solo en memoria. Nada se escribe en la colección. |
+| **Limpiar** | Vacía el Log de ese mock. |
+| Apagar el mock | El Log se queda. |
+| Recargar la ventana o cerrar la app | El Log se vacía. |
+
+## Qué no muestra
+
+- Las llamadas hechas mientras el mock está apagado: nadie las recibió.
+- Las llamadas respondidas con `500` `mock_error`. Mira [Credenciales y errores](/es/mocks/auth-and-errors/).
+
+## Cuando está vacío
+
+| Estado | Dice |
+|---|---|
+| Apagado | *Enciende el mock y llámalo: aquí verás cada request que le llegue y qué respondió.* |
+| Encendido | *Todavía no le llegó nada. Llama a la URL del mock o ejecuta con su ambiente.* |
+
+## Para qué usarlo
+
+| Pregunta | Dónde mirar |
+|---|---|
+| ¿Mi workflow llama al mock o a la API real? | Las llamadas de cada paso en el Log quieren decir que llama al mock. |
+| ¿Por qué un paso recibe `404`? | La ruta de la fila. **Sin ruta (404)** quiere decir que ninguna ruta coincide. Mira [Rutas](/es/mocks/routes/). |
+| ¿Mi request envía el token? | `authorization` en **Llegó**. |
+| ¿Qué respuesta eligió `x-mock-response-code`? | La columna de la ruta y el status. |
+| ¿Se aplica la demora? | La duración de la fila. |
+
+El panel [Network](/es/dev-tools/network/) de Dev Tools muestra las mismas llamadas desde el lado de Luvin, tal como las envió.
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Usa un mock con requests y workflows" href="/es/mocks/with-workflows/" />
+  <LinkCard title="Rutas" href="/es/mocks/routes/" />
+  <LinkCard title="Credenciales y errores" href="/es/mocks/auth-and-errors/" />
+  <LinkCard title="Network" href="/es/dev-tools/network/" />
+</CardGrid>

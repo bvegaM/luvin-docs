@@ -1,0 +1,137 @@
+---
+title: Ajustes de los requests
+description: El tiempo de espera, el tamaño máximo de la respuesta, la verificación SSL, las redirecciones y las cookies automáticas de la app de escritorio, con sus valores por defecto, sus límites y los errores que dan.
+sidebar:
+  order: 11
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+El grupo **Requests**, en **Preferencias** → **General**, dice cómo sale cada request: cuánto espera Luvin, qué tan grande puede ser una respuesta, si confía en el certificado del servidor, si sigue las redirecciones y si guarda cookies. Los valores por defecto sirven para la mayoría de las APIs. Cámbialos cuando una API es lenta, envía archivos grandes, usa un certificado de pruebas o te redirige.
+
+<Aside type="note" title="Solo en la app de escritorio">
+Estos ajustes valen para la app de escritorio. En el navegador, el grupo dice *Solo en la app de escritorio: en el navegador los requests salen con la configuración del navegador.* y solo se puede cambiar **Cookies automáticas**.
+</Aside>
+
+## Los ajustes
+
+| Ajuste | Por defecto | Rango | Qué hace |
+|---|---|---|---|
+| **Tiempo máximo de espera** | `0` ms (sin límite) | 0 a 3.600.000 ms (una hora) | Cuánto esperar una respuesta antes de cortar el request |
+| **Tamaño máximo de la respuesta** | `50` MB | 0 (sin límite) a 2048 MB | Una respuesta más grande no se descarga |
+| **Verificar certificados SSL** | Encendido | | Rechaza servidores con un certificado vencido, autofirmado o de otro dominio |
+| **Seguir redirecciones** | Encendido | | Apagado, un 301/302 se muestra tal cual en vez de ir a la nueva URL |
+| **Máximo de redirecciones** | `10` | 0 a 50 | Cuántas redirecciones seguir. Solo aparece mientras **Seguir redirecciones** está encendido |
+| **Cookies automáticas** | Encendido | | Guarda las cookies que llegan en los requests y las envía en los siguientes al mismo dominio |
+
+![El grupo Requests de General con sus valores por defecto: Tiempo máximo de espera 0 ms, Tamaño máximo de la respuesta 50 MB, Máximo de redirecciones 10, y Verificar certificados SSL, Seguir redirecciones y Cookies automáticas encendidos](/media/es/preferences.webp)
+
+### Cambia un número
+
+<Steps>
+
+1. Abre **Preferencias** (⌘, o Ctrl+,). Se abre en **General**.
+2. En **Requests**, haz clic en el campo, por ejemplo **Tiempo máximo de espera**, y escribe el valor nuevo, como `30000`.
+3. Pulsa Enter o haz clic fuera del campo. El valor se guarda.
+
+</Steps>
+
+Un valor fuera de rango toma el límite más cercano: `5000000` en **Tiempo máximo de espera** queda en `3600000`. Los decimales se redondean. Un campo vacío vuelve al valor que tenía.
+
+## Tiempo máximo de espera
+
+El tiempo, en milisegundos, que Luvin espera a que termine un request. `0` es sin límite. `30000` son 30 segundos.
+
+- Cubre todo el request: conectar, enviar, esperar al servidor, descargar y cada redirección que sigue Luvin.
+- Cuando se agota, el request falla con *La API no respondió en 30 s, el tiempo máximo de Preferencias → General. Súbelo (o déjalo en 0, sin límite) si esta API tarda más.* (con tu límite en segundos).
+- Vale para los requests HTTP y GraphQL en todas partes: un envío suelto, el runner, las ejecuciones de workflows y **Try it out**. Los requests gRPC tienen su propio plazo.
+- Por un proxy, abrir el túnel de un request HTTPS tiene su propio límite de 30 segundos, incluso sin tiempo máximo.
+
+**Ejemplo.** Un endpoint de reportes de la tienda tarda un minuto en responder. Con un tiempo máximo de `30000`, falla a los 30 s. Pon `90000`, o `0`, y vuelve a enviar.
+
+## Tamaño máximo de la respuesta
+
+La respuesta más grande, en megabytes, que Luvin descarga. `0` es sin límite.
+
+- Una respuesta más grande que el límite falla con *La respuesta pesa más de 50 MB, el máximo de Preferencias → General. Súbelo (o déjalo en 0, sin límite) para descargarla.* Luvin deja de descargar apenas pasa el límite, así que no llena la memoria.
+- Una respuesta comprimida (`gzip`, `br` o `deflate`) se mide dos veces: como llega y después de descomprimirla. Una respuesta comprimida pequeña que al descomprimirse pasa el límite también falla.
+- Incluso sin límite (`0`), un body descomprimido no puede pasar de 512 MB.
+- Si un body no se puede descomprimir, Luvin lo muestra tal como llegó.
+
+La tarjeta **Tamaño de la respuesta** muestra el tamaño como llegó y, si venía comprimida, **Body descomprimido**. Mira [Lee una respuesta en detalle](/es/requests/response-details/).
+
+## Verificar certificados SSL
+
+Encendido, Luvin revisa el certificado de cada servidor HTTPS y lo rechaza si está vencido, es autofirmado o es de otro dominio. El request falla con *El certificado del servidor no es de confianza (…). Si es de tu empresa, agrega su CA en Preferencias → Certificados; para pruebas puedes apagar la verificación SSL en Preferencias → General.* El código entre paréntesis dice por qué, por ejemplo `DEPTH_ZERO_SELF_SIGNED_CERT` o `CERT_HAS_EXPIRED`.
+
+Apágalo solo para probar contra un servidor con un certificado autofirmado o vencido. Mientras está apagado, el ajuste avisa: *Apagado: Luvin acepta cualquier certificado. Úsalo solo para pruebas.*
+
+- Apagado, vale también para gRPC con TLS, WebSocket, la ventana de inicio de sesión de OAuth 2.0 y un proxy `https`.
+- Para un certificado de tu empresa, es mejor agregar su CA y dejar la verificación encendida. Mira [Certificados CA](/es/get-started/network-certificates/#certificados-ca).
+
+El globo junto a la respuesta, **Red**, muestra **Protocolo TLS**, **Cifrado**, **Emisor del certificado** y **Certificado válido hasta** del servidor al que llegaste.
+
+## Redirecciones
+
+Con **Seguir redirecciones** encendido, Luvin sigue las respuestas `301`, `302`, `303`, `307` y `308` que traen un header `Location`, hasta **Máximo de redirecciones** veces.
+
+| Redirección | Lo que envía Luvin después |
+|---|---|
+| `303` | Un `GET` sin body |
+| `301` o `302` después de un `POST`, `PUT`, `PATCH` o `DELETE` | Un `GET` sin body, como hacen los navegadores |
+| `301` o `302` después de un `GET` o `HEAD` | El mismo método |
+| `307` o `308` | El mismo request, con su método y su body |
+
+Cuando el método pasa a `GET`, los headers `Content-Type` y `Content-Length` se quitan junto con el body.
+
+### Tus credenciales se quedan con el servidor al que llamaste
+
+Los headers `Authorization` y `Cookie` se quitan cuando una redirección va:
+
+- A otro servidor. El host y el puerto tienen que ser los mismos: de `api.shop.test` a `api.shop.test:8443` cuenta como otro servidor.
+- De `https` a `http`, aunque sea el mismo servidor.
+
+Un token nunca viaja sin cifrar, ni a un servidor al que no llamaste.
+
+### Cookies durante una redirección
+
+Las cookies que pone cada paso de una redirección se envían a los pasos siguientes que coinciden con su dominio y su ruta, como hace un navegador. Un login que responde `302` con `Set-Cookie` llega a su destino con la sesión. Con **Cookies automáticas** encendido, además se guardan para los requests siguientes.
+
+### Lo que ves
+
+- La respuesta es la última. La tarjeta **Tiempo de respuesta** dice *Siguió N redirección(es); los tiempos son de la última.*, y su total incluye todos los pasos.
+- Con **Seguir redirecciones** apagado, o **Máximo de redirecciones** en `0`, ves el `301` o el `302` mismo, con su header `Location`.
+- Cuando se llega al máximo, Luvin no falla: muestra la última redirección que recibió.
+
+**Ejemplo.** `http://shop.test/orders` responde `301` hacia `https://shop.test/orders`. Con los valores por defecto, ves el `200` de la dirección `https` y la nota *Siguió 1 redirección(es)…*. Apaga **Seguir redirecciones** para revisar que el `301` y su `Location` sean correctos.
+
+## Cookies automáticas
+
+Encendido, Luvin guarda las cookies que ponen las respuestas y las envía en los requests siguientes al mismo dominio, como un navegador. Apagado, Luvin no guarda ni envía cookies, ni en los requests sueltos ni en el runner.
+
+- Si el request tiene su propio header `Cookie`, Luvin no agrega las guardadas.
+- El runner tiene sus propias opciones: **Empezar con las cookies guardadas** y **Guardar las cookies al terminar**. Con **Cookies automáticas** apagado, una corrida no usa cookies.
+- Es el único ajuste del grupo que también funciona en el navegador.
+
+Mira [Cookies y ejemplos guardados](/es/requests/cookies-and-examples/) y [Los headers que agrega Luvin](/es/requests/auto-headers/).
+
+## Solución de problemas
+
+| Lo que ves | Por qué | Qué hacer |
+|---|---|---|
+| *La API no respondió en …* | La API tarda más que el **Tiempo máximo de espera** | Súbelo, o ponlo en `0` |
+| Un request queda esperando mucho tiempo | El **Tiempo máximo de espera** está en `0` y la API no responde | Pon un límite, como `60000`, o cancela el request |
+| *La respuesta pesa más de …* | La respuesta, o su body descomprimido, pasa el **Tamaño máximo de la respuesta** | Súbelo, o ponlo en `0` |
+| *El certificado del servidor no es de confianza (…)* | Certificado autofirmado, vencido o de la empresa | Agrega la CA en **Certificados**; para un servidor de pruebas, apaga **Verificar certificados SSL** |
+| La API responde `401` después de una redirección | La redirección fue a otro servidor o de `https` a `http`, así que se quitó `Authorization` | Llama directo a la dirección final |
+| Un `POST` se convirtió en `GET` | El servidor respondió `301`, `302` o `303` | Llama a la dirección final, o pide un `307`/`308` |
+| Un login no conserva la sesión | **Cookies automáticas** está apagado, o el request tiene su propio header `Cookie` | Enciéndelo, o quita el header |
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Ajustes de red" href="/es/get-started/network/" />
+  <LinkCard title="Certificados" href="/es/get-started/network-certificates/" />
+  <LinkCard title="Lee una respuesta en detalle" href="/es/requests/response-details/" />
+  <LinkCard title="Ayuda de conexión" href="/es/dev-tools/connection-help/" />
+</CardGrid>

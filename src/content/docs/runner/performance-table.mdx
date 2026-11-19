@@ -1,0 +1,129 @@
+---
+title: The table and the errors
+description: The columns of the performance table, its units and sorting, the rule that marks the slowest request, the rows of a whole workflow, and the Errors tab.
+sidebar:
+  order: 19
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+The table under the chart has one row per request, or per workflow step, with its count, its speed and its response times. Use it to compare requests and find the one that holds the rest back. The **Errors** tab, next to **Summary**, says why requests failed.
+
+## Example: sort by p95
+
+A test of a shop folder with **List products**, **Get product** and **Search products** has ended.
+
+<Steps>
+1. Click the title **p95** of the table. The rows sort from highest to lowest, and the title shows ↓.
+2. The first row is **Get product**, with the tag **slowest**.
+3. Click **p95** again. The rows go back to their original order.
+4. Click **Request**. The rows sort from A to Z.
+</Steps>
+
+## The title of the table
+
+| Title | When |
+|---|---|
+| **Details for the whole test** | No time range selected. |
+| **Details from 0:20 to 0:35** | A range selected on the chart. **Clear filter** is next to it. |
+
+Next to the title, a short line repeats the requests per second, the response time, the error rate and the most virtual users of what you are looking at. See [The performance chart](/runner/performance-chart/#the-line-next-to-the-table-title).
+
+## The columns
+
+| Column | What it is | Format |
+|---|---|---|
+| **Request** | The name of the request, or `workflow · step`. Rest the pointer on it to read it whole. | |
+| **Requests** | How many finished. | A whole number: `950` |
+| **Requests/s** | How many per second, over the time of the test or of the range. | One decimal: `15.8` |
+| **Average** ms | The average response time. | Whole ms: `180` |
+| **Min** ms | The fastest. | Whole ms |
+| **Max** ms | The slowest. | Whole ms |
+| **p90** ms, **p95** ms, **p99** ms | Percentiles of the response time: 90, 95 or 99 % of the requests finished in less. | Whole ms |
+| **Error %** | The share of its requests that failed. | Red when above 0, grey at `0 %` |
+
+The column of the metric chosen above the chart, for example **p95**, is highlighted.
+
+## Order and sorting
+
+By default, the rows are in the order in which each request first finished during the test.
+
+Click the title of a column to sort by it:
+
+| Column | 1st click | 2nd click | 3rd click |
+|---|---|---|---|
+| Numbers | Highest to lowest ↓ | Original order | — |
+| **Request** | A to Z ↑ | Z to A ↓ | Original order |
+
+**Error %** sorts by the number of errors of each row, not by the percentage.
+
+## The slowest request
+
+Over the whole test, with no time range and no request chosen, Luvin looks for a request that is clearly slower than the rest. If there is one:
+
+- The line above the chart names it: *Slowest: "Get product", with a p95 of 420 ms (average 180 ms).*
+- Its row in the table has the tag **slowest**.
+
+A request is the slowest only when its p95 is both:
+
+- at least 1.5 times the middle p95 of the other requests, and
+- at least 10 ms more than it.
+
+| p95 of the requests | Middle p95 of the others | Slowest |
+|---|---|---|
+| 420, 200, 180 ms | 180 ms | The 420 ms one: 2.3 times, and 240 ms more. |
+| 25, 23, 22 ms | 22 ms | None: they all take about the same. |
+| 16, 9, 8 ms | 8 ms | None: twice as slow, but only 8 ms more. |
+| One request only | — | None: there is nothing to compare with. |
+
+The rows of a whole workflow are never the slowest: only requests and steps are compared.
+
+## Rows of a whole workflow
+
+In a test of workflows, each workflow also has a row for the whole run, for example `Place order · whole workflow`. It measures from the start to the end of the workflow, and it looks different from the other rows.
+
+That row is in the table and in **All requests**, but it is not part of the key numbers, the verdict, the chart of all requests or the **Errors** tab. See [Performance of workflows](/runner/performance-workflows/#the-whole-workflow-row).
+
+## The Errors tab
+
+The **Errors** tab, next to **Summary**, groups the failures by reason. Its title shows how many errors there were, in red when there is at least one.
+
+![The Errors tab of a performance test: the reasons 503 and 429, both in Order product · createOrder, with how many times and their share of the total](/media/en/runner-perf-errors.webp)
+
+| Column | What it is |
+|---|---|
+| **Reason** | Why the requests failed. |
+| **In** | The requests or steps where it happened. Rest the pointer on it to read the whole list. |
+| **Times** | How many times. |
+| **Share** | The percentage of all errors. |
+
+- The most frequent reasons come first, up to 20.
+- It is always for the whole test: a time range or a request chosen in **Summary** does not change it.
+- With no errors it says *No errors.*
+
+### What a reason looks like
+
+| Failure | Reason |
+|---|---|
+| A request answered an error status, with no checks | The status: `503` |
+| A check of the request failed | The check: its expression and its condition, for example `res.status eq` |
+| A request did not answer | The error, up to 80 characters, for example a timeout |
+| A workflow step failed with a response | The status of the response, even when what failed was the success criteria: `200` |
+| A workflow step failed with no response | The reason of the failure, up to 80 characters |
+
+## Common patterns
+
+| What you see | What it suggests |
+|---|---|
+| One request with the tag **slowest**, the others fast. | That request, or what it calls, is the bottleneck. |
+| Every p95 grows when the users reach the top. | The API is near its limit with that number of users. |
+| **Error %** at 100 % on every row, with `401`. | Missing credentials, not a load problem. |
+| The error rate goes up only in a range of the chart. | Select that range and read the table: it shows which request failed then. |
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Read a performance test" href="/runner/performance-results/" />
+  <LinkCard title="The performance chart" href="/runner/performance-chart/" />
+  <LinkCard title="Performance of workflows" href="/runner/performance-workflows/" />
+</CardGrid>

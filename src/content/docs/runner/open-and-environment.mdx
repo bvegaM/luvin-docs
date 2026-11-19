@@ -1,0 +1,130 @@
+---
+title: Open the Runner and choose the environment
+description: Every way to open the Runner, what it shows for each one, the environment it uses, and whether the calls go to the real API or are simulated.
+sidebar:
+  order: 2
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Where you open the Runner from decides what it runs: one folder, every request, one Arazzo file or every workflow. The environment you choose at the top decides where the calls go. Check both before you press the start button.
+
+## Example: run a folder against staging
+
+A shop collection has a folder **Orders** and two environments, `local` and `staging`.
+
+<Steps>
+1. In the sidebar, open the **⋯** menu of the folder **Orders** and choose **Run folder (runner)**.
+2. The **Runner** tab opens. Under **Run order**, next to the title, it says **Orders**.
+3. At the top left, open the **Environment** list and choose `staging`.
+4. Press **Run (n)**.
+</Steps>
+
+The requests use the variables of `staging`. The same environment is now active in the rest of the workspace.
+
+## Every way to open it
+
+| Where | Choose | What it runs | Title of the list |
+|---|---|---|---|
+| Sidebar, **⋯** menu of **Requests** | **Run requests (runner)** | Every request of the collection | **Shop requests** (the name of the collection) |
+| Sidebar, **⋯** menu of a request folder | **Run folder (runner)** | The requests of that folder, subfolders included | The name of the folder, for example **Orders** |
+| Sidebar, **⋯** menu of an Arazzo file | **Run workflows (runner)** | The workflows of that file | The name of the file, for example `shop.arazzo.yaml` |
+| ⌘K search, under **Actions** | **Run requests** | Every request of the collection | **Shop requests** |
+| ⌘K search, under **Actions** | **Run workflows** | Every workflow of the collection | **Shop workflows** |
+
+In the search, both actions say **Runner · functional or performance**. **Run workflows** only appears when the collection has workflows.
+
+![The ⋯ menu of pokemon.arazzo.yaml in the sidebar, with Run workflows (runner), Rename and Delete file…](/media/en/runner-open-menu.webp)
+
+Once the **Runner** tab is open, click it to come back to it as you left it.
+
+## One Runner tab
+
+There is only one **Runner** tab. Opening it again from another menu changes what it shows: the Runner now shows that folder, that file or the whole collection.
+
+When nothing is running, opening it from a menu always shows the setup. If a run of the same kind is going on, you see its results instead. See [Runs, tabs and history](/runner/lifecycle/).
+
+## Switch between Requests and Workflows
+
+**Requests** and **Workflows**, at the top, switch what the Runner runs.
+
+- Switching to **Workflows** shows every workflow of the collection. Switching to **Requests** shows every request of the collection.
+- The folder or Arazzo file you opened it for is forgotten. To run only that folder or file again, open its **⋯** menu again.
+- **Run type**, **Functional** or **Performance**, stays the same on both sides. So does the load you set up for a performance test.
+
+## It starts with your last setup
+
+When you open the Runner for the same folder, file or collection as your last run, it starts with that run's setup:
+
+- The requests or workflows you ran come first, in the order you ran them, and ticked. The others come after, unticked.
+- The iterations and the settings.
+- The data file, if you used one.
+- For workflows, **Against**: **Real API** or **Simulated**.
+
+For something else, it starts from the default setup: every request or workflow ticked, in its original order. For workflows, **Against** starts in the same mode as the run bar of your workflows.
+
+## The environment
+
+While you set up a run, the **Environment** list is at the top left of the Runner.
+
+<Steps>
+1. Open the **Environment** list.
+2. Choose an environment. Its color, if it has one, shows on the list.
+3. To change its values, choose **Configure environment…** at the end of the list. The environment opens in its tab.
+</Steps>
+
+![The Environment list of the Runner open, with local highlighted, staging and Configure environment… at the end](/media/en/runner-environment.webp)
+
+It is the same active environment as in the run bar of a workflow: changing it here changes it everywhere, and changing it there changes it here.
+
+While the results are shown, the list is hidden. Press **Configure** to see it again.
+
+### What the run takes from it
+
+| Run | What it uses from the environment |
+|---|---|
+| Requests, functional | Its variables, the same as when you press **Send** on a request. A data file can replace some of them during an iteration. |
+| Requests, performance | Its variables. Each virtual user starts from them. |
+| Workflows, functional and performance | Its base URLs, variables and credentials, as when you press **Run** in a workflow. |
+
+The name of the environment appears in the confirmation of a performance test, in the warning about workflows that change data, and in the results of workflows and of performance tests. See [Environments](/environments/overview/).
+
+## Real API or simulation
+
+| Run | Where the calls go |
+|---|---|
+| Requests, functional | Always to the address of each request. There is no simulation for requests. |
+| Workflows, functional | Where **Against** says: **Real API** (*Requests go to the API of the "…" environment.*) or **Simulated** (*Answers with the contract examples: no API is called.*). Some cases go simulated even against the real API. See [Choose the cases](/runner/workflows-cases/). |
+| Requests or workflows, performance | Always the real API of the environment. For workflows, **Simulated** cannot be chosen. |
+
+To run without touching your API, point an environment at a mock server and choose that environment. See [Mock servers](/mocks/overview/).
+
+A functional run of workflows leaves the run bar of your workflows in the same mode as the run: after a run with **Simulated**, your workflows are in **Simulation** too.
+
+## Notices about the environment
+
+| Notice | When | What to do |
+|---|---|---|
+| *Credentials are missing in "…": calls that need them will answer 401.* | Workflows against the real API, when a ticked workflow has a protected step with no credential in the environment. | Press **Fill in** to open the environment, and fill in the credential. |
+| *N workflow(s) create, change or delete data in "…". Tick to run anyway.* | Workflows, functional, against the **Real API**, when a ticked workflow has steps that change data. | Check the environment and tick the box. The start button stays off until you do. |
+| *I am about to send many requests to the "…" environment.* | Every performance test. | See [Confirm before sending load](/runner/safety/). |
+
+If a workflow signs in with OAuth 2.0, the sign-in opens before the run. If it fails, the error appears at the top of the Runner, after the name of the workflow, and the run does not start. See [OAuth 2.0](/authorization/oauth2/).
+
+## When something is not there
+
+| What you see | Why | What to do |
+|---|---|---|
+| **Run workflows** is not in the ⌘K search. | The collection has no workflows. | Create a workflow or add an Arazzo file. |
+| *There are no requests to run here (WebSocket ones are not part of the runner).* | The folder is empty, or it only has WebSocket requests. | Open the Runner for another folder, or for every request. |
+| *The collection has no workflows.* | You switched to **Workflows** in a collection without workflows. | Switch back to **Requests**. |
+| The **Environment** list is not at the top. | The results are shown. | Press **Configure**. |
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Runs, tabs and history" href="/runner/lifecycle/" />
+  <LinkCard title="Run requests" href="/runner/requests/" />
+  <LinkCard title="Run workflows" href="/runner/workflows/" />
+  <LinkCard title="Environments" href="/environments/overview/" />
+</CardGrid>

@@ -1,0 +1,174 @@
+---
+title: Insertar un paso
+description: Pon un paso exactamente donde va con el + de cada flecha del lienzo, desde Inicio hasta Fin del workflow, y qué pasa después del fin del camino feliz.
+sidebar:
+  order: 3.5
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Arrastrar un paso al lienzo es rápido, pero es fácil soltarlo una tarjeta más arriba o más abajo. El **+** en el medio de cada flecha pone el paso nuevo exactamente entre las dos tarjetas que une esa flecha.
+
+## Ejemplo: lista Pokémon antes que todo
+
+<Steps>
+1. Abre **Pokemon card** y haz clic en la pestaña **Diseño**.
+2. Mira la flecha que va de **Inicio** a `getPokemon`. En su medio hay un **+**. Su tooltip dice **Insertar un paso aquí**.
+3. Haz clic en el **+**. Se abre un diálogo con el título **Insertar un paso**.
+4. En el grupo **pokeapi**, haz clic en la fila `GET /pokemon`.
+</Steps>
+
+![El + de la flecha entre listProducts y getProduct, con la etiqueta Insertar un paso aquí](/media/es/design-insert-step.webp)
+
+El diálogo se cierra. `listPokemon` ahora es la primera tarjeta, con el número **1**, y `getPokemon` pasa a ser la número **2**. El paso nuevo queda seleccionado y con su panel abierto.
+
+<Tabs>
+<TabItem label="Antes">
+
+```yaml title="pokemon.arazzo.yaml"
+steps:
+  - stepId: getPokemon
+    # …
+  - stepId: getSpecies
+    # …
+```
+
+</TabItem>
+<TabItem label="Después">
+
+```yaml title="pokemon.arazzo.yaml" {2-6}
+steps:
+  - stepId: listPokemon
+    description: Lista Pokémon (paginado)
+    operationId: $sourceDescriptions.pokeapi.listPokemon
+    successCriteria:
+      - condition: $statusCode == 200
+  - stepId: getPokemon
+    # …
+```
+
+</TabItem>
+</Tabs>
+
+## Dónde pone el paso cada +
+
+Cada flecha del orden del workflow tiene su **+**, desde **Inicio** hasta **Fin del workflow**. En **Pokemon card**:
+
+| Flecha | El paso nuevo queda |
+|---|---|
+| **Inicio** → `getPokemon` | Primero, antes de `getPokemon`. |
+| `getPokemon` → `getSpecies` | Entre los dos. |
+| `getSpecies` → `getWeakness` | Entre los dos. |
+| `getWeakness` → `getAbility` | Entre los dos. |
+| `getAbility` → **Fin del workflow** | Último. |
+| Un workflow vacío: **Inicio** → **Fin del workflow** | Como su único paso. |
+
+Cuando el workflow depende de otros, la caja **Depende de** está encima de **Inicio**. Su flecha no tiene **+**: nada va antes de los workflows de los que depende.
+
+El **+** solo aparece en la pestaña **Diseño**. El diagrama de la pestaña **Resumen** no lo tiene.
+
+## El diálogo
+
+El diálogo muestra la línea de ayuda *Elige la operación, el request o el workflow que va en este lugar.* y la paleta: la búsqueda **Buscar operación…**, **Requests de la colección**, **Workflows de este Arazzo**, **De otros archivos Arazzo** y un grupo por contrato. No tiene **Reutilizables**, porque un reutilizable se aplica a un paso, no se agrega como paso.
+
+<Steps>
+1. Busca lo que quieres. Escribe en **Buscar operación…** para filtrar.
+2. Haz clic en su fila. También puedes llegar a la fila con Tab y pulsar Enter, o hacer clic en el **+** al final de la fila, cuyo tooltip aquí es **Insertar un paso aquí**.
+</Steps>
+
+Para cerrar sin insertar, haz clic en **×**, pulsa **Esc** o haz clic fuera del diálogo.
+
+## Qué recibe el paso nuevo
+
+Luvin lo completa como cualquier paso nuevo. Mira [Qué recibe automáticamente un paso nuevo](/es/design/add-steps/#qué-recibe-automáticamente-un-paso-nuevo). Aquí importa una diferencia: el paso solo puede tomar datos de lo que se ejecuta antes que él.
+
+| Posición | De dónde pueden salir sus datos |
+|---|---|
+| Primero, bajo **Inicio** | De los inputs del workflow y de los workflows de los que depende. Ningún paso se ejecuta antes. |
+| Cualquier otra | De lo mismo, más todos los pasos que están encima. |
+
+Un parámetro obligatorio que nada de lo de arriba puede dar se vuelve un input nuevo del workflow, listado en **Inicio**.
+
+## Después del fin del camino feliz
+
+Cuando un workflow tiene [un paso para un error](/es/design/branch-new-step/), su camino feliz termina antes del final de la lista: el último paso del camino feliz tiene una acción de éxito llamada `done`, y los pasos de rama están debajo.
+
+Si insertas justo debajo de ese paso, Luvin mueve `done` al paso nuevo. El camino feliz crece un paso y sigue terminando antes de los pasos de rama.
+
+Partiendo de **Pokemon card** con `listPokemon` como paso para el 404 de `getSpecies`:
+
+<Steps>
+1. Haz clic en el **+** de la flecha que va de `getAbility` a `listPokemon`.
+2. Haz clic en la fila `GET /evolution-chain/{id}`.
+</Steps>
+
+<Tabs>
+<TabItem label="Antes">
+
+```yaml title="pokemon.arazzo.yaml" {3-5}
+  - stepId: getAbility
+    # …
+    onSuccess:
+      - name: done
+        type: end
+  - stepId: listPokemon
+    # …
+```
+
+</TabItem>
+<TabItem label="Después">
+
+```yaml title="pokemon.arazzo.yaml" {3-7}
+  - stepId: getAbility
+    # …
+  - stepId: getEvolutionChain
+    # …
+    onSuccess:
+      - name: done
+        type: end
+  - stepId: listPokemon
+    # …
+```
+
+</TabItem>
+</Tabs>
+
+En el lienzo, la fila `éxito → done` **fin ✓** pasa de la tarjeta de `getAbility` a la de `getEvolutionChain`.
+
+Luvin solo mueve una acción llamada `done`, de tipo `end` y sin criterios. Si el paso de arriba termina el camino feliz con una acción que escribiste a mano, con otro nombre, Luvin la deja donde está y el paso nuevo queda después del fin. Mueve esa acción en la pestaña YAML.
+
+### Otras posiciones después del fin
+
+| Dónde insertas | Qué pasa |
+|---|---|
+| Entre dos pasos de rama | El paso nuevo se ejecuta después del paso de rama de arriba, solo en esa rama. Si ese paso tiene su propio `done`, pasa al paso nuevo. |
+| El **+** sobre **Fin del workflow**, debajo del último paso de rama | El paso nuevo se ejecuta después de ese paso de rama, no en el camino feliz. |
+
+## Insertar frente a arrastrar
+
+| | **+** de una flecha | Arrastrar al lienzo | **+** de una fila de la paleta |
+|---|---|---|---|
+| Dónde queda | Exactamente entre las dos tarjetas | Debajo de la última tarjeta cuyo centro queda por encima del punto donde sueltas | Al final del workflow |
+| Mueve `done` | Sí, cuando insertas justo debajo de él | No | No |
+| Eliges desde | Un diálogo con la paleta | La paleta de la izquierda | La paleta de la izquierda |
+
+## Deshacer
+
+**Deshacer**, sobre el lienzo, o ⌘Z (Ctrl+Z), quita el paso insertado. Si `done` se movió, el mismo Deshacer lo devuelve. Para un request guardado que movió `done`, pulsa Deshacer dos veces: la primera devuelve `done`; la segunda quita el paso.
+
+## Solución de problemas
+
+**El paso nuevo nunca se ejecuta.** Está debajo del fin del camino feliz. En una ejecución que sale bien muestra **No se ejecutó: el workflow terminó antes por una acción end/goto.** Deshaz e insértalo con el **+** que está justo debajo del paso con `éxito → done`.
+
+**Las flechas no tienen +.** Estás en la pestaña **Resumen**, o en la flecha que sale de **Depende de**. Abre la pestaña **Diseño**.
+
+**Un parámetro tomó su dato del paso equivocado.** Luvin elige por reglas, y marca con **?** las conexiones de las que está menos seguro. Cambia el origen en el panel del paso. Mira [Conectar datos entre pasos](/es/design/wire-data/).
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Agregar pasos" href="/es/design/add-steps/" />
+  <LinkCard title="Un paso nuevo para un error" href="/es/design/branch-new-step/" />
+  <LinkCard title="Organizar un workflow" href="/es/design/organize/" />
+  <LinkCard title="Conectar datos entre pasos" href="/es/design/wire-data/" />
+</CardGrid>

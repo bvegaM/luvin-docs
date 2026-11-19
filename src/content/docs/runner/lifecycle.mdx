@@ -1,0 +1,114 @@
+---
+title: Runs, tabs and history
+description: What happens to a run when you switch tabs, close the Runner, start another run or open another collection, and where every run is kept afterwards.
+sidebar:
+  order: 3
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A run of the Runner goes on by itself while you keep working. This page says what stops it, what does not, and where to find it when it ends.
+
+## Example: keep working while a run goes on
+
+<Steps>
+1. Start a run of 500 iterations of a shop folder.
+2. Click the tab of a workflow, or of a request, and keep working. The **Runner** tab shows a spinner. Its tooltip says **A run is in progress**.
+3. Click the **Runner** tab. The results are where you left them, with more iterations done.
+4. When it ends, the spinner goes away. The run is in **History**, under **Runs**.
+</Steps>
+
+## Setup and results
+
+The Runner has two views:
+
+- **The setup**: what runs, in what order, and how. It has the **Environment** list.
+- **The results**: they open when you press the start button and fill in while the run goes on.
+
+The buttons at the top of the results:
+
+| Button | When | What it does |
+|---|---|---|
+| **Stop** | While it runs. | Stops the run. What already ran stays in the results. |
+| **Configure** | When it ends. | Goes back to the setup, with the same choices. |
+| **Run again** | When a functional run ends. | Runs it again at once, with the same requests or workflows, settings and data file. |
+| **Run again…** | When a performance test ends. | Opens the setup, so you confirm the load again before it starts. |
+| **JSON** | When a run of requests ends. | Downloads the results. See [Read the results of requests](/runner/requests-results/#export-the-results). |
+
+## Switch tabs
+
+Switch to any other tab while a run goes on. It keeps running, and its results are still there when you click the **Runner** tab again.
+
+Opening the Runner from a menu is different from clicking its tab:
+
+- If a run of the same kind is going on, requests or workflows, the Runner shows its results.
+- If not, it shows the setup. The results of the last run are no longer on screen, but they are in **History**.
+
+## One run at a time
+
+The start button is off while a run that would collide is going on:
+
+- **Requests**: one run at a time, functional or performance.
+- **Workflows**: one run at a time, functional or performance. A workflow you run with **Run** in its tab also counts: while it runs, the Runner cannot start, and while the Runner runs workflows, **Run** cannot start either.
+- A run of requests and a run of workflows can go at the same time.
+
+A second click on the start button does not start a second run.
+
+## Close the Runner while it runs
+
+Closing the **Runner** tab while a run is going opens a dialog, **The run is still going**: *Closing the runner stops the run. What already ran stays in the history.*
+
+![The dialog The run is still going, with its text about closing the runner and the buttons Keep running and Stop and close](/media/en/runner-close-busy.webp)
+
+| Button | What it does |
+|---|---|
+| **Keep running** | Closes the dialog. The run goes on and the tab stays open. |
+| **Stop and close** | Stops the run and closes the tab. |
+
+The dialog also appears when you close several tabs at once and the **Runner** is one of them.
+
+## Open another collection
+
+Opening another collection stops what was running in the Runner:
+
+- Its results are not shown in the new collection.
+- The variables and cookies it collected are not kept, even with **Keep variable values at the end** or **Save cookies after the run**.
+- The run is saved in the history of the collection it started in.
+
+## History
+
+Each run of the Runner is saved in **History**, under **Runs**, in the collection where it ran.
+
+| Run | Tag | Second line, for example | Saved when |
+|---|---|---|---|
+| Requests, functional | **Runner** | *15 request(s) · 5 iteration(s)* | At least one request ran. |
+| Workflows, functional | **Runner** | *8 workflow(s) · 2 iteration(s) · Simulated* | At least one case finished. |
+| Performance | **Performance** | *20 users · 950 requests · p95 180 ms · staging* | Always. |
+
+- The count is of everything that ran: 3 requests in 5 iterations are *15 request(s)*, and 4 workflows in 2 iterations are *8 workflow(s)*.
+- The second line also shows the data file, if any. A run you stopped adds **Cancelled**.
+- On the right, a run shows how many passed and failed, and a performance test its requests per second and its errors.
+- The dot on the left is red when something failed, amber when the run did not finish, and green otherwise. For a performance test, it follows the same color as its status. See [Pass criteria](/runner/pass-criteria/#the-status-color).
+
+Click an entry to see its results again, as they were at the end. From a run of requests you can still download the **JSON** and press **Open the request**, if the request still exists.
+
+![The History tab on Runs: a performance entry of Shop requests with its tag, users, requests and p95, two workflow runs below it, and on the right the results of the performance test open with its key numbers and chart](/media/en/history-perf.webp)
+
+### What is kept
+
+| Run | What the history keeps |
+|---|---|
+| Requests, functional | Every request with its status, time, size and checks. Each response, if **Keep responses to see them** was on, up to 32 KB. Not the variable values at the end. |
+| Workflows, functional | Every case with its steps, as after **Run**. |
+| Performance | The metrics, the chart and the errors. No responses. |
+
+Each collection keeps the last 50 runs of the Runner, of requests and of workflows together, and the last 50 performance tests. When a kind reaches its limit, the oldest one is removed. Nothing is saved when **Save history** is off in **Preferences**. See [History](/workspaces/history/).
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Open the Runner and choose the environment" href="/runner/open-and-environment/" />
+  <LinkCard title="Read the results of requests" href="/runner/requests-results/" />
+  <LinkCard title="Read the results of workflows" href="/runner/workflows-results/" />
+  <LinkCard title="History" href="/workspaces/history/" />
+</CardGrid>

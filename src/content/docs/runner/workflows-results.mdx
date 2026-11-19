@@ -1,0 +1,116 @@
+---
+title: Read the results of workflows
+description: The status, the totals, the filters, each iteration and each workflow of a run of workflows, and how to open the results of its cases.
+sidebar:
+  order: 10
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+The results of a run of workflows say which workflows passed in each iteration, and let you open each one to see its cases and steps, as after **Run**. They fill in while the run goes on and stay when it ends.
+
+## Example: one Pokémon fails
+
+**Pokemon card** ran against the **Real API** in 3 iterations, with a data file of three Pokémon. The totals say **1** failed.
+
+<Steps>
+1. Click **Failed**. Only **Iteration 3** is left. Next to its title: `pokemon=missingno`.
+2. The row of **Pokemon card** has ✕ and the counts ✓ 1 ✕ 1.
+3. Click the row. The results of its cases open below it: the happy path failed at `getPokemon`, with the status 404.
+</Steps>
+
+The happy path failed because that Pokémon does not exist. Its data, not the workflow, is what to fix.
+
+## While it runs
+
+- The status says how far it is, for example **Running 2 of 8**: workflows done out of the ticked workflows times the iterations.
+- A bar under the top fills in at the same pace.
+- The iteration in progress ends with a row **Running…** for the workflow that is running.
+- **Stop** ends the run.
+
+## The top
+
+The top shows the name of what ran, the date and time, the environment, **Real API** or **Simulated**, and the data file, if any.
+
+On the right, the status:
+
+| Status | When |
+|---|---|
+| **Running 2 of 8** | While it runs. |
+| **Finished** | Every iteration ran. |
+| **Stopped** | You pressed **Stop**, or closed the Runner with **Stop and close**. |
+| **Stopped on an error** | **Stop if a workflow fails** was on and a workflow failed. |
+
+When it ends, **Configure** goes back to the setup and **Run again** repeats the run with the same workflows, settings and data file. If a workflow signs in with OAuth 2.0, the sign-in can open again. The results of workflows have no **JSON** button.
+
+## The totals
+
+| Total | What it counts |
+|---|---|
+| **iterations** | Iterations that started. |
+| **workflows** | Workflows that ran, counted once per iteration: 4 workflows in 2 iterations are 8. |
+| **cases** | Cases that finished. |
+| **passed** | Cases that passed. |
+| **failed** | Cases that failed. It turns red when there is at least one. |
+| **warnings or inconclusive** | Cases that ended with a warning or inconclusive. |
+| **duration** | How long the whole run took. |
+
+## When a workflow fails in an iteration
+
+A workflow fails in an iteration when:
+
+- one of its cases fails, or
+- a workflow it depends on fails, so its cases cannot be tested.
+
+A case with a warning or inconclusive does not make the workflow fail. See [Read the results](/test/results/) for what each verdict means.
+
+## Filters
+
+**All**, **Failed** and **Passed**, above the iterations, filter the workflows. **Failed** keeps the workflows that failed in each iteration. **Passed** keeps the others, including those with warnings. An iteration with nothing to show is hidden.
+
+## Iterations and workflows
+
+The results are grouped by iteration. With a data file, next to each title you see up to four values of its row, for example `pokemon=pikachu`.
+
+![The results of pokemon.arazzo.yaml against the real API with pokemon-data.csv, Finished: 3 iterations, 12 cases, 12 passed and 0 failed, and Iteration 1 to 3 with the values of each row, like pokemon=pikachu · nickname=Sparky, and the rows of Pokemon card and Type explorer with ✓ 2](/media/en/runner-workflows-results.webp)
+
+Each workflow has a row:
+
+| Part | What it shows |
+|---|---|
+| ✓ or ✕ | Passed or failed in that iteration. |
+| Name | The name of the workflow. |
+| A line in grey | How many cases ran, for example *2 case(s)*. If a workflow it depends on failed, that error instead. |
+| ✓ ✕ ! | How many cases passed, failed, and ended with a warning or inconclusive. ✕ and ! only appear when they are more than 0. |
+
+## Open a workflow
+
+<Steps>
+1. Click the row of a workflow. The results of its cases open below it.
+2. Click a case to see its steps, the requests and the responses, as after **Run** in the workflow tab.
+3. Click the row again to close it.
+</Steps>
+
+Only one workflow is open at a time. See [Read the results](/test/results/) and [The result of each step](/test/step-results/).
+
+## Stop a run
+
+While it runs, press **Stop**. The status becomes **Stopped**. With **Stop if a workflow fails**, the run stops by itself at the first workflow that fails, and the status says **Stopped on an error**.
+
+## When the results are not what you expect
+
+| What you see | Why | What to do |
+|---|---|---|
+| A row says **No cases to run in this mode**. | The Arazzo file of that workflow has an error, so it could not run. | Open the file and fix it. The sidebar marks it with **Can't be read**. |
+| Every case of a workflow is inconclusive and the row shows an error. | A workflow it depends on failed. | Open the row to see which one, and run that workflow by hand. |
+| Many steps answer `401`. | The environment has no credentials for them. | Check the notice *Credentials are missing in "…"* in the setup, and press **Fill in**. |
+| A step fails with *No item in the list (…) matches the rule: …* | A saved rule found no item. | See [Lists in the Runner](/runner/workflows-lists/#when-no-item-matches). |
+| Every iteration gives the same result. | The data file has one row, or none. | See [Data files](/runner/data-files/#rows-and-iterations). |
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Run workflows" href="/runner/workflows/" />
+  <LinkCard title="Read the results" href="/test/results/" />
+  <LinkCard title="Runs, tabs and history" href="/runner/lifecycle/" />
+</CardGrid>

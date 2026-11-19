@@ -1,6 +1,6 @@
 ---
 title: Agregar pasos
-description: Agrega operaciones de la paleta al lienzo y mira qué completa Luvin en cada paso nuevo.
+description: Agrega operaciones desde la paleta o con un + en el lienzo, y mira qué completa Luvin en cada paso nuevo.
 sidebar:
   order: 3
 ---
@@ -61,8 +61,22 @@ La paleta tiene un grupo por contrato, con su nombre y la cantidad de operacione
 |---|---|
 | Arrastra la operación al lienzo | Debajo del paso sobre el que la sueltas. Si la sueltas encima del primer paso, queda como el primero. |
 | Haz clic en **+** de su fila | Al final del workflow. |
+| Haz clic en el **+** de una flecha del lienzo y luego en la operación | Entre las dos tarjetas que une esa flecha. |
 
 Después de agregarlo, el paso nuevo queda seleccionado, su panel se abre a la derecha y el lienzo se desplaza para mantenerlo a la vista.
+
+### Inserta un paso entre otros dos
+
+Cada flecha del lienzo, desde **Inicio** hasta **Fin del workflow**, tiene un **+** en el medio. Su tooltip dice **Insertar un paso aquí**.
+
+<Steps>
+1. Haz clic en el **+** de la flecha donde va el paso. Se abre un diálogo con el título **Insertar un paso** y la paleta adentro.
+2. Haz clic en una operación, un request o un workflow. Toda la fila se puede pulsar.
+</Steps>
+
+El paso queda entre las dos tarjetas. El **+** bajo **Inicio** lo deja como el primer paso; el **+** sobre **Fin del workflow**, como el último. Si el paso de arriba termina el camino feliz con una acción llamada `done`, `done` pasa al paso nuevo, así que el paso nuevo igual se ejecuta.
+
+[Insertar un paso](/es/design/insert-step/) tiene todas las posiciones, el YAML antes y después, y en qué se diferencia insertar de arrastrar. Un diálogo parecido se abre cuando llevas un error a un paso nuevo: mira [Un paso nuevo para un error](/es/design/branch-new-step/).
 
 ## Qué recibe automáticamente un paso nuevo
 

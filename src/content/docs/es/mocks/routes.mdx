@@ -1,0 +1,158 @@
+---
+title: Rutas
+description: Tus rutas propias y las rutas de la fuente, cómo escribir una ruta con parámetros, qué ruta responde una llamada y cómo sobrescribir una ruta de la fuente.
+sidebar:
+  order: 4
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Una ruta es un método y una ruta de URL con la respuesta que da el mock, por ejemplo `GET /api/v2/pokemon/{idOrName}` que responde `200` con un Pokémon. Esta página explica de dónde salen las rutas, cómo se escribe una ruta y cuál responde cuando coinciden varias.
+
+## Ejemplo: un Pokémon que no existe
+
+Un mock del contrato de la Pokédex responde cualquier nombre con el ejemplo de Pikachu. Quieres que `missingno` responda `404`.
+
+<Steps>
+1. Abre el mock y quédate en la pestaña **Rutas**.
+2. En **Rutas propias**, pulsa **Nueva ruta**. Se abre para editar una ruta `GET /` con status `200`.
+3. En **Ruta**, escribe `/api/v2/pokemon/missingno`. En **Status**, escribe `404`.
+4. En **Body**, escribe `{"detail": "Not found."}`.
+5. Llama a `http://127.0.0.1:4010/api/v2/pokemon/missingno`. El mock responde `404` con ese body. `pikachu` sigue respondiendo `200`.
+</Steps>
+
+Tu ruta gana por dos razones: las rutas propias van primero, y su ruta tiene más tramos fijos que `/api/v2/pokemon/{idOrName}`.
+
+## La pestaña Rutas
+
+La pestaña **Rutas** tiene dos grupos. El número de la pestaña cuenta las rutas activas de los dos.
+
+| Grupo | Qué contiene |
+|---|---|
+| **Rutas propias** | Las rutas que escribes. *Ganan a las de la fuente.* Sin ninguna, dice *Sin rutas propias. Agrega una o sobrescribe una de abajo para cambiar su respuesta.* |
+| **Desde la colección** | *Los ejemplos guardados de cada request.* Una fila por ejemplo. |
+| **Desde** *contrato* | *Cada respuesta documentada, con su ejemplo o un dato armado desde el schema.* Una fila por cada status documentado de cada operación. |
+
+Con **Solo rutas propias** no hay segundo grupo. Debajo del grupo de la fuente, un consejo dice *Para pedir otra respuesta de la misma ruta, envía el header x-mock-response-code (por ejemplo 404) o x-mock-response-name con su nombre.*
+
+![El grupo Desde shop.openapi.yaml de la pestaña Rutas: cada fila con su método, ruta, status, operationId y Sobrescribir; las filas 404 y 422 dicen con x-mock-response-code, y un consejo debajo explica cómo pedirlas](/media/es/mocks-alt-response.webp)
+
+### Una fila de la fuente
+
+| Parte | Ejemplo |
+|---|---|
+| Método | `GET` |
+| Ruta | `/api/v2/pokemon/{idOrName}` |
+| Status | `404` |
+| De dónde sale | El request y el ejemplo (`Get pokemon · 200 - Get pokemon`), o el `operationId` (`getPokemon`). |
+| Avisos | *con x-mock-response-code: 404* cuando no es la respuesta por defecto. *sin credenciales responde 401* cuando la operación pide credenciales. |
+| **Sobrescribir** | *Copiarla como ruta propia para cambiar su respuesta.* |
+
+### Una fila de tus rutas
+
+Cada fila muestra la casilla **Activa**, el método, la ruta, el status y el nombre. Haz clic en la fila para desplegar sus campos, y de nuevo para plegarla. **Eliminar** borra la ruta al momento, sin preguntar.
+
+## Escribe una ruta propia
+
+<Steps>
+1. En **Rutas propias**, pulsa **Nueva ruta**. Empieza como `GET /`, status `200`, el header `content-type: application/json` y el body `{}`, y se abre para editar.
+2. Elige el **Método**: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, `OPTIONS`, o **Cualquiera** para todos los métodos.
+3. Escribe la **Ruta** (mira la sección siguiente). Luvin agrega la primera `/` si la olvidas.
+4. Define la respuesta: **Status**, **Demora (ms)**, **Nombre**, **Headers (uno por línea)** y **Body**. Mira [Respuestas](/es/mocks/responses/).
+</Steps>
+
+![Una ruta propia abierta para editar en Rutas propias, con su casilla marcada: Método GET, Ruta /v1/promotions, Status 200, Demora vacía (La del mock), Nombre Promociones de la semana, un header content-type y un body JSON](/media/es/mocks-own-route.webp)
+
+Cada cambio se aplica al momento en un mock encendido, salvo los **Headers**, que se aplican al salir del campo.
+
+Desmarca **Activa** para conservar una ruta sin responder con ella. Una ruta inactiva no cuenta en la pestaña y se salta cuando llega una llamada.
+
+## Cómo se escribe una ruta
+
+| Escribes | Coincide con | No coincide con |
+|---|---|---|
+| `/api/v2/pokemon/missingno` | `/api/v2/pokemon/missingno`, `/API/v2/Pokemon/MissingNo`, `/api/v2/pokemon/missingno/` | `/api/v2/pokemon/missingno/extra` |
+| `/api/v2/pokemon/:idOrName` | `/api/v2/pokemon/25`, `/api/v2/pokemon/eevee` | `/api/v2/pokemon`, `/api/v2/pokemon/eevee/forms` |
+| `/api/v2/pokemon/{idOrName}` | Lo mismo que `:idOrName`. | |
+| `/api/v2/pokemon/{{idOrName}}` | Lo mismo que `:idOrName`. | |
+| `/files/*` | `/files/a.txt`, `/files/2026/a.txt` | `/files` |
+| `/` | `/` | Cualquier otra ruta. |
+
+- Un parámetro (`:nombre`, `{nombre}` o `{{nombre}}`) toma un tramo de la ruta, entre dos `/`, y nunca uno vacío. Su valor llega decodificado: `mr%20mime` queda `mr mime`.
+- `*` toma el resto de la ruta, con las barras incluidas.
+- Las mayúsculas no importan, y la `/` final tampoco.
+- La query se ignora: `/api/v2/pokemon?limit=5` coincide con `/api/v2/pokemon`.
+
+Puedes usar el valor de un parámetro en la respuesta, por ejemplo `{{request.path.idOrName}}`. Mira [Valores del request](/es/mocks/templates/).
+
+## Qué ruta responde
+
+Cuando llega una llamada, el mock se queda con las rutas activas cuyo método y ruta coinciden:
+
+- El método tiene que ser el mismo, o la ruta tiene que ser **Cualquiera**. Una llamada `HEAD` necesita una ruta `HEAD` o **Cualquiera**: una ruta `GET` no la responde.
+- La ruta tiene que coincidir como en la tabla de arriba.
+
+Si quedan varias, las ordena:
+
+<Steps>
+1. Las rutas propias van antes que las de la fuente.
+2. Después, la ruta con más tramos fijos. `/pokemon/missingno` (dos tramos fijos) gana a `/pokemon/:idOrName` (uno).
+3. Después, la ruta con más tramos.
+4. Después, una ruta con método gana a una con **Cualquiera**.
+</Steps>
+
+Responde la primera. Si es una ruta de la fuente con varias respuestas, el mock elige una: la que pides con un header, o la de por defecto. Si la llamada no trae credenciales y la operación las pide, responde su `401`. Mira [Respuestas](/es/mocks/responses/) y [Credenciales y errores](/es/mocks/auth-and-errors/).
+
+Si ninguna ruta coincide, el mock responde `404` con `"error": "mock_not_found"`.
+
+### Ejemplo: quién responde
+
+Un mock de la Pokédex desde el contrato, con una ruta propia `GET /api/v2/pokemon/missingno` que responde `404`:
+
+| Llamada | Quién responde |
+|---|---|
+| `GET /api/v2/pokemon/pikachu` | La ruta de la fuente `/api/v2/pokemon/{idOrName}`, `200`. |
+| `GET /api/v2/pokemon/MissingNo` | Tu ruta, `404`. Las mayúsculas no importan. |
+| `GET /api/v2/pokemon?limit=5` | La ruta de la fuente de `listPokemon`, `200`. La query se ignora. |
+| `POST /api/v2/pokemon/pikachu` | Ninguna ruta: `404` `mock_not_found`. El contrato no tiene `POST` ahí. |
+| `HEAD /api/v2/pokemon/pikachu` | Ninguna ruta: `404` `mock_not_found`. |
+| `GET /pokemon/pikachu` | Ninguna ruta: la ruta del contrato empieza con `/api/v2`. |
+
+<Aside type="caution">
+Tus rutas propias van primero aunque su ruta sea menos específica. Una ruta propia `GET /api/v2/*` responde todos los `GET` bajo `/api/v2`, también los que tiene la fuente. Desmarca **Activa** cuando ya no la necesites.
+</Aside>
+
+## Sobrescribe una ruta de la fuente
+
+Una ruta de la fuente no se puede editar: sale de un ejemplo o del contrato. Para cambiar lo que responde, sobrescríbela.
+
+<Steps>
+1. En el grupo de la fuente, busca la fila y pulsa **Sobrescribir**.
+2. Aparece una copia en **Rutas propias**, abierta, con el mismo nombre, método, ruta, status, headers y body.
+3. Cambia lo que necesites, por ejemplo el body.
+</Steps>
+
+Desde ahí tu copia responde ese método y esa ruta, porque las rutas propias van primero. La fila original se queda en el grupo de la fuente. Desmarca **Activa** en tu copia, o elimínala, para volver a la respuesta de la fuente.
+
+<Aside type="note">
+Mientras tu copia está activa, `x-mock-response-code` y `x-mock-response-name` no llegan a las respuestas de la fuente en esa ruta: tu ruta responde primero, digan lo que digan los headers. Desmarca **Activa** en tu copia cuando quieras volver a pedirlas.
+</Aside>
+
+## Problemas frecuentes
+
+| Qué ves | Por qué, y qué hacer |
+|---|---|
+| El **Log** dice **Sin ruta (404)**. | Ninguna ruta activa coincide. Revisa el método, el inicio de la ruta (`/api/v2` para el contrato de la Pokédex) y que la ruta esté **Activa**. |
+| Una llamada `HEAD` recibe `404`. | Agrega una ruta con método `HEAD` o **Cualquiera**. |
+| Responde tu ruta en vez de la fuente. | Las rutas propias van primero. Desmarca **Activa** en la tuya. |
+| Responde la fuente en vez de tu ruta. | Tu ruta está inactiva, o su método o su ruta no coinciden con la llamada. Compáralos con la ruta del **Log**. |
+| `/files` recibe `404` pero `/files/a.txt` funciona. | `/files/*` necesita al menos la `/` después de `files`. Agrega una ruta para `/files`. |
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Respuestas" href="/es/mocks/responses/" />
+  <LinkCard title="Valores del request" href="/es/mocks/templates/" />
+  <LinkCard title="Crea un mock server" href="/es/mocks/create/" />
+  <LinkCard title="El Log de un mock" href="/es/mocks/log/" />
+</CardGrid>

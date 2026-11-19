@@ -1,0 +1,165 @@
+---
+title: Lee los resultados de los requests
+description: El estado, los totales, los filtros, cada vuelta y cada request de una ejecución de requests, cómo detenerla y cómo exportarla como JSON.
+sidebar:
+  order: 6
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Los resultados de una ejecución de requests responden dos preguntas: si todo pasó y, si no, qué request falló, en qué vuelta y por qué. Se llenan mientras avanza la ejecución y se quedan cuando termina.
+
+![Los resultados de una ejecución de los requests de Shop, Terminó, con Configurar, Ejecutar de nuevo y JSON; los totales 3 vueltas, 9 requests, 9 pasaron y 0 fallaron; los filtros Todos, Fallaron y Pasaron; y Vuelta 1 a 3, cada una con sus tres requests, estado 200 o 201, tiempo y tamaño](/media/es/runner-requests-results.webp)
+
+## Ejemplo: encuentra el request que falló
+
+Terminó una ejecución de la carpeta **Orders** de la tienda, 3 requests en 3 vueltas. Los totales dicen **1** en fallaron.
+
+<Steps>
+1. Haz clic en **Fallaron**. Solo queda la **Vuelta 2**, con una fila: **Create order**, status `422`, comprobaciones `1/2`.
+2. Haz clic en la fila. El detalle muestra la comprobación que no se cumplió, las variables que guardó el request y la respuesta.
+3. Pulsa **Abrir el request** para abrir **Create order** en su pestaña y corregirlo.
+4. De vuelta en el runner, pulsa **Ejecutar de nuevo**.
+</Steps>
+
+## Mientras se ejecuta
+
+- El estado arriba dice cuánto lleva, por ejemplo **Ejecutando 4 de 9**: requests enviados de los requests marcados por las vueltas.
+- Una barra bajo la parte de arriba se llena al mismo ritmo.
+- La vuelta en curso termina con una fila **Enviando…** para el request que va en camino.
+- **Detener** termina la ejecución. Mira [Detén una ejecución](#detén-una-ejecución).
+
+## La parte de arriba
+
+Arriba se ve el nombre de lo que se ejecutó, por ejemplo **Orders**, la fecha y hora en que empezó y el archivo de datos, si hay.
+
+A la derecha, el estado:
+
+| Estado | Cuándo |
+|---|---|
+| **Ejecutando 4 de 9** | Mientras se ejecuta. |
+| **Terminó** | Se ejecutaron todas las vueltas. |
+| **Detenido** | Pulsaste **Detener**, o cerraste el runner con **Detener y cerrar**. |
+| **Se detuvo en un error** | **Detenerse si un request falla** estaba marcado y un request falló. |
+
+Cuando termina, **Configurar** vuelve a la configuración, **Ejecutar de nuevo** repite la ejecución con los mismos requests, ajustes y archivo de datos, y **JSON** descarga los resultados.
+
+## Los totales
+
+| Total | Qué cuenta |
+|---|---|
+| **vueltas** | Vueltas que empezaron. |
+| **requests** | Requests que se enviaron, en todas las vueltas. |
+| **pasaron** | Requests que pasaron. |
+| **fallaron** | Requests que fallaron. Se pone en rojo cuando hay al menos uno. |
+| **comprobaciones** | Comprobaciones que se cumplieron de todas las que se revisaron, por ejemplo `11/12`. |
+| **promedio** | El tiempo de respuesta promedio de los requests. |
+| **duración** | Cuánto tardó toda la ejecución. |
+
+Los tiempos de menos de un segundo van en ms, por ejemplo `180 ms`. Los más largos, en segundos con un decimal, por ejemplo `1.2 s`.
+
+## Cuándo pasa o falla un request
+
+| El request… | Resultado |
+|---|---|
+| No responde: sin conexión, tiempo agotado, un error antes de enviarlo | **Falla**. Su status dice **Sin respuesta**. |
+| Responde y tiene comprobaciones | **Pasa** si se cumplen todas. **Falla** si alguna no. |
+| Responde y no tiene comprobaciones | **Pasa** si el status es menor que 400. **Falla** con 400 o más. |
+| Es una llamada gRPC | **Pasa** si termina con el código 0. |
+
+Si un status de error es lo que esperas, agrega una comprobación, por ejemplo que `res.status` sea igual a `404`. Así el request pasa cuando responde 404. Al abrir un request que falló por su status, sin comprobaciones, te lo recuerda: *Sin comprobaciones, un status de error cuenta como fallo. Agrega una comprobación (por ejemplo, status es 404) si es lo esperado.*
+
+## Filtros
+
+**Todos**, **Fallaron** y **Pasaron**, arriba de las vueltas, filtran los requests. Cada uno muestra cuántos hay.
+
+Con **Fallaron** o **Pasaron**, una vuelta sin nada que mostrar se oculta.
+
+## Vueltas
+
+Los resultados se agrupan por vuelta: **Vuelta 1**, **Vuelta 2**… Con un archivo de datos, junto a cada título ves hasta cuatro valores de su fila, por ejemplo `sku=SKU-100 · quantity=2 · coupon=WELCOME`.
+
+## Cada request
+
+Cada request tiene una fila:
+
+| Parte | Qué muestra |
+|---|---|
+| ✓ o ✕ | Pasó o falló. |
+| Método | El método, o **gRPC**. |
+| Nombre y URL | El nombre del request y la URL a la que se envió, con sus variables reemplazadas. Deja el puntero sobre la URL para leerla completa. |
+| Status | El status, con el color de su familia: 2xx, 3xx, 4xx, 5xx. **Sin respuesta** cuando no respondió. |
+| Tiempo | El tiempo de respuesta. |
+| Tamaño | El tamaño de la respuesta, en B, KB o MB. |
+| Comprobaciones | Cumplidas del total, por ejemplo `2/2`, en verde cuando se cumplieron todas y en rojo cuando una no. Vacío cuando no tiene comprobaciones. |
+
+## Abre un request
+
+<Steps>
+1. Haz clic en una fila. Su detalle se abre debajo. Haz clic otra vez para cerrarlo.
+2. Lee, de arriba abajo:
+   - El error, si no respondió.
+   - Cada comprobación, con lo que esperaba y lo que obtuvo.
+   - Las variables que guardó, con sus valores.
+   - La respuesta: status, headers y body, como en la pestaña del request.
+3. Pulsa **Abrir el request** para abrir el request en su pestaña.
+</Steps>
+
+Solo una fila está abierta a la vez. Si **Guardar las respuestas para verlas** estaba sin marcar, no hay respuesta: *La respuesta no se guardó (ajuste «Guardar las respuestas»).*
+
+## Detén una ejecución
+
+<Steps>
+1. Mientras se ejecuta, pulsa **Detener** arriba.
+2. El estado pasa a **Detenido**.
+</Steps>
+
+Un request que iba en camino cuando detuviste queda fuera de los resultados. No cuenta como fallo: detener no es un error de la API.
+
+Con **Detenerse si un request falla**, la ejecución se detiene sola en el primer fallo, y el estado dice **Se detuvo en un error**. Ese request es la última fila.
+
+## Exporta los resultados
+
+Cuando la ejecución termina, **JSON** descarga los resultados. El archivo lleva el nombre de lo que se ejecutó y el momento en que empezó, en UTC, por ejemplo `runner-orders-2026-11-19-10-30-00.json`.
+
+```json title="runner-orders-2026-11-19-10-30-00.json (resumido)"
+{
+  "name": "Orders",
+  "startedAt": "2026-11-19T10:30:00.000Z",
+  "durationMs": 2140,
+  "status": "done",
+  "totals": { "requests": 9, "passed": 8, "failed": 1, "assertsPassed": 11, "assertsFailed": 1, "avgMs": 180 },
+  "iterations": [
+    {
+      "index": 0,
+      "steps": [
+        { "name": "Log in", "method": "POST", "url": "https://shop.example.com/login", "status": 200, "durationMs": 120, "size": 312, "outcome": "passed" }
+      ]
+    }
+  ]
+}
+```
+
+- `status` es `done` (**Terminó**), `cancelled` (**Detenido**) o `stopped` (**Se detuvo en un error**).
+- `data` es el nombre del archivo de datos, y cada vuelta tiene su fila en `data`.
+- Cada request tiene su método, URL, status, tiempo, tamaño, resultado, comprobaciones y las variables que guardó. No incluye los bodies de las respuestas.
+
+**JSON** también está en los resultados de la ejecución en **Historial**.
+
+## Cuando los resultados no son lo que esperas
+
+| Qué ves | Por qué | Qué hacer |
+|---|---|---|
+| Todos los requests dicen **Sin respuesta**. | La dirección no se alcanza con este ambiente. | Revisa el **Ambiente** y sus variables. Prueba un request con **Enviar**. |
+| Un request falla con `404` y eso es lo que querías. | Sin comprobaciones, 400 o más es un fallo. | Agrega una comprobación del status que esperas. |
+| Un request responde `401` después de **Log in**. | Se ejecuta antes de **Log in**, o **Log in** está sin marcar. | Sube **Log in** y márcalo. |
+| La respuesta no está. | **Guardar las respuestas para verlas** estaba sin marcar. | Márcalo y ejecuta de nuevo. |
+| La vuelta 2 usa los mismos valores que la vuelta 1. | No hay archivo de datos, o tiene una fila. | Mira [Archivos de datos](/es/runner/data-files/#filas-y-vueltas). |
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Ajustes para ejecutar requests" href="/es/runner/requests-settings/" />
+  <LinkCard title="Ejecuciones, pestañas e historial" href="/es/runner/lifecycle/" />
+  <LinkCard title="Variables y comprobaciones" href="/es/requests/variables-and-checks/" />
+</CardGrid>

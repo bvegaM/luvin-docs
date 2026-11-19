@@ -1,0 +1,104 @@
+---
+title: Columnas, inputs y variables
+description: Cómo llega cada columna de un archivo de datos a tus requests y workflows, qué valor gana cuando los nombres se repiten, cómo el texto pasa a número u objeto, y cómo arreglar una columna que no se usa.
+sidebar:
+  order: 12
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Cada columna de un archivo de datos se vuelve un valor en cada vuelta. En una ejecución de requests, una columna es una variable. En una ejecución de workflows, una columna llena el input con el mismo nombre, y además es una variable. Esta página dice exactamente a dónde va cada valor y qué revisar cuando uno no llega.
+
+## Ejemplo: pedidos con un cupón
+
+**Place order** tiene los inputs `sku` y `quantity`. Este archivo tiene tres columnas:
+
+```csv title="orders.csv"
+sku,quantity,coupon
+SKU-100,2,WELCOME
+SKU-200,1,
+```
+
+<Steps>
+1. Abre el runner de workflows para `shop.arazzo.yaml` y elige `orders.csv` en **Datos por vuelta**.
+2. Lee la línea bajo el archivo: **Llenan inputs: sku, quantity · Quedan como `{{variables}}`: coupon**.
+3. Pulsa **Ejecutar (n casos)**.
+</Steps>
+
+En la vuelta 1, los casos de **Place order** se ejecutan con `sku` = `SKU-100` y `quantity` = el número `2`. Todo lo que usa `{{coupon}}` recibe `WELCOME`.
+
+## En una ejecución de requests
+
+Cada columna es una variable. Úsala como `{{sku}}` en la URL, los parámetros, los headers o el body de un request, como cualquier variable del ambiente.
+
+Cuando el mismo nombre está en varios lugares, esto es lo que gana:
+
+| De menor a mayor | Ejemplo con `token` |
+|---|---|
+| 1. El ambiente | `token` vale `abc` en el ambiente. |
+| 2. La fila de la vuelta | El archivo tiene una columna `token`: en cada vuelta, su valor reemplaza `abc`. |
+| 3. Lo que guarda un request durante la vuelta | **Log in** guarda `token`: desde ahí, en esa vuelta, los requests usan el guardado. |
+
+Al empezar la vuelta siguiente, la fila vuelve a ganar sobre un valor guardado en una vuelta anterior con el mismo nombre. Un nombre que no es una columna conserva el valor guardado antes: un `token` guardado en la vuelta 1 sigue ahí en la vuelta 2.
+
+En una prueba de rendimiento de requests, la fila siempre gana: una columna reemplaza un valor con el mismo nombre que guardó un request.
+
+## En una ejecución de workflows
+
+La línea bajo el archivo dice qué pasa con cada columna, para los workflows que se van a ejecutar:
+
+- **Llenan inputs**: las columnas que se llaman exactamente como un input de un workflow. El nombre tiene que coincidir, mayúsculas y minúsculas incluidas.
+- **Quedan como `{{variables}}`**: las demás columnas. Las URLs base, las credenciales y los valores de los inputs pueden usarlas, como en un ambiente.
+
+Todas las columnas son también variables, incluidas las que llenan un input.
+
+![Bajo Datos por vuelta, el archivo pokemon-data.csv · 3 fila(s) y la línea Llenan inputs: pokemon · Quedan como variables: nickname](/media/es/runner-data-file.webp)
+
+### Qué valor recibe un input
+
+| De menor a mayor | Ejemplo con `quantity` |
+|---|---|
+| 1. El valor por defecto, de la pestaña **Inputs** | `1` |
+| 2. La columna de la fila | `2` |
+| 3. Lo que cambia el caso | Un caso **"quantity" con un texto en lugar de un número** conserva su propio valor. Un caso sin el input lo deja fuera. |
+
+- Una celda vacía deja el input fuera de esa vuelta, aunque tenga un valor por defecto.
+- Un valor de input con una variable, como `{{coupon}}`, toma el valor de la fila.
+
+## Conversión de tipos
+
+Los valores de un archivo son texto. Cuando un input tiene un tipo en el workflow, Luvin convierte el valor antes de que se ejecute el caso:
+
+| Tipo del input | Valor en el archivo | Qué recibe el input |
+|---|---|---|
+| `integer` o `number` | `2`, `2.5`, ` 3 ` | El número `2`, `2.5`, `3` |
+| `integer` o `number` | `two`, `2 units` | El texto tal cual |
+| `boolean` | `true`, `FALSE`, ` True ` | `true`, `false`, `true` |
+| `boolean` | `yes`, `1` | El texto tal cual |
+| `object` o `array` | `{"size": "M"}`, `[1, 2]` | El objeto o la lista |
+| `object` o `array` | `{size: M}` (no es JSON válido) | El texto tal cual |
+| Cualquier otro, o sin tipo | `SKU-100` | El texto `SKU-100` |
+
+Cuando un valor no calza con el tipo, el input recibe el texto tal cual. Una celda vacía no se convierte: deja el input fuera. Un caso que revisa el tipo, por ejemplo **"quantity" con un texto en lugar de un número**, es el que envía valores incorrectos a propósito: el archivo no necesita hacerlo.
+
+Los números se escriben con punto decimal: `2.5`, no `2,5`. Las variables siempre son texto. Solo se convierten los inputs.
+
+## Cuando una columna no se usa
+
+| Qué ves | Por qué | Qué hacer |
+|---|---|---|
+| La columna está en **Quedan como `{{variables}}`** pero querías que llenara un input. | Su nombre no es exactamente el nombre de un input de los workflows marcados. | Cambia el nombre de la columna, por ejemplo `Quantity` a `quantity`. |
+| **Llenan inputs** dice `—`. | Ninguna columna tiene el nombre de un input. | Revisa los nombres en la pestaña **Inputs** del workflow. |
+| Un caso conserva su propio valor. | Ese caso cambia ese input a propósito. | No hay nada que arreglar: los demás casos usan la columna. |
+| Al input le falta valor en algunas vueltas. | La celda está vacía en esas filas. | Completa la celda, o quita la columna para usar el valor por defecto. |
+| El input recibe `" 2"` con un espacio, o el texto `two`. | Un espacio después del separador, o un valor que no es un número. | Quita los espacios del archivo. Mira [Escribe el archivo](/es/runner/data-files/#escribe-el-archivo). |
+| Un request usa el valor del ambiente, no la columna. | El request usa otro nombre, o el nombre de la columna tiene otras mayúsculas. | Usa exactamente `{{columna}}`, con el nombre de la columna. |
+| Un `token` guardado se reemplaza en cada vuelta. | El archivo tiene una columna con el mismo nombre. | Cambia el nombre de la columna o quítala. |
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Archivos de datos" href="/es/runner/data-files/" />
+  <LinkCard title="Inputs" href="/es/test/inputs/" />
+  <LinkCard title="URLs base, variables y secretos" href="/es/environments/variables-and-secrets/" />
+</CardGrid>

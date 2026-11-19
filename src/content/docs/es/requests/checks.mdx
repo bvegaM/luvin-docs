@@ -1,0 +1,152 @@
+---
+title: Comprueba la respuesta
+description: Agrega comprobaciones a un request para que una respuesta con el status, los datos, un header o el tiempo equivocados quede como fallida, con chips rápidos y valores esperados que admiten {{variables}}.
+sidebar:
+  order: 9
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Una comprobación dice qué tiene que cumplir la respuesta: un status, un campo con un valor, un header, un tiempo. Sin comprobaciones, un `200` con los datos equivocados parece un éxito. Con ellas, Luvin marca la respuesta como fallida y te dice qué parte no coincidió. Agrégalas en la pestaña **Comprobaciones** de un request HTTP o GraphQL.
+
+## Ejemplo: un producto de una tienda
+
+`GET https://api.shop.test/products/7` tiene que devolver la camiseta roja, con stock, en JSON, en menos de medio segundo:
+
+```json
+{ "id": 7, "sku": "TSHIRT-RED-M", "name": "Red T-shirt", "price": 19.9, "stock": 3, "tags": ["clothes", "sale"] }
+```
+
+| De la respuesta | Comprobación | Valor esperado |
+|---|---|---|
+| `res.status` | **es igual a** | `200` |
+| `res.body.id` | **es igual a** | `7` |
+| `res.body.name` | **es igual a** | `Red T-shirt` |
+| `res.body.stock` | **es mayor que** | `0` |
+| `res.body.tags` | **contiene** | `sale` |
+| `res.headers.content-type` | **contiene** | `json` |
+| `res.responseTime` | **es menor que** | `500` |
+
+Si la tienda vende la última camiseta y `stock` llega en `0`, el chip junto al status se pone rojo: **✕ 1 de 7 comprobaciones fallaron**. La fila que falló dice **Llegó: 0**.
+
+## Agrega una comprobación
+
+<Steps>
+
+1. Abre el request y haz clic en la pestaña **Comprobaciones**.
+2. Haz clic en **Comprobación**. Aparece una fila marcada, con `res.status`, **es igual a** y `200`.
+3. En **De la respuesta**, escribe qué leer, por ejemplo `res.body.name`. Mira [Expresiones de la respuesta](/es/requests/check-expressions/).
+4. En el menú **Comprobación**, elige cómo comparar, por ejemplo **es igual a**. Las 21 comprobaciones están en [Las comprobaciones, una por una](/es/requests/check-operators/).
+5. En **valor esperado**, escribe lo que tiene que llegar, por ejemplo `Red T-shirt`. Comprobaciones como **existe** no llevan valor esperado: el campo desaparece.
+6. Pulsa **Enviar** (⌘/Ctrl + Enter). Cada fila muestra ✓ o ✕. El chip junto al status las resume.
+
+</Steps>
+
+El número de la pestaña **Comprobaciones** cuenta las filas activas que tienen expresión.
+
+![La pestaña Comprobaciones de GET products con cuatro comprobaciones activas: tres con ✓ y la última, el stock del primer item es mayor que 50, con ✕; el menú de esa fila está abierto con es mayor que resaltado, y debajo están las chips Rápidas](/media/es/request-checks.webp)
+
+## La fila, campo por campo
+
+| Parte | Qué es |
+|---|---|
+| Casilla (**Activa**) | Marcada, la comprobación se revisa y cuenta. Desmarcada, se conserva pero no se revisa. |
+| Expresión (**De la respuesta**, texto de ayuda `res.status`) | Qué leer de la respuesta. |
+| Menú (**Comprobación**) | Cómo comparar. |
+| Valor esperado (texto de ayuda `valor esperado`) | Lo que tiene que llegar. Se oculta en las comprobaciones que no lo necesitan. |
+| ✓ o ✕ | El resultado frente a la última respuesta. Apunta para ver **Llegó:** y el valor, o por qué falló. |
+| Papelera (**Eliminar**) | Quita la fila. |
+
+### Resultados mientras editas
+
+Cuando el request tiene una respuesta, cada fila activa muestra ✓ o ✕ frente a ella mientras escribes, sin volver a enviar. Usa los valores actuales de las variables. Así corriges una comprobación antes del próximo envío. Una fila desmarcada no muestra marca.
+
+## Comprobaciones rápidas
+
+Junto a **Rápidas:**, tres chips agregan una comprobación común con un clic:
+
+| Chip | Comprobación que agrega | Cuándo aparece |
+|---|---|---|
+| **status es 200** (con el status de la última respuesta) | `res.status` **es igual a** ese status | Solo cuando hay una respuesta |
+| **tarda menos de 1 s** | `res.responseTime` **es menor que** `1000` | Siempre |
+| **responde JSON** | `res.headers.content-type` **contiene** `json` | Siempre |
+
+Los chips agregan una fila nueva cada vez que haces clic. Después cambia la fila como cualquier otra.
+
+## El valor esperado
+
+Luvin lee lo que escribes antes de comparar. Los espacios al principio y al final se ignoran.
+
+| Escribes | Luvin compara con |
+|---|---|
+| `200`, `-1`, `3.5`, `1e3` | Un número (`1e3` es `1000`) |
+| `true`, `false` | Verdadero o falso |
+| `null` | `null` |
+| `"200"` | El texto `200` |
+| `'Red T-shirt'` | El texto `Red T-shirt`, sin las comillas |
+| `Red T-shirt` | El texto tal cual |
+| `["clothes","sale"]` | Una lista |
+| `{"weight":200}` | Un objeto |
+| `[clothes` (JSON no válido) | El texto tal cual |
+| Nada | Un texto vacío |
+
+En **coincide con (regex)**, el valor es la expresión regular misma, tal como la escribes: no le pongas comillas.
+
+### Variables en el valor esperado
+
+El valor esperado admite `{{variables}}`: las del ambiente, los valores guardados y los que esta misma respuesta acaba de guardar. Se reemplazan primero y después el resultado se lee como arriba. Así, `{{pokemonId}}`, guardado como `25`, se compara como el número `25`.
+
+En los resultados, el valor reemplazado aparece entre paréntesis después del que escribiste: `{{pokemonId}}` (25). Si la variable no existe, queda como `{{pokemonId}}` y la comprobación compara con ese texto, así que falla.
+
+La expresión (**De la respuesta**) no admite variables. Solo el valor esperado.
+
+## Cuándo se revisan
+
+| Dónde | Qué pasa |
+|---|---|
+| **Enviar** | Cada comprobación activa se revisa en cada respuesta. |
+| El runner | Cada request revisa sus comprobaciones. Un request pasa solo si pasaron todas. |
+| Una prueba de rendimiento de requests | Un request con una comprobación que falló cuenta como fallido. |
+| Una ejecución de workflow | Estas comprobaciones no se revisan. Los pasos de un workflow usan criterios de éxito: mira [Éxito y errores](/es/design/success-and-errors/). |
+| Sin respuesta | Si el request falló antes de recibir respuesta (tiempo agotado, error de conexión), no se revisa ninguna comprobación. |
+
+Se revisan todas, aunque una anterior haya fallado. El orden de las filas solo cambia el orden de los resultados.
+
+### Un request sin comprobaciones
+
+Cuando lo envías solo, no se marca nada: lees el status tú. En el runner, un status de error (`400` o más) cuenta como fallo. Si un error es lo esperado, agrega una comprobación como `res.status` **es igual a** `404`.
+
+## Comprobaciones comunes
+
+| Para asegurarte de que… | De la respuesta | Comprobación | Valor esperado |
+|---|---|---|---|
+| Se creó | `res.status` | **es igual a** | `201` |
+| Respondió con cualquier éxito | `res.status` | **es menor que** | `300` |
+| Volvió el id | `res.body.id` | **existe** | |
+| La lista no está vacía | `res.body.items` | **no está vacío** | |
+| Hay exactamente 3 elementos | `res.body.items.length` | **es igual a** | `3` |
+| El error explica por qué | `res.body.error` | **contiene** | `not found` |
+| Está un header | `res.headers.x-request-id` | **existe** | |
+| Responde a tiempo | `res.responseTime` | **es menor o igual a** | `800` |
+| El pedido es el que creaste | `res.body.id` | **es igual a** | `{{orderId}}` |
+| El email tiene buena forma | `res.body.email` | **coincide con (regex)** | `^[^@]+@[^@]+$` |
+
+## Solución de problemas
+
+| Lo que ves | Por qué | Qué hacer |
+|---|---|---|
+| **No son números** | **es mayor que** y similares necesitan números en los dos lados, y uno es un texto o falta | Revisa la expresión con la vista previa, o usa **es igual a** |
+| **Llegó: (no está)** | La expresión no lee nada en la respuesta | Mira [Cuando el camino no existe](/es/requests/check-expressions/#cuando-el-camino-no-existe) |
+| **es igual a** falla aunque **Llegó:** muestra lo mismo | Mayúsculas y minúsculas, espacios, o el orden de una lista o de los campos de un objeto | Mira [Compara valores](/es/requests/check-operators/#compara-valores) |
+| **La expresión regular no es válida** | El patrón tiene un error, como un `(` sin cerrar | Corrige el patrón; pruébalo sin comillas |
+| El valor esperado muestra `{{orderId}}` sin un valor entre paréntesis | La variable todavía no existe | Envía primero el request que la guarda |
+| No hay ✓ ni ✕ junto a las filas | El request todavía no tiene respuesta, o la fila está desmarcada | Envíalo, o marca la fila |
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Las comprobaciones, una por una" href="/es/requests/check-operators/" />
+  <LinkCard title="Expresiones de la respuesta" href="/es/requests/check-expressions/" />
+  <LinkCard title="Lee los resultados de las comprobaciones" href="/es/requests/check-results/" />
+  <LinkCard title="Guarda valores de una respuesta" href="/es/requests/save-variables/" />
+</CardGrid>

@@ -1,0 +1,106 @@
+---
+title: The Log of a mock
+description: What the Log tab of a mock shows for each call, what Received and Answered contain, how many calls it keeps, and how to use it to check what a workflow sends.
+sidebar:
+  order: 8
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+The **Log** tab lists every call the mock received and what it answered. Use it to check that your requests and workflows really call the mock, with which path, headers and body, and which route answered.
+
+## Example: what Pokemon card sends
+
+<Steps>
+1. Start a mock of the Pokédex contract and press **Create mock environment**. See [Use a mock with requests and workflows](/mocks/with-workflows/).
+2. Run **Pokemon card** with **Real API**.
+3. Open the mock and click the **Log** tab. The number on the tab counts the calls, and the line above the list repeats it: *n call(s), most recent first*. Each case of the run makes its own calls.
+4. Click a call to `/api/v2/pokemon/pikachu`. It unfolds into **Received** and **Answered**.
+5. Under **Received**, read the headers your step sent. Under **Answered**, read the body the mock gave back.
+</Steps>
+
+![The Log tab of the Shop mock with 6 calls, most recent first: a GET /v1/customers row marked No route (404), and a POST /v1/orders call unfolded into Received, with its headers and body, and Answered, with the headers and body of its 201](/media/en/mocks-log.webp)
+
+If a step does not appear, it did not reach the mock: check its URL in the results of the run.
+
+## What each call shows
+
+Each row of the list, from left to right:
+
+| Part | Example | What it is |
+|---|---|---|
+| Time | `10:42:07` | When the call arrived, with seconds. |
+| Method | `GET` | The method of the call. |
+| Path | `/api/v2/pokemon?limit=5` | The path, with the query. |
+| Status | `200` | The status the mock answered, in the color of its group (2xx, 3xx, 4xx, 5xx). |
+| Duration | `3004 ms` | From the arrival of the call to the answer, delay included. |
+| Route | `El Pokémon` | The route that answered (see below). |
+
+The route column shows:
+
+| The call was answered by | The column shows |
+|---|---|
+| Your own route with a **Name** | The name, for example `Payment down`. |
+| Your own route without a name | Its path, for example `/orders`. |
+| A route of the collection | The name of the example, for example `200 - Get pokemon`. |
+| A route of a contract | The description of the response, for example `El Pokémon`, or its status, such as `404`. |
+| No route | **No route (404)**, highlighted. |
+
+## Received and Answered
+
+Click a call to unfold it. Click it again to fold it.
+
+| Section | What it holds |
+|---|---|
+| **Received** | Every header the call brought, as it arrived (such as `host`, `user-agent`, `authorization` or `x-mock-response-code`), and its body. |
+| **Answered** | Every header the mock sent, including the ones it adds itself (`content-type` and the CORS headers), and the body it sent. |
+
+The headers are shown one per line, as `name: value`. The body is shown as text. A body with no content is not shown.
+
+<Aside type="caution">
+**Received** shows the headers as they arrived, also `authorization` with its token. The Log stays in the memory of the app and is not written to disk, but anyone who sees your screen sees them.
+</Aside>
+
+## How long the Log keeps calls
+
+| Rule | Detail |
+|---|---|
+| How many | The last 300 calls of each mock. Older ones are dropped. |
+| Long bodies | Cut at 16 KB, followed by `… [recortado]`. |
+| Where | In memory only. Nothing is written to the collection. |
+| **Clear** | Empties the Log of that mock. |
+| Stopping the mock | The Log stays. |
+| Reloading the window or quitting | The Log is emptied. |
+
+## What it does not show
+
+- Calls made while the mock is stopped: nothing received them.
+- Calls answered with `500` `mock_error`. See [Credentials and errors](/mocks/auth-and-errors/).
+
+## When it is empty
+
+| State | It says |
+|---|---|
+| Stopped | *Start the mock and call it: every request it gets and what it answered shows up here.* |
+| Running | *Nothing has arrived yet. Call the mock URL or run with its environment.* |
+
+## What to use it for
+
+| Question | Where to look |
+|---|---|
+| Does my workflow call the mock or the real API? | One call per step in the Log means it calls the mock. |
+| Why does a step get `404`? | The path in the row. **No route (404)** means no route matches it. See [Routes](/mocks/routes/). |
+| Does my request send the token? | `authorization` under **Received**. |
+| Which response did `x-mock-response-code` pick? | The route column and the status. |
+| Is the delay applied? | The duration of the row. |
+
+The [Network](/dev-tools/network/) panel of Dev Tools shows the same calls from the side of Luvin, as it sent them.
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Use a mock with requests and workflows" href="/mocks/with-workflows/" />
+  <LinkCard title="Routes" href="/mocks/routes/" />
+  <LinkCard title="Credentials and errors" href="/mocks/auth-and-errors/" />
+  <LinkCard title="Network" href="/dev-tools/network/" />
+</CardGrid>

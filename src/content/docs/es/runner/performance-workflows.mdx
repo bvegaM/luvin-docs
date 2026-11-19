@@ -1,0 +1,109 @@
+---
+title: Rendimiento de workflows
+description: Prueba de carga de workflows completos. Qué caso repite cada usuario virtual, por qué los casos simulados quedan fuera, y cómo se mide cada paso y cada workflow completo.
+sidebar:
+  order: 20
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Una prueba de rendimiento de workflows repite cadenas completas de llamadas bajo carga, no requests sueltos. Cada usuario virtual ejecuta un caso de cada workflow marcado, paso a paso, una y otra vez. Los resultados muestran cada paso en su propia fila, así ves qué paso de la cadena se pone lento.
+
+## Ejemplo: Place order bajo carga
+
+**Place order**, en `shop.arazzo.yaml`, tiene los pasos `getProduct` y `createOrder`. El ambiente `staging` apunta a tu servidor de pruebas.
+
+<Steps>
+1. Abre el menú **⋯** de `shop.arazzo.yaml` y elige **Ejecutar workflows (runner)**.
+2. En **Tipo de ejecución**, elige **Rendimiento**. En **Contra**, está elegido **API real** y **Simulado** no se puede pulsar.
+3. La fila de **Place order** dice **Carga: Camino feliz**. Haz clic en ella: el camino feliz tiene la etiqueta **Se repite en la carga**.
+4. Pon 10 **Usuarios virtuales** durante 30 **seg**. La frase dice *10 usuarios virtuales durante 30 s, cada uno ejecutando el camino feliz de los workflows elegidos.*
+5. Lee el recuadro sobre el botón: **Place order** crea pedidos, así que agrega *1 de lo elegido crea, cambia o borra datos: se va a repetir muchas veces.* Márcalo.
+6. Pulsa **Iniciar prueba de rendimiento**.
+</Steps>
+
+La tabla muestra `Place order · getProduct`, `Place order · createOrder` y `Place order · workflow completo`.
+
+![Los resultados de una prueba de rendimiento de dos workflows de la tienda: la tabla tiene una fila por paso, como View product · getProduct y Order product · createOrder, y una fila en cursiva por cada workflow completo](/media/es/runner-perf-results.webp)
+
+## La configuración cambia con Rendimiento
+
+| Parte | Con **Rendimiento** |
+|---|---|
+| **Contra** | Siempre **API real**. **Simulado** no se puede elegir. Su tooltip, y la pista de abajo, dicen *En Rendimiento se mide la API real del ambiente «…»: en simulación no hay nada que medir. Para probar sin la API, apunta el ambiente a un mock server.* |
+| La fila de cada workflow | Dice qué caso se repite, por ejemplo **Carga: Camino feliz**, en lugar de cuántos casos se ejecutan. |
+| Los casos de un workflow | Muestran a dónde irían contra la API real. El que se repite tiene la etiqueta **Se repite en la carga**. |
+| **Vueltas**, **Ajustes** y **Elegir de las listas** | No aparecen. Las reglas de listas guardadas se aplican igual. |
+| Arriba de la lista | Cuenta los workflows con un caso que repetir, por ejemplo **2 de 3 elegidos**. |
+
+Cuando abres los casos de un workflow, una pista dice: *La prueba de rendimiento repite un caso por workflow contra la API real: el camino feliz entre los marcados (o el primero). Los casos simulados no se miden.*
+
+## Qué caso se repite
+
+Cada workflow repite un caso. Luvin toma los casos marcados que se pueden ejecutar contra la API real y no van simulados, y elige:
+
+1. El **Camino feliz**, si es uno de ellos.
+2. Si no, el primero de ellos, en el orden que tienen en la lista bajo el workflow.
+
+| Casos marcados de **Place order** | Caso que se repite | La fila dice |
+|---|---|---|
+| Todos | **Camino feliz** | **Carga: Camino feliz** |
+| Todos salvo el camino feliz | El primer caso de validación de datos, por ejemplo **Sin el input obligatorio "quantity"** | **Carga: Sin el input obligatorio "quantity"** |
+| Solo los dos casos por respuesta | Ninguno | **ningún caso marcado contra la API real** |
+
+Un workflow sin un caso que repetir queda en gris y fuera de la prueba. Para cambiar el caso que se repite, marca o desmarca casos en la lista o en la pestaña **Casos**.
+
+## Por qué los casos simulados quedan fuera
+
+Un caso simulado no llama a tu API: Luvin inventa la respuesta a partir del contrato. Medirlo sería medir tu equipo, no tu API. Por eso:
+
+- Los casos por respuesta y por mensaje, que se simulan incluso contra la API real, nunca se repiten.
+- **Simulado** no se puede elegir en **Contra**.
+
+Para hacer una prueba de carga sin tu API, apunta el ambiente a un mock server: las llamadas van entonces al mock, que responde de verdad. Mira [Usa un mock con requests y workflows](/es/mocks/with-workflows/).
+
+## Qué hace cada usuario virtual
+
+En cada vuelta, un usuario virtual ejecuta el caso que se repite de cada workflow marcado, en el orden de la lista, y después espera **Pausa entre vueltas (ms)**.
+
+- **Dependencias**: si un workflow depende de otros, esos corren primero en cada vuelta, como cuando pulsas **Ejecutar**.
+- **Listas**: cuando un paso devuelve una lista, elige la regla guardada, o el elemento que dice el diseño. **Uno distinto en cada vuelta** cuenta las vueltas de cada usuario. Mira [Listas en el runner](/es/runner/workflows-lists/).
+- **Archivo de datos**: cada vuelta toma una fila, repartidas entre los usuarios. Una columna con el nombre de un input lo llena. Mira [Columnas, inputs y variables](/es/runner/data-mapping/).
+- **Credenciales y OAuth 2.0**: como en una ejecución funcional. Si un workflow inicia sesión con OAuth 2.0, el inicio de sesión se abre antes de que empiece la prueba. Un aviso te dice cuando faltan credenciales.
+
+## Filas por paso
+
+Cada paso del caso que se repite que recibe una respuesta, o un mensaje, se mide en su propia fila, con el nombre del workflow y del paso: `Place order · getProduct`.
+
+- El tiempo es el tiempo de respuesta del paso.
+- El paso falla cuando falla en el workflow: un status que no espera, o criterios de éxito que no cumple.
+- Un paso que no recibe respuesta, por ejemplo uno al que no se llegó, no se mide.
+
+Los workflows de los que depende se ejecutan, pero sus pasos no tienen filas.
+
+## La fila del workflow completo
+
+Cada workflow tiene además una fila para la ejecución completa: `Place order · workflow completo`.
+
+- Su tiempo va desde el principio hasta el final del workflow en esa vuelta, incluidos los workflows de los que depende.
+- Falla cuando el caso falla.
+- No es un request, así que queda fuera de los números clave, del veredicto, del gráfico de todos los requests, de la pestaña **Errores** y de la búsqueda del request más lento.
+- Está en la tabla y en **Todos los requests**: elígela ahí para ver el workflow completo en el tiempo en el gráfico.
+
+## Cuando la prueba no empieza o no mide nada
+
+| Qué ves | Por qué | Qué hacer |
+|---|---|---|
+| La fila dice **ningún caso marcado contra la API real**. | Solo hay casos simulados marcados, o ninguno. | Marca el **Camino feliz**, u otro caso que vaya a la API real. |
+| **Iniciar prueba de rendimiento** sigue apagado. | Ningún workflow tiene un caso que repetir, o falta la confirmación. | Mira [Confirma antes de mandar carga](/es/runner/safety/#cuando-el-botón-para-empezar-sigue-apagado). |
+| Un error arriba, después del nombre de un workflow. | Falló su inicio de sesión con OAuth 2.0. | Arregla el inicio de sesión y empieza otra vez. Mira [OAuth 2.0](/es/authorization/oauth2/). |
+| Todos los pasos fallan con `401`. | Faltan credenciales en el ambiente. | Pulsa **Completar** en el aviso y complétalas. |
+| Un paso falla con `200` como motivo. | Respondió, pero no cumplió sus criterios de éxito, o una regla de lista no encontró ningún elemento. | Ejecuta el workflow a mano con **Ejecutar** y lee el paso. |
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Pruebas de rendimiento" href="/es/runner/performance/" />
+  <LinkCard title="Elige los casos" href="/es/runner/workflows-cases/" />
+  <LinkCard title="La tabla y los errores" href="/es/runner/performance-table/" />
+</CardGrid>

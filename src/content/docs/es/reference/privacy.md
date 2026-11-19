@@ -12,6 +12,8 @@ Luvin corre en tu equipo. Esta página dice dónde vive cada tipo de dato y qué
 - Los tokens, contraseñas y API keys van **tapados** en resultados, reportes, exportaciones, Dev Tools y cada cURL.
 - La app de escritorio solo lee y escribe dentro de las carpetas que elegiste, y su interfaz no tiene acceso directo al sistema de archivos. La terminal abre tu propio shell, solo en una carpeta del workspace o en tu carpeta personal.
 - Sin workspace, la sesión guardada deja fuera las credenciales y cualquier input cuyo nombre parezca sensible (`token`, `password`, `secret`…).
+- **El historial queda en este equipo**, en el almacenamiento de la app (IndexedDB), nunca en los archivos del workspace. Los secretos del ambiente, las credenciales y los valores que un request guarda como secretos van tapados en él. Puedes apagarlo en **Preferencias**. Mira [Historial](/es/workspaces/history/).
+- **Los mock servers escuchan solo en `127.0.0.1`.** Los demás equipos no pueden llegar a ellos. Desde un navegador, solo una página servida desde `localhost` o `127.0.0.1` puede leer sus respuestas, y una llamada que usa cualquier otro nombre de host recibe `403`. Mira [Rutas y respuestas](/es/mocks/routes/).
 
 ## Dónde vive cada tipo de dato
 
@@ -22,6 +24,9 @@ Luvin corre en tu equipo. Esta página dice dónde vive cada tipo de dato y qué
 | Valores de secretos y credenciales | Cifrados en este equipo. | No. |
 | La sesión sin workspace | El almacenamiento del navegador o de la app, en este equipo. | No. |
 | Preferencias como el tema, la interfaz y el tamaño de los paneles | Este equipo. | No. |
+| Historial de requests y ejecuciones, con los secretos tapados | Este equipo, en el almacenamiento de la app (IndexedDB). | No. |
+| Mock servers: nombre, puerto, fuente y rutas propias | `mocks/*.mock.yaml`. | Sí. |
+| El Log de un mock | La memoria. Se vacía cuando la app se recarga. | No. |
 | Las listas de Console y de Network | La memoria. Desaparecen cuando cierras la app. | No. |
 
 Si el llavero del sistema operativo no está disponible, la app de escritorio no guarda los valores de los secretos, en vez de guardarlos a la vista. Los vuelves a escribir.
@@ -41,3 +46,5 @@ Como los valores secretos no están en los archivos, puedes subir un workspace a
 - [URLs base, variables y secretos](/es/environments/variables-and-secrets/)
 - [Qué hay en el disco](/es/workspaces/files/)
 - [Usar Luvin sin workspace](/es/workspaces/without-workspace/)
+- [Historial](/es/workspaces/history/)
+- [Mock servers](/es/mocks/overview/)

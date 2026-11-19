@@ -1,0 +1,100 @@
+---
+title: Who can call a mock
+description: A mock listens only on 127.0.0.1, which programs and browser pages can read it, how CORS and the Host check work, and what a website you have open cannot do.
+sidebar:
+  order: 10
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A mock opens a port on your computer, so it matters who can reach it. In short: programs on your computer can call it, a frontend served from `localhost` can read it, and nothing else can. This page explains each rule and what you see when one applies.
+
+## At a glance
+
+| Who calls | Can it reach the mock? | Can it read the response? |
+|---|---|---|
+| Luvin (requests, workflows, runner) | Yes. | Yes. |
+| cURL, a script or a backend on your computer | Yes. | Yes. |
+| A frontend in your browser served from `localhost` or `127.0.0.1` | Yes. | Yes, also with cookies. |
+| Any other website open in your browser | The call can arrive. | No: the browser blocks it. |
+| A website that points its own domain at your computer | It gets `403`. | No. |
+| Another computer on your network | No. | No. |
+
+## Only on your computer
+
+The mock listens on `127.0.0.1` only, the address of your own computer. Other computers on your network, or on the internet, cannot open a connection to it, whatever its port.
+
+That is also why its URL is `http://127.0.0.1:4010` and not `http://localhost:4010`: on some systems `localhost` goes to the IPv6 address, where the mock does not listen.
+
+A mock also runs only while Luvin is open with that collection. See [Start and stop a mock](/mocks/start-stop/).
+
+## Programs on your computer
+
+A program that is not a browser, such as cURL, a script or a backend you run, can call the mock and read every response. The mock answers it with `access-control-allow-origin: *`, which only matters to browsers.
+
+```bash
+curl -i http://127.0.0.1:4010/api/v2/pokemon/pikachu
+```
+
+## A frontend in your browser
+
+A browser lets a page read a response from another address only if that address allows it (CORS). The mock allows pages whose address is local:
+
+| The page is served from | The mock answers with |
+|---|---|
+| `http://localhost:3000`, `http://127.0.0.1:5173`, `https://app.localhost` (any port) | `access-control-allow-origin` with that address, `access-control-allow-credentials: true` and `access-control-expose-headers: *`. The page reads the response, cookies included. |
+| Any other address, such as a website on the internet | No `access-control-allow-origin`. The browser does not let the page read the response. |
+
+### The call before the call
+
+For some calls, such as a `POST` with JSON, the browser first sends an `OPTIONS` call to ask. When no route of the mock answers `OPTIONS`, the mock answers it itself with `204` and:
+
+| Header | Value |
+|---|---|
+| `access-control-allow-methods` | `GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS` |
+| `access-control-allow-headers` | The headers the browser asked for. |
+| `access-control-max-age` | `600`: the browser can skip asking for 10 minutes. |
+| `access-control-allow-origin` | The address of the page, only if it is local. |
+
+<Aside type="caution">
+A route with method **Any** also matches `OPTIONS`. It answers the browser's question with its own response, without `access-control-allow-methods` or `access-control-allow-headers`, and the browser can refuse the real call. Give that route a specific method.
+</Aside>
+
+A header your route writes, such as `access-control-allow-origin`, replaces the one the mock adds. The routes of the collection never carry these headers: they are removed from the saved examples.
+
+## What a website you have open cannot do
+
+Any website can make your browser send a request to `127.0.0.1:4010`. Two rules keep your mock private:
+
+- **It cannot read the response.** Its address is not local, so the browser blocks it. The call can still arrive, and you see it in the **Log**.
+- **It cannot pretend to be local.** A website can point its own domain at your computer, so that its pages and the mock share a name. The mock checks the `Host` of each call: if it is not `localhost`, a name ending in `.localhost`, `127.0.0.1` or `::1`, it answers `403` with `"error": "mock_host"` and sends nothing else.
+
+## What the response cannot carry
+
+A value from the call cannot break a response:
+
+- In headers, line breaks become spaces, so a value cannot add another header.
+- In a JSON body, text values are escaped, so a `"` cannot close the text and add fields. See [Values from the request](/mocks/templates/).
+
+## What is in the files
+
+The file of a mock (`mocks/….mock.yaml`) has your own routes, as you wrote them, and travels with the collection and with git. Do not put real tokens or personal data in their bodies or headers. The routes of the collection come from the saved examples of the requests, which have the same advice. See [Cookies and saved examples](/requests/cookies-and-examples/).
+
+The **Log** is kept only in the memory of the app, and is emptied when you reload or quit.
+
+## Troubleshooting
+
+| What you see | Why, and what to do |
+|---|---|
+| Your frontend gets a CORS error. | Its address is not local, or a route with **Any** answers the `OPTIONS` call. Serve the frontend from `localhost`, and give the route a method. |
+| A call gets `403` with `mock_host`. | It used a name that is not local, such as the name of your computer or a custom domain. Use `127.0.0.1`. |
+| A colleague cannot reach your mock. | It only listens on your computer. Share the mock file instead: it travels with the collection. |
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Credentials and errors" href="/mocks/auth-and-errors/" />
+  <LinkCard title="The Log of a mock" href="/mocks/log/" />
+  <LinkCard title="Privacy and security" href="/reference/privacy/" />
+  <LinkCard title="Start and stop a mock" href="/mocks/start-stop/" />
+</CardGrid>

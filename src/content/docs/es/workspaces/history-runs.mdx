@@ -1,0 +1,124 @@
+---
+title: Ejecuciones en el historial
+description: Qué guarda el historial de las ejecuciones de workflows, del runner y de las pruebas de rendimiento, qué muestra cada fila y cada detalle, y cómo abrir el workflow, repetirlo o exportar una ejecución pasada.
+sidebar:
+  order: 8.7
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+La parte **Ejecuciones** de la pestaña **Historial** guarda tres tipos de ejecuciones: las de un workflow, las del runner y las pruebas de rendimiento. Cada una se abre con la misma vista que viste cuando terminó, así puedes comparar una ejecución con la anterior o exportarla después.
+
+## Ejemplo: compara dos ejecuciones de Pokemon card
+
+Esta mañana ejecutaste **Pokemon card** y pasó. Ahora un caso falla, y quieres ver qué cambió.
+
+<Steps>
+1. Pulsa ⌘K (Ctrl+K en Windows y Linux) y elige **Abrir el historial**.
+2. Haz clic en **Ejecuciones**. Las dos ejecuciones de **Pokemon card** están en **Hoy**, cada una con sus cuentas de ✓ y ✕.
+3. Haz clic en la de esta mañana. Abre el caso que ahora falla y lee la respuesta de cada paso.
+4. Haz clic en la más nueva y abre el mismo caso. Compara el paso que cambió.
+5. Para probar de nuevo, pulsa **Repetir**.
+</Steps>
+
+## Los tres tipos de ejecuciones
+
+| Tipo | Marca | Se guarda cuando |
+|---|---|---|
+| Ejecución de un workflow | Ninguna: el nombre del workflow. | Terminó al menos un caso. |
+| Ejecución del runner | **Runner** | Corrió al menos un request, o terminó un caso de un workflow. |
+| Prueba de rendimiento | **Rendimiento** | Termina la prueba. |
+
+Cada tipo guarda sus últimas 50 entradas por colección. Las ejecuciones del runner de requests y de workflows comparten esas 50.
+
+## Ejecuciones de workflows
+
+### La fila
+
+| Parte | Ejemplo |
+|---|---|
+| El punto | El peor resultado: No pasó si un caso no pasó; después Advertencia; después No concluyente, también para una ejecución cancelada; Pasó si todos los casos pasaron. |
+| El nombre | `Pokemon card` |
+| Debajo del nombre | `4 caso(s) · Mock · Mock de Pokédex`, más `· Simulado` para una ejecución en **Simulación** y `· Cancelada` para una ejecución cancelada. |
+| Las cuentas | `✓ 2` pasaron, `✕ 1` no pasaron, `! 1` con advertencia o no concluyentes. `✕` y `!` aparecen solo cuando no son 0. |
+| La hora | `10:42` |
+
+### El detalle
+
+Arriba se ven el nombre actual del workflow, después *Ejecutado el* con la fecha, el ambiente, **API real** o **Simulado**, la duración y, si corresponde, **Cancelada**.
+
+Debajo están los resultados, como en el panel de resultados: el resumen, cada caso con su veredicto y cada paso con su request y su respuesta. Si el workflow ejecutó otros workflows antes (`dependsOn`), también se muestran. Mira [Lee los resultados](/es/test/results/).
+
+| Botón | Qué hace |
+|---|---|
+| **Abrir workflow** | Abre el workflow. Si ya no está en la colección, arriba dice *El workflow ya no está en la colección*. |
+| **Repetir** | Vuelve a ejecutar el workflow (mira abajo). |
+| **JSON** | *Exportar los resultados en JSON*, de esta ejecución pasada. |
+| **Reporte** | *Descargar un reporte HTML autocontenido (sin credenciales)* de esta ejecución pasada. Mira [Reportes](/es/test/reports/). |
+| **Eliminar** | Borra esta entrada del historial, sin preguntar. |
+
+![Una ejecución de View product abierta desde Ejecuciones: Ejecutado el con la fecha, local, API real y la duración, Abrir workflow y Eliminar, Repetir, JSON y Reporte, el caso Camino feliz que pasó y sus dos pasos](/media/es/history-run.webp)
+
+### Repetir
+
+**Repetir** aparece cuando el workflow sigue en la colección y no hay otra ejecución en curso.
+
+<Steps>
+1. Pulsa **Repetir**.
+2. La barra de ejecución pasa al modo de la ejecución pasada: **API real** o **Simulación**.
+3. El workflow se abre y se ejecuta, como si pulsaras **Ejecutar**.
+</Steps>
+
+Ejecuta el workflow **tal como está ahora**, con sus casos actuales y el ambiente activo, no los de la ejecución pasada. Como con **Ejecutar**, Luvin pregunta antes de los pasos que crean, cambian o borran datos, y abre el inicio de sesión si la autorización lo necesita.
+
+### Bodies recortados
+
+Cada body de un paso se guarda hasta 32 KB. Si la ejecución completa pasa de 4 MB, cada body se guarda hasta 2 KB. La ejecución dice entonces *Algunas respuestas eran muy grandes: se guardaron recortadas.*
+
+## Ejecuciones del runner
+
+### La fila
+
+| Parte | Ejemplo |
+|---|---|
+| El punto | No pasó si algo falló, Advertencia si la ejecución no terminó, Pasó en otro caso. |
+| El nombre | **Runner** y la carpeta o la colección que se ejecutó. |
+| Debajo del nombre, una ejecución de requests | `5 request(s) · 3 vuelta(s)`, más el archivo de datos y `· Cancelada` si corresponde. |
+| Debajo del nombre, una ejecución de workflows | `2 workflow(s) · 1 vuelta(s) · API real`, más el archivo de datos y `· Cancelada` si corresponde. |
+| Las cuentas | `✓` los que pasaron y `✕` los que no: requests, o casos en una ejecución de workflows. |
+
+### El detalle
+
+Arriba se ven el nombre, *Ejecutado el* con la fecha, y **Eliminar**. Debajo están los resultados como los mostró el runner: cada vuelta, cada request o workflow, y su resultado.
+
+- En una ejecución de requests, cada respuesta se guarda hasta 32 KB, y puedes abrir un request que siga en la colección.
+- En una ejecución de workflows, los casos y los pasos se guardan como en una ejecución de un workflow.
+- Las variables del final de la ejecución no se guardan: tienen valores reales, como tokens.
+
+Mira [Ejecuta requests](/es/runner/requests/) y [Ejecuta workflows](/es/runner/workflows/).
+
+## Pruebas de rendimiento
+
+### La fila
+
+| Parte | Ejemplo |
+|---|---|
+| El punto | El resultado de la prueba, como lo mostró su pantalla: Pasó, Advertencia o No pasó. |
+| El nombre | **Rendimiento** y el nombre de lo que se ejecutó. |
+| Debajo del nombre | `10 usuarios · 1200 requests · p95 180 ms · Mock · Mock de Pokédex` |
+| Las cuentas | Requests por segundo, como `40/s`, y `✕` con los errores, si los hay. |
+
+### El detalle
+
+Arriba se ven el nombre, *Ejecutado el* con la fecha, y **Eliminar**. Debajo están los resultados de la prueba, como los mostró el runner al terminar. Una prueba de rendimiento guarda solo métricas: no se guarda ninguna respuesta. Mira [Lee una prueba de rendimiento](/es/runner/performance-results/).
+
+![Una prueba de rendimiento abierta en el Historial, marcada Rendimiento en la lista: Requests de Shop, Ejecutado el con la fecha, Eliminar, Terminó, 3 usuarios · 5 s, tarjetas con el total de requests, los requests por segundo, el tiempo de respuesta promedio y la tasa de error, y el gráfico](/media/es/history-perf.webp)
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Historial" href="/es/workspaces/history/" />
+  <LinkCard title="Requests en el historial" href="/es/workspaces/history-requests/" />
+  <LinkCard title="Lee los resultados" href="/es/test/results/" />
+  <LinkCard title="El runner" href="/es/runner/overview/" />
+</CardGrid>

@@ -1,0 +1,152 @@
+---
+title: Check the response
+description: Add checks to a request so a response with the wrong status, data, header or time is marked as failed, with quick chips and expected values that accept {{variables}}.
+sidebar:
+  order: 9
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A check says what the response must meet: a status, a field with a given value, a header, a time. Without checks, a `200` with the wrong data looks like a success. With them, Luvin marks the response as failed and tells you which part did not match. Add checks in the **Checks** tab of an HTTP or GraphQL request.
+
+## Example: a product of a shop
+
+`GET https://api.shop.test/products/7` must return the red T-shirt, in stock, as JSON, in less than half a second:
+
+```json
+{ "id": 7, "sku": "TSHIRT-RED-M", "name": "Red T-shirt", "price": 19.9, "stock": 3, "tags": ["clothes", "sale"] }
+```
+
+| From the response | Check | Expected value |
+|---|---|---|
+| `res.status` | **equals** | `200` |
+| `res.body.id` | **equals** | `7` |
+| `res.body.name` | **equals** | `Red T-shirt` |
+| `res.body.stock` | **is greater than** | `0` |
+| `res.body.tags` | **contains** | `sale` |
+| `res.headers.content-type` | **contains** | `json` |
+| `res.responseTime` | **is less than** | `500` |
+
+If the shop sells the last T-shirt and `stock` comes back as `0`, the chip next to the status turns red: **✕ 1 of 7 checks failed**. The failed row says **Got: 0**.
+
+## Add a check
+
+<Steps>
+
+1. Open the request and click the **Checks** tab.
+2. Click **Check**. A row appears, ticked, with `res.status`, **equals** and `200`.
+3. In **From the response**, write what to read, for example `res.body.name`. See [Response expressions](/requests/check-expressions/).
+4. In the **Check** menu, choose how to compare, for example **equals**. The 21 checks are in [The checks, one by one](/requests/check-operators/).
+5. In **expected value**, write what must come, for example `Red T-shirt`. Checks such as **exists** have no expected value: the field disappears.
+6. Press **Send** (⌘/Ctrl + Enter). Each row shows ✓ or ✕. The chip next to the status sums them up.
+
+</Steps>
+
+The number on the **Checks** tab counts the rows that are active and have an expression.
+
+![The Checks tab of GET products with four active checks: three marked ✓ and the last one, the stock of the first item is greater than 50, marked ✕; the menu of that row is open with is greater than highlighted, and the Quick chips are below](/media/en/request-checks.webp)
+
+## The row, field by field
+
+| Part | What it is |
+|---|---|
+| Checkbox (**Active**) | Ticked, the check runs and counts. Unticked, it is kept but does not run. |
+| Expression (**From the response**, placeholder `res.status`) | What to read from the response. |
+| Menu (**Check**) | How to compare. |
+| Expected value (placeholder `expected value`) | What must come. Hidden for checks that need none. |
+| ✓ or ✕ | The result against the last response. Point at it to see **Got:** and the value, or the reason it failed. |
+| Trash (**Delete**) | Removes the row. |
+
+### Results while you edit
+
+When the request has a response, each active row shows ✓ or ✕ against it as you type, without sending again. It uses the current values of the variables. This lets you fix a check before the next send. A row you turned off shows no mark.
+
+## Quick checks
+
+Next to **Quick:**, three chips add a common check with one click:
+
+| Chip | Check it adds | When it appears |
+|---|---|---|
+| **status is 200** (with the status of the last response) | `res.status` **equals** that status | Only when there is a response |
+| **takes less than 1 s** | `res.responseTime` **is less than** `1000` | Always |
+| **answers JSON** | `res.headers.content-type` **contains** `json` | Always |
+
+The chips add a new row every time you click them. Change the row afterwards like any other.
+
+## The expected value
+
+Luvin reads what you write before comparing. Spaces before and after are ignored.
+
+| You write | Luvin compares with |
+|---|---|
+| `200`, `-1`, `3.5`, `1e3` | A number (`1e3` is `1000`) |
+| `true`, `false` | True or false |
+| `null` | `null` |
+| `"200"` | The text `200` |
+| `'Red T-shirt'` | The text `Red T-shirt`, without the quotes |
+| `Red T-shirt` | The text as written |
+| `["clothes","sale"]` | A list |
+| `{"weight":200}` | An object |
+| `[clothes` (not valid JSON) | The text as written |
+| Nothing | An empty text |
+
+For **matches (regex)**, the value is the regular expression itself, as written: do not put quotes around it.
+
+### Variables in the expected value
+
+The expected value accepts `{{variables}}`: environment variables, saved values and the values this same response just saved. They are replaced first, and then the result is read as above. So `{{pokemonId}}`, saved as `25`, is compared as the number `25`.
+
+In the results, the replaced value appears in parentheses after the one you wrote: `{{pokemonId}}` (25). If the variable does not exist, it stays as `{{pokemonId}}` and the check compares with that text, so it fails.
+
+The expression (**From the response**) does not accept variables. Only the expected value does.
+
+## When checks run
+
+| Where | What happens |
+|---|---|
+| **Send** | Every active check runs on every response. |
+| The runner | Each request runs its checks. A request passes only if every check passed. |
+| A load test of requests | A request with a failed check counts as failed. |
+| A workflow run | These checks do not run. Workflow steps use success criteria: see [Success and errors](/design/success-and-errors/). |
+| No response | If the request failed before getting a response (timeout, connection error), no check runs. |
+
+Every check runs, even if an earlier one failed. The order of the rows only changes the order of the results.
+
+### A request without checks
+
+When you send it alone, nothing is marked: you read the status yourself. In the runner, an error status (`400` or more) counts as a failure. If an error is what you expect, add a check such as `res.status` **equals** `404`.
+
+## Common checks
+
+| To make sure… | From the response | Check | Expected value |
+|---|---|---|---|
+| It was created | `res.status` | **equals** | `201` |
+| It answered with any success | `res.status` | **is less than** | `300` |
+| The id came back | `res.body.id` | **exists** | |
+| The list is not empty | `res.body.items` | **is not empty** | |
+| There are exactly 3 items | `res.body.items.length` | **equals** | `3` |
+| The error explains why | `res.body.error` | **contains** | `not found` |
+| A header is present | `res.headers.x-request-id` | **exists** | |
+| It answers in time | `res.responseTime` | **is at most** | `800` |
+| The order is the one you created | `res.body.id` | **equals** | `{{orderId}}` |
+| The email looks right | `res.body.email` | **matches (regex)** | `^[^@]+@[^@]+$` |
+
+## Troubleshooting
+
+| What you see | Why | What to do |
+|---|---|---|
+| **They are not numbers** | **is greater than** and the like need numbers on both sides, and one is a text or is missing | Check the expression with the preview, or use **equals** |
+| **Got: (missing)** | The expression reads nothing in the response | See [What a missing path gives](/requests/check-expressions/#what-a-missing-path-gives) |
+| **equals** fails although **Got:** shows the same | Upper and lower case, spaces, or the order of a list or of the fields of an object | See [Compare values](/requests/check-operators/#compare-values) |
+| **The regular expression is not valid** | The pattern has an error, such as an unclosed `(` | Fix the pattern; test it without quotes |
+| The expected value shows `{{orderId}}` without a value in parentheses | The variable does not exist yet | Send first the request that saves it |
+| No ✓ or ✕ next to the rows | The request has no response yet, or the row is turned off | Send it, or tick the row |
+
+## Related
+
+<CardGrid>
+  <LinkCard title="The checks, one by one" href="/requests/check-operators/" />
+  <LinkCard title="Response expressions" href="/requests/check-expressions/" />
+  <LinkCard title="Read the check results" href="/requests/check-results/" />
+  <LinkCard title="Save values from a response" href="/requests/save-variables/" />
+</CardGrid>

@@ -1,0 +1,86 @@
+---
+title: Ajustes de red
+description: Cómo envía los requests la app de escritorio y dónde cambiarlo en Preferencias, con el tiempo de espera, el tamaño de la respuesta, SSL, redirecciones, cookies, el proxy y los certificados.
+sidebar:
+  order: 10
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Los ajustes de red dicen cómo envía Luvin los requests: cuánto espera, qué tan grande puede ser una respuesta, en qué certificados confía, si sigue las redirecciones y por qué proxy sale. Cámbialos cuando tu empresa usa un proxy, cuando una API pide un certificado de cliente (mTLS), cuando un servidor de pruebas tiene un certificado autofirmado, o cuando una API es lenta o responde con un archivo grande.
+
+<Aside type="note" title="Solo en la app de escritorio">
+Todo lo de esta página vale para la app de escritorio, salvo **Cookies automáticas**. En el navegador, los requests salen con la configuración del navegador: el grupo **Requests** dice *Solo en la app de escritorio: en el navegador los requests salen con la configuración del navegador.*, sus opciones quedan desactivadas, y **Certificados** y **Proxy** no aparecen.
+</Aside>
+
+## Dónde están
+
+Todos están en **Preferencias**. Ábrelas con el ícono de engranaje, abajo a la izquierda, o con ⌘, (Ctrl+,). Mira [Preferencias](/es/get-started/preferences/).
+
+| Sección de Preferencias | Ajustes | Lee |
+|---|---|---|
+| **General**, grupo **Requests** | **Tiempo máximo de espera**, **Tamaño máximo de la respuesta**, **Verificar certificados SSL**, **Seguir redirecciones**, **Máximo de redirecciones**, **Cookies automáticas** | [Ajustes de los requests](/es/get-started/network-requests/) |
+| **Proxy** | **Usar el proxy del sistema**, **Respetar HTTP_PROXY, HTTPS_PROXY y NO_PROXY**, **Usar un proxy propio**, con su servidor, su autenticación y **Excepciones** | [Proxy](/es/get-started/network-proxy/) |
+| **Certificados** | **Certificados CA** y **Certificados de cliente** | [Certificados](/es/get-started/network-certificates/) |
+
+![Preferencias abierto en General, con las secciones Certificados y Proxy a la izquierda y el grupo Requests: Tiempo máximo de espera, Tamaño máximo de la respuesta, Verificar certificados SSL, Seguir redirecciones, Máximo de redirecciones y Cookies automáticas](/media/es/preferences.webp)
+
+Cada cambio se aplica al instante; no hay botón para guardar. Los campos de números y de texto se guardan al salir del campo o al pulsar Enter.
+
+## Ejemplo: la API de una tienda detrás del proxy de la empresa
+
+Tu empresa envía todo el tráfico por `proxy.empresa.com:8080`, que pide usuario y contraseña. El servidor de pruebas de la tienda, `api.shop.test`, pide un certificado de cliente. Un mock local responde en `localhost:4010`.
+
+<Steps>
+
+1. Abre **Preferencias** y haz clic en **Proxy**.
+2. Enciende **Usar un proxy propio**.
+3. En **Servidor proxy**, deja `http`, escribe `proxy.empresa.com` y el puerto `8080`.
+4. Enciende **Autenticación del proxy** y escribe el **Usuario** y la **Contraseña**.
+5. Arriba, **Requests HTTPS** y **Requests HTTP** ahora dicen `proxy.empresa.com:8080 · proxy propio`.
+6. Haz clic en **Certificados** y después en **Agregar certificado**. Escribe `api.shop.test` en **Host**, elige **CRT + KEY**, elige los dos archivos y haz clic en **Agregar**.
+7. Envía un request a `https://api.shop.test/orders`. Sale por el proxy y lleva el certificado. El globo junto a la respuesta, **Red**, muestra el proxy en su fila **Proxy**.
+
+</Steps>
+
+Los requests a `localhost:4010` no pasan por el proxy: `localhost` y `127.0.0.1` siempre van directo.
+
+## Qué usa cada parte de Luvin
+
+| | Proxy | Verificación SSL y CA | Certificados de cliente | Tiempo, tamaño y redirecciones |
+|---|---|---|---|---|
+| Requests HTTP y GraphQL, el runner, las ejecuciones de workflows, **Try it out** y los requests del token de OAuth 2.0 | Propio, del sistema o variables de entorno | Sí | Sí | Sí |
+| Requests gRPC | Solo un proxy `http` | Sí, con TLS | Sí, con TLS | No |
+| Requests WebSocket y la ventana de inicio de sesión de OAuth 2.0 | Propio o del sistema (no las variables de entorno) | Sí | No | No |
+
+El detalle de cada uno está en [Proxy](/es/get-started/network-proxy/#qué-sale-por-el-proxy) y [Certificados](/es/get-started/network-certificates/#dónde-se-usan-los-certificados).
+
+## Cuándo se aplica un cambio
+
+Desde el request siguiente. Un request que ya va en camino, por ejemplo durante la ejecución de un workflow, termina con los ajustes con que empezó.
+
+## Dónde se guardan
+
+Los ajustes son de este equipo, no de un workspace: no están en tus archivos ni en git, y cada persona del equipo pone los suyos. Luvin los guarda en un archivo `settings.json` en su carpeta de datos. La contraseña del proxy y las passphrases de los certificados se cifran con los demás secretos de la app, nunca en ese archivo.
+
+## Errores y dónde mirar
+
+| El request falla con | Lee |
+|---|---|
+| *La API no respondió en 30 s, el tiempo máximo de Preferencias → General…* | [Tiempo de espera](/es/get-started/network-requests/#tiempo-máximo-de-espera) |
+| *La respuesta pesa más de 50 MB, el máximo de Preferencias → General…* | [Tamaño de la respuesta](/es/get-started/network-requests/#tamaño-máximo-de-la-respuesta) |
+| *El certificado del servidor no es de confianza (…)* | [Verificación SSL](/es/get-started/network-requests/#verificar-certificados-ssl) y [Certificados CA](/es/get-started/network-certificates/#certificados-ca) |
+| *El proxy rechazó el usuario o la contraseña (407)…* | [Autenticación del proxy](/es/get-started/network-proxy/#autenticación-del-proxy) |
+| *No se pudo salir por el proxy … (…)* | [Problemas con el proxy](/es/get-started/network-proxy/#solución-de-problemas) |
+| *No se pudo leer el archivo de certificado …*, *El archivo … no es un certificado o una clave válida…* | [Problemas con los certificados](/es/get-started/network-certificates/#solución-de-problemas) |
+| *La passphrase del certificado de cliente no es correcta (…)* | [La passphrase](/es/get-started/network-certificates/#la-passphrase) |
+| *No se pudo conectar con la API (…)* | [Ayuda de conexión](/es/dev-tools/connection-help/) |
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Ajustes de los requests" href="/es/get-started/network-requests/" />
+  <LinkCard title="Proxy" href="/es/get-started/network-proxy/" />
+  <LinkCard title="Certificados" href="/es/get-started/network-certificates/" />
+  <LinkCard title="Preferencias" href="/es/get-started/preferences/" />
+</CardGrid>

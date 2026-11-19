@@ -1,0 +1,104 @@
+---
+title: Confirma antes de mandar carga
+description: La confirmación que pide cada prueba de rendimiento, el paso extra para ambientes que parecen producción, qué te hace confirmar otra vez, y buenas prácticas antes de mandar carga.
+sidebar:
+  order: 16
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Una prueba de rendimiento manda cientos o miles de requests en poco tiempo. Antes de empezar, Luvin te pide confirmar a dónde van, para que una prueba de carga nunca llegue por accidente a la API equivocada.
+
+<Aside type="caution" title="Solo contra tus propias APIs">
+Nunca ejecutes una prueba de rendimiento contra una API pública ni contra una API que no es tuya. Usa un ambiente tuyo, o un mock server.
+</Aside>
+
+## Ejemplo: confirma una prueba contra staging
+
+<Steps>
+1. Configura la carga. Mira [Pruebas de rendimiento](/es/runner/performance/).
+2. Arriba de **Iniciar prueba de rendimiento**, lee el recuadro: *Voy a mandar muchas requests al ambiente «staging».* El botón está apagado.
+3. Revisa que `staging` sea el ambiente que quieres.
+4. Marca la casilla. **Iniciar prueba de rendimiento** se enciende.
+5. Púlsalo.
+</Steps>
+
+## El recuadro de confirmación
+
+El recuadro está arriba de **Iniciar prueba de rendimiento**, en ámbar. Su texto nombra el ambiente: *Voy a mandar muchas requests al ambiente «…».*
+
+Si lo elegido crea, cambia o borra datos, el recuadro agrega cuántos: *1 de lo elegido crea, cambia o borra datos: se va a repetir muchas veces.*
+
+| Prueba de | Qué cuenta como modificar datos |
+|---|---|
+| **Requests** | Cada request marcado con el método POST, PUT, PATCH o DELETE. |
+| **Workflows** | Cada workflow marcado con pasos que crean, cambian o borran datos, los mismos que muestran la etiqueta **modifica datos**. |
+
+Una prueba de workflows que crea pedidos crea un pedido por cada vuelta de cada usuario: cientos en un minuto. Usa datos de prueba, o un mock server.
+
+## Ambientes que parecen producción
+
+Cuando el nombre del ambiente parece de producción, el recuadro se pone rojo y pide más: *«…» parece producción. Escribe su nombre para confirmar:*
+
+<Steps>
+1. Marca la casilla.
+2. En el campo de abajo, escribe el nombre del ambiente exactamente, con las mismas mayúsculas y minúsculas. Los espacios en los extremos no importan.
+3. **Iniciar prueba de rendimiento** se enciende.
+</Steps>
+
+![El recuadro rojo de confirmación, marcado, para el ambiente production: avisa que 1 de lo elegido crea, cambia o borra datos, pide escribir su nombre, con production escrito en el campo, y el botón Iniciar prueba de rendimiento encendido](/media/es/runner-perf-confirm.webp)
+
+Un nombre parece de producción cuando tiene una de estas palabras sola, en mayúsculas o minúsculas: `prod`, `production`, `producción`, `produccion`, `prd` o `live`.
+
+| Nombre del ambiente | Parece producción |
+|---|---|
+| `prod`, `Production`, `PRD` | Sí |
+| `shop-live`, `prod eu`, `Producción` | Sí: los guiones y los espacios separan palabras. |
+| `preprod`, `products`, `prod_eu` | No: la palabra es parte de una más larga. |
+| `staging`, `local`, `qa` | No |
+
+Aunque un nombre no parezca de producción, puede serlo. Lee el nombre en el recuadro cada vez.
+
+## Qué te hace confirmar otra vez
+
+La confirmación vale para lo que confirmaste. Se borra, y el botón vuelve a apagarse, cuando cambias:
+
+| Cambio | Confirmar otra vez |
+|---|---|
+| El ambiente | Sí |
+| Los requests o workflows marcados, o su orden | Sí |
+| **Usuarios virtuales** | Sí |
+| **Duración** | Sí |
+| **Forma de la carga** | Sí |
+| **Carga inicial (usuarios)** | Sí |
+| Los marcadores de las fases | No |
+| **Pausa entre vueltas (ms)** | No |
+| **Pasar la prueba si…** | No |
+| El archivo de datos | No |
+
+También se borra cada vez que sales de la configuración. **Ejecutar de nuevo…**, en los resultados, abre la configuración a propósito: una prueba de rendimiento nunca vuelve a empezar sin una nueva confirmación.
+
+## Cuando el botón para empezar sigue apagado
+
+**Iniciar prueba de rendimiento** queda apagado cuando:
+
+- la confirmación no está marcada, o el nombre de un ambiente que parece producción no está escrito exactamente;
+- ningún request está marcado, o ningún workflow tiene un caso que repetir contra la API real;
+- hay otra ejecución del mismo tipo en curso.
+
+## Buenas prácticas
+
+- **Empieza de a poco.** Una primera prueba de 5 usuarios durante 30 segundos muestra si todo responde, antes de mandar más.
+- **Usa tu propio ambiente, o un mock server.** Un mock server responde sin tocar tu API. Mira [Mock servers](/es/mocks/overview/).
+- **Revisa las credenciales.** Una prueba sin credenciales solo mide respuestas 401. En una prueba de workflows, la configuración te avisa: *Faltan credenciales en «…»: las llamadas que las necesitan responderán 401.*
+- **Evita producción.** Si no tienes otra opción, acuerda un horario con quienes la operan, y empieza con pocos usuarios.
+- **Mira los primeros segundos.** Si la tasa de error sube de inmediato, pulsa **Detener**: no tiene sentido esperar hasta el final.
+- **Recuerda de dónde sale la carga.** Es tu equipo: decenas o un centenar de usuarios. Con más usuarios que eso, puedes medir más a tu equipo que a tu API.
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Pruebas de rendimiento" href="/es/runner/performance/" />
+  <LinkCard title="Formas de la carga" href="/es/runner/load-profiles/" />
+  <LinkCard title="Mock servers" href="/es/mocks/overview/" />
+</CardGrid>

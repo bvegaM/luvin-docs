@@ -1,0 +1,80 @@
+---
+title: The Runner
+description: What the Runner does, when to use it, and the difference between running requests or workflows and between a functional run and a performance test.
+sidebar:
+  order: 1
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+The **Runner** runs many things in one go: the saved requests of a folder or of the whole collection, or several workflows, in the order you choose, once or many times. Use it to check a whole collection after a change, to repeat a chain of calls with different data, or to see how an API behaves when many people use it at once.
+
+## Example: run the Pokédex workflows
+
+<Steps>
+1. Open the Pokédex example and press ⌘K (Ctrl+K on Windows and Linux).
+2. Type `runner` and choose **Run workflows**. The **Runner** tab opens with **Workflows** selected.
+3. Under **Run order**, the four workflows of the Pokédex are ticked.
+4. Under **Run type**, leave **Functional**. Under **Against**, choose **Simulated**.
+5. Press **Run (n cases)**.
+</Steps>
+
+![The Runner tab on Workflows: the Environment list on local at the top right, the Run order of pokemon.arazzo.yaml with four ticked workflows and their counts of cases, and on the right Run type Functional, Against Real API, Iteration data, Iterations, Settings and the button Run (7 cases)](/media/en/runner-overview.webp)
+
+The results show one row per workflow, with the verdicts of its cases: ✓ for the ones that passed, ✕ for the ones that failed.
+
+## Requests or workflows
+
+At the top of the Runner, **Requests** and **Workflows** choose what it runs.
+
+| | **Requests** | **Workflows** |
+|---|---|---|
+| What runs | The saved requests of a folder or of the collection, in the order you choose. | The workflows of an Arazzo file or of the collection, each with its ticked cases. |
+| Where the calls go | Always to the address of each request, with the active environment. | **Real API** or **Simulated**, as you choose under **Against**. |
+| How data moves | A value that a request saves, like a `token`, is used by the requests after it. | Each workflow moves its data from step to step, as when you press **Run**. |
+| When something passes | A request answers and meets its checks. Without checks, its status is below 400. | A case gets the verdict it expects. A workflow fails when one of its cases fails. |
+| Lists in a response | — | The Runner never asks: it uses the saved rule or the item in the design. |
+| Export | **JSON** with the totals and each request. | — |
+| Pages | [Run requests](/runner/requests/) | [Run workflows](/runner/workflows/) |
+
+Both can use a CSV or JSON file with one row per iteration. See [Data files](/runner/data-files/).
+
+## Functional or performance
+
+Under **Run type**, on the right, you choose how it runs:
+
+| | **Functional** | **Performance** |
+|---|---|---|
+| The question it answers | Does everything still work? | How does the API behave under load? |
+| How many at once | One request or one workflow at a time. | Many virtual users at the same time, up to 500. |
+| How long | A number of **Iterations**, from 1 to 10,000. | A **Duration**, up to 60 minutes. |
+| What you get | A verdict for each request or case, and its details. | Requests per second, response times, error rate and the slowest request. |
+| Against | Requests: their address. Workflows: **Real API** or **Simulated**. | Always the real API of the environment. |
+| Before it starts | Against the **Real API**, workflows that change data ask you to tick a box. | You always confirm the load. A production-looking environment asks you to type its name. |
+| In **History** | Tag **Runner**. | Tag **Performance**. |
+
+See [Performance tests](/runner/performance/).
+
+## When to use which
+
+- **You changed a request or an API.** Run the folder with **Requests** and **Functional**, once. Look at the **Failed** filter.
+- **You want to try many products, users or Pokémon.** Add a data file. Each row is one iteration.
+- **You want to know if your workflows still pass, without calling the API.** Run them with **Workflows**, **Functional** and **Simulated**.
+- **You want to know how fast your API answers with 50 people at once.** Use **Performance** against an environment of your own or a mock server, never against a public API.
+
+## What the Runner never does
+
+- It never stops to ask. A run of the Runner needs nobody watching: a list in a response is chosen by its rule, and a run that fails goes on unless you ask it to stop.
+- It does not send WebSocket requests. They are left out of the list.
+- It does not edit your requests or your workflows. Only three things reach outside the Runner: the variables and cookies a run of requests keeps when its settings say so, the tick of a case (it is the same tick as in the **Cases** tab), and **Remove** on a list rule, which deletes the rule from the Arazzo file.
+
+## In this section
+
+<CardGrid>
+  <LinkCard title="Open the Runner and choose the environment" href="/runner/open-and-environment/" />
+  <LinkCard title="Runs, tabs and history" href="/runner/lifecycle/" />
+  <LinkCard title="Run requests" href="/runner/requests/" />
+  <LinkCard title="Run workflows" href="/runner/workflows/" />
+  <LinkCard title="Data files" href="/runner/data-files/" />
+  <LinkCard title="Performance tests" href="/runner/performance/" />
+</CardGrid>

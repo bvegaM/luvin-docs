@@ -1,50 +1,57 @@
 ---
 title: Preferencias y la interfaz Simple
-description: Cambia el idioma, tu rol, la interfaz (Simple o Completa) y el tema, y lee qué oculta la interfaz Simple.
+description: Cambia el idioma, tu rol, la interfaz (Simple o Completa), el tema, el historial y los ajustes de red, y lee qué oculta la interfaz Simple.
 sidebar:
   order: 9
 ---
 
 import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
 
-**Preferencias** reúne los ajustes que son tuyos, no de un workspace: idioma, rol, interfaz y tema. Ábrelas cuando Luvin muestre demasiado (o muy poco) detalle técnico, o cuando quieras otro idioma u otro tema.
+**Preferencias** reúne los ajustes que son tuyos y de este equipo, no de un workspace: idioma, rol, interfaz, tema, historial y cómo salen los requests a la red. Ábrelas cuando Luvin muestre demasiado (o muy poco) detalle técnico, cuando quieras otro idioma u otro tema, o cuando tu empresa use un proxy o certificados.
 
-![El diálogo de Preferencias con las opciones de idioma, rol, interfaz y tema](/media/es/preferences.webp)
+![El diálogo de Preferencias abierto en General: las secciones a la izquierda, los ajustes de Requests con sus valores por defecto y, debajo, Idioma e Interfaz](/media/es/preferences.webp)
 
 ## Abre Preferencias
 
 <Steps>
 
-1. Haz clic en el ícono de engranaje, abajo a la izquierda de la ventana (la barra de estado).
-2. El diálogo **Preferencias** se abre sobre la app.
-3. Cambia lo que necesites. Cada cambio se aplica al instante; no hay botón para guardar.
+1. Haz clic en el ícono de engranaje, abajo a la izquierda de la ventana (la barra de estado), o pulsa ⌘, (Ctrl+,).
+2. El diálogo **Preferencias** se abre sobre la app, en **General**. Las secciones están a la izquierda.
+3. Cambia lo que necesites. Cada cambio se aplica al instante; no hay botón para guardar. Los campos de texto y de números se guardan al salir del campo o al pulsar Enter.
 4. Pulsa Esc, haz clic en la **✕** o haz clic fuera del diálogo para cerrarlo.
 
 </Steps>
 
 Luvin recuerda cada ajuste en este equipo. No los guarda en tu workspace ni en tus archivos.
 
-## Cada ajuste
+## Las secciones
+
+| Sección | Qué tiene |
+|---|---|
+| **General** | **Requests**, **Aplicación**, **Workspaces** e **Historial** (mira más abajo). |
+| **Tema** | **Sistema**, **Claro** u **Oscuro**. **Sistema** sigue la apariencia de macOS o Windows y cambia sola. |
+| **Atajos** | Los atajos de teclado, en grupos: **General**, **Pestañas** (solo en la app de escritorio) y **Canvas de un workflow**. La lista completa está en [Atajos de teclado](/es/reference/shortcuts/). |
+| **Certificados** | Certificados CA y certificados de cliente. Solo en la app de escritorio. |
+| **Proxy** | Proxy del sistema, variables de entorno y un proxy propio. Solo en la app de escritorio. |
+| **Acerca de** | La versión de Luvin, **Privacidad** y el **Tour guiado**, con **Empezar el tour**. |
+
+En el navegador, **Certificados** y **Proxy** no aparecen: de eso se encarga el navegador.
+
+## General
+
+### Requests
+
+Cómo salen los requests: **Tiempo máximo de espera**, **Tamaño máximo de la respuesta**, **Verificar certificados SSL**, **Seguir redirecciones**, **Máximo de redirecciones** y **Cookies automáticas**. Funcionan en la app de escritorio. En el navegador este grupo dice *Solo en la app de escritorio: en el navegador los requests salen con la configuración del navegador.* y solo se puede cambiar **Cookies automáticas**. Cada uno, con su valor por defecto, se explica en [Ajustes de red](/es/get-started/network/).
+
+### Aplicación
 
 | Ajuste | Opciones | Qué hace |
 |---|---|---|
 | **Idioma** | **Español**, **English** | Cambia todas las etiquetas de la app. La primera vez, Luvin sigue el idioma de tu navegador. |
-| **Tu rol** | **Product Manager / Owner**, **Negocio o partners**, **QA / Testing**, **Desarrollo**, **Arquitectura**, **Otro** | También define la interfaz, como muestra la tabla siguiente. Queda vacío (**—**) hasta que eliges uno. |
 | **Interfaz** | **Completa (desarrollo)**, **Simple (producto)** | Cuánto detalle técnico muestra Luvin. |
-| **Tema** | **Sistema**, **Claro**, **Oscuro** | **Sistema** sigue el de tu sistema operativo. |
+| **Tu rol** | **Product Manager / Owner**, **Negocio o partners**, **QA / Testing**, **Desarrollo**, **Arquitectura**, **Otro** | También define la interfaz, como muestra la tabla siguiente. Queda vacío (**—**) hasta que eliges uno. |
 
-Debajo de los ajustes, el diálogo también muestra:
-
-- **Privacidad**: dónde viven tus datos. En el navegador: *Todo corre en tu navegador. Tu sesión se guarda solo en este equipo, sin credenciales.* En la app de escritorio: *Todo corre en tu equipo. Las peticiones salen de la app, sin pasar por ningún servidor nuestro.* Con un workspace abierto, dice que cada cambio se guarda en los archivos del workspace y que los secretos se cifran en este equipo.
-- **Atajos de teclado**: los tres principales (**⌘Enter**, **⌘K**, **Esc**). La lista completa está en [Atajos de teclado](/es/reference/shortcuts/).
-- **Tour guiado**, con **Empezar el tour**. Consulta [El tour guiado](/es/get-started/guided-tour/).
-- La versión de Luvin, al final.
-
-### El tema, sin abrir Preferencias
-
-El ícono de sol o luna junto al engranaje, en la barra de estado, cambia el tema con un clic. Cada clic pasa al siguiente: **Sistema**, **Claro**, **Oscuro**, y vuelve a **Sistema**. Su tooltip dice el tema actual y el siguiente.
-
-### El rol y la interfaz van juntos
+#### El rol y la interfaz van juntos
 
 Elegir un rol cambia la interfaz. Cambiar solo la interfaz no cambia el rol.
 
@@ -58,6 +65,27 @@ Elegir un rol cambia la interfaz. Cambiar solo la interfaz no cambia el rol.
 | **Otro** | **Completa (desarrollo)** |
 
 La pantalla de bienvenida ofrece la misma elección la primera vez. Consulta [Recorrido por la interfaz](/es/get-started/interface/).
+
+### Workspaces
+
+Solo en la app de escritorio. **Ubicación de los workspaces nuevos** dice dónde se propone crear cada workspace nuevo: `Documentos/Luvin` hasta que haces clic en **Elegir…** y eliges otra carpeta. **Restablecer** vuelve al valor por defecto.
+
+### Historial
+
+| Ajuste | Qué hace |
+|---|---|
+| **Guardar historial** | Encendido por defecto. Guarda los requests que envías y las ejecuciones de workflows, por colección y solo en este equipo. Los secretos del ambiente y las credenciales se guardan tapados. Apágalo y no se guarda nada nuevo. |
+| **Borrar todo el historial** | Borra el historial de todas las colecciones de este equipo. Haz clic en **Borrar historial** y confirma con **Borrar historial** en *¿Borrar el historial de todas las colecciones?* Al terminar dice **Historial borrado**. |
+
+![General más abajo: Idioma, Interfaz y Tu rol en Aplicación, Ubicación de los workspaces nuevos con Elegir…, y Guardar historial y Borrar historial en Historial](/media/es/prefs-general.webp)
+
+## El tema, sin abrir Preferencias
+
+El ícono de sol o luna junto al engranaje, en la barra de estado, cambia el tema con un clic. Cada clic pasa al siguiente: **Sistema**, **Claro**, **Oscuro**, y vuelve a **Sistema**. Su tooltip dice el tema actual y el siguiente.
+
+## Acerca de
+
+**Privacidad** dice dónde viven tus datos. En el navegador: *Todo corre en tu navegador. Tu sesión se guarda solo en este equipo, sin credenciales.* En la app de escritorio: *Todo corre en tu equipo. Las peticiones salen de la app, sin pasar por ningún servidor nuestro. Tu sesión se guarda sin credenciales.* Con un workspace abierto: *Cada cambio se guarda solo en los archivos del workspace. Secretos y credenciales, cifrados en este equipo: nunca en los archivos.* Para **Empezar el tour**, consulta [El tour guiado](/es/get-started/guided-tour/).
 
 ## Ejemplo: una persona de producto abre Pokemon card
 
@@ -108,7 +136,7 @@ El YAML, los inputs, los casos, los ambientes y los contratos son los mismos en 
 <Steps>
 
 1. Abre **Preferencias**.
-2. Junto a **Interfaz**, haz clic en **Simple (producto)** o **Completa (desarrollo)**. La pista bajo el nombre dice qué significa cada una.
+2. En **General**, junto a **Interfaz**, haz clic en **Simple (producto)** o **Completa (desarrollo)**. La pista bajo el nombre dice qué significa cada una.
 3. Mira la app detrás del diálogo: cambia al instante.
 
 </Steps>
@@ -117,6 +145,7 @@ El YAML, los inputs, los casos, los ambientes y los contratos son los mismos en 
 
 <CardGrid>
   <LinkCard title="Recorrido por la interfaz" href="/es/get-started/interface/" />
+  <LinkCard title="Ajustes de red" href="/es/get-started/network/" />
   <LinkCard title="Atajos de teclado" href="/es/reference/shortcuts/" />
   <LinkCard title="Lee los resultados" href="/es/test/results/" />
 </CardGrid>

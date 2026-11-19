@@ -1,0 +1,120 @@
+---
+title: Historial
+description: Qué guarda Luvin de los requests que envías y las ejecuciones que haces, por colección, con sus límites y dónde se guarda, y cómo encontrar una entrada en la barra lateral y en la pestaña Historial.
+sidebar:
+  order: 8.5
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+El historial guarda los requests que envías y las ejecuciones que haces en una colección, con sus resultados. Úsalo para volver a ver una respuesta de hace una hora, para comparar una ejecución con la anterior, o para guardar como ejemplo una respuesta que no guardaste a tiempo.
+
+## Ejemplo: recupera una respuesta
+
+Enviaste **Get pokemon** con `pikachu` y después con `eevee`. Ahora quieres volver a ver la respuesta de `pikachu`.
+
+<Steps>
+1. En la barra lateral, busca la sección **Historial**. Los dos envíos están arriba, cada uno con su status y su hora.
+2. Haz clic en el más antiguo. La pestaña **Historial** se abre en esa entrada.
+3. Lee la respuesta en **Body**, tal como llegó.
+4. Para conservarla, pulsa **Guardar respuesta** y guárdala como ejemplo del request.
+</Steps>
+
+## Qué se guarda
+
+| Tipo | Qué guarda | Cuántos, por colección |
+|---|---|---|
+| Requests | Cada request HTTP, GraphQL o gRPC que envías, con su respuesta. | Los últimos 200. |
+| Ejecuciones de workflows | Cada ejecución de un workflow con al menos un caso terminado: sus casos y sus pasos. | Las últimas 50. |
+| Ejecuciones del runner | Cada ejecución del runner, de requests o de workflows. | Las últimas 50, de los dos tipos juntos. |
+| Pruebas de rendimiento | Cada prueba de carga, con sus métricas. Sin respuestas. | Las últimas 50. |
+
+Cuando un tipo llega a su límite, se borra su entrada más vieja. Los límites son separados: 200 requests no sacan ninguna ejecución.
+
+### Qué no se guarda
+
+- Un request que no se pudo enviar: una variable que no se resuelve, un archivo que no se puede leer, o un error de autorización antes de enviar. Un request enviado que no tuvo respuesta (un error de red, un tiempo agotado) sí se guarda, con **Sin respuesta**.
+- Una ejecución de un workflow cancelada antes de que terminara algún caso.
+- Una ejecución del runner en la que no corrió nada.
+- Las variables del final de una ejecución del runner: tienen valores reales, como tokens.
+- Nada, mientras el historial está apagado. Mira [Apaga y borra el historial](/es/workspaces/history-settings/).
+
+### Contenido muy grande
+
+Lo muy grande se guarda recortado, con `… [recortado]` en el corte:
+
+| Qué | Se guarda hasta |
+|---|---|
+| La respuesta de un request | 256 KB. |
+| El body del request que enviaste | 256 KB. Los bytes de los archivos que enviaste no se guardan. |
+| Cada body de un paso de una ejecución de un workflow | 32 KB. Si la ejecución completa pasa de 4 MB, 2 KB por body. |
+| Cada respuesta de una ejecución del runner | 32 KB. |
+
+La entrada dice entonces *La respuesta era muy grande: se guardó recortada.* (o *Algunas respuestas eran muy grandes: se guardaron recortadas.* en una ejecución).
+
+## Por colección
+
+Cada colección tiene su propio historial. La sección y la pestaña **Historial** muestran el historial de la colección abierta, y lo que envías se guarda en la colección desde la que lo enviaste, aunque cambies de colección antes de que llegue la respuesta. Sin workspace, hay un solo historial.
+
+## Dónde se guarda
+
+El historial queda **en este equipo**, en el almacenamiento de la app (IndexedDB). No se escribe en los archivos del workspace, no va a git y nadie más lo ve. En la versión del navegador, queda en el almacenamiento de ese navegador para el sitio de Luvin.
+
+Los secretos se guardan tapados. Mira [Apaga y borra el historial](/es/workspaces/history-settings/).
+
+## La sección Historial de la barra lateral
+
+La sección **Historial**, al final de la barra lateral, muestra las últimas 5 entradas de la colección abierta. Con un workspace abierto, su título también muestra el nombre de la colección.
+
+| Entrada | Qué muestra |
+|---|---|
+| Un request | Su método (`GET`, `GQL`, `gRPC`…), su nombre, su status y la hora. |
+| Una ejecución de un workflow, del runner o una prueba de rendimiento | Un punto con su resultado, su nombre y la hora. |
+
+Haz clic en una entrada para abrirla en la pestaña **Historial**. **Ver todo** abre la pestaña con todo. Sin entradas, la sección dice *Los requests y ejecuciones aparecerán aquí.*
+
+También puedes pulsar ⌘K (Ctrl+K en Windows y Linux) y elegir la acción **Abrir el historial**, *Requests y ejecuciones anteriores*.
+
+![La sección Historial de la barra lateral con Ver todo y las últimas entradas: una prueba de rendimiento, dos ejecuciones de workflows, POST orders con 201 y GET SKU-103 con 200, cada una con su hora](/media/es/history-sidebar.webp)
+
+## La pestaña Historial
+
+La lista de la izquierda tiene dos partes, cada una con su cantidad:
+
+| Parte | Qué lista |
+|---|---|
+| **Requests** | Los requests que enviaste. Mira [Requests en el historial](/es/workspaces/history-requests/). |
+| **Ejecuciones** | Las ejecuciones de workflows, las del runner (marcadas **Runner**) y las pruebas de rendimiento (marcadas **Rendimiento**). Mira [Ejecuciones en el historial](/es/workspaces/history-runs/). |
+
+Las entradas se agrupan por día: **Hoy**, **Ayer** o la fecha, de la más nueva a la más vieja. Haz clic en una entrada para abrirla a la derecha. Al abrir una parte, se muestra su entrada más nueva.
+
+![La pestaña Historial: Requests y Ejecuciones con sus conteos, Buscar en el historial, los requests enviados Hoy con su status y su hora, y la entrada GET SKU-103 abierta a la derecha](/media/es/history-request.webp)
+
+| Estado | La pestaña dice |
+|---|---|
+| Todavía leyendo el historial | *Cargando…* |
+| Todavía sin requests | *Todavía no hay nada* y *Cada request que envíes en esta colección queda aquí, con su respuesta.* |
+| Todavía sin ejecuciones | *Todavía no hay nada* y *Cada vez que ejecutes un workflow de esta colección, sus resultados quedan aquí.* |
+| El historial está apagado | *El historial está apagado: lo nuevo no se guarda.*, con **Activar**. |
+
+### Busca
+
+Escribe en **Buscar en el historial**. Busca en:
+
+| Tipo | Dónde busca |
+|---|---|
+| Requests | El método, el nombre, la URL y el status. |
+| Ejecuciones de workflows | El nombre y el ambiente. |
+| Ejecuciones del runner | El nombre, el archivo de datos y la palabra `runner`. |
+| Pruebas de rendimiento | El nombre, el ambiente y las palabras `performance` y `rendimiento`. |
+
+Las mayúsculas no importan. Escribe `runner` en **Ejecuciones** para ver solo las del runner. Cuando nada coincide, dice *Nada coincide con la búsqueda.*
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Requests en el historial" href="/es/workspaces/history-requests/" />
+  <LinkCard title="Ejecuciones en el historial" href="/es/workspaces/history-runs/" />
+  <LinkCard title="Apaga y borra el historial" href="/es/workspaces/history-settings/" />
+  <LinkCard title="Privacidad y seguridad" href="/es/reference/privacy/" />
+</CardGrid>

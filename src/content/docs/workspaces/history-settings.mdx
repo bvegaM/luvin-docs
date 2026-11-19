@@ -1,0 +1,100 @@
+---
+title: Turn off and clear history
+description: Turn history off and on, delete one entry, clear the history of a collection or of every collection, and what is masked and what is not.
+sidebar:
+  order: 8.8
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+History is on by default and stays on this device. You decide what stays in it: turn it off while you work with sensitive data, delete one entry, or clear everything.
+
+## Example: work with real data without leaving a trace
+
+You are about to test against an environment with real customer data and do not want those responses in history.
+
+<Steps>
+1. Open **Preferences** (the gear icon at the bottom left, or ⌘, on macOS and Ctrl+, on Windows and Linux). It opens on **General**.
+2. Under **History**, turn off **Save history**.
+3. Send your requests and run your workflows. Nothing new is saved.
+4. When you are done, open the **History** tab and press **Turn on** in the notice at the top of the list.
+</Steps>
+
+## Turn history off and on
+
+| Where | Off | On |
+|---|---|---|
+| **Preferences** → **General** → **History** | Turn off **Save history**. | Turn it on. |
+| The **History** tab | | **Turn on**, in the notice *History is off: new activity is not saved.* |
+
+Under **Save history**, Preferences says *The requests you send and your workflow runs, per collection and only on this computer. Environment secrets and credentials are saved masked.*
+
+While history is off:
+
+- Nothing new is saved: no requests, no runs, no performance tests.
+- What was already saved stays, and you can still open it.
+- The setting applies to every collection.
+
+![The History tab with history off: the notice "History is off: new activity is not saved." with Turn on above the list, and a saved request still open on the right](/media/en/history-off.webp)
+
+## Delete one entry
+
+Open the entry in the **History** tab and press **Delete** at the top. It is removed at once, without asking. The newest entry of the list opens in its place.
+
+## Clear the history of a collection
+
+<Steps>
+1. Open the collection and the **History** tab.
+2. At the bottom of the list, press **Clear history**. It appears only when there are entries.
+3. Luvin asks *Clear all the history of this collection?* Press **Clear history** to confirm, or **Cancel**.
+</Steps>
+
+This removes requests and runs of the open collection. The other collections keep theirs.
+
+## Clear the history of every collection
+
+<Steps>
+1. Open **Preferences** → **General**.
+2. Under **History**, find **Clear all history**: *For every collection on this computer.*
+3. Press **Clear history**. The hint changes to *Clear the history of every collection?*
+4. Press **Clear history** again to confirm, or **Cancel**.
+5. It says *✓ History cleared*.
+</Steps>
+
+## What is masked
+
+Luvin masks secrets before it saves anything, and writes `••••` in their place:
+
+| What | Where it is masked |
+|---|---|
+| The secrets of the active environment | The URL, headers and body that were sent, and the response. |
+| The credentials of the authorization: its secret fields, the `Authorization` header that was sent and an OAuth 2.0 access token | What was sent. |
+| The values a request saves as secret variables | The body, headers and cookies of the response, and the values its checks saw. |
+| The variables at the end of a runner run | Not saved at all. |
+
+A secret is also found when it travels encoded in a URL, such as `ab%2Fcd`. Workflow runs and runner runs are saved with the same secrets masked.
+
+## What is not masked
+
+A response is saved as it arrived. If an API returns personal data in a body, such as a name or an email, and that value is not a secret of the environment, it is in history.
+
+<Aside type="caution">
+Before you work with real personal data, turn history off, or delete the entries afterwards. History stays on this device, but anyone who uses your account on it can open it.
+</Aside>
+
+## Where it is stored
+
+- In the storage of the app on this device (IndexedDB), one history per collection.
+- Not in the workspace files, not in git, and not sent anywhere.
+- In the browser version, in the storage of that browser. Clearing the site data of the browser also clears it.
+
+See [Privacy and security](/reference/privacy/).
+
+## Related
+
+<CardGrid>
+  <LinkCard title="History" href="/workspaces/history/" />
+  <LinkCard title="Preferences" href="/get-started/preferences/" />
+  <LinkCard title="Secrets and what goes into files" href="/authorization/secrets/" />
+  <LinkCard title="Privacy and security" href="/reference/privacy/" />
+</CardGrid>

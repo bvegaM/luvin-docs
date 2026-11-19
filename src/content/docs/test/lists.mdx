@@ -1,6 +1,6 @@
 ---
 title: Choose an item from a list
-description: When a step returns a list and the next steps depend on it, the run pauses so you choose what to test with.
+description: When a step returns a list and the next steps depend on it, the run pauses so you choose what to test with, or a saved rule chooses for you.
 sidebar:
   order: 6
 ---
@@ -13,15 +13,14 @@ Many APIs return lists: the cards of a customer, the products of a catalog. When
 
 ## Example: Pokemon card against the real API
 
-The first step of **Pokemon card** returns two lists that later steps use: `types` (1 item) and `abilities` (2 items). The run pauses twice, one dialog after the other.
+The first step of **Pokemon card** returns two lists that later steps use: `types` (1 item) and `abilities` (2 items). The run pauses once, for `abilities`. With a single item, `types` has nothing to choose, so the run goes on with it.
 
 <Steps>
 1. Choose **Real API** and press **Run**.
-2. In the first dialog, `types` has one item. Press **Continue with this item**.
-3. In the second dialog, `abilities` has two items. Click the one you want and press **Continue with this item**.
+2. The dialog opens for `abilities`, which has two items. Click the one you want and press **Continue with this item**.
 </Steps>
 
-In **Simulation** the dialog only appears when the list has more than one item. For a step-by-step version, see the recipe [Choose an item from a list](/recipes/list-pick/).
+The dialog only appears when the list has two or more items, against the real API and in **Simulation**. For a step-by-step version, see the recipe [Choose an item from a list](/recipes/list-pick/).
 
 ## Choose and continue
 
@@ -72,20 +71,61 @@ When you run several cases, the dialog offers **Use this choice for the other ca
 
 Luvin remembers your last choice and proposes it the next time you run.
 
+## Saved rules for next times
+
+So that the dialog does not ask every time, save a rule. The rule chooses for you in your next runs, and it is what the [Runner](/runner/workflows/) uses, where nobody is there to answer.
+
+<Steps>
+1. Run the case. The dialog opens.
+2. At the bottom, open the list **Next times:** and choose a rule.
+3. Choose the item for this run as always and press **Continue with this item**.
+</Steps>
+
+![The bottom of the dialog with the Next times: list open: Ask me, Use the one in the design, Pick one at random, A different one each iteration and The one where…](/media/en/list-pick-rule.webp)
+
+| Rule | What it chooses |
+|---|---|
+| **Ask me** | Nothing is saved: the dialog asks again. In the Runner, the item in the design is used. |
+| **Use the one in the design** | The item the workflow design points to. |
+| **Pick one at random** | Any item, different each time. |
+| **A different one each iteration** | The first item in the first iteration of the Runner, the second in the second, and so on. When you run several cases by hand, a different one for each case. |
+| **The one where…** | The first item that meets a condition. Choose the **Field**, the **Condition** (**is**, **is not**, **contains**, **is greater than**, **is less than**) and the **Value**. |
+| **All of them** | The whole list. Only when the next steps can take several items. |
+
+The rule is saved in the step of the Arazzo file, under the extension `x-luvin-pick`. Other Arazzo tools ignore it.
+
+```yaml title="shop.arazzo.yaml" {3-8}
+- stepId: getCustomer
+  operationId: getCustomer
+  x-luvin-pick:
+    "#/activeCreditCards":
+      rule: match
+      field: bank
+      op: eq
+      value: Banco Sur
+```
+
+With a saved rule, the dialog no longer appears for that list, in your runs or in the Runner. To delete a rule, press **Remove** next to it under **Picking from lists**, in the workflows Runner. See [Run workflows](/runner/workflows/#picking-from-lists).
+
+### When "The one where…" finds nothing
+
+If no item meets the condition:
+
+- In the Runner, and in a performance test, the step fails with *No item in the list (3) matches the rule: bank is Banco Sur.* The run does not go on with another item as if nothing happened.
+- When you run by hand, the dialog asks you, as if there were no rule.
+
 ## What is recorded
 
 The step that returned the list keeps a note, **Chosen at run time**. For example: *From the list activeCreditCards, the run continued with "Banco Sur" (item 2 of 3).* Below it, the note says which value each parameter received.
 
 ## When the dialog does not appear
 
-- In **Simulation**, if the example has a single item. The response is made up from the contract, so there is nothing to review.
+- If the list has a single item, in any mode. The run goes on with it, and the step keeps a note: *From the list: The list types had a single item ("…"): it was used.*
+- If the step has a saved rule for that list. See [Saved rules for next times](#saved-rules-for-next-times).
+- In the [Runner](/runner/workflows/). It never stops to ask: it uses the saved rule or the item in the design.
 - If the list comes back empty.
 - If no later step uses data from the list.
 - If the step that returns the list failed.
-
-<Aside type="note">
-Against the real API the dialog always appears, also with a single item, so you can see what the service returned.
-</Aside>
 
 **Stop run**, in the dialog, cancels the run.
 
@@ -95,5 +135,6 @@ Against the real API the dialog always appears, also with a single item, so you 
   <LinkCard title="Run" href="/test/run/" />
   <LinkCard title="Read a step result" href="/test/step-results/" />
   <LinkCard title="Simulation" href="/test/simulation/" />
+  <LinkCard title="Run workflows in the Runner" href="/runner/workflows/" />
   <LinkCard title="Choose an item from a list (recipe)" href="/recipes/list-pick/" />
 </CardGrid>

@@ -1,0 +1,158 @@
+---
+title: Routes
+description: Your own routes and the routes of the source, how to write a path with parameters, which route answers a call, and how to override a route of the source.
+sidebar:
+  order: 4
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A route is a method and a path with the response the mock gives, for example `GET /api/v2/pokemon/{idOrName}` answering `200` with a Pokémon. This page explains where the routes come from, how to write a path, and which route answers when several match.
+
+## Example: a Pokémon that does not exist
+
+A mock of the Pokédex contract answers every name with the Pikachu example. You want `missingno` to answer `404`.
+
+<Steps>
+1. Open the mock and stay in the **Routes** tab.
+2. Under **Your routes**, press **New route**. A route `GET /` with status `200` opens for editing.
+3. In **Path**, write `/api/v2/pokemon/missingno`. In **Status**, write `404`.
+4. In **Body**, write `{"detail": "Not found."}`.
+5. Call `http://127.0.0.1:4010/api/v2/pokemon/missingno`. The mock answers `404` with that body. `pikachu` still answers `200`.
+</Steps>
+
+Your route wins for two reasons: your own routes go first, and its path has more fixed parts than `/api/v2/pokemon/{idOrName}`.
+
+## The Routes tab
+
+The **Routes** tab has two groups. The number on the tab counts the active routes of both.
+
+| Group | What it holds |
+|---|---|
+| **Your routes** | The routes you write. *They win over the source ones.* With none, it says *No routes of your own. Add one or override one below to change its response.* |
+| **From the collection** | *The saved examples of each request.* One row per example. |
+| **From** *contract* | *Every documented response, with its example or data built from the schema.* One row per documented status of each operation. |
+
+With **Only your routes** there is no second group. Below the group of the source, a tip says *To ask for another response of the same route, send the x-mock-response-code header (for example 404) or x-mock-response-name with its name.*
+
+![The From shop.openapi.yaml group of the Routes tab: each row with its method, path, status, operationId and Override; the 404 and 422 rows say with x-mock-response-code, and a tip below explains how to ask for them](/media/en/mocks-alt-response.webp)
+
+### A row of the source
+
+| Part | Example |
+|---|---|
+| Method | `GET` |
+| Path | `/api/v2/pokemon/{idOrName}` |
+| Status | `404` |
+| Where it comes from | The request and the example (`Get pokemon · 200 - Get pokemon`), or the `operationId` (`getPokemon`). |
+| Hints | *with x-mock-response-code: 404* when it is not the response by default. *answers 401 without credentials* when the operation needs credentials. |
+| **Override** | *Copy it as your own route to change its response.* |
+
+### A row of your routes
+
+Each row shows the **Active** checkbox, the method, the path, the status and the name. Click the row to unfold its fields, and click it again to fold it. **Delete** removes the route at once, without asking.
+
+## Write your own route
+
+<Steps>
+1. Under **Your routes**, press **New route**. It starts as `GET /`, status `200`, header `content-type: application/json` and body `{}`, and opens for editing.
+2. Choose the **Method**: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, `OPTIONS`, or **Any** for every method.
+3. Write the **Path** (see the next section). Luvin adds the first `/` if you leave it out.
+4. Set the response: **Status**, **Delay (ms)**, **Name**, **Headers (one per line)** and **Body**. See [Responses](/mocks/responses/).
+</Steps>
+
+![An own route open for editing under Your routes, with its checkbox ticked: Method GET, Path /v1/promotions, Status 200, Delay empty (The mock’s), Name Weekly promotions, a content-type header and a JSON body](/media/en/mocks-own-route.webp)
+
+Each change applies at once to a running mock, except **Headers**, which applies when you leave the field.
+
+Untick **Active** to keep a route without answering with it. An inactive route does not count on the tab and is skipped when a call arrives.
+
+## How to write a path
+
+| You write | It matches | It does not match |
+|---|---|---|
+| `/api/v2/pokemon/missingno` | `/api/v2/pokemon/missingno`, `/API/v2/Pokemon/MissingNo`, `/api/v2/pokemon/missingno/` | `/api/v2/pokemon/missingno/extra` |
+| `/api/v2/pokemon/:idOrName` | `/api/v2/pokemon/25`, `/api/v2/pokemon/eevee` | `/api/v2/pokemon`, `/api/v2/pokemon/eevee/forms` |
+| `/api/v2/pokemon/{idOrName}` | The same as `:idOrName`. | |
+| `/api/v2/pokemon/{{idOrName}}` | The same as `:idOrName`. | |
+| `/files/*` | `/files/a.txt`, `/files/2026/a.txt` | `/files` |
+| `/` | `/` | Any other path. |
+
+- A parameter (`:name`, `{name}` or `{{name}}`) takes one part of the path, between two `/`, and never an empty one. Its value is decoded: `mr%20mime` becomes `mr mime`.
+- `*` takes the rest of the path, slashes included.
+- Uppercase does not matter, and neither does a final `/`.
+- The query is ignored: `/api/v2/pokemon?limit=5` matches `/api/v2/pokemon`.
+
+You can use the value of a parameter in the response, for example `{{request.path.idOrName}}`. See [Values from the request](/mocks/templates/).
+
+## Which route answers
+
+When a call arrives, the mock keeps the active routes whose method and path match:
+
+- The method must be the same, or the route must be **Any**. A `HEAD` call needs a `HEAD` or **Any** route: a `GET` route does not answer it.
+- The path must match as in the table above.
+
+If several remain, it sorts them:
+
+<Steps>
+1. Your own routes go before the routes of the source.
+2. Then the path with more fixed parts. `/pokemon/missingno` (two fixed parts) beats `/pokemon/:idOrName` (one).
+3. Then the path with more parts.
+4. Then a route with a method beats one with **Any**.
+</Steps>
+
+The first one answers. If it is a route of the source with several responses, the mock picks one: the one you ask for with a header, or the one by default. If the call has no credentials and the operation needs them, it answers its `401`. See [Responses](/mocks/responses/) and [Credentials and errors](/mocks/auth-and-errors/).
+
+If no route matches, the mock answers `404` with `"error": "mock_not_found"`.
+
+### Example: who answers
+
+A Pokédex mock from the contract, with one own route `GET /api/v2/pokemon/missingno` answering `404`:
+
+| Call | Who answers |
+|---|---|
+| `GET /api/v2/pokemon/pikachu` | The source route `/api/v2/pokemon/{idOrName}`, `200`. |
+| `GET /api/v2/pokemon/MissingNo` | Your route, `404`. Uppercase does not matter. |
+| `GET /api/v2/pokemon?limit=5` | The source route of `listPokemon`, `200`. The query is ignored. |
+| `POST /api/v2/pokemon/pikachu` | No route: `404` `mock_not_found`. The contract has no `POST` there. |
+| `HEAD /api/v2/pokemon/pikachu` | No route: `404` `mock_not_found`. |
+| `GET /pokemon/pikachu` | No route: the path of the contract starts with `/api/v2`. |
+
+<Aside type="caution">
+Your own routes go first even when their path is less specific. An own route `GET /api/v2/*` answers every `GET` under `/api/v2`, also the ones the source has. Untick **Active** when you no longer need it.
+</Aside>
+
+## Override a route of the source
+
+You cannot edit a route of the source: it comes from an example or from the contract. To change what it answers, override it.
+
+<Steps>
+1. In the group of the source, find the row and press **Override**.
+2. A copy appears under **Your routes**, open, with the same name, method, path, status, headers and body.
+3. Change what you need, for example the body.
+</Steps>
+
+From then on your copy answers that method and path, because your own routes go first. The original row stays in the group of the source. Untick **Active** in your copy, or delete it, to get the source response back.
+
+<Aside type="note">
+While your copy is active, `x-mock-response-code` and `x-mock-response-name` do not reach the responses of the source on that path: your route answers first, whatever the headers say. Untick **Active** in your copy when you want to ask for them again.
+</Aside>
+
+## Troubleshooting
+
+| What you see | Why, and what to do |
+|---|---|
+| The **Log** says **No route (404)**. | No active route matches. Check the method, the start of the path (`/api/v2` for the Pokédex contract), and that the route is **Active**. |
+| A `HEAD` call gets `404`. | Add a route with method `HEAD` or **Any**. |
+| Your route answers instead of the source. | Your own routes go first. Untick **Active** in yours. |
+| The source answers instead of your route. | Your route is inactive, or its method or path does not match the call. Compare them with the path in the **Log**. |
+| `/files` gets `404` but `/files/a.txt` works. | `/files/*` needs at least the `/` after `files`. Add a route for `/files`. |
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Responses" href="/mocks/responses/" />
+  <LinkCard title="Values from the request" href="/mocks/templates/" />
+  <LinkCard title="Create a mock server" href="/mocks/create/" />
+  <LinkCard title="The Log of a mock" href="/mocks/log/" />
+</CardGrid>

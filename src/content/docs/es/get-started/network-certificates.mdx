@@ -1,0 +1,162 @@
+---
+title: Certificados
+description: Confía en los certificados de tu empresa con un archivo CA, y envía certificados de cliente (mTLS) en formato CRT + KEY o PFX a los hosts que los piden, en la app de escritorio.
+sidebar:
+  order: 13
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+La sección **Certificados** de **Preferencias** tiene dos partes. **Certificados CA** hace que Luvin confíe en servidores firmados por tu empresa, como una API interna o un proxy que inspecciona HTTPS. **Certificados de cliente** deja que Luvin demuestre quién eres ante APIs que piden TLS mutuo (mTLS), comunes en bancos y proveedores de pago.
+
+<Aside type="note" title="Solo en la app de escritorio">
+En el navegador, la sección **Certificados** no aparece: los requests usan los certificados del navegador y del sistema operativo.
+</Aside>
+
+## Ejemplo: el servidor de staging de una tienda
+
+La API de staging de la tienda, `https://api.shop.test`, tiene un certificado firmado por la autoridad propia de la empresa y pide a cada cliente un certificado. TI te dio tres archivos: `company-ca.pem`, `client.crt` y `client.key`, cuya clave tiene passphrase.
+
+<Steps>
+
+1. Abre **Preferencias** (⌘, o Ctrl+,) y haz clic en **Certificados**.
+2. Enciende **Certificados CA**. En **Archivo PEM**, haz clic en **Elegir archivo** y elige `company-ca.pem`. Su nombre aparece junto al botón.
+3. Haz clic en **Agregar certificado**. Se abre un formulario.
+4. En **Host**, escribe `api.shop.test`. Deja **Puerto** vacío.
+5. En **Formato**, deja **CRT + KEY**.
+6. Junto a **Archivo CRT**, haz clic en **Elegir archivo** y elige `client.crt`. Junto a **Archivo KEY**, elige `client.key`.
+7. Escribe la **Passphrase** de la clave.
+8. Haz clic en **Agregar**. La lista muestra `api.shop.test` y `CRT: client.crt · KEY: client.key · con passphrase`.
+9. Envía `GET https://api.shop.test/orders`. El servidor confía en ti y Luvin confía en el servidor. El globo junto a la respuesta, **Red**, muestra el **Emisor del certificado**.
+
+</Steps>
+
+## Certificados CA
+
+Enciéndelo para confiar en certificados firmados por una autoridad que no es pública: la de tu empresa, la de un ambiente de pruebas o la de un proxy que inspecciona HTTPS. Se suman a las autoridades públicas de siempre; no las reemplazan.
+
+<Steps>
+
+1. Abre **Certificados** y enciende **Certificados CA**.
+2. En **Archivo PEM**, haz clic en **Elegir archivo**.
+3. Elige el archivo. El diálogo muestra archivos `.pem`, `.crt` y `.cer`, y puede mostrar todos los archivos.
+4. El nombre del archivo aparece junto al botón, que ahora dice **Cambiar**. La ✕ (**Quitar el archivo**) lo quita.
+
+</Steps>
+
+- El archivo puede tener uno o varios certificados en formato PEM (`-----BEGIN CERTIFICATE-----`). Un archivo DER, el `.cer` binario habitual en Windows, también sirve.
+- Luvin revisa el archivo al elegirlo. Un archivo que no es un certificado se rechaza en el acto: *«company.txt» no es un certificado (PEM o DER).*
+- Mientras **Certificados CA** está encendido sin archivo, dice *Elige el archivo: puede tener uno o varios certificados en formato PEM.*
+- No necesitas apagar **Verificar certificados SSL**: con la CA, la verificación pasa.
+
+Si el archivo deja de estar, o deja de ser un certificado, los requests siguen con las autoridades de siempre. Un servidor que solo tu CA podía avalar falla entonces, y el error nombra el archivo: *No se pudo leer el archivo de certificado … Revisa que siga existiendo o vuelve a elegirlo en Preferencias → Certificados.*
+
+## Certificados de cliente
+
+Para APIs que piden mTLS. Cada certificado se envía solo a su host y su puerto.
+
+<Steps>
+
+1. Abre **Certificados** y haz clic en **Agregar certificado**. Se abre un formulario **Agregar certificado**.
+2. En **Host** (obligatorio), escribe el dominio o la IP, sin `https://` ni ruta, por ejemplo `api.shop.test`. Si pegas `https://`, se quita.
+3. Deja **Puerto** vacío para el `443`, o escribe otro, como `8443`.
+4. En **Formato**, elige **CRT + KEY** o **PFX / P12**.
+5. Elige los archivos con **Elegir archivo**.
+6. Si la clave o el PFX tienen passphrase, escríbela en **Passphrase**.
+7. Haz clic en **Agregar**. O en **Cancelar** para cerrar el formulario sin guardar.
+
+</Steps>
+
+![La sección Certificados con el formulario Agregar certificado abierto: host api.example.com, puerto 443, formato CRT + KEY, Elegir archivo para el archivo CRT y el archivo KEY, Passphrase, y Agregar y Cancelar](/media/es/prefs-certificates.webp)
+
+### Los formatos
+
+| Formato | Archivos | Extensiones en el diálogo |
+|---|---|---|
+| **CRT + KEY** | *Dos archivos: el certificado (.crt, .pem o .cer) y su clave privada (.key).* | **Archivo CRT**: `.crt`, `.pem`, `.cer`. **Archivo KEY**: `.key`, `.pem` |
+| **PFX / P12** | *Un solo archivo con el certificado y la clave (.pfx o .p12), el habitual en Windows.* | **Archivo PFX**: `.pfx`, `.p12` |
+
+Luvin revisa cada archivo al elegirlo:
+
+| Archivo | Tiene que ser | Si no |
+|---|---|---|
+| **Archivo CRT** | Un certificado, PEM o DER | *«server.txt» no es un certificado (PEM o DER).* |
+| **Archivo KEY** | Una clave privada en PEM (`-----BEGIN PRIVATE KEY-----`, `-----BEGIN RSA PRIVATE KEY-----`…) | *«client.crt» no es una clave privada en PEM.* |
+| **Archivo PFX** | Un archivo PKCS#12 | *«client.pem» no es un archivo PFX / P12.* |
+
+Al hacer clic en **Agregar**, el formulario también revisa que tenga lo necesario: *Host no válido: escribe solo el dominio o la IP, sin ruta.*, *Elige el archivo CRT y el KEY.* o *Elige el archivo PFX.*
+
+### Qué requests reciben el certificado
+
+Luvin envía como mucho un certificado de cliente por request: el primero de la lista cuyo host y puerto coinciden con la dirección.
+
+- Solo las direcciones `https` (y gRPC con TLS) reciben un certificado de cliente.
+- **Host** tiene que ser el mismo host de la dirección. Las mayúsculas y minúsculas no importan.
+- Un `*` vale por exactamente una parte del nombre: `*.shop.test` coincide con `api.shop.test`, pero no con `shop.test` ni con `v2.api.shop.test`.
+- **Puerto** vacío es `443`. Tiene que ser el puerto de la dirección, que es `443` cuando la dirección no lleva uno.
+
+| Certificado (Host, Puerto) | Dirección | ¿Se envía? |
+|---|---|---|
+| `api.shop.test`, vacío | `https://api.shop.test/orders` | Sí |
+| `api.shop.test`, vacío | `https://api.shop.test:8443/orders` | No: el puerto es 8443 |
+| `api.shop.test`, `8443` | `https://api.shop.test:8443/orders` | Sí |
+| `*.shop.test`, vacío | `https://pay.shop.test/charge` | Sí |
+| `*.shop.test`, vacío | `https://shop.test/` | No: `*` necesita una parte antes de `.shop.test` |
+| `api.shop.test`, vacío | `http://api.shop.test/orders` | No: no es `https` |
+
+Para usar un certificado en `shop.test` y en sus subdominios, agrégalo dos veces: una con `shop.test` y otra con `*.shop.test`.
+
+### La passphrase
+
+- Se guarda cifrada en este equipo, con los demás secretos de la app, nunca en el archivo de ajustes.
+- El botón del ojo (**Mostrar**, **Ocultar**) te deja revisar lo que escribiste.
+- Si es incorrecta, los requests a ese host fallan con *La passphrase del certificado de cliente no es correcta (…). Quita el certificado en Preferencias → Certificados y vuelve a agregarlo con la passphrase correcta.* También puedes editar el certificado y escribir la correcta.
+
+<Aside type="caution">
+Si este equipo no puede guardar contraseñas cifradas (Linux sin llavero del sistema), el campo dice *Este equipo no puede guardar contraseñas cifradas (falta el llavero del sistema): no se guardará.* Sin la passphrase, una clave que la tiene no se puede usar.
+</Aside>
+
+### La lista de certificados
+
+Cada certificado aparece con su host (y su puerto, si tiene) y sus archivos: `CRT: client.crt · KEY: client.key` o `PFX: client.pfx`, más **con passphrase** cuando la tiene.
+
+| Para | Haz |
+|---|---|
+| Cambiar un certificado | Haz clic en el lápiz (**Editar el certificado de api.shop.test**). Se abre el formulario **Editar certificado** con sus valores. Deja **Passphrase** vacía para conservar la actual (*Déjala vacía para conservar la actual*). Haz clic en **Guardar**. |
+| Quitar un certificado | Haz clic en la papelera (**Quitar el certificado de api.shop.test**). También se borra su passphrase. |
+| Cambiar el orden | Quítalo y vuelve a agregarlo: un certificado nuevo va al final, y gana el primero que coincide. |
+
+### Los archivos se quedan donde están
+
+Luvin recuerda la ruta de cada archivo, no una copia, y solo lee archivos que elegiste en el diálogo. Si mueves o borras un archivo, la lista lo marca: *El archivo ya no está en su lugar: vuelve a elegirlo.* Si cambia y deja de ser válido: *El archivo ya no es un certificado válido: vuelve a elegirlo.* Edita el certificado y vuelve a elegir el archivo.
+
+## Dónde se usan los certificados
+
+| Parte de Luvin | Certificados CA | Certificados de cliente |
+|---|---|---|
+| Requests HTTP y GraphQL, el runner, las ejecuciones de workflows, **Try it out**, los requests del token de OAuth 2.0 | Sí | Sí |
+| Requests gRPC con TLS | Sí | Sí, según el host y el puerto de la dirección gRPC |
+| Un proxy propio con el protocolo `https` | Sí, para confiar en el proxy | No |
+| Requests WebSocket y la ventana de inicio de sesión de OAuth 2.0 | Sí: se acepta un servidor firmado por tu CA | No |
+
+Mira [Requests gRPC](/es/requests/grpc/), [Requests WebSocket](/es/requests/websocket/) y [Proxy](/es/get-started/network-proxy/).
+
+## Solución de problemas
+
+| Lo que ves | Por qué | Qué hacer |
+|---|---|---|
+| *El certificado del servidor no es de confianza (UNABLE_TO_VERIFY_LEAF_SIGNATURE)* o `SELF_SIGNED_CERT_IN_CHAIN` | El servidor usa un certificado de una autoridad que Luvin no conoce | Agrega esa autoridad como CA. Solo para un servidor de pruebas, apaga **Verificar certificados SSL** |
+| *No se pudo leer el archivo de certificado …* | El archivo de la CA o del certificado de cliente se movió o se borró | Vuelve a elegirlo |
+| *El archivo … no es un certificado o una clave válida…* | El archivo cambió y ya no es válido | Elige otro |
+| *La passphrase del certificado de cliente no es correcta (…)* | La passphrase no abre la clave o el PFX | Edita el certificado y escribe la correcta |
+| La API rechaza la llamada como si no llevara certificado | Ningún certificado coincidió: otro host, otro puerto, `http`, o `*` usado para el dominio solo | Compara **Host** y **Puerto** con la dirección. Mira [Qué requests reciben el certificado](#qué-requests-reciben-el-certificado) |
+| No se usa el certificado del host correcto | Otro certificado más arriba en la lista también coincide | Quita el otro, o haz más específico su **Host** |
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Ajustes de red" href="/es/get-started/network/" />
+  <LinkCard title="Ajustes de los requests" href="/es/get-started/network-requests/" />
+  <LinkCard title="Proxy" href="/es/get-started/network-proxy/" />
+  <LinkCard title="Ayuda de conexión" href="/es/dev-tools/connection-help/" />
+</CardGrid>

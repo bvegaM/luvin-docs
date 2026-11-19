@@ -1,0 +1,113 @@
+---
+title: The tour workspace
+description: The workspace the guided tour creates, what it contains, what the tour changes when a section starts, how to delete it, the marks of the sections you have seen and the Simple interface.
+sidebar:
+  order: 5.2
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+The guided tour never touches your own work. It runs in a workspace of its own, **Pokédex (tour)**, that it creates the first time and opens again each time you start a section. You can try things in it freely and delete it when you are done.
+
+## What the tour creates
+
+The workspace is kept in the storage of the browser, or of the desktop app, not in a folder on disk.
+
+| What | Created by | Contents |
+|---|---|---|
+| Workspace **Pokédex (tour)** | Any section, the first time | The collections below. |
+| Collection **Pokédex** | Any section, the first time | `pokemon.arazzo.yaml`, `pokeapi.openapi.yaml`, `pokedex-events.asyncapi.yaml` and the documentation of the collection. |
+| Collection **PayPal** | **Contracts and environments** | `paypal.arazzo.yaml`, `paypal-orders.openapi.yaml`, `paypal-events.asyncapi.yaml`, the environment **Sandbox**, the authorization of its workflows and its documentation. |
+| A request to `pokeapi.co/api/v2/pokemon/pikachu` | **Requests** | A variable and two checks, set by the tour. |
+| Mock **PokéAPI mock** and environment **Mock · PokéAPI mock** | **Mock servers** | The mock answers with the examples of the contract. The environment is created in the desktop app. |
+| Workflow runs | Every section that runs something | They stay in the **History** of the collection. |
+
+Each of these is created once. When you start a section again, the tour finds what is already there and uses it.
+
+## What happens when a section starts
+
+<Steps>
+1. The tour closes what an earlier step left open: Dev Tools, the search or the new request dialog.
+2. If the workspace open is not **Pokédex (tour)**, Luvin closes it. Then it opens **Pokédex (tour)** again, with what you did in it, or creates it if it does not exist anymore.
+3. It creates **Pokédex**, and **PayPal** when the section needs it, if they are missing.
+4. It opens the collection the section uses.
+5. If the mock of the tour is running, it stops it. If the active environment is a mock environment, whose name starts with **Mock ·**, it selects your usual environment again.
+</Steps>
+
+Your own workspace is not changed. It is closed, as when you open another one. To go back to it after the tour, open it from the top bar. See [Create and open a workspace](/workspaces/create-and-open/).
+
+## What the tour leaves selected
+
+The tour changes some settings the way you would, and does not put them back:
+
+| Setting | Changed by | Left as |
+|---|---|---|
+| Run mode, next to **Run** | **Contracts and environments** (the first time), **Mock servers** in the browser, **Runner and performance**, **History and Dev Tools** | **Simulation** |
+| Run mode | **Mock servers** in the desktop app | **Real API** |
+| Active environment | **Mock servers** in the desktop app | **Mock · PokéAPI mock**, until the next section starts |
+| Variables and checks of the pikachu request | **Requests** | The variable `pokemonId` and the two checks of the tour |
+| The mock | **Mock servers** in the desktop app | Running, until the next section starts |
+
+## Delete the tour workspace
+
+You can delete it from the section picker or like any other workspace. Both delete its collections and its secrets. This cannot be undone.
+
+From the section picker, while **Pokédex (tour)** is open:
+
+<Steps>
+1. Click **Tour** in the status bar.
+2. Click **Delete the tour workspace**, at the bottom of the picker. It only shows while the tour workspace is open.
+3. The picker asks **Delete the tour workspace with everything you did in it?**. Click **Yes, delete it**, or **Cancel** to keep it.
+</Steps>
+
+![The section picker with Delete the tour workspace at the bottom, below the seven sections; Workflows shows ✓ and View again](/media/en/tour-sections.webp)
+
+From the top bar: open the menu of the workspace and choose **Delete workspace…**. The confirmation reads **Delete “Pokédex (tour)”? Its collections and secrets are deleted from this browser. This can’t be undone.**
+
+The next section you start creates a new, clean **Pokédex (tour)**.
+
+## Sections you have seen
+
+The section picker marks the sections you finished: **✓** instead of the number, and **View again** instead of **View**. The first section loses its badge **Start here** once it has its ✓.
+
+| How the section ends | Marked as seen |
+|---|---|
+| **Next: …**, **All sections** or **Finish**, on the last card | Yes |
+| **Exit tour**, on any card before the last | No |
+| The → key on the last card, which closes the tour | No |
+
+Luvin remembers the marks on this computer, apart from the workspace: deleting **Pokédex (tour)** keeps them. **View again** starts the section from its first step, as the first time.
+
+## In the Simple interface
+
+The **Simple (product)** interface hides the technical tools. The tour adapts:
+
+| | Standard | Simple |
+|---|---|---|
+| **History and Dev Tools** | 5 steps | 4 steps: the **Dev Tools** step is skipped, because Simple has no Dev Tools |
+| Names of steps on cards and in the tree | `getWeakness` | **Get weakness** |
+| Everything else | The same sections and steps | The same |
+
+See [Preferences and the Simple interface](/get-started/preferences/).
+
+## Troubleshooting
+
+**The card says Getting ready… for a long time.** The step is waiting for a run or for the screen. A run waits up to 20 seconds, a request up to 15. If it does not finish, the card shows its explanation anyway.
+
+**The run of Workflows fails with network errors.** That section calls the real PokéAPI when **Real API** is selected. Without internet, choose **Simulation** next to **Run**, then press **Back** and **Next** to run the step again.
+
+**Capture order fails when I repeat Contracts and environments.** The tour only switches to **Simulation** the first time it creates **PayPal**. If **Real API** is selected, the run goes to the real PayPal sandbox with an empty `clientId`. Choose **Simulation** next to **Run**, then **Back** and **Next**.
+
+**The card is in the middle and nothing is highlighted.** The step could not find its area, for example because a panel did not open. The explanation still shows. Press **Back** and **Next** to try again.
+
+**The tour moved while I was typing.** The ← and → keys move the tour even when you are typing in a field. Use **Exit tour** first if you want to type in the app.
+
+**My workspace closed.** The tour closes the open workspace to open its own. Nothing is lost. Open your workspace again from the top bar.
+
+## Related
+
+<CardGrid>
+  <LinkCard title="The guided tour" href="/get-started/guided-tour/" />
+  <LinkCard title="Tour sections" href="/get-started/guided-tour-sections/" />
+  <LinkCard title="Create and open a workspace" href="/workspaces/create-and-open/" />
+</CardGrid>

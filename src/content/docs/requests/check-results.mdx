@@ -1,0 +1,142 @@
+---
+title: Read the check results
+description: What the chip next to the status, the Checks tab of the response and the runner say about checks and saved variables, and where to find them again in the history.
+sidebar:
+  order: 12
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+After a send, Luvin tells you in three places whether the response met its checks and which values it saved: a chip next to the status, the **Checks** tab of the response and, while you edit, a mark on each row. This page explains each one, and how the same results look in the runner and the history.
+
+## Example: a check that fails
+
+**Get pokemon** (`GET https://pokeapi.co/api/v2/pokemon/pikachu`) has four checks. One of them expects the wrong type:
+
+| From the response | Check | Expected value |
+|---|---|---|
+| `res.status` | **equals** | `200` |
+| `res.body.name` | **equals** | `pikachu` |
+| `res.body.types[0].type.name` | **equals** | `fire` |
+| `res.responseTime` | **is less than** | `1000` |
+
+<Steps>
+
+1. Press **Send**. Next to the status `200 OK`, a red chip says **✕ 1 of 4 checks failed**.
+2. Click the chip. The **Checks** tab of the response opens. Its number, `1`, is red.
+3. Read the third line: ✕, `res.body.types[0].type.name`, **equals**, `fire`, and **Got: electric**, the value that came.
+4. Fix the expected value in the **Checks** tab of the request: write `electric`. The row turns ✓ at once, against the last response.
+5. Press **Send** again. The chip says **✓ 4 of 4 checks**, in green.
+
+</Steps>
+
+## The chip next to the status
+
+It appears when the request has checks, or when a variable could not be saved. Click it to open the **Checks** tab of the response.
+
+| Situation | The chip says | Color |
+|---|---|---|
+| Every check passed | **✓ 4 of 4 checks** | Green |
+| Some checks failed | **✕ 2 of 9 checks failed** | Red |
+| Every check passed, but a variable was not saved | **✓ 4 of 4 checks**, and its tooltip says **Not saved: \{\{token\}\}** | Red |
+| No checks, and a variable was not saved | **✕ Not saved: \{\{token\}\}** | Red |
+| No checks, and every variable was saved | No chip | |
+
+A failed check is shown next to the status on purpose: a green `200` does not tell the whole story.
+
+![The status row of a response: 200 OK and the red chip ✕ 1 of 4 checks failed, then the time and the size](/media/en/response-checks-chip.webp)
+
+## The Checks tab of the response
+
+It appears after a send when the request has checks or saves variables. Its number is the failed checks, in red, or all the checks, in green, when every one passed. With only variables, it has no number.
+
+### The checks
+
+One line per active check, in the order of the rows:
+
+| Part | Example |
+|---|---|
+| ✓ or ✕ | ✕ |
+| The expression | `res.body.types[0].type.name` |
+| The check | **equals** |
+| The expected value, as you wrote it | `fire` |
+| What the `{{variables}}` became, in parentheses, only if it had any | (25) |
+| For a failed check: what came, or why it failed | **Got: electric** |
+
+Long values are cut. The reasons a check fails without a **Got:**:
+
+| Message | Meaning | See |
+|---|---|---|
+| **Got: (missing)** | The expression read nothing | [What a missing path gives](/requests/check-expressions/#what-a-missing-path-gives) |
+| **They are not numbers** | A number check got a text or nothing | [Compare numbers](/requests/check-operators/#compare-numbers) |
+| **The regular expression is not valid** | The pattern of **matches (regex)** has an error | [matches (regex)](/requests/check-operators/#matches-regex) |
+| **Can’t read the path “…”** | The path has a part Luvin does not understand | [Expressions Luvin cannot read](/requests/check-expressions/#expressions-luvin-cannot-read) |
+| **Use res.status, res.body…, res.headers.name or res.responseTime** | The expression does not start like one of those | [What you can read](/requests/check-expressions/#what-you-can-read) |
+
+### Saved variables
+
+Below the checks, **Saved variables** lists each active variable of the request:
+
+- `{{pokemonId}}` and the value it saved, such as `25`. A secret one shows `••••`.
+- `{{token}}` and **was not in the response**, when its expression read nothing. That variable was not saved and keeps its previous value.
+
+![The Checks tab of the response, with 1 in red: three checks with ✓ and the stock check of the first item, is greater than 50, with ✕ and Got: 40; below, Saved variables lists firstSku with SKU-100 and total with 10](/media/en/response-checks-tab.webp)
+
+## While you edit
+
+In the **Checks** tab of the request, each active row shows ✓ or ✕ against the last response, and changes as you type. Point at the mark to read **Got:** and the value, or the reason. In the **Variables** tab, each row shows the value it would save. Neither saves anything: only a send does.
+
+## When there is no response
+
+If the request fails before a response arrives (the API did not answer in time, the connection failed, a certificate was rejected), the response area shows the error instead. No check runs, no variable is saved and there is no chip.
+
+## In the runner
+
+**Run requests (runner)**, in the ⋯ menu of **Requests** in the sidebar, and **Run folder (runner)**, in the menu of a folder, send several requests in order.
+
+**Before you start**, the list of requests marks the ones with checks or variables with their number of checks, such as **4 checks**. Its tooltip says **Has checks or saves variables**.
+
+**During and after the run:**
+
+- Each request is a row with ✓ or ✕, its method, name, URL, status (or **No response**), time, size and the checks that passed out of its total, such as `3/4`, in green or red.
+- A request passes if it got a response and every check passed. With no checks, it passes if its status is below `400`.
+- Click a row to open it: the error, if there was one, the same list of checks and **Saved variables** as in the response, the response itself (if **Keep responses to see them** is on) and **Open the request**.
+- A failed request without checks says *Without checks, an error status counts as a failure. Add a check (for example, status is 404) if it is expected.*
+- The totals add up the checks that passed out of all of them, under **checks**, such as `11/12`.
+- **All**, **Failed** and **Passed** filter the rows.
+- **Stop if a request fails** stops the run at the first request that fails: *It fails when it does not answer, when a check fails or, without checks, when the status is an error.*
+
+What a request saves goes to the next requests of the run. See [Save values from a response](/requests/save-variables/#in-the-runner) and [Run requests](/runner/requests/).
+
+### In a load test
+
+In a load test of requests, a request with a failed check counts as failed, even with a `200`. Its error is the expression and the name of the check in the file, such as `res.body.name eq`. See [Read a performance test](/runner/performance-results/).
+
+## In the history
+
+Every send and every run goes to the history of the collection, with its check results:
+
+- A request opens with the same response view: the chip next to the status and the **Checks** tab of the response.
+- A runner run keeps the result of each request, with its checks and saved variables.
+- Secret values are masked as `••••`, also inside the body and the headers.
+
+See [History](/workspaces/history/).
+
+## Troubleshooting
+
+| What you see | Why | What to do |
+|---|---|---|
+| The chip is red but every line has ✓ | A variable was not saved | Look under **Saved variables** for **was not in the response** |
+| **Got:** shows the expected value but the check failed | Text versus number is not the problem (they are equal); it is case, spaces, the order of a list, or text `"true"` versus `true` | See [Compare values](/requests/check-operators/#compare-values) |
+| The **Checks** tab of the response is not there | The request has no active checks or variables, or it got no response | Add a check, or look at the error |
+| The runner marks a `404` as failed | It has no checks, so an error status is a failure | Add `res.status` **equals** `404` |
+| The runner marks a `200` as failed | One of its checks failed | Open the row to see which |
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Check the response" href="/requests/checks/" />
+  <LinkCard title="The checks, one by one" href="/requests/check-operators/" />
+  <LinkCard title="Run requests" href="/runner/requests/" />
+  <LinkCard title="History" href="/workspaces/history/" />
+</CardGrid>

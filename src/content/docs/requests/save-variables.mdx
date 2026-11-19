@@ -1,0 +1,178 @@
+---
+title: Save values from a response
+description: Save a token, an id or any value of a response as a {{variable}}, mark it as secret, and use it in the next requests, the runner and workflows.
+sidebar:
+  order: 8
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+The **Variables** tab of a request saves values from its response, such as a token or the id of what you just created. Each value becomes a `{{name}}` you can use in the next requests, in the runner and in workflow runs. Use it whenever one call needs something the previous call returned.
+
+## Example: log in to a shop and reuse the token
+
+A shop API answers its login with a token:
+
+```http
+POST https://api.shop.test/login
+
+{ "access_token": "eyJhbGciOiJIUzI1NiJ9.c2hvcA.k3y", "expires_in": 3600 }
+```
+
+<Steps>
+
+1. Open the request **Log in** and click the **Variables** tab.
+2. Click **Variable**. A row appears, ticked, with an empty name and the expression `res.body.`.
+3. Write the name `token`.
+4. Complete the expression: `res.body.access_token`.
+5. Click the lock icon of the row. It stays highlighted: the value is now **Secret**.
+6. Press **Send** (⌘/Ctrl + Enter). In the response, the **Checks** tab lists `{{token}}` under **Saved variables**, with the value `••••`.
+7. Open the request **List orders**, `GET https://api.shop.test/orders`, and use `{{token}}` as the Bearer token in its **Authorization** tab. Press **Send**: it goes out with the real token, and the token does not appear in its **Sent request** tab.
+
+</Steps>
+
+## The row, field by field
+
+Each row of the **Variables** tab reads, from left to right:
+
+| Part | What it is |
+|---|---|
+| Checkbox (**Active**) | Ticked, the row saves its value on every send. Unticked, it is kept in the request but does nothing. |
+| Name (placeholder `name`) | The name of the variable, used as `{{name}}`. |
+| ← | Reads as "takes its value from". |
+| Expression (**From the response**, placeholder `res.body.token`) | What to read from the response. New rows start with `res.body.`. See [Response expressions](/requests/check-expressions/). |
+| Preview | What the expression reads in the last response, while you type (see below). |
+| Lock (**Secret**) | Masks the value outside the response. Its tooltip says **Mark as secret (a token, for example)**, or **Secret: its value is not shown (masked in what was sent and in the history)** when it is on. |
+| Trash (**Delete**) | Removes the row. |
+
+The number on the **Variables** tab counts the rows that are active and have a name.
+
+![The Variables tab of GET products with two active rows: firstSku, which reads the sku of the first item, previewing SKU-100, and total, which reads res.body.total, previewing 10; each has its lock and trash icons, and the + Variable button is below](/media/en/request-vars.webp)
+
+### Name rules
+
+| Rule | Example |
+|---|---|
+| Letters without accents, digits, `_`, `.` and `-` | `token`, `order_id`, `user.id`, `x-trace` |
+| Any other character is removed as you type | Typing `order id` leaves `orderid`; `año` leaves `ao` |
+| Upper and lower case are different names | `token` and `Token` are two variables |
+| Write the name without braces | `pokemonId`, not `{{pokemonId}}` |
+
+If two active rows have the same name and both find a value, the lower row wins.
+
+### The live preview
+
+When the request already has a response, each row shows what its expression reads in it, while you type:
+
+| The preview shows | Meaning |
+|---|---|
+| The value, such as `25` or `pikachu` | The expression works. Long values are cut; point at them to read more. |
+| `••••` | The row is secret. |
+| **not in the last response** | The expression is valid but that field is not in the response. Check the spelling and the case. |
+| **invalid expression** | Luvin cannot read the expression. Point at it to see why, for example **Use res.status, res.body…, res.headers.name or res.responseTime**. |
+| Nothing | The request has no response yet. Send it once. |
+
+### Add a field with one click
+
+With a response, **From the last response:** offers up to eight fields of the body as chips, such as `id` or `name`. Click one to add a row with that name and its expression.
+
+- It offers fields with a text, a number or `true`/`false` (not `null`, lists or objects).
+- It looks at the first level of the body and one level down: `res.body.species.name` is offered as `name`.
+- A field whose expression is already in a row is not offered again.
+- The name of the chip is the name of the field. If two chips would be called `name`, rename one of the rows.
+
+## What value is saved
+
+| The expression reads | Saved as | Example |
+|---|---|---|
+| A text | The text, as it came | `pikachu` |
+| A number | The number as text | `25` |
+| `true` or `false` | `true` or `false` | `true` |
+| `null` | The text `null` | `null` |
+| A list or an object | JSON text | `{"name":"pikachu","url":"https://pokeapi.co/api/v2/pokemon-species/25/"}` |
+| Nothing (the field is not there) | Not saved: the variable keeps its previous value | |
+
+Every value is text. When you compare it later in a check, `25` still equals the number `25`. See [The checks, one by one](/requests/check-operators/#compare-values).
+
+## Secret values
+
+Mark a row as secret for tokens, keys and any value you do not want on screen or in files. Its value is shown as `••••`:
+
+| Where | Masked |
+|---|---|
+| The preview of the **Variables** tab | Yes |
+| **Saved variables**, in the **Checks** tab of the response | Yes |
+| **Saved now**, in the **Variables** tab | Yes, and its tooltip does not show it |
+| The **Sent request** of the next requests that use it | Yes |
+| The history: the request, its response and the runner runs | Yes, also inside the body and the headers |
+| **Network**, in Dev Tools | Yes |
+| The results and reports of a workflow run that uses it | Yes |
+| The body of the response that brought it, while you look at it | No: it shows the response as it arrived |
+
+<Aside type="caution">
+Values shorter than 4 characters are not masked, because hiding them would hide single letters in any text. A secret is for real tokens and keys.
+</Aside>
+
+The value is used as it is: only what is shown changes.
+
+## Where the saved values live
+
+Saved values are kept **in memory** while the collection is open.
+
+- They are **not written to the environment** or to any file, so a token never ends up in git.
+- They are lost when you close the app, close the collection or open another one.
+- They belong to the collection, not to a request: what **Log in** saves, every other request of the collection sees.
+
+The **Variables** tab of any request lists them under **Saved now**, with the note **from every request in the collection**. Each line shows `{{name}}` and its value (point at it to read it whole, except for secrets). Click **Clear all** to forget every value. The list appears only when there is at least one saved value.
+
+![The Variables tab after a send: the Saved now box, from every request in the collection, lists firstSku with SKU-100 and total with 10, with Clear all](/media/en/request-vars-runtime.webp)
+
+## Use them
+
+Write `{{name}}` in any later request: in the URL, the params, the headers, the authorization, the body, or the GraphQL query and variables. When you type `{{`, the suggestions include the names your requests save, even before the first send, so `{{token}}` is not marked as unknown.
+
+### Which value wins
+
+When a saved value and another variable have the same name:
+
+| Where | Order, from weakest to strongest |
+|---|---|
+| A single send | Environment variable → saved value |
+| The runner | Environment variable → saved value at the start → column of the data file → value saved during the run |
+| A workflow run | Environment variable → saved value → column of the data file of the runner |
+
+A saved value always wins over an environment variable with the same name. To go back to the environment value, click **Clear all**.
+
+### In workflows
+
+A workflow run sees the saved values on top of the environment's variables: in the base URLs, the credentials, the inputs and the data of each case. A secret saved value is masked in the results. Workflows have their own way of passing data between steps: see [Connect data between steps](/design/wire-data/).
+
+The same applies to **Try it out** in a contract. See [Try one operation](/contracts/try-it-out/).
+
+### In the runner
+
+**Run requests (runner)** and **Run folder (runner)** send several requests in order. What one request saves goes to the next ones of the same run, also from one iteration to the next.
+
+**Keep variable values at the end** (on by default) leaves the values saved during the run for the collection, under **Saved now**. Values equal to the environment, or equal to a column of the data file, are not kept. Turn it off to drop them when the run ends.
+
+In a load test, each virtual user keeps its own saved values, and none of them stays for the collection. See [Run requests](/runner/requests/).
+
+## Troubleshooting
+
+| What you see | Why | What to do |
+|---|---|---|
+| The request sends `{{token}}` literally | The value is not saved: the first request was not sent since the app was opened, **Clear all** was clicked, or another collection was opened | Send the request that saves it again |
+| **was not in the response** after a send | The field is not there: a typo, a different case (`res.body.Id`), or the API answered an error with another body | Open the **Body** tab of the response and copy the exact path |
+| The value is `{"name":…}` instead of a text | The expression points to an object | Add the field: `res.body.species.name` |
+| An old value is used | The last response did not have the field, so the variable kept its previous value | Look for **was not in the response** in the **Checks** tab of the response |
+| A character disappears from the name | Only letters without accents, digits, `_`, `.` and `-` are allowed | Use `order_id` instead of `order id` |
+| The environment value is ignored | A saved value with the same name wins | Click **Clear all**, or use another name |
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Response expressions" href="/requests/check-expressions/" />
+  <LinkCard title="Check the response" href="/requests/checks/" />
+  <LinkCard title="Variables and secrets" href="/environments/variables-and-secrets/" />
+  <LinkCard title="Run requests" href="/runner/requests/" />
+</CardGrid>

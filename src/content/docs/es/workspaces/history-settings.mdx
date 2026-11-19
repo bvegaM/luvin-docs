@@ -1,0 +1,100 @@
+---
+title: Apaga y borra el historial
+description: Apaga y enciende el historial, elimina una entrada, borra el historial de una colección o de todas, y qué va tapado y qué no.
+sidebar:
+  order: 8.8
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+El historial está encendido por defecto y queda en este equipo. Tú decides qué queda en él: apágalo mientras trabajas con datos sensibles, elimina una entrada o bórralo todo.
+
+## Ejemplo: trabaja con datos reales sin dejar rastro
+
+Vas a probar contra un ambiente con datos reales de clientes y no quieres esas respuestas en el historial.
+
+<Steps>
+1. Abre **Preferencias** (el ícono de engranaje abajo a la izquierda, o ⌘, en macOS y Ctrl+, en Windows y Linux). Se abre en **General**.
+2. En **Historial**, apaga **Guardar historial**.
+3. Envía tus requests y ejecuta tus workflows. No se guarda nada nuevo.
+4. Cuando termines, abre la pestaña **Historial** y pulsa **Activar** en el aviso de arriba de la lista.
+</Steps>
+
+## Apaga y enciende el historial
+
+| Dónde | Apagar | Encender |
+|---|---|---|
+| **Preferencias** → **General** → **Historial** | Apaga **Guardar historial**. | Enciéndelo. |
+| La pestaña **Historial** | | **Activar**, en el aviso *El historial está apagado: lo nuevo no se guarda.* |
+
+Debajo de **Guardar historial**, Preferencias dice *Los requests que envías y las ejecuciones de workflows, por colección y solo en este equipo. Los secretos del ambiente y las credenciales se guardan tapados.*
+
+Mientras el historial está apagado:
+
+- No se guarda nada nuevo: ni requests, ni ejecuciones, ni pruebas de rendimiento.
+- Lo que ya estaba guardado se queda, y puedes seguir abriéndolo.
+- El ajuste vale para todas las colecciones.
+
+![La pestaña Historial con el historial apagado: el aviso "El historial está apagado: lo nuevo no se guarda." con Activar sobre la lista, y un request guardado que se sigue abriendo a la derecha](/media/es/history-off.webp)
+
+## Elimina una entrada
+
+Abre la entrada en la pestaña **Historial** y pulsa **Eliminar** arriba. Se borra al momento, sin preguntar. En su lugar se abre la entrada más nueva de la lista.
+
+## Borra el historial de una colección
+
+<Steps>
+1. Abre la colección y la pestaña **Historial**.
+2. Al final de la lista, pulsa **Borrar historial**. Aparece solo cuando hay entradas.
+3. Luvin pregunta *¿Borrar todo el historial de esta colección?* Pulsa **Borrar historial** para confirmar, o **Cancelar**.
+</Steps>
+
+Esto borra los requests y las ejecuciones de la colección abierta. Las demás colecciones conservan los suyos.
+
+## Borra el historial de todas las colecciones
+
+<Steps>
+1. Abre **Preferencias** → **General**.
+2. En **Historial**, busca **Borrar todo el historial**: *El de todas las colecciones de este equipo.*
+3. Pulsa **Borrar historial**. La ayuda cambia a *¿Borrar el historial de todas las colecciones?*
+4. Pulsa **Borrar historial** otra vez para confirmar, o **Cancelar**.
+5. Dice *✓ Historial borrado*.
+</Steps>
+
+## Qué va tapado
+
+Luvin tapa los secretos antes de guardar nada, y escribe `••••` en su lugar:
+
+| Qué | Dónde se tapa |
+|---|---|
+| Los secretos del ambiente activo | La URL, los headers y el body que se enviaron, y la respuesta. |
+| Las credenciales de la autorización: sus campos secretos, el header `Authorization` que se envió y un token de acceso de OAuth 2.0 | Lo que se envió. |
+| Los valores que un request guarda como variables secretas | El body, los headers y las cookies de la respuesta, y los valores que vieron sus comprobaciones. |
+| Las variables del final de una ejecución del runner | No se guardan. |
+
+Un secreto también se encuentra cuando viaja codificado en una URL, como `ab%2Fcd`. Las ejecuciones de workflows y del runner se guardan con los mismos secretos tapados.
+
+## Qué no va tapado
+
+Una respuesta se guarda tal como llegó. Si una API devuelve datos personales en un body, como un nombre o un email, y ese valor no es un secreto del ambiente, queda en el historial.
+
+<Aside type="caution">
+Antes de trabajar con datos personales reales, apaga el historial, o elimina las entradas después. El historial queda en este equipo, pero cualquiera que use tu cuenta en él puede abrirlo.
+</Aside>
+
+## Dónde se guarda
+
+- En el almacenamiento de la app en este equipo (IndexedDB), un historial por colección.
+- No en los archivos del workspace, no en git, y no se envía a ningún lado.
+- En la versión del navegador, en el almacenamiento de ese navegador. Borrar los datos del sitio en el navegador también lo borra.
+
+Mira [Privacidad y seguridad](/es/reference/privacy/).
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Historial" href="/es/workspaces/history/" />
+  <LinkCard title="Preferencias y la interfaz Simple" href="/es/get-started/preferences/" />
+  <LinkCard title="Secretos y qué va a los archivos" href="/es/authorization/secrets/" />
+  <LinkCard title="Privacidad y seguridad" href="/es/reference/privacy/" />
+</CardGrid>

@@ -1,0 +1,147 @@
+---
+title: Valores del request
+description: Todas las plantillas que una ruta puede usar para responder con valores de la llamada (ruta, query, headers, body, método), qué pasa cuando falta un valor y cómo se escapan en JSON.
+sidebar:
+  order: 6
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Una respuesta fija siempre dice lo mismo. Con plantillas, una ruta responde con valores de la llamada que recibió: el id de la ruta, un parámetro de query, un header o un campo del body. Úsalas cuando tu workflow comprueba que la API responde con lo que envió, como el nombre que pidió.
+
+## Ejemplo: responde con el nombre de la ruta
+
+<Steps>
+1. Agrega la ruta propia `GET /api/v2/pokemon/:idOrName`.
+2. Escribe este **Body**:
+
+   ```json
+   { "name": "{{request.path.idOrName}}", "page": "{{request.query.page}}" }
+   ```
+
+3. Llama a `http://127.0.0.1:4010/api/v2/pokemon/eevee`. El mock responde:
+
+   ```json
+   { "name": "eevee", "page": "{{request.query.page}}" }
+   ```
+</Steps>
+
+`eevee` sale de la ruta. La llamada no traía `page`, así que esa plantilla queda tal como está escrita.
+
+## Escribe una plantilla
+
+Una plantilla es `{{request.` seguido de dónde está el valor, y `}}`: `{{request.path.idOrName}}`. Se permiten espacios dentro de las llaves: `{{ request.path.idOrName }}`.
+
+Debajo de **Body**, una ayuda lista las más comunes: `{{request.path.id}}`, `{{request.query.page}}`, `{{request.headers.x-id}}` y `{{request.body.name}}`.
+
+![Una ruta propia GET /v1/promotions cuyo Body responde "page" con la plantilla request.query.page, y la ayuda debajo de Body que lista las plantillas más comunes](/media/es/mocks-own-route.webp)
+
+## Todas las plantillas
+
+| Plantilla | Valor | Llamada de ejemplo | Resultado |
+|---|---|---|---|
+| `{{request.path.idOrName}}` | El parámetro `:idOrName` (o `{idOrName}`) de la ruta. | `/api/v2/pokemon/eevee` | `eevee` |
+| `{{request.query.limit}}` | El parámetro de query `limit`. | `/api/v2/pokemon?limit=5` | `5` |
+| `{{request.headers.x-request-id}}` | El header `x-request-id`. Las mayúsculas no importan. | `X-Request-Id: abc-1` | `abc-1` |
+| `{{request.body.sku}}` | El campo `sku` del body. | `{"sku": "MUG-01"}` | `MUG-01` |
+| `{{request.body.items.0.sku}}` | Un campo dentro de una lista, por posición desde 0. | `{"items": [{"sku": "MUG-01"}]}` | `MUG-01` |
+| `{{request.body}}` | El body completo. | `{"sku": "MUG-01"}` | `{"sku":"MUG-01"}` |
+| `{{request.query}}` | Todos los parámetros de query, como objeto JSON. | `?limit=5&offset=10` | `{"limit":"5","offset":"10"}` |
+| `{{request.path}}` | Todos los parámetros de la ruta, como objeto JSON. | `/api/v2/pokemon/eevee` | `{"idOrName":"eevee"}` |
+| `{{request.method}}` | El método de la llamada. | `POST /orders` | `POST` |
+
+- Un parámetro de query que aparece dos veces (`?tag=a&tag=b`) da el último valor: `b`.
+- Un header que llega dos veces da los dos valores unidos por `, `.
+- Los valores de la ruta y de la query llegan decodificados: `mr%20mime` es `mr mime`.
+- Un nombre puede tener letras, dígitos, `_`, `-` y `.`. Un parámetro de query como `page[size]` no se puede usar en una plantilla.
+
+## Dónde funcionan
+
+| Parte de la ruta | Plantillas |
+|---|---|
+| **Body** | Sí. |
+| El valor de un header | Sí. |
+| El nombre de un header | No. |
+| **Ruta**, **Status**, **Nombre** | No. |
+
+Funcionan en todas las rutas que responden: tus rutas propias, y también las de la fuente, si un ejemplo guardado tiene una plantilla en su body.
+
+## Cómo se lee el body de la llamada
+
+| La llamada envía | `{{request.body.…}}` lee |
+|---|---|
+| Un `content-type` con `json`, o un body que empieza con `{` o `[` | Los campos del JSON. |
+| `application/x-www-form-urlencoded` | Los campos del formulario: `sku=MUG-01&quantity=2` da `sku` y `quantity`. |
+| Cualquier otra cosa (texto plano, XML, `multipart/form-data`) | Ningún campo. `{{request.body}}` da el texto tal cual. |
+
+El mock lee los primeros 5 MB del body de una llamada.
+
+## En qué se convierte cada valor
+
+| Valor en la llamada | Se escribe como |
+|---|---|
+| Texto | El texto. En un body JSON, escapado (mira abajo). |
+| Un número, `true` o `false` | Tal cual: `2`, `true`. |
+| `null` | `null` |
+| Un objeto o una lista | JSON: `{"color":"red"}`. |
+| Nada (el valor no está en la llamada) | La plantilla queda tal como está escrita. |
+
+### Texto o número en JSON
+
+Las comillas alrededor de una plantilla las pones tú. Ponlas para texto, y no las pongas para números, objetos y listas. Una ruta `POST /cart/items` en la API de una tienda, con este **Body**:
+
+```json
+{
+  "sku": "{{request.body.sku}}",
+  "quantity": {{request.body.quantity}},
+  "options": {{request.body.options}},
+  "method": "{{request.method}}"
+}
+```
+
+y esta llamada:
+
+```json
+{ "sku": "MUG-01", "quantity": 2, "options": { "color": "red" } }
+```
+
+responde:
+
+```json
+{
+  "sku": "MUG-01",
+  "quantity": 2,
+  "options": {"color":"red"},
+  "method": "POST"
+}
+```
+
+## Escape en JSON
+
+Cuando el body de la ruta es JSON (su `content-type` tiene `json`, o no tiene y empieza con `{` o `[`), los valores de texto se escapan. Una `"` o un salto de línea en la llamada no pueden cerrar el texto y agregar campos.
+
+Una ruta `GET /search` con el body `{"q": "{{request.query.q}}"}` y la llamada `/search?q=say%20%22hi%22` responde:
+
+```json
+{"q": "say \"hi\""}
+```
+
+En los headers, los saltos de línea se convierten en espacios. En un body que no es JSON, los valores van tal cual.
+
+## Problemas frecuentes
+
+| Qué ves | Por qué, y qué hacer |
+|---|---|
+| La plantilla queda tal como está escrita. | El valor no está en la llamada, o el nombre es otro. `{{request.path.id}}` no lee una ruta escrita como `:idOrName`. Usa el mismo nombre. |
+| Un campo del body queda tal como está escrito. | La llamada no envía JSON ni un formulario, o el campo está dentro de una lista y necesita su posición: `items.0.sku`. |
+| La respuesta no es un JSON válido. | Una plantilla sin comillas quedó tal cual porque faltaba el valor, o un objeto quedó entre comillas. Revisa las comillas, o envía el valor. |
+| Una plantilla de un header queda tal cual. | El nombre del header en la plantilla tiene un carácter que no se permite, o la llamada no envió ese header. |
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Respuestas" href="/es/mocks/responses/" />
+  <LinkCard title="Rutas" href="/es/mocks/routes/" />
+  <LinkCard title="El Log de un mock" href="/es/mocks/log/" />
+  <LinkCard title="Credenciales y errores" href="/es/mocks/auth-and-errors/" />
+</CardGrid>

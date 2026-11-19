@@ -1,0 +1,109 @@
+---
+title: Load profiles
+description: Set how many virtual users run, for how long and with what shape over time, move each phase on the preview with the mouse or the keyboard, and set the pause between iterations.
+sidebar:
+  order: 14
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+The load profile is the shape of the test over time: all users from the start, users that arrive little by little, a sudden burst, or a rise and a fall. Choose the shape that looks like the moment you want to test, for example the opening of a sale.
+
+## Example: a ramp up to 20 users
+
+<Steps>
+1. In the setup of a performance test, set **Load profile** to **Ramp up**.
+2. Leave **Virtual users** in `20` and **Duration** in `1` **min**.
+3. Read the sentence under the chart: *5 virtual users for 15 s, ramp up to 20 over 15 s, then hold 20 for 30 s, each executing all requests in order.*
+4. Drag the second marker of the chart to the right, until the time under it says `0:40`.
+5. The sentence now says *ramp up to 20 over 25 s, then hold 20 for 20 s*.
+</Steps>
+
+## Virtual users and duration
+
+| Field | Default | Limits |
+|---|---|---|
+| **Virtual users** | 20 | From 1 to 500. A larger number becomes 500. |
+| **Duration** | 1 **min** | From 1 second to 60 minutes. A longer duration becomes 60 minutes. |
+
+- Next to **Duration**, choose the unit: **sec** or **min**. The arrows of the field go 5 seconds or half a minute at a time.
+- The duration is always a whole number of seconds: `1.25` **min** becomes 75 seconds.
+- **Virtual users** is the top of the load. With **Fixed**, all of them run from start to end. With the other profiles, only at the top.
+
+## The profiles
+
+| Profile | Shape | Phases by default | The sentence, with 20 users, 1 min and an initial load of 5 |
+|---|---|---|---|
+| **Fixed** | All users from start to end. | — | *20 virtual users for 1 min, each executing all requests in order.* |
+| **Ramp up** | Starts with the initial load, goes up in a straight line to all users and stays there. | Starts going up at 25 % of the time and arrives at 50 %. | *5 virtual users for 15 s, ramp up to 20 over 15 s, then hold 20 for 30 s, each executing all requests in order.* |
+| **Spike** | Starts with the initial load, jumps to all users at once and drops back. | The spike goes from 40 % to 60 % of the time. | *5 virtual users for 24 s, spike to 20 for 12 s, then back to 5 for 24 s, each executing all requests in order.* |
+| **Peak** | Goes up from the initial load to all users, holds and goes down again. | Arrives at 25 % of the time and starts going down at 75 %. | *Ramp from 5 to 20 virtual users over 15 s, hold 20 for 30 s, then ramp down to 5 over 15 s, each executing all requests in order.* |
+
+In a test of workflows, the sentence ends with *each executing the happy path of the selected workflows.*
+
+Choosing another profile puts its phases back to their defaults.
+
+### Which one to choose
+
+- **Fixed**: a steady load, to measure normal times.
+- **Ramp up**: to see at which number of users the times start to grow.
+- **Spike**: a sudden burst, like a sale that opens at a fixed hour, and whether the API recovers after it.
+- **Peak**: a busy hour that comes and goes.
+
+## Initial load
+
+**Initial load (users)** appears for **Ramp up**, **Spike** and **Peak**. It is how many users there are at the start, and also at the end of **Spike** and **Peak**.
+
+- It starts at 5.
+- It goes from 1 to **Virtual users**. If you lower **Virtual users** below it, it goes down with it.
+
+## The preview
+
+The chart under the fields draws the shape: virtual users over time.
+
+- On the left, the number of users at the top, for example **20 VUs**, and the initial load, for example **5 VUs**, when there is room for both.
+- At the bottom, `0` and the duration, for example **1 min**.
+- Under the chart, the sentence tells the same in words.
+
+## Move the phases
+
+**Ramp up**, **Spike** and **Peak** have two markers on the chart, one where each phase begins and one where it ends. The hint under the chart says *Drag the markers (or use the arrow keys) to move each phase.*
+
+<Steps>
+1. Press on a marker: its handle at the top, or its line.
+2. Drag it left or right. The time appears under it, as `minutes:seconds`, for example `0:40`.
+3. Release. The shape and the sentence change.
+</Steps>
+
+![Set up your performance test with Load profile Peak, 8 virtual users and 24 sec: the preview from 1 to 8 VUs with two markers, the sentence Ramp from 1 to 8 virtual users over 6 s, hold 8 for 12 s, then ramp down to 1 over 6 s, Initial load (users) 1 and the hint about dragging the markers](/media/en/runner-perf-setup.webp)
+
+- The markers move in whole seconds.
+- A marker cannot cross the other one: there is always at least one second between them.
+
+### With the keyboard
+
+<Steps>
+1. Press Tab until a marker has the focus. Screen readers call them **Phase start** and **Phase end**.
+2. Press → or ← to move it one second.
+3. Hold Shift to move it ten seconds at a time.
+</Steps>
+
+## Pause between iterations
+
+**Pause between iterations (ms)** is how long each user waits after an iteration before starting the next one. It is 0 by default: each user starts again at once. The arrows go 100 ms at a time.
+
+With a pause, each user sends fewer requests per second, closer to how a person uses an app. With 0, the test sends as many as your API and your computer allow.
+
+## How users come and go
+
+- When the profile adds users, the new ones start their first iteration.
+- When the profile removes users, each one ends the iteration it is in, then waits.
+- When the time is up, every user stops, and the requests on their way are cut and not counted.
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Performance tests" href="/runner/performance/" />
+  <LinkCard title="Pass criteria" href="/runner/pass-criteria/" />
+  <LinkCard title="The performance chart" href="/runner/performance-chart/" />
+</CardGrid>

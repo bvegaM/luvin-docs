@@ -85,14 +85,72 @@ Para elegir otros archivos, haz clic en **Elegir otros archivos**.
 
 | Se importa | No se importa (el resumen lo lista antes de importar) |
 |---|---|
-| Carpetas y requests, con sus descripciones | **Scripts** (pre-request y tests). Luvin revisa las respuestas con criterios de éxito |
+| Carpetas y requests, con sus descripciones | **Scripts de pre-request**, y la lógica de los scripts que no se puede convertir (mira más abajo) |
 | Ejemplos guardados | Tipos de autorización sin equivalente: esos requests quedan sin autorización |
 | Autorización de la colección, la carpeta y el request | Tipos de body sin equivalente: el body queda vacío |
 | Ambientes y sus variables | Variables con un nombre no válido, y variables desactivadas |
 | Variables de la colección | |
+| Lo común de los scripts que corren después de la respuesta, como variables y comprobaciones (mira más abajo) | |
 
 - Una variable marcada como secreta sigue siendo secreta. Bruno no guarda el valor de sus secretos, así que llegan vacíos: escríbelos de nuevo en el ambiente.
 - Las variables de la colección se agregan a cada ambiente que no las define. Si no llegó ningún ambiente, Luvin crea uno llamado `local`.
+
+### Los scripts pasan a variables y comprobaciones
+
+Luvin no ejecuta scripts. Al importar, lee los scripts que corren después de la respuesta y convierte las líneas comunes en las pestañas **Variables** y **Comprobaciones** de cada request. Mira [Variables y comprobaciones](/es/requests/variables-and-checks/).
+
+| Desde | Qué se convierte |
+|---|---|
+| Postman | El script de **Tests** de cada request |
+| Bruno | Los bloques `vars:post-response` y `assert`, y los scripts `tests` y `script:post-response`, desde la carpeta o desde el `.json` exportado |
+
+Por ejemplo, este test de Postman:
+
+```js
+const jsonData = pm.response.json();
+pm.environment.set("pokemonId", jsonData.id);
+pm.test("Status is 200", function () {
+  pm.response.to.have.status(200);
+});
+pm.test("It is Pikachu", function () {
+  pm.expect(jsonData.name).to.eql("pikachu");
+});
+```
+
+pasa a ser la variable `pokemonId` ← `res.body.id` y dos comprobaciones: `res.status` **es igual a** `200` y `res.body.name` **es igual a** `pikachu`.
+
+Qué convierte Luvin:
+
+| Script | Pasa a ser |
+|---|---|
+| `pm.environment.set("x", …)`, también con `collectionVariables`, `globals` o `variables`; `bru.setVar("x", …)`, `bru.setEnvVar("x", …)` | Una variable `x` |
+| `pm.response.json().id`, `jsonData.id` (después de `const jsonData = pm.response.json()`), `res.body.id`, `res.getBody().id`, `res("id")` | `res.body.id` |
+| `pm.response.code`, `res.status`, `res.getStatus()` | `res.status` |
+| `pm.response.responseTime`, `res.getResponseTime()` | `res.responseTime` |
+| `pm.response.headers.get("X-Id")`, `res.getHeader("X-Id")`, `res.headers["X-Id"]` | `res.headers.x-id` |
+| `pm.response.to.have.status(200)` | `res.status` **es igual a** `200` |
+| `pm.response.to.be.ok` | `res.status` **es mayor o igual a** `200` y **es menor que** `300` |
+| `pm.response.to.have.header("X-Id")` | `res.headers.x-id` **existe** |
+| `pm.response.to.be.json` | `res.headers.content-type` **contiene** `json` |
+| `expect(…).to.eql(…)`, `.to.equal(…)`, `.to.not.equal(…)` | **es igual a**, **no es igual a** |
+| `.to.be.above(…)`, `.to.be.at.least(…)`, `.to.be.below(…)`, `.to.be.at.most(…)` | **es mayor que**, **es mayor o igual a**, **es menor que**, **es menor o igual a** |
+| `.to.include(…)`, `.to.not.include(…)`, `.to.match(/…/)` | **contiene**, **no contiene**, **coincide con (regex)** |
+| `.to.exist`, `.to.not.exist`, `.to.be.null`, `.to.be.empty`, `.to.not.be.empty` | **existe**, **no existe**, **es null**, **está vacío**, **no está vacío** |
+| `.to.be.a("string")`, `"number"`, `"boolean"`, `"array"`, `"object"` | **es texto**, **es número**, **es true/false**, **es una lista**, **es un objeto** |
+| `assert` de Bruno: `res.status: eq 200` | `res.status` **es igual a** `200` (los operadores de Bruno que se llaman igual que una comprobación de Luvin) |
+
+Qué no convierte Luvin:
+
+- **Los scripts de pre-request**, y los scripts de una carpeta o de toda la colección.
+- **Los bloques con condiciones o bucles**: todo lo que está dentro de `if`, `else`, `for`, `while`, `switch`, `try`, `catch` o `do` se omite completo. Una comprobación que solo tenía sentido con una condición («si es un 404, el error dice…») fallaría si no con cada `200`.
+- Cualquier otra línea que Luvin no reconoce.
+
+El resumen de cada colección, antes de importar, te dice las dos cosas:
+
+- *N variable(s) y comprobación(es) convertidas de los scripts (pestañas Variables y Comprobaciones de cada request).*
+- *N script(s) tienen partes que no se pudieron convertir (pre-request o lógica en JavaScript): no se importan, porque Luvin no ejecuta scripts. Lo común (guardar una variable, revisar el status o un campo) sí se convirtió.* Cuenta scripts, no líneas.
+
+Después de importar, abre la pestaña **Comprobaciones** de un request para revisar lo que llegó, y agrega a mano lo que se omitió.
 
 <Aside>
 Si eliges solo archivos de ambiente, Luvin dice **Eso son solo ambientes: elige también la colección.** Si no encuentra ninguna colección, dice **No encontré una colección de Postman ni de Bruno en lo que elegiste.**

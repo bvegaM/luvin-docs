@@ -1,0 +1,80 @@
+---
+title: El runner
+description: Qué hace el runner, cuándo usarlo, y la diferencia entre ejecutar requests o workflows y entre una ejecución funcional y una prueba de rendimiento.
+sidebar:
+  order: 1
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+El **runner** ejecuta muchas cosas de una vez: los requests guardados de una carpeta o de toda la colección, o varios workflows, en el orden que elijas, una o muchas veces. Úsalo para revisar una colección completa después de un cambio, para repetir una cadena de llamadas con distintos datos o para ver cómo se comporta una API cuando mucha gente la usa a la vez.
+
+## Ejemplo: ejecuta los workflows de la Pokédex
+
+<Steps>
+1. Abre el ejemplo de la Pokédex y pulsa ⌘K (Ctrl+K en Windows y Linux).
+2. Escribe `runner` y elige **Ejecutar workflows**. Se abre la pestaña **Runner** con **Workflows** elegido.
+3. En **Orden de ejecución**, los cuatro workflows de la Pokédex están marcados.
+4. En **Tipo de ejecución**, deja **Funcional**. En **Contra**, elige **Simulado**.
+5. Pulsa **Ejecutar (n casos)**.
+</Steps>
+
+![La pestaña Runner en Workflows: la lista Ambiente en local arriba a la derecha, el Orden de ejecución de pokemon.arazzo.yaml con cuatro workflows marcados y sus cuentas de casos, y a la derecha Tipo de ejecución Funcional, Contra API real, Datos por vuelta, Vueltas, Ajustes y el botón Ejecutar (7 casos)](/media/es/runner-overview.webp)
+
+Los resultados muestran una fila por workflow, con los veredictos de sus casos: ✓ para los que pasaron, ✕ para los que fallaron.
+
+## Requests o workflows
+
+Arriba del runner, **Requests** y **Workflows** eligen qué se ejecuta.
+
+| | **Requests** | **Workflows** |
+|---|---|---|
+| Qué se ejecuta | Los requests guardados de una carpeta o de la colección, en el orden que elijas. | Los workflows de un archivo Arazzo o de la colección, cada uno con sus casos marcados. |
+| A dónde van las llamadas | Siempre a la dirección de cada request, con el ambiente activo. | **API real** o **Simulado**, según elijas en **Contra**. |
+| Cómo se mueven los datos | Un valor que guarda un request, como un `token`, lo usan los requests que vienen después. | Cada workflow mueve sus datos de paso en paso, como cuando pulsas **Ejecutar**. |
+| Cuándo algo pasa | Un request responde y cumple sus comprobaciones. Sin comprobaciones, su status es menor que 400. | Un caso obtiene el veredicto que espera. Un workflow falla cuando falla uno de sus casos. |
+| Listas en una respuesta | — | El runner nunca pregunta: usa la regla guardada o el elemento que dice el diseño. |
+| Exportar | **JSON** con los totales y cada request. | — |
+| Páginas | [Ejecuta requests](/es/runner/requests/) | [Ejecuta workflows](/es/runner/workflows/) |
+
+Los dos pueden usar un archivo CSV o JSON con una fila por vuelta. Mira [Archivos de datos](/es/runner/data-files/).
+
+## Funcional o rendimiento
+
+En **Tipo de ejecución**, a la derecha, eliges cómo se ejecuta:
+
+| | **Funcional** | **Rendimiento** |
+|---|---|---|
+| La pregunta que responde | ¿Todo sigue funcionando? | ¿Cómo se comporta la API bajo carga? |
+| Cuántos a la vez | Un request o un workflow a la vez. | Muchos usuarios virtuales al mismo tiempo, hasta 500. |
+| Cuánto dura | Un número de **Vueltas**, de 1 a 10.000. | Una **Duración**, hasta 60 minutos. |
+| Qué obtienes | Un veredicto por request o por caso, y sus detalles. | Requests por segundo, tiempos de respuesta, tasa de error y el request más lento. |
+| Contra | Requests: su dirección. Workflows: **API real** o **Simulado**. | Siempre la API real del ambiente. |
+| Antes de empezar | Contra la **API real**, los workflows que modifican datos te piden marcar una casilla. | Siempre confirmas la carga. Un ambiente que parece producción te pide escribir su nombre. |
+| En **Historial** | Etiqueta **Runner**. | Etiqueta **Rendimiento**. |
+
+Mira [Pruebas de rendimiento](/es/runner/performance/).
+
+## Cuándo usar cada uno
+
+- **Cambiaste un request o una API.** Ejecuta la carpeta con **Requests** y **Funcional**, una vez. Mira el filtro **Fallaron**.
+- **Quieres probar muchos productos, usuarios o Pokémon.** Agrega un archivo de datos. Cada fila es una vuelta.
+- **Quieres saber si tus workflows siguen pasando, sin llamar a la API.** Ejecútalos con **Workflows**, **Funcional** y **Simulado**.
+- **Quieres saber qué tan rápido responde tu API con 50 personas a la vez.** Usa **Rendimiento** contra un ambiente tuyo o un mock server, nunca contra una API pública.
+
+## Lo que el runner nunca hace
+
+- Nunca se detiene a preguntar. Una ejecución del runner no necesita a nadie mirando: una lista en una respuesta se elige por su regla, y una ejecución que falla sigue, a menos que le pidas detenerse.
+- No envía requests WebSocket. Quedan fuera de la lista.
+- No edita tus requests ni tus workflows. Solo tres cosas salen del runner: las variables y cookies que conserva una ejecución de requests cuando sus ajustes lo dicen, la marca de un caso (es la misma marca de la pestaña **Casos**) y **Quitar** en una regla de lista, que borra la regla del archivo Arazzo.
+
+## En esta sección
+
+<CardGrid>
+  <LinkCard title="Abre el runner y elige el ambiente" href="/es/runner/open-and-environment/" />
+  <LinkCard title="Ejecuciones, pestañas e historial" href="/es/runner/lifecycle/" />
+  <LinkCard title="Ejecuta requests" href="/es/runner/requests/" />
+  <LinkCard title="Ejecuta workflows" href="/es/runner/workflows/" />
+  <LinkCard title="Archivos de datos" href="/es/runner/data-files/" />
+  <LinkCard title="Pruebas de rendimiento" href="/es/runner/performance/" />
+</CardGrid>

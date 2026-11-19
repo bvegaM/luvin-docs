@@ -1,0 +1,129 @@
+---
+title: La tabla y los errores
+description: Las columnas de la tabla de rendimiento, sus unidades y su orden, la regla que marca el request más lento, las filas de un workflow completo y la pestaña Errores.
+sidebar:
+  order: 19
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+La tabla bajo el gráfico tiene una fila por request, o por paso de un workflow, con su cantidad, su velocidad y sus tiempos de respuesta. Úsala para comparar requests y encontrar el que frena a los demás. La pestaña **Errores**, junto a **Resumen**, dice por qué fallaron los requests.
+
+## Ejemplo: ordena por p95
+
+Terminó una prueba de una carpeta de la tienda con **List products**, **Get product** y **Search products**.
+
+<Steps>
+1. Haz clic en el título **p95** de la tabla. Las filas se ordenan de mayor a menor, y el título muestra ↓.
+2. La primera fila es **Get product**, con la etiqueta **el más lento**.
+3. Haz clic otra vez en **p95**. Las filas vuelven a su orden original.
+4. Haz clic en **Request**. Las filas se ordenan de la A a la Z.
+</Steps>
+
+## El título de la tabla
+
+| Título | Cuándo |
+|---|---|
+| **Detalle de toda la prueba** | No hay un tramo de tiempo elegido. |
+| **Detalle de 0:20 a 0:35** | Hay un tramo elegido en el gráfico. **Quitar filtro** está al lado. |
+
+Junto al título, una línea corta repite los requests por segundo, el tiempo de respuesta, la tasa de error y la mayor cantidad de usuarios virtuales de lo que estás mirando. Mira [El gráfico de rendimiento](/es/runner/performance-chart/#la-línea-junto-al-título-de-la-tabla).
+
+## Las columnas
+
+| Columna | Qué es | Formato |
+|---|---|---|
+| **Request** | El nombre del request, o `workflow · paso`. Deja el puntero encima para leerlo completo. | |
+| **Requests** | Cuántos terminaron. | Un número entero: `950` |
+| **Requests/s** | Cuántos por segundo, sobre el tiempo de la prueba o del tramo. | Un decimal: `15,8` |
+| **Promedio** ms | El tiempo de respuesta promedio. | ms enteros: `180` |
+| **Mín.** ms | El más rápido. | ms enteros |
+| **Máx.** ms | El más lento. | ms enteros |
+| **p90** ms, **p95** ms, **p99** ms | Percentiles del tiempo de respuesta: el 90, el 95 o el 99 % de los requests terminó en menos. | ms enteros |
+| **% error** | La parte de sus requests que falló. | En rojo sobre 0, en gris con `0 %` |
+
+La columna de la métrica elegida arriba del gráfico, por ejemplo **p95**, se destaca.
+
+## Orden
+
+Por defecto, las filas van en el orden en que cada request terminó por primera vez durante la prueba.
+
+Haz clic en el título de una columna para ordenar por ella:
+
+| Columna | 1.er clic | 2.º clic | 3.er clic |
+|---|---|---|---|
+| Números | De mayor a menor ↓ | Orden original | — |
+| **Request** | De la A a la Z ↑ | De la Z a la A ↓ | Orden original |
+
+**% error** ordena por la cantidad de errores de cada fila, no por el porcentaje.
+
+## El request más lento
+
+Sobre toda la prueba, sin tramo de tiempo y sin un request elegido, Luvin busca un request claramente más lento que los demás. Si lo hay:
+
+- La línea arriba del gráfico lo nombra: *Lo más lento: «Get product», con un p95 de 420 ms (promedio 180 ms).*
+- Su fila en la tabla tiene la etiqueta **el más lento**.
+
+Un request es el más lento solo cuando su p95 es a la vez:
+
+- al menos 1,5 veces el p95 del medio de los demás requests, y
+- al menos 10 ms más que ese.
+
+| p95 de los requests | p95 del medio de los demás | El más lento |
+|---|---|---|
+| 420, 200, 180 ms | 180 ms | El de 420 ms: 2,3 veces, y 240 ms más. |
+| 25, 23, 22 ms | 22 ms | Ninguno: todos tardan más o menos lo mismo. |
+| 16, 9, 8 ms | 8 ms | Ninguno: el doble de lento, pero solo 8 ms más. |
+| Un solo request | — | Ninguno: no hay con qué comparar. |
+
+Las filas de un workflow completo nunca son las más lentas: solo se comparan requests y pasos.
+
+## Filas de un workflow completo
+
+En una prueba de workflows, cada workflow tiene además una fila para la ejecución completa, por ejemplo `Place order · workflow completo`. Mide desde el principio hasta el final del workflow, y se ve distinta de las demás filas.
+
+Esa fila está en la tabla y en **Todos los requests**, pero no forma parte de los números clave, del veredicto, del gráfico de todos los requests ni de la pestaña **Errores**. Mira [Rendimiento de workflows](/es/runner/performance-workflows/#la-fila-del-workflow-completo).
+
+## La pestaña Errores
+
+La pestaña **Errores**, junto a **Resumen**, agrupa las fallas por motivo. Su título muestra cuántos errores hubo, en rojo cuando hay al menos uno.
+
+![La pestaña Errores de una prueba de rendimiento: los motivos 503 y 429, ambos en Order product · createOrder, con cuántas veces y su parte del total](/media/es/runner-perf-errors.webp)
+
+| Columna | Qué es |
+|---|---|
+| **Motivo** | Por qué fallaron los requests. |
+| **En** | Los requests o pasos donde pasó. Deja el puntero encima para leer la lista completa. |
+| **Veces** | Cuántas veces. |
+| **Del total** | El porcentaje del total de errores. |
+
+- Los motivos más frecuentes van primero, hasta 20.
+- Siempre es de toda la prueba: un tramo de tiempo o un request elegido en **Resumen** no la cambia.
+- Sin errores dice *Ningún error.*
+
+### Cómo se ve un motivo
+
+| Falla | Motivo |
+|---|---|
+| Un request respondió un status de error, sin comprobaciones | El status: `503` |
+| Una comprobación del request no se cumplió | La comprobación: su expresión y su condición, por ejemplo `res.status eq` |
+| Un request no respondió | El error, hasta 80 caracteres, por ejemplo un tiempo agotado |
+| Un paso de un workflow falló con respuesta | El status de la respuesta, aunque lo que falló hayan sido los criterios de éxito: `200` |
+| Un paso de un workflow falló sin respuesta | El motivo de la falla, hasta 80 caracteres |
+
+## Patrones habituales
+
+| Qué ves | Qué sugiere |
+|---|---|
+| Un request con la etiqueta **el más lento**, los demás rápidos. | Ese request, o lo que llama, es el cuello de botella. |
+| Todos los p95 crecen cuando los usuarios llegan arriba. | La API está cerca de su límite con esa cantidad de usuarios. |
+| **% error** en 100 % en todas las filas, con `401`. | Faltan credenciales, no es un problema de carga. |
+| La tasa de error sube solo en un tramo del gráfico. | Elige ese tramo y lee la tabla: muestra qué request falló en ese momento. |
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Lee una prueba de rendimiento" href="/es/runner/performance-results/" />
+  <LinkCard title="El gráfico de rendimiento" href="/es/runner/performance-chart/" />
+  <LinkCard title="Rendimiento de workflows" href="/es/runner/performance-workflows/" />
+</CardGrid>

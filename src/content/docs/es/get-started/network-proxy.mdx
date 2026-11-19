@@ -1,0 +1,190 @@
+---
+title: Proxy
+description: Envía los requests de la app de escritorio por el proxy del sistema, por las variables HTTP_PROXY o por un proxy propio con autenticación y excepciones, y mira qué requests lo usan.
+sidebar:
+  order: 12
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Un proxy es un servidor por el que pasan tus requests camino a la API. Muchas empresas lo exigen para salir a internet. La sección **Proxy** de **Preferencias** dice qué proxy usa Luvin: el de tu sistema operativo, el de las variables de entorno `HTTP_PROXY`, o uno que escribes tú.
+
+<Aside type="note" title="Solo en la app de escritorio">
+En el navegador, la sección **Proxy** no aparece: los requests usan el proxy del navegador.
+</Aside>
+
+## Ejemplo: el proxy de la empresa, salvo para los servidores internos
+
+El proxy de tu empresa es `proxy.empresa.com:8080` y pide usuario y contraseña. Los servidores de pruebas de la tienda, bajo `shop.internal`, se tienen que alcanzar directo.
+
+<Steps>
+
+1. Abre **Preferencias** (⌘, o Ctrl+,) y haz clic en **Proxy**.
+2. Enciende **Usar un proxy propio**. Sus opciones aparecen abajo.
+3. En **Usar el proxy para**, deja marcados **HTTP** y **HTTPS**.
+4. En **Servidor proxy**, deja `http`, escribe `proxy.empresa.com` en el host y `8080` en el puerto.
+5. Enciende **Autenticación del proxy** y escribe el **Usuario** y la **Contraseña**.
+6. En **Excepciones**, escribe `shop.internal`.
+7. Arriba de la sección, **Requests HTTPS** y **Requests HTTP** dicen `proxy.empresa.com:8080 · proxy propio`.
+8. Envía un request a `https://api.shop.test/orders`: el globo junto a la respuesta, **Red**, muestra `proxy.empresa.com:8080` en su fila **Proxy**.
+
+</Steps>
+
+![La sección Proxy con Usar un proxy propio encendido, HTTP y HTTPS marcados y el servidor http://proxy.example.internal:8080; arriba, Requests HTTPS y Requests HTTP dicen proxy.example.internal:8080 · proxy propio](/media/es/prefs-proxy.webp)
+
+Los requests a `https://api.shop.internal` no pasan por el proxy propio. Si **Usar el proxy del sistema** sigue encendido y el sistema tiene un proxy para esa dirección, usan el del sistema: mira [Cómo elige Luvin](#cómo-elige-luvin).
+
+## Lo que ves arriba
+
+La sección empieza con *Por defecto Luvin usa el proxy del sistema, como Postman. localhost y 127.0.0.1 siempre van directo.* Debajo, dos líneas dicen por dónde salen los requests ahora:
+
+| Línea | Ejemplo |
+|---|---|
+| **Requests HTTPS** | `proxy.empresa.com:8080 · proxy propio` |
+| **Requests HTTP** | *Sin proxy (conexión directa)* |
+
+El origen después del punto es **proxy propio**, **proxy del sistema** o **variable de entorno**. Las líneas se actualizan al cambiar un ajuste. Se calculan para una dirección cualquiera: un host que está en **Excepciones** o en `NO_PROXY` igual puede ir directo.
+
+## Los tres orígenes
+
+| Ajuste | Por defecto | Qué usa |
+|---|---|---|
+| **Usar el proxy del sistema** | Encendido | El proxy configurado en el sistema operativo, incluido un archivo PAC. Encendido, su texto de ayuda dice lo **Detectado**. |
+| **Respetar HTTP_PROXY, HTTPS_PROXY y NO_PROXY** | Encendido | Las variables de entorno con las que se abrió la app. Encendido, su texto de ayuda las muestra, o *Ninguna definida.* |
+| **Usar un proxy propio** | Apagado | El proxy que escribes. *Tiene prioridad sobre el del sistema y las variables de entorno.* |
+
+### Cómo elige Luvin
+
+Para cada request, Luvin recorre esta lista y se queda con el primero que corresponde:
+
+<Steps>
+
+1. La dirección es `localhost`, una dirección `127.x.x.x`, `::1` o un nombre que termina en `.localhost`: va directo, siempre.
+2. **Usar un proxy propio** está encendido, tiene host, el tipo de request (**HTTP** o **HTTPS**) está marcado en **Usar el proxy para** y el host del request no está en **Excepciones**: el proxy propio.
+3. **Usar el proxy del sistema** está encendido y el sistema tiene un proxy HTTP o HTTPS para esa dirección: el proxy del sistema.
+4. **Respetar HTTP_PROXY, HTTPS_PROXY y NO_PROXY** está encendido y las variables dan un proxy para esa dirección: ese proxy.
+5. Si no: sin proxy.
+
+</Steps>
+
+Un host en **Excepciones** solo se salta el proxy propio: Luvin sigue con los pasos 3 y 4. Para llegar directo a un host, además tiene que quedar fuera del proxy del sistema (o apaga **Usar el proxy del sistema**) y estar en `NO_PROXY` (o apaga las variables de entorno).
+
+## El proxy del sistema
+
+Luvin le pregunta al sistema operativo qué proxy usar para cada dirección, como un navegador. Eso incluye un archivo PAC (configuración automática), que puede elegir otro proxy, o ninguno, según la dirección.
+
+- El texto de ayuda de **Usar el proxy del sistema** muestra lo **Detectado**, por ejemplo `PROXY proxy.empresa.com:8080`, o *Sin proxy (conexión directa)*.
+- Un proxy SOCKS no está soportado. Si el sistema lista uno, Luvin lo salta y toma el siguiente proxy HTTP o HTTPS de la lista, o ninguno.
+
+## Variables de entorno
+
+Con **Respetar HTTP_PROXY, HTTPS_PROXY y NO_PROXY** encendido, Luvin lee:
+
+| Variable | Se usa para |
+|---|---|
+| `HTTPS_PROXY` | Direcciones `https` |
+| `HTTP_PROXY` | Direcciones `http` |
+| `ALL_PROXY` | Las dos, cuando la de arriba no está |
+| `NO_PROXY` | Hosts que no usan estas variables. Misma sintaxis que **Excepciones** |
+
+- Los nombres pueden ir en mayúsculas o minúsculas. Si están los dos, gana el de minúsculas.
+- El valor puede ser `proxy.empresa.com:8080`, `http://proxy.empresa.com:8080`, `https://…`, o llevar usuario y contraseña: `http://ana:secreto@proxy.empresa.com:8080`. Un valor `socks5://` se ignora.
+- El texto de ayuda muestra `HTTP_PROXY`, `HTTPS_PROXY` y `NO_PROXY` sin el usuario ni la contraseña. `ALL_PROXY` se usa pero no se muestra.
+- Luvin ve las variables del momento en que se abrió. Las variables que defines en una terminal le llegan a Luvin solo si abres Luvin desde esa terminal.
+
+## Proxy propio
+
+<Steps>
+
+1. Enciende **Usar un proxy propio**.
+2. En **Usar el proxy para**, marca **HTTP**, **HTTPS** o los dos. Un tipo que no está marcado sigue con el proxy del sistema y las variables de entorno.
+3. En **Servidor proxy**, elige el protocolo del proxy, `http` o `https`.
+4. Escribe el host, como `proxy.empresa.com`, sin `http://` ni ruta. Si pegas `http://`, se quita.
+5. Escribe el puerto. Es `8080` por defecto, de 1 a 65535.
+6. Si el proxy pide iniciar sesión, mira [Autenticación del proxy](#autenticación-del-proxy).
+7. En **Excepciones**, lista los hosts que no deben usar este proxy.
+
+</Steps>
+
+- Sin host, la sección avisa *Sin host, los requests no usan este proxy.* y Luvin sigue con el origen siguiente.
+- Un host con espacios, una ruta u otros caracteres no válidos se marca con *Host no válido: escribe solo el dominio o la IP, sin ruta.*
+- Con el protocolo `https`, Luvin habla con el proxy por TLS. **Verificar certificados SSL** y tus **Certificados CA** valen también para el certificado del proxy.
+
+### Autenticación del proxy
+
+<Steps>
+
+1. Enciende **Autenticación del proxy**. Aparecen **Usuario** y **Contraseña**.
+2. Escribe el **Usuario**. Se guarda al salir del campo.
+3. Escribe la **Contraseña**. El botón del ojo (**Mostrar**, **Ocultar**) te deja revisarla. Se guarda al salir del campo o al pulsar Enter.
+
+</Steps>
+
+- Luvin los envía como autenticación Basic (`Proxy-Authorization`) en cada request que pasa por el proxy.
+- La contraseña se guarda cifrada en este equipo, con los demás secretos de la app, nunca en el archivo de ajustes. Vacía el campo para borrarla.
+- Sin usuario, Luvin no envía un inicio de sesión.
+- Si este equipo no puede guardar contraseñas cifradas (Linux sin llavero del sistema), el campo dice *Este equipo no puede guardar contraseñas cifradas (falta el llavero del sistema): no se guardará.*
+
+Si el proxy los rechaza, el request falla con *El proxy rechazó el usuario o la contraseña (407). Revísalos en Preferencias → Proxy.*
+
+### Excepciones
+
+**Excepciones** admite hosts separados por comas, espacios o saltos de línea:
+
+| Entrada | No pasan por el proxy |
+|---|---|
+| `shop.test` | `shop.test` y sus subdominios, como `api.shop.test` |
+| `*.shop.test` o `.shop.test` | `shop.test` y sus subdominios |
+| `api-*.shop.test` | Los hosts que siguen el patrón, como `api-eu.shop.test`: `*` vale por cualquier carácter |
+| `api.shop.test:8443` | Ese host, solo en ese puerto |
+| `10.0.0.5` | Esa dirección IP |
+| `[fd00::5]` | Esa dirección IPv6 |
+| `*` | Todo |
+
+Las mayúsculas y minúsculas no importan. Los rangos de direcciones como `10.0.0.0/8` no están soportados: lista cada dirección.
+
+## Cómo viajan los requests por el proxy
+
+| Request | Lo que ve el proxy |
+|---|---|
+| `https://…` | Solo el host y el puerto. Luvin abre un túnel (`CONNECT`) y cifra el request dentro de él, de punta a punta con la API. |
+| `http://…` | Todo el request: dirección, headers y body. |
+
+Si el proxy inspecciona el tráfico HTTPS con su propio certificado, agrega ese certificado como CA: mira [Certificados CA](/es/get-started/network-certificates/#certificados-ca).
+
+## Qué sale por el proxy
+
+| Parte de Luvin | Proxy que usa |
+|---|---|
+| Requests HTTP y GraphQL, el runner, las ejecuciones de workflows, **Try it out**, los requests del token de OAuth 2.0 | Todo lo de esta página |
+| Requests gRPC | El proxy que se elige para una dirección `https` con el mismo host y puerto, solo si es un proxy `http`. Con un proxy `https`, gRPC va directo. |
+| Requests WebSocket y la ventana de inicio de sesión de OAuth 2.0 | El proxy propio con sus **Excepciones** (las direcciones locales siempre directo), si no el proxy del sistema si **Usar el proxy del sistema** está encendido, y si no ninguno. No usan las variables de entorno. Usan el usuario y la contraseña de **Autenticación del proxy** cuando el proxy propio los pide. |
+
+En gRPC, el proxy propio se aplica solo cuando **HTTPS** está marcado en **Usar el proxy para**. Mira [Requests gRPC](/es/requests/grpc/), [Requests WebSocket](/es/requests/websocket/) y [OAuth 2.0](/es/authorization/oauth2/).
+
+## Revisa que un request usó el proxy
+
+- El globo junto a la respuesta, **Red**, tiene una fila **Proxy** con el host y el puerto del proxy. Cuando la fila no está, el request fue directo.
+- Arriba de la sección **Proxy** se ve por dónde salen los requests ahora.
+
+## Solución de problemas
+
+| Lo que ves | Por qué | Qué hacer |
+|---|---|---|
+| *El proxy rechazó el usuario o la contraseña (407)…* | Usuario o contraseña equivocados, o el proxy pide iniciar sesión y **Autenticación del proxy** está apagado | Revísalos en **Autenticación del proxy** |
+| *No se pudo salir por el proxy proxy.empresa.com:8080 (ECONNREFUSED)…* | No se llega al proxy en ese host y puerto | Revisa el host y el puerto, o apaga el proxy para ir directo |
+| *No se pudo salir por el proxy … (LUVIN_PROXY)…* | El proxy no quiso abrir el túnel, o no respondió en 30 segundos | Consulta con tu equipo de TI si el proxy permite ese host |
+| Un host interno igual sale por un proxy | Está en **Excepciones**, pero también se aplica el proxy del sistema o `HTTPS_PROXY` | Apaga **Usar el proxy del sistema** o las variables de entorno, o agrega el host a `NO_PROXY` |
+| No se detectan las variables de entorno (*Ninguna definida.*) | Abriste Luvin desde el Dock, el menú Inicio o el Finder, no desde la terminal donde las definiste | Abre Luvin desde esa terminal, o usa un proxy propio |
+| Se ignora el proxy del sistema | Es un proxy SOCKS | Usa un proxy HTTP como proxy propio |
+| *El certificado del servidor no es de confianza (…)* solo detrás del proxy | El proxy inspecciona HTTPS con su propio certificado | Agrega su CA en **Certificados** |
+| WebSocket ignora `HTTPS_PROXY` | WebSocket usa solo el proxy propio o el del sistema | Configura un proxy propio |
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Ajustes de red" href="/es/get-started/network/" />
+  <LinkCard title="Certificados" href="/es/get-started/network-certificates/" />
+  <LinkCard title="Ajustes de los requests" href="/es/get-started/network-requests/" />
+  <LinkCard title="Ayuda de conexión" href="/es/dev-tools/connection-help/" />
+</CardGrid>

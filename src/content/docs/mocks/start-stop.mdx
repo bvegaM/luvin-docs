@@ -1,0 +1,117 @@
+---
+title: Start and stop a mock
+description: Start and stop a mock from its tab or the sidebar, choose its port and delay, read why it does not start, and what happens when you reload or change collection.
+sidebar:
+  order: 3
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A mock answers only while it runs. Starting it opens its port on your computer, and stopping it closes the port. This page covers both, the **Port** and **Delay (ms)** fields, and what to do when a mock does not start.
+
+## Example: start the Pokédex mock
+
+<Steps>
+1. In the **Mock servers** section of the sidebar, click **Pokédex mock**. Its tab opens.
+2. Press **Start**. The button reads **Starting…** for a moment.
+3. The top of the tab now shows `http://127.0.0.1:4010`, **Copy URL** and **Stop**. The dot next to the name is green.
+4. Press **Copy URL** and paste the URL in a request or in cURL. The button reads **✓ Copied** for a moment.
+5. When you are done, press **Stop**.
+</Steps>
+
+![The Shop mock running: a green dot next to its name, the URL 127.0.0.1:4010, Copy URL and Stop at the top of the tab, and the mock with :4010 in the sidebar](/media/en/mocks-running.webp)
+
+## Start and stop
+
+| From | Start | Stop |
+|---|---|---|
+| The mock tab | **Start**, at the top right. | **Stop**, next to the URL. |
+| The sidebar | **⋯** menu of the mock → **Start**. | **⋯** menu of the mock → **Stop**. |
+
+The **⋯** menu of the sidebar also has **Copy URL** while the mock runs.
+
+![The ⋯ menu of the running Shop mock in the Mock servers section of the sidebar, with Stop, Copy URL and Delete mock](/media/en/mocks-sidebar-menu.webp)
+
+### What you see while it runs
+
+| Where | Running | Stopped |
+|---|---|---|
+| The top of the mock tab | A green dot, the URL, **Copy URL** and **Stop**. | A gray dot and **Start**. |
+| The **Mock servers** section of the sidebar | A green dot and the port, for example `:4010`. Hover over it: *Running on port 4010*. | A gray dot and the port. Hover: *Stopped*. |
+| The tab bar | The tab of the mock shows the same dot. | |
+| The command palette (⌘K) | The mock, under **Mock servers**, says *Running on port 4010*. | It says *Stopped*. |
+
+In the palette, choosing a mock opens its tab.
+
+### Changes apply while it runs
+
+A running mock answers what you change at once, without a restart: its own routes, the **Delay (ms)**, the **Responses from** list, the saved examples of the requests and the contract. Only a change of **Port** restarts it.
+
+## The port
+
+The mock answers at `http://127.0.0.1:` followed by its port.
+
+| Rule | Detail |
+|---|---|
+| Port of a new mock | 4010, or the next number no other mock of the collection uses: 4011, 4012… Luvin does not check other programs until you press **Start**. |
+| When a change applies | When you press Enter or leave the field. Esc puts back the previous value. |
+| Valid values | 1 to 65535. Any other value goes back to the previous one. |
+| With the mock running | It restarts on the new port. If the new port fails, the mock stays stopped and the tab shows why. |
+
+<Aside type="caution">
+The URLs of the mock environment do not follow the port on their own. After you change the port, press **Update environment** in the mock tab. See [Use a mock with requests and workflows](/mocks/with-workflows/).
+</Aside>
+
+## The delay
+
+**Delay (ms)** makes the mock wait before each response, from 0 to 120000 ms (2 minutes). It goes up in steps of 100 with the arrows, and applies at once. Use it to see how a workflow behaves with a slow API, or to check a timeout.
+
+- A route can have its own **Delay (ms)**, which replaces the delay of the mock. See [Responses](/mocks/responses/).
+- The delay applies only to calls that a route answers. A `404` without a route and a `403` for a wrong host answer at once.
+- The **Log** shows the duration of each call, delay included.
+
+## When it does not start
+
+If the mock cannot start, the tab says why, in red:
+
+| Message | What to do |
+|---|---|
+| *That port is already in use. Pick another one and start it again.* | Another program, or another mock of the collection, uses that port. Change the **Port** and press **Start**. |
+| *The system does not allow that port. Try one above 1024.* | Your system reserves the low ports. Use one above 1024, such as 4010. |
+| *The port must be a number between 1 and 65535.* | Write a valid number. |
+| Another message | It is the message of the system. Try another port. |
+
+## When a mock stops on its own
+
+A mock does not keep running without Luvin. It stops when you:
+
+- open another collection, or close the collection;
+- reload the window;
+- quit the app.
+
+After a reload, Luvin also stops any mock that was left running, so none answers without you seeing it. Its **Log** is emptied. Press **Start** again when you need it.
+
+## Desktop app only
+
+A browser cannot open a port. In the browser version, **Start** is disabled and the tab says *Mock servers run in the desktop app: a browser cannot open a port. You can define their routes here.* You can still create mocks, write their routes and save them with the collection, then start them in the desktop app.
+
+![The Shop mock in the browser version: a notice says mock servers run in the desktop app, and the Start button is disabled](/media/en/mocks-web-desktop-only.webp)
+
+## Troubleshooting
+
+| What you see | Why, and what to do |
+|---|---|
+| **Start** is disabled. | You are in the browser version. Open the collection in the desktop app. |
+| Calls to `http://localhost:4010` fail, but `http://127.0.0.1:4010` works. | The mock listens only on `127.0.0.1`, and on some systems `localhost` goes to the IPv6 address. Use the URL that **Copy URL** gives. |
+| Your requests still go to the old port. | The mock environment keeps the old URL. Press **Update environment**. |
+| The mock stopped while you were working. | You changed collection, reloaded or quit. Start it again. |
+| A company proxy is configured. | It does not matter: `localhost` and `127.0.0.1` always connect directly. See [Network settings](/get-started/network/). |
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Create a mock server" href="/mocks/create/" />
+  <LinkCard title="Responses" href="/mocks/responses/" />
+  <LinkCard title="The Log of a mock" href="/mocks/log/" />
+  <LinkCard title="Use a mock with requests and workflows" href="/mocks/with-workflows/" />
+</CardGrid>

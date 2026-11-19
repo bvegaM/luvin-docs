@@ -16,7 +16,7 @@ Luvin prueba una cadena de llamadas a APIs, llamada **workflow**, donde cada lla
 ### ¿Qué no hace Luvin?
 
 - **No es una herramienta de automatización ni de orquestación.** Luvin sirve para diseñar, depurar y demostrar workflows de APIs. No ejecuta integraciones en producción.
-- **No es un runner de CI.** Lo que llevas a tu pipeline son los archivos Arazzo que escribe, con cualquier runner de Arazzo.
+- **No es un runner de CI.** Su runner ejecuta workflows y requests dentro de la app, en tu equipo. Lo que llevas a tu pipeline son los archivos Arazzo que escribe, con cualquier runner de Arazzo.
 - **No reemplaza a tu cliente de APIs.** Luvin envía requests sueltos para ayudarte a depurar un paso. Conserva tu cliente de APIs para los requests sueltos y usa Luvin para la cadena.
 - **No es un servicio en la nube.** Todo corre en tu equipo, en el navegador o en la app de escritorio. No hay backend ni cuenta.
 - **Todavía no se conecta a brokers de mensajería.** Los pasos de mensajería se simulan. Mira [Limitaciones conocidas](/es/reference/limitations/).
@@ -53,7 +53,7 @@ No. Diseñas en el canvas y Luvin escribe el archivo Arazzo. Mira [Diseñar un w
 
 ### ¿Puedo editar el YAML a mano?
 
-Sí. La pestaña **YAML** es el mismo archivo que edita el canvas. Lo que escribes a mano se conserva, y la pestaña lo valida mientras escribes. Mira [La pestaña YAML](/es/design/arazzo-editor/).
+Sí. La pestaña **YAML** es el mismo archivo que edita el canvas. Lo que escribes a mano se conserva, y la pestaña lo valida mientras escribes. Mientras el texto no se puede leer, **Ejecutar** queda desactivado hasta que lo corrijas. Mira [La pestaña YAML](/es/design/arazzo-editor/).
 
 ### ¿Dónde se guardan mis archivos?
 
@@ -71,7 +71,7 @@ Sí. Un workspace es una carpeta de archivos de texto y los valores de los secre
 
 ### ¿Por qué la ejecución se pausa con un diálogo sobre una lista?
 
-Un paso devolvió una lista y un paso posterior la usa, así que Luvin pregunta con qué elemento continuar. Contra la **API real** pregunta incluso cuando la lista tiene un solo elemento. En **Simulación** pregunta solo cuando la lista tiene más de uno. Mira [Elige un elemento de una lista](/es/test/lists/).
+Un paso devolvió una lista y un paso posterior la usa, así que Luvin pregunta con qué elemento continuar. Contra la **API real** pregunta incluso cuando la lista tiene un solo elemento. En **Simulación** pregunta solo cuando la lista tiene más de uno. En **Las próximas veces:** puedes guardar una regla, como un elemento al azar, para que no vuelva a preguntar. El runner nunca pregunta: usa la regla guardada o el elemento que dice el diseño. Mira [Elige un elemento de una lista](/es/test/lists/).
 
 ### ¿Por qué un caso terminó en Advertencia?
 
@@ -92,6 +92,18 @@ En el navegador, la API que pruebas debe permitir CORS desde el origen de la app
 ### ¿Una ejecución real cambia datos en mi API?
 
 Puede hacerlo. Los pasos con POST, PUT, PATCH o DELETE envían requests reales al ambiente, y Luvin te pide confirmar antes de ejecutarlos. Elige un ambiente de pruebas o usa Simulación. Mira [Ejecutar](/es/test/run/).
+
+### ¿Puedo ejecutar varios workflows a la vez, o con datos de un archivo?
+
+Sí, con el runner. Ejecuta los workflows elegidos en orden, una o varias vueltas. Con un archivo CSV o JSON, cada fila es una vuelta: las columnas con el nombre de un input lo reemplazan. Mira [El runner](/es/runner/overview/).
+
+### ¿Puedo probar sin la API real?
+
+Sí, de dos formas. **Simulación** responde con los ejemplos del contrato, sin red. Un [mock server](/es/mocks/overview/) responde en tu equipo como tu API, así los requests y los workflows van por la red sin tocar la real. Los mock servers solo se encienden en la app de escritorio.
+
+### ¿Luvin hace pruebas de carga o de rendimiento?
+
+Sí. En el runner, elige **Rendimiento**: muchos usuarios virtuales repiten los requests, o el camino feliz de cada workflow, durante un tiempo. La carga sale de tu equipo, así que sirve para decenas o un centenar de usuarios. Solo mide la API real, y Luvin te pide confirmar antes de empezar. Si el ambiente parece producción, escribes su nombre para confirmar. Mira [Rendimiento](/es/runner/performance/).
 
 ### ¿Cómo comparto los resultados?
 
@@ -117,7 +129,7 @@ Luvin es una herramienta para diseñar, depurar y mostrar workflows. No es un ru
 
 ### ¿Uso la app de escritorio o el navegador?
 
-Usa la app de escritorio si necesitas cookies, no tener límites de CORS, carpetas reales, el llavero del sistema, gRPC o una terminal. El navegador sirve para una prueba rápida. Mira [Instalar y abrir Luvin](/es/get-started/install/).
+Usa la app de escritorio si necesitas cookies, no tener límites de CORS, carpetas reales, el llavero del sistema, gRPC, mock servers o una terminal. El navegador sirve para una prueba rápida. Mira [Instalar y abrir Luvin](/es/get-started/install/).
 
 ### ¿Cómo genero datos aleatorios, como un email nuevo en cada ejecución?
 

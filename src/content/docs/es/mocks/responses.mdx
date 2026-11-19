@@ -1,0 +1,164 @@
+---
+title: Respuestas
+description: El status, los headers, el body, el content type y la demora de una ruta, y cómo pedir otra respuesta de la misma ruta con x-mock-response-code o x-mock-response-name.
+sidebar:
+  order: 5
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Cada ruta responde con una respuesta: un status, headers, un body y, si quieres, una demora. En tus rutas propias escribes cada parte. Las rutas de la fuente pueden tener varias respuestas, y eliges una con un header.
+
+## Ejemplo: un pago que falla despacio
+
+En la API de una tienda, quieres ver qué hace tu workflow cuando el servicio de pagos tarda tres segundos y después falla.
+
+<Steps>
+1. En un mock con **Solo rutas propias**, pulsa **Nueva ruta**.
+2. Pon **Método** en `POST` y **Ruta** en `/orders`.
+3. Pon **Status** en `503` y **Demora (ms)** en `3000`.
+4. En **Nombre**, escribe `Pago caído`.
+5. En **Body**, escribe `{"error": "down"}`.
+6. Envía `POST http://127.0.0.1:4010/orders`. La respuesta llega a los 3 segundos, con status `503` y ese body.
+</Steps>
+
+El **Log** muestra la llamada con unos 3000 ms y la ruta **Pago caído**.
+
+## Los campos de una ruta
+
+| Campo | Qué hace |
+|---|---|
+| **Status** | El status de la respuesta. El campo acepta de 100 a 599. |
+| **Demora (ms)** | La demora de esta ruta. Vacía, usa la demora del mock (*La del mock*). |
+| **Nombre** | Un nombre para distinguirla, por ejemplo *Usuario no encontrado*. Aparece en la fila y en el **Log**. |
+| **Headers (uno por línea)** | Los headers de la respuesta. |
+| **Body** | El body de la respuesta. |
+
+## Status
+
+- Usa un status de 200 a 599. Un status de 100 a 199 no es una respuesta final: el mock responde `500` en su lugar. Mira [Credenciales y errores](/es/mocks/auth-and-errors/).
+- Con `204` o `304`, o cuando la llamada es `HEAD`, el mock no envía body, diga lo que diga **Body**.
+
+## Headers
+
+Escribe un header por línea, como `nombre: valor`:
+
+```text
+content-type: application/json
+location: /orders/1001
+x-request-id: {{request.headers.x-request-id}}
+```
+
+| Regla | Detalle |
+|---|---|
+| Cuándo se aplica | Al salir del campo. |
+| Líneas sin `:` | Se ignoran. |
+| Varios `:` en una línea | El primero separa nombre y valor: `x-note: a: b` da el valor `a: b`. |
+| Mayúsculas en el nombre | El nombre se envía en minúsculas. |
+| Caracteres que no valen en un nombre, como un espacio | Ese header no se envía. |
+| Saltos de línea dentro de un valor | Se convierten en espacios, así un valor no puede agregar otro header. |
+| Letras fuera de Latin-1, como `€` | Se envían en UTF-8. |
+| Valores de la llamada | Se pueden usar: `{{request.headers.x-request-id}}`. Mira [Valores del request](/es/mocks/templates/). |
+
+El mock también agrega los headers que un frontend local necesita para leer la respuesta (CORS). Un header que escribas con el mismo nombre lo reemplaza. Mira [Quién puede llamar a un mock](/es/mocks/security/).
+
+## Body y content type
+
+El **Body** es texto libre. El editor lo colorea como JSON cuando empieza con `{` o `[`, o cuando está vacío. Puede incluir valores de la llamada, como `{{request.path.id}}`.
+
+El `content-type` que envía el mock:
+
+| Headers de la ruta | Body | `content-type` que se envía |
+|---|---|---|
+| Con `content-type` | Cualquiera | El que escribiste. |
+| Sin `content-type` | Empieza con `{` o `[` | `application/json` |
+| Sin `content-type` | Cualquier otro texto | `text/plain; charset=utf-8` |
+| Sin `content-type` | Vacío | Ninguno. |
+
+Una ruta nueva empieza con `content-type: application/json`. Borra esa línea para que decida el body.
+
+Cuando el body es JSON, los valores de la llamada se escapan como texto JSON. Mira [Valores del request](/es/mocks/templates/).
+
+## Demora de una ruta
+
+| **Demora (ms)** de la ruta | La ruta espera |
+|---|---|
+| Vacía (*La del mock*) | La **Demora (ms)** del mock. |
+| `0` | Nada, aunque el mock tenga demora. |
+| `1500` | 1,5 segundos, diga lo que diga el mock. |
+
+El máximo es 120000 ms (2 minutos). Usa la demora de una ruta para frenar solo una llamada, como un pago, y dejar rápidas las demás.
+
+## Pide otra respuesta de la misma ruta
+
+Una ruta de la fuente puede tener varias respuestas: los ejemplos de un request con el mismo método y la misma ruta, o los status documentados de una operación. El mock responde la de por defecto: el primer `2xx`, o la primera si no hay `2xx`. Las demás muestran *con x-mock-response-code: 404* en su fila.
+
+![Rutas desde shop.openapi.yaml: las respuestas 200 y 201 responden por defecto, y el 404 de getProduct y el 422 de createOrder muestran con x-mock-response-code: 404 y 422, sobre el consejo de x-mock-response-code y x-mock-response-name](/media/es/mocks-alt-response.webp)
+
+Para pedir otra, envía uno de estos headers en la llamada:
+
+| Header | Elige |
+|---|---|
+| `x-mock-response-code: 404` | La respuesta con ese status. |
+| `x-mock-response-name: 404 - Get pokemon` | La respuesta con ese nombre. Las mayúsculas no importan. |
+
+El nombre es el del ejemplo guardado o, en un contrato, la descripción de la respuesta (o su status, cuando la respuesta se comparte con `$ref`). Mira [Crea un mock server](/es/mocks/create/).
+
+| Regla | Detalle |
+|---|---|
+| Los dos headers | Primero se prueba `x-mock-response-name`. |
+| Ninguna respuesta coincide | El mock responde la de por defecto. |
+| Credenciales | Una llamada que pide una respuesta con estos headers se salta la comprobación del `401`. |
+| Tus rutas propias | Los headers no se aplican. Cuando una de tus rutas coincide, responde ella. |
+
+### Ejemplo: el 404 del contrato de la Pokédex
+
+`getPokemon` documenta `200` y `404`. El mock responde `200` por defecto. Con el header:
+
+```bash
+curl -H "x-mock-response-code: 404" http://127.0.0.1:4010/api/v2/pokemon/pikachu
+```
+
+responde `404` con el ejemplo del contrato:
+
+```json
+{
+  "status": 404,
+  "message": "Not Found"
+}
+```
+
+### Ejemplo: dos ejemplos del mismo request
+
+El request **Get pokemon** tiene la URL `{{baseUrl}}/pokemon/{{pokemon}}` y dos ejemplos guardados: `200 - Get pokemon` y `404 - Get pokemon`. En un mock de la colección son una sola ruta, `GET /pokemon/{{pokemon}}`, con dos respuestas. El mock responde `200 - Get pokemon`. Envía `x-mock-response-name: 404 - Get pokemon` para recibir la otra.
+
+En un request de Luvin, agrega el header en su pestaña **Headers**. Mira [Params, headers y body](/es/requests/params-headers-body/).
+
+## Límites
+
+| Qué | Límite |
+|---|---|
+| Body de una ruta | 10 MB. |
+| Headers de una ruta | 100. |
+| Valor de un header | 8000 caracteres. |
+| Demora | 120000 ms. |
+| Rutas de un mock, propias y de la fuente | 5000. |
+
+## Problemas frecuentes
+
+| Qué ves | Por qué, y qué hacer |
+|---|---|
+| La respuesta llega con `500` y `"error": "mock_error"`. | El status es menor que 200. Usa de 200 a 599. |
+| Un header que escribiste no llega. | Su nombre tiene un carácter que no vale en un header, o la línea no tiene `:`. |
+| El body llega como texto en vez de JSON. | La ruta tiene un `content-type` que no es JSON, o el body no empieza con `{` o `[`. |
+| `x-mock-response-code` no tiene efecto. | Una de tus rutas propias coincide con la llamada, o ninguna respuesta de esa ruta tiene ese status. |
+| La ruta no espera. | Su **Demora (ms)** es `0`. Déjala vacía para usar la demora del mock. |
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Rutas" href="/es/mocks/routes/" />
+  <LinkCard title="Valores del request" href="/es/mocks/templates/" />
+  <LinkCard title="Credenciales y errores" href="/es/mocks/auth-and-errors/" />
+  <LinkCard title="Enciende y apaga un mock" href="/es/mocks/start-stop/" />
+</CardGrid>

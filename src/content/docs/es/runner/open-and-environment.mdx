@@ -1,0 +1,130 @@
+---
+title: Abre el runner y elige el ambiente
+description: Todas las formas de abrir el runner, qué muestra con cada una, qué ambiente usa y si las llamadas van a la API real o se simulan.
+sidebar:
+  order: 2
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Desde dónde abres el runner decide qué se ejecuta: una carpeta, todos los requests, un archivo Arazzo o todos los workflows. El ambiente que eliges arriba decide a dónde van las llamadas. Revisa las dos cosas antes de pulsar el botón para empezar.
+
+## Ejemplo: ejecuta una carpeta contra staging
+
+Una colección de una tienda tiene una carpeta **Orders** y dos ambientes, `local` y `staging`.
+
+<Steps>
+1. En la barra lateral, abre el menú **⋯** de la carpeta **Orders** y elige **Ejecutar carpeta (runner)**.
+2. Se abre la pestaña **Runner**. En **Orden de ejecución**, junto al título, dice **Orders**.
+3. Arriba a la izquierda, abre la lista **Ambiente** y elige `staging`.
+4. Pulsa **Ejecutar (n)**.
+</Steps>
+
+Los requests usan las variables de `staging`. Ese mismo ambiente queda activo en el resto del workspace.
+
+## Todas las formas de abrirlo
+
+| Dónde | Elige | Qué ejecuta | Título de la lista |
+|---|---|---|---|
+| Barra lateral, menú **⋯** de **Requests** | **Ejecutar requests (runner)** | Todos los requests de la colección | **Requests de Shop** (el nombre de la colección) |
+| Barra lateral, menú **⋯** de una carpeta de requests | **Ejecutar carpeta (runner)** | Los requests de esa carpeta, con sus subcarpetas | El nombre de la carpeta, por ejemplo **Orders** |
+| Barra lateral, menú **⋯** de un archivo Arazzo | **Ejecutar workflows (runner)** | Los workflows de ese archivo | El nombre del archivo, por ejemplo `shop.arazzo.yaml` |
+| Búsqueda ⌘K, en **Acciones** | **Ejecutar requests** | Todos los requests de la colección | **Requests de Shop** |
+| Búsqueda ⌘K, en **Acciones** | **Ejecutar workflows** | Todos los workflows de la colección | **Workflows de Shop** |
+
+En la búsqueda, las dos acciones dicen **Runner · funcional o de rendimiento**. **Ejecutar workflows** solo aparece cuando la colección tiene workflows.
+
+![El menú ⋯ de pokemon.arazzo.yaml en la barra lateral, con Ejecutar workflows (runner), Renombrar y Eliminar archivo…](/media/es/runner-open-menu.webp)
+
+Una vez abierta la pestaña **Runner**, haz clic en ella para volver tal como la dejaste.
+
+## Una sola pestaña Runner
+
+Hay una sola pestaña **Runner**. Abrirla otra vez desde otro menú cambia lo que muestra: el runner pasa a mostrar esa carpeta, ese archivo o toda la colección.
+
+Cuando nada se está ejecutando, abrirlo desde un menú siempre muestra la configuración. Si hay una ejecución del mismo tipo en curso, ves sus resultados. Mira [Ejecuciones, pestañas e historial](/es/runner/lifecycle/).
+
+## Cambia entre Requests y Workflows
+
+**Requests** y **Workflows**, arriba, cambian lo que ejecuta el runner.
+
+- Al cambiar a **Workflows** se muestran todos los workflows de la colección. Al cambiar a **Requests** se muestran todos los requests de la colección.
+- La carpeta o el archivo Arazzo para el que lo abriste se olvida. Para ejecutar de nuevo solo esa carpeta o ese archivo, vuelve a abrir su menú **⋯**.
+- **Tipo de ejecución**, **Funcional** o **Rendimiento**, se mantiene en los dos lados. También la carga que configuraste para una prueba de rendimiento.
+
+## Empieza con tu última configuración
+
+Cuando abres el runner para la misma carpeta, archivo o colección que tu última ejecución, empieza con la configuración de esa ejecución:
+
+- Los requests o workflows que ejecutaste van primero, en el orden en que los ejecutaste, y marcados. Los demás van después, sin marcar.
+- Las vueltas y los ajustes.
+- El archivo de datos, si usaste uno.
+- Para workflows, **Contra**: **API real** o **Simulado**.
+
+Para otra cosa, empieza con la configuración por defecto: todos los requests o workflows marcados, en su orden original. Para workflows, **Contra** empieza en el mismo modo que la barra de ejecución de tus workflows.
+
+## El ambiente
+
+Mientras configuras una ejecución, la lista **Ambiente** está arriba a la izquierda del runner.
+
+<Steps>
+1. Abre la lista **Ambiente**.
+2. Elige un ambiente. Su color, si tiene uno, se ve en la lista.
+3. Para cambiar sus valores, elige **Configurar ambiente…** al final de la lista. El ambiente se abre en su pestaña.
+</Steps>
+
+![La lista Ambiente del Runner abierta, con local resaltado, staging y Configurar ambiente… al final](/media/es/runner-environment.webp)
+
+Es el mismo ambiente activo que en la barra de ejecución de un workflow: cambiarlo aquí lo cambia en todas partes, y cambiarlo allá lo cambia aquí.
+
+Mientras se ven los resultados, la lista no aparece. Pulsa **Configurar** para verla otra vez.
+
+### Qué toma la ejecución del ambiente
+
+| Ejecución | Qué usa del ambiente |
+|---|---|
+| Requests, funcional | Sus variables, igual que cuando pulsas **Enviar** en un request. Un archivo de datos puede reemplazar algunas durante una vuelta. |
+| Requests, rendimiento | Sus variables. Cada usuario virtual parte de ellas. |
+| Workflows, funcional y rendimiento | Sus URLs base, variables y credenciales, como cuando pulsas **Ejecutar** en un workflow. |
+
+El nombre del ambiente aparece en la confirmación de una prueba de rendimiento, en el aviso sobre workflows que modifican datos y en los resultados de los workflows y de las pruebas de rendimiento. Mira [Ambientes](/es/environments/overview/).
+
+## API real o simulación
+
+| Ejecución | A dónde van las llamadas |
+|---|---|
+| Requests, funcional | Siempre a la dirección de cada request. Los requests no tienen simulación. |
+| Workflows, funcional | Donde dice **Contra**: **API real** (*Los requests van a la API del ambiente «…».*) o **Simulado** (*Responde con los ejemplos del contrato: no se llama a ninguna API.*). Algunos casos van simulados incluso contra la API real. Mira [Elige los casos](/es/runner/workflows-cases/). |
+| Requests o workflows, rendimiento | Siempre la API real del ambiente. Para workflows, **Simulado** no se puede elegir. |
+
+Para ejecutar sin tocar tu API, apunta un ambiente a un mock server y elige ese ambiente. Mira [Mock servers](/es/mocks/overview/).
+
+Una ejecución funcional de workflows deja la barra de ejecución de tus workflows en el mismo modo que la ejecución: después de una ejecución con **Simulado**, tus workflows también quedan en **Simulación**.
+
+## Avisos sobre el ambiente
+
+| Aviso | Cuándo | Qué hacer |
+|---|---|---|
+| *Faltan credenciales en «…»: las llamadas que las necesitan responderán 401.* | Workflows contra la API real, cuando un workflow marcado tiene un paso protegido sin credencial en el ambiente. | Pulsa **Completar** para abrir el ambiente y completa la credencial. |
+| *N workflow(s) crean, cambian o borran datos en «…». Marca para ejecutar igual.* | Workflows, funcional, contra la **API real**, cuando un workflow marcado tiene pasos que modifican datos. | Revisa el ambiente y marca la casilla. El botón para empezar queda apagado hasta que lo hagas. |
+| *Voy a mandar muchas requests al ambiente «…».* | Toda prueba de rendimiento. | Mira [Confirma antes de mandar carga](/es/runner/safety/). |
+
+Si un workflow inicia sesión con OAuth 2.0, el inicio de sesión se abre antes de la ejecución. Si falla, el error aparece arriba del runner, después del nombre del workflow, y la ejecución no empieza. Mira [OAuth 2.0](/es/authorization/oauth2/).
+
+## Cuando algo no aparece
+
+| Qué ves | Por qué | Qué hacer |
+|---|---|---|
+| **Ejecutar workflows** no está en la búsqueda ⌘K. | La colección no tiene workflows. | Crea un workflow o agrega un archivo Arazzo. |
+| *No hay requests que ejecutar aquí (los WebSocket no van en el runner).* | La carpeta está vacía o solo tiene requests WebSocket. | Abre el runner para otra carpeta, o para todos los requests. |
+| *La colección no tiene workflows.* | Cambiaste a **Workflows** en una colección sin workflows. | Vuelve a **Requests**. |
+| La lista **Ambiente** no está arriba. | Se están viendo los resultados. | Pulsa **Configurar**. |
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Ejecuciones, pestañas e historial" href="/es/runner/lifecycle/" />
+  <LinkCard title="Ejecuta requests" href="/es/runner/requests/" />
+  <LinkCard title="Ejecuta workflows" href="/es/runner/workflows/" />
+  <LinkCard title="Ambientes" href="/es/environments/overview/" />
+</CardGrid>

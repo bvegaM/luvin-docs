@@ -1,0 +1,94 @@
+---
+title: Performance tests
+description: Many virtual users repeat your requests or workflows for a while. What a performance test measures, a first test step by step, and every field of its setup.
+sidebar:
+  order: 13
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A performance test shows how an API behaves when many people use it at once. Virtual users repeat your requests, or your workflows, at the same time for as long as you set. Each request is measured: how many per second, how long they take and how many fail.
+
+<Aside type="caution" title="Only against your own APIs">
+A performance test sends a lot of requests. Run it against an environment of your own, or against a mock server, never against a public API or an API you do not own. The Pokédex example uses a public API: do not use it for performance tests.
+</Aside>
+
+The load comes from your computer. The setup says so: *The load comes from this computer: it is meant for tens or about a hundred users.*
+
+## Your first test, step by step
+
+A shop collection has a folder **Catalog** with **List products** and **Get product**. The environment `staging` points to your test server. If you do not have one, point an environment at a mock server: see [Mock servers](/mocks/overview/).
+
+<Steps>
+1. Open the **⋯** menu of **Catalog** and choose **Run folder (runner)**.
+2. At the top left, choose the environment `staging`.
+3. Under **Run type**, choose **Performance**: *Many users at once: times and errors under load.* **Set up your performance test** appears.
+4. Leave **Load profile** in **Fixed**. Set **Virtual users** to `10`. Next to **Duration**, choose **sec** and type `30`.
+5. Read the sentence under the chart: *10 virtual users for 30 s, each executing all requests in order.*
+6. Open **Pass test if…**, tick **p95 is below** and leave `1000` ms.
+7. Tick *I am about to send many requests to the "staging" environment.*
+8. Press **Start performance test**.
+</Steps>
+
+<video controls muted playsinline preload="metadata" poster="/media/en/runner-perf.webp" src="/media/en/runner-perf.mp4"></video>
+
+The results open at once. The status counts the time, for example **12 s of 30 s**, and the chart grows to the right every half second. After 30 seconds the status says **Finished**, and a banner says **✓ Test passed** or **✕ Test failed**. See [Read a performance test](/runner/performance-results/).
+
+## What a virtual user does
+
+A virtual user is a loop that runs on your computer. Each one repeats an iteration until the time is up:
+
+| Test of | One iteration is |
+|---|---|
+| **Requests** | Every ticked request, in order. |
+| **Workflows** | One case of each ticked workflow, in order. See [Performance of workflows](/runner/performance-workflows/). |
+
+- After each iteration, the user waits for **Pause between iterations (ms)**, then starts the next one.
+- In a test of requests, each user has its own variables and cookies. They start from the variables of the environment and the cookies of the collection. What a user saves is used by its next requests, and is never kept for the collection.
+- With a data file, the rows are spread across the users. See [Data files](/runner/data-files/#in-a-performance-test).
+- How many users are active at each moment depends on the load profile. See [Load profiles](/runner/load-profiles/).
+
+## The setup, field by field
+
+| Field | Default | What it is | More |
+|---|---|---|---|
+| **Load profile** | **Fixed** | How the number of users changes over time: **Fixed**, **Ramp up**, **Spike** or **Peak**. | [Load profiles](/runner/load-profiles/) |
+| **Virtual users** | 20 | Users running at the same time at the top of the load. From 1 to 500. | [Load profiles](/runner/load-profiles/#virtual-users-and-duration) |
+| **Duration** | 1 **min** | How long the test lasts, in **sec** or **min**. Up to 60 minutes. | [Load profiles](/runner/load-profiles/#virtual-users-and-duration) |
+| The chart and the sentence | | The shape of the load, drawn and told in words. | [Load profiles](/runner/load-profiles/#the-preview) |
+| **Initial load (users)** | 5 | Users at the start, for every profile except **Fixed**. | [Load profiles](/runner/load-profiles/#initial-load) |
+| **Pause between iterations (ms)** | 0 | How long each user waits between iterations. | [Load profiles](/runner/load-profiles/#pause-between-iterations) |
+| **Pass test if…** | Nothing ticked | Thresholds for the verdict. Optional. | [Pass criteria](/runner/pass-criteria/) |
+| **Iteration data** | No file | Rows spread across the users. | [Data files](/runner/data-files/#in-a-performance-test) |
+| The confirmation | Unticked | You confirm the load before it starts. | [Confirm before sending load](/runner/safety/) |
+
+The settings of a functional run do not apply here: there are no **Iterations**, no stop on failure, no responses kept and no cookies or variables left for the collection. With workflows, **Against** is fixed on the real API and **Picking from lists** is not shown. The load setup is the same for **Requests** and **Workflows**: what you set on one side is there on the other.
+
+## What is measured
+
+Each request, or each step of a workflow, is one measurement, with its response time and whether it passed:
+
+- The time is the response time. A request that did not answer is measured until it failed. A workflow step that got no response is not measured.
+- A request passes or fails as in a functional run: it fails when it does not answer, when a check fails or, without checks, when the status is 400 or more. See [When a request passes or fails](/runner/requests-results/#when-a-request-passes-or-fails).
+- A workflow step fails when it fails in the workflow, for example when it does not meet its success criteria.
+
+The measurements fill the chart, the key numbers and the table of the results.
+
+## Run and stop
+
+<Steps>
+1. Confirm and press **Start performance test**.
+2. The results open. The top says how far it is, for example **12 s of 30 s**, with a bar.
+3. To end before the time is up, press **Stop**. The status becomes **Stopped**.
+</Steps>
+
+When the time is up, or when you stop, the requests still on their way are cut. They are not counted, as errors or at all: a cut request is not an API failure.
+
+## Next
+
+<CardGrid>
+  <LinkCard title="Load profiles" href="/runner/load-profiles/" />
+  <LinkCard title="Pass criteria" href="/runner/pass-criteria/" />
+  <LinkCard title="Confirm before sending load" href="/runner/safety/" />
+  <LinkCard title="Read a performance test" href="/runner/performance-results/" />
+</CardGrid>

@@ -1,0 +1,164 @@
+---
+title: Responses
+description: The status, headers, body, content type and delay of a route, and how to ask for another response of the same route with x-mock-response-code or x-mock-response-name.
+sidebar:
+  order: 5
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Every route answers with a response: a status, headers, a body and, if you want, a delay. Your own routes let you write each part. The routes of the source can have several responses, and you choose one with a header.
+
+## Example: a payment that fails slowly
+
+In a shop API, you want to see what your workflow does when the payment service takes three seconds and then fails.
+
+<Steps>
+1. In a mock with **Only your routes**, press **New route**.
+2. Set **Method** to `POST` and **Path** to `/orders`.
+3. Set **Status** to `503` and **Delay (ms)** to `3000`.
+4. In **Name**, write `Payment down`.
+5. In **Body**, write `{"error": "down"}`.
+6. Send `POST http://127.0.0.1:4010/orders`. The answer arrives after 3 seconds, with status `503` and that body.
+</Steps>
+
+The **Log** shows the call with about 3000 ms and the route **Payment down**.
+
+## The fields of a route
+
+| Field | What it does |
+|---|---|
+| **Status** | The status of the response. The field takes 100 to 599. |
+| **Delay (ms)** | The delay of this route. Empty, it uses the delay of the mock (*The mock’s*). |
+| **Name** | A name to tell it apart, for example *User not found*. It appears in the row and in the **Log**. |
+| **Headers (one per line)** | The headers of the response. |
+| **Body** | The body of the response. |
+
+## Status
+
+- Use a status from 200 to 599. A status from 100 to 199 is not a final response: the mock answers `500` instead. See [Credentials and errors](/mocks/auth-and-errors/).
+- With `204` or `304`, or when the call is `HEAD`, the mock sends no body, whatever **Body** says.
+
+## Headers
+
+Write one header per line, as `name: value`:
+
+```text
+content-type: application/json
+location: /orders/1001
+x-request-id: {{request.headers.x-request-id}}
+```
+
+| Rule | Detail |
+|---|---|
+| When it applies | When you leave the field. |
+| Lines without `:` | Ignored. |
+| Several `:` in a line | The first one splits name and value: `x-note: a: b` gives the value `a: b`. |
+| Uppercase in the name | The name is sent in lowercase. |
+| Characters not valid in a name, such as a space | That header is not sent. |
+| Line breaks inside a value | Turned into spaces, so a value cannot add another header. |
+| Letters outside Latin-1, such as `€` | Sent as UTF-8. |
+| Values from the call | Allowed: `{{request.headers.x-request-id}}`. See [Values from the request](/mocks/templates/). |
+
+The mock also adds the headers a local frontend needs to read the response (CORS). A header you write with the same name replaces it. See [Who can call a mock](/mocks/security/).
+
+## Body and content type
+
+The **Body** is free text. The editor colors it as JSON when it starts with `{` or `[`, or when it is empty. It can include values from the call, such as `{{request.path.id}}`.
+
+The `content-type` the mock sends:
+
+| Headers of the route | Body | `content-type` sent |
+|---|---|---|
+| With `content-type` | Any | The one you wrote. |
+| Without `content-type` | Starts with `{` or `[` | `application/json` |
+| Without `content-type` | Any other text | `text/plain; charset=utf-8` |
+| Without `content-type` | Empty | None. |
+
+A new route starts with `content-type: application/json`. Delete that line to let the body decide.
+
+When the body is JSON, the values from the call are escaped as JSON text. See [Values from the request](/mocks/templates/).
+
+## Delay of a route
+
+| **Delay (ms)** of the route | The route waits |
+|---|---|
+| Empty (*The mock’s*) | The **Delay (ms)** of the mock. |
+| `0` | Nothing, even if the mock has a delay. |
+| `1500` | 1.5 seconds, whatever the mock says. |
+
+The highest value is 120000 ms (2 minutes). Use a route delay to slow down only one call, such as a payment, and leave the others fast.
+
+## Ask for another response of the same route
+
+A route of the source can have several responses: the examples of one request with the same method and path, or the documented statuses of one operation. The mock answers the default one: the first `2xx`, or the first one if there is no `2xx`. The others show *with x-mock-response-code: 404* in their row.
+
+![Routes from shop.openapi.yaml: the 200 and 201 responses answer by default, while the 404 of getProduct and the 422 of createOrder show with x-mock-response-code: 404 and 422, above the tip about x-mock-response-code and x-mock-response-name](/media/en/mocks-alt-response.webp)
+
+To get another one, send one of these headers in the call:
+
+| Header | Picks |
+|---|---|
+| `x-mock-response-code: 404` | The response with that status. |
+| `x-mock-response-name: 404 - Get pokemon` | The response with that name. Uppercase does not matter. |
+
+The name is the name of the saved example, or, in a contract, the description of the response (or its status, when the response is shared with `$ref`). See [Create a mock server](/mocks/create/).
+
+| Rule | Detail |
+|---|---|
+| Both headers | `x-mock-response-name` is tried first. |
+| No response matches | The mock answers the default one. |
+| Credentials | A call that asks for a response with these headers skips the `401` check. |
+| Your own routes | The headers do not apply. When one of your routes matches, it answers. |
+
+### Example: the 404 of the Pokédex contract
+
+`getPokemon` documents `200` and `404`. The mock answers `200` by default. With the header:
+
+```bash
+curl -H "x-mock-response-code: 404" http://127.0.0.1:4010/api/v2/pokemon/pikachu
+```
+
+it answers `404` with the example of the contract:
+
+```json
+{
+  "status": 404,
+  "message": "Not Found"
+}
+```
+
+### Example: two examples of the same request
+
+The request **Get pokemon** has the URL `{{baseUrl}}/pokemon/{{pokemon}}` and two saved examples: `200 - Get pokemon` and `404 - Get pokemon`. In a mock of the collection they are one route, `GET /pokemon/{{pokemon}}`, with two responses. The mock answers `200 - Get pokemon`. Send `x-mock-response-name: 404 - Get pokemon` to get the other.
+
+In a request of Luvin, add the header in its **Headers** tab. See [Params, headers and body](/requests/params-headers-body/).
+
+## Limits
+
+| What | Limit |
+|---|---|
+| Body of a route | 10 MB. |
+| Headers of a route | 100. |
+| Value of a header | 8000 characters. |
+| Delay | 120000 ms. |
+| Routes of a mock, own and of the source | 5000. |
+
+## Troubleshooting
+
+| What you see | Why, and what to do |
+|---|---|
+| The response arrives with `500` and `"error": "mock_error"`. | The status is below 200. Use 200 to 599. |
+| A header you wrote does not arrive. | Its name has a character not valid in a header, or the line has no `:`. |
+| The body arrives as text instead of JSON. | The route has a `content-type` that is not JSON, or the body does not start with `{` or `[`. |
+| `x-mock-response-code` has no effect. | One of your own routes matches the call, or no response of that route has that status. |
+| The route does not wait. | Its **Delay (ms)** is `0`. Empty it to use the delay of the mock. |
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Routes" href="/mocks/routes/" />
+  <LinkCard title="Values from the request" href="/mocks/templates/" />
+  <LinkCard title="Credentials and errors" href="/mocks/auth-and-errors/" />
+  <LinkCard title="Start and stop a mock" href="/mocks/start-stop/" />
+</CardGrid>

@@ -1,0 +1,114 @@
+---
+title: Ejecuciones, pestañas e historial
+description: Qué pasa con una ejecución al cambiar de pestaña, cerrar el runner, empezar otra ejecución o abrir otra colección, y dónde queda cada ejecución después.
+sidebar:
+  order: 3
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Una ejecución del runner sigue sola mientras trabajas. Esta página dice qué la detiene, qué no, y dónde encontrarla cuando termina.
+
+## Ejemplo: sigue trabajando mientras se ejecuta
+
+<Steps>
+1. Empieza una ejecución de 500 vueltas de una carpeta de la tienda.
+2. Haz clic en la pestaña de un workflow, o de un request, y sigue trabajando. La pestaña **Runner** muestra un indicador de carga. Su tooltip dice **Hay una ejecución en curso**.
+3. Haz clic en la pestaña **Runner**. Los resultados están donde los dejaste, con más vueltas hechas.
+4. Cuando termina, el indicador desaparece. La ejecución queda en **Historial**, en **Ejecuciones**.
+</Steps>
+
+## Configuración y resultados
+
+El runner tiene dos vistas:
+
+- **La configuración**: qué se ejecuta, en qué orden y cómo. Tiene la lista **Ambiente**.
+- **Los resultados**: se abren cuando pulsas el botón para empezar y se llenan mientras avanza la ejecución.
+
+Los botones de arriba de los resultados:
+
+| Botón | Cuándo | Qué hace |
+|---|---|---|
+| **Detener** | Mientras se ejecuta. | Detiene la ejecución. Lo que ya corrió queda en los resultados. |
+| **Configurar** | Cuando termina. | Vuelve a la configuración, con las mismas elecciones. |
+| **Ejecutar de nuevo** | Cuando termina una ejecución funcional. | La ejecuta otra vez de inmediato, con los mismos requests o workflows, ajustes y archivo de datos. |
+| **Ejecutar de nuevo…** | Cuando termina una prueba de rendimiento. | Abre la configuración, para que confirmes la carga otra vez antes de empezar. |
+| **JSON** | Cuando termina una ejecución de requests. | Descarga los resultados. Mira [Lee los resultados de los requests](/es/runner/requests-results/#exporta-los-resultados). |
+
+## Cambia de pestaña
+
+Cambia a cualquier otra pestaña mientras avanza una ejecución. Sigue corriendo, y sus resultados siguen ahí cuando vuelves a hacer clic en la pestaña **Runner**.
+
+Abrir el runner desde un menú no es lo mismo que hacer clic en su pestaña:
+
+- Si hay una ejecución del mismo tipo en curso, de requests o de workflows, el runner muestra sus resultados.
+- Si no, muestra la configuración. Los resultados de la última ejecución ya no están en pantalla, pero están en **Historial**.
+
+## Una ejecución a la vez
+
+El botón para empezar queda apagado mientras hay una ejecución que chocaría:
+
+- **Requests**: una ejecución a la vez, funcional o de rendimiento.
+- **Workflows**: una ejecución a la vez, funcional o de rendimiento. Un workflow que ejecutas con **Ejecutar** en su pestaña también cuenta: mientras corre, el runner no puede empezar, y mientras el runner ejecuta workflows, **Ejecutar** tampoco puede empezar.
+- Una ejecución de requests y una de workflows pueden ir al mismo tiempo.
+
+Un segundo clic en el botón para empezar no inicia una segunda ejecución.
+
+## Cierra el runner mientras se ejecuta
+
+Cerrar la pestaña **Runner** mientras una ejecución avanza abre un diálogo, **La ejecución sigue en curso**: *Si cierras el runner, la ejecución se detiene. Lo que alcanzó a correr queda en el historial.*
+
+![El diálogo La ejecución sigue en curso, con su texto sobre cerrar el runner y los botones Seguir ejecutando y Detener y cerrar](/media/es/runner-close-busy.webp)
+
+| Botón | Qué hace |
+|---|---|
+| **Seguir ejecutando** | Cierra el diálogo. La ejecución continúa y la pestaña sigue abierta. |
+| **Detener y cerrar** | Detiene la ejecución y cierra la pestaña. |
+
+El diálogo también aparece cuando cierras varias pestañas a la vez y el **Runner** es una de ellas.
+
+## Abre otra colección
+
+Abrir otra colección detiene lo que se estaba ejecutando en el runner:
+
+- Sus resultados no se muestran en la colección nueva.
+- Las variables y cookies que juntó no se conservan, aunque **Conservar las variables al terminar** o **Guardar las cookies al terminar** estén marcados.
+- La ejecución se guarda en el historial de la colección en la que empezó.
+
+## Historial
+
+Cada ejecución del runner se guarda en **Historial**, en **Ejecuciones**, en la colección donde corrió.
+
+| Ejecución | Etiqueta | Segunda línea, por ejemplo | Se guarda cuando |
+|---|---|---|---|
+| Requests, funcional | **Runner** | *15 request(s) · 5 vuelta(s)* | Al menos un request se envió. |
+| Workflows, funcional | **Runner** | *8 workflow(s) · 2 vuelta(s) · Simulado* | Al menos un caso terminó. |
+| Rendimiento | **Rendimiento** | *20 usuarios · 950 requests · p95 180 ms · staging* | Siempre. |
+
+- La cuenta es de todo lo que corrió: 3 requests en 5 vueltas son *15 request(s)*, y 4 workflows en 2 vueltas son *8 workflow(s)*.
+- La segunda línea también muestra el archivo de datos, si hay. Una ejecución que detuviste agrega **Cancelada**.
+- A la derecha, una ejecución muestra cuántos pasaron y fallaron, y una prueba de rendimiento sus requests por segundo y sus errores.
+- El punto de la izquierda es rojo cuando algo falló, ámbar cuando la ejecución no terminó y verde en los demás casos. En una prueba de rendimiento, sigue el mismo color que su estado. Mira [Criterios para pasar](/es/runner/pass-criteria/#el-color-del-estado).
+
+Haz clic en una entrada para volver a ver sus resultados, tal como quedaron al final. Desde una ejecución de requests todavía puedes descargar el **JSON** y pulsar **Abrir el request**, si el request todavía existe.
+
+![La pestaña Historial en Ejecuciones: una entrada de rendimiento de los requests de Shop con su etiqueta, usuarios, requests y p95, dos ejecuciones de workflows debajo, y a la derecha los resultados de la prueba de rendimiento abiertos con sus números clave y su gráfico](/media/es/history-perf.webp)
+
+### Qué se guarda
+
+| Ejecución | Qué guarda el historial |
+|---|---|
+| Requests, funcional | Cada request con su status, tiempo, tamaño y comprobaciones. Cada respuesta, si **Guardar las respuestas para verlas** estaba marcado, hasta 32 KB. No los valores de las variables al terminar. |
+| Workflows, funcional | Cada caso con sus pasos, como después de **Ejecutar**. |
+| Rendimiento | Las métricas, el gráfico y los errores. Ninguna respuesta. |
+
+Cada colección guarda las últimas 50 ejecuciones del runner, de requests y de workflows juntas, y las últimas 50 pruebas de rendimiento. Cuando un tipo llega a su límite, se borra la más antigua. No se guarda nada cuando **Guardar historial** está apagado en **Preferencias**. Mira [Historial](/es/workspaces/history/).
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Abre el runner y elige el ambiente" href="/es/runner/open-and-environment/" />
+  <LinkCard title="Lee los resultados de los requests" href="/es/runner/requests-results/" />
+  <LinkCard title="Lee los resultados de los workflows" href="/es/runner/workflows-results/" />
+  <LinkCard title="Historial" href="/es/workspaces/history/" />
+</CardGrid>

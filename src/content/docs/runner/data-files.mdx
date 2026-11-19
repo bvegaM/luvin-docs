@@ -1,0 +1,156 @@
+---
+title: Data files
+description: Give the Runner a CSV or JSON file so each row is one iteration. How to write the file, how rows become iterations, and what to do when it cannot be read.
+sidebar:
+  order: 11
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A data file lets the Runner repeat the same requests or workflows with different data. Each row of the file is one iteration. Use it to try a list of products, users or Pokémon without editing anything between runs.
+
+## Example: Pokemon card with three Pokémon
+
+**Pokemon card** has one input, `pokemon`. This file has a column with the same name:
+
+```csv title="pokemon.csv"
+pokemon
+pikachu
+bulbasaur
+charmander
+```
+
+<Steps>
+1. Open the workflows Runner for `pokemon.arazzo.yaml`. See [Run workflows](/runner/workflows/).
+2. Under **Iteration data**, press **Choose CSV or JSON…** and choose `pokemon.csv`.
+3. The Runner shows **pokemon.csv · 3 row(s)** and **Fill inputs: pokemon · Stay as `{{variables}}`: —**. **Iterations** changes to `3`.
+4. Press **Run (n cases)**.
+</Steps>
+
+![Iteration data with the button Change file…, pokemon-data.csv · 3 row(s), Remove, and the line Fill inputs: pokemon · Stay as variables: nickname](/media/en/runner-data-file.webp)
+
+**Iteration 1** shows `pokemon=pikachu`, **Iteration 2** `pokemon=bulbasaur`, and **Iteration 3** `pokemon=charmander`.
+
+## Choose a file
+
+<Steps>
+1. Under **Iteration data**, press **Choose CSV or JSON…**. Until you choose one, a hint next to it says what each row is for.
+2. Choose a `.csv` or `.json` file.
+3. Next to the button you see its name and its rows, for example **products.csv · 25 row(s)**. **Iterations** changes to the number of rows.
+</Steps>
+
+What you see below depends on what the Runner runs:
+
+- **Requests**: a table with the columns as `{{sku}}`, `{{quantity}}`… and the first 3 rows. With more rows it says, for example, **and 22 more row(s)**.
+- **Workflows**: a line that says which columns fill inputs and which stay as variables, for example **Fill inputs: sku, quantity · Stay as `{{variables}}`: coupon**. See [Columns, inputs and variables](/runner/data-mapping/).
+
+Luvin reads the file when you choose it. If you change the file afterwards, choose it again with **Change file…**.
+
+| Button | What it does |
+|---|---|
+| **Change file…** | Replaces the file with another one. |
+| **Remove** | Takes the file out. The iterations use only the environment. **Iterations** stays as it is. |
+
+## Write the file
+
+<Tabs>
+<TabItem label="CSV">
+
+```csv title="products.csv"
+sku,quantity,coupon
+SKU-100,2,WELCOME
+SKU-200,1,
+"SKU-300",5,"SUMMER, 10%"
+"SKU-400",1,"He said ""hi"""
+```
+
+- The first row has the column names. Spaces around a name are removed.
+- A column with an empty name is ignored.
+- Columns are separated by commas or by semicolons. Luvin counts both in the first row and uses the one that appears more. With a tie, commas.
+- A value with the separator, a quote or a line break goes between double quotes. Write `""` for a quote inside a quoted value: `"He said ""hi"""` is `He said "hi"`.
+- A quote only opens a quoted value at its start. In `5" screen`, the quote is part of the value.
+- Values keep their spaces: in `SKU-100, 2`, the quantity is ` 2`, with a space. Do not put spaces after the separator.
+- Empty lines, and lines with only separators, are skipped.
+- A row with fewer values than columns leaves the last ones empty. Extra values are ignored.
+- Lines can end in the Windows or the Unix way. A BOM at the start of the file, as Excel writes it, is ignored.
+
+</TabItem>
+<TabItem label="JSON">
+
+```json title="products.json"
+[
+  { "sku": "SKU-100", "quantity": 2, "coupon": "WELCOME" },
+  { "sku": "SKU-200", "quantity": 1 },
+  { "sku": "SKU-300", "quantity": 5, "options": { "size": "M" } }
+]
+```
+
+- A list of objects. Each object is a row and its fields are the columns.
+- A single object, not in a list, is a file with one row.
+- The columns are every field of every object, in the order they first appear: `sku`, `quantity`, `coupon`, `options`.
+- An object without a field has no value for that column in that row.
+
+Values that are not text become their JSON text:
+
+| In the file | The value |
+|---|---|
+| `"SKU-100"` | `SKU-100` |
+| `2` | `2` |
+| `true` | `true` |
+| `null` | `null` |
+| `{ "size": "M" }` | `{"size":"M"}` |
+
+A workflow input of type `object` turns that text back into the object. See [Columns, inputs and variables](/runner/data-mapping/#type-conversion).
+
+</TabItem>
+</Tabs>
+
+A `.json` file, or any file that starts with `[` or `{`, is read as JSON. Any other file is read as CSV.
+
+## Rows and iterations
+
+- Choosing a file sets **Iterations** to its number of rows. You can change it.
+- With more iterations than rows, the rows start over.
+- With fewer iterations than rows, only the first rows are used.
+
+With 3 rows and 5 iterations:
+
+| Iteration | 1 | 2 | 3 | 4 | 5 |
+|---|---|---|---|---|---|
+| Row | 1 | 2 | 3 | 1 | 2 |
+
+Next to each **Iteration** in the results you see up to four values of its row, for example `sku=SKU-100 · quantity=2 · coupon=WELCOME`.
+
+## In a performance test
+
+A performance test has no iterations to count: each virtual user repeats until the time is up. The rows are spread across the users. In its first iteration, user 1 takes row 1, user 2 row 2, and so on. In the next one, each user takes the row after the ones used in the round before.
+
+With 3 virtual users and 6 rows:
+
+| | 1st iteration | 2nd iteration | 3rd iteration |
+|---|---|---|---|
+| User 1 | Row 1 | Row 4 | Row 1 |
+| User 2 | Row 2 | Row 5 | Row 2 |
+| User 3 | Row 3 | Row 6 | Row 3 |
+
+The users go at their own pace, so in the results the rows do not come in this exact order. See [Performance tests](/runner/performance/).
+
+## When the file cannot be read
+
+The message appears under **Choose CSV or JSON…**, and the Runner keeps the file it had before, if any.
+
+| Message | What to do |
+|---|---|
+| *The file is not valid JSON.* | Fix the JSON. A missing comma or quote is the usual cause. Remember that a CSV file starting with `[` or `{` is read as JSON. |
+| *The JSON must be a list of objects:* `[{ "user": "ana" }, …]` | Put the rows in a list of objects. A list of plain values, like `["ana", "luis"]`, is not valid. |
+| *The file is empty or has no headers.* | Add a first row with the column names. |
+
+A file with only the row of names, or an empty JSON list `[]`, is read without error but shows **0 row(s)**: the iterations then use only the environment.
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Columns, inputs and variables" href="/runner/data-mapping/" />
+  <LinkCard title="Run requests" href="/runner/requests/" />
+  <LinkCard title="Run workflows" href="/runner/workflows/" />
+</CardGrid>

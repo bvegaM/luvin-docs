@@ -5,20 +5,23 @@ sidebar:
   order: 2
 ---
 
-This page lists the keyboard shortcuts that Luvin has. On macOS the main key is **⌘**. On Windows and Linux it is **Ctrl**. **Preferences**, under **Keyboard shortcuts**, shows **⌘Enter**, **⌘K** and **Esc**.
+This page lists the keyboard shortcuts that Luvin has. On macOS the main key is **⌘**. On Windows and Linux it is **Ctrl**.
+
+**Preferences**, in its **Shortcuts** section, lists the main ones in three groups: **General** (run or send, save, search, open Preferences, close dialogs and menus), **Tabs** (only in the desktop app) and **Workflow canvas** (undo and redo).
 
 ## The ones to learn first
 
 | Shortcut | What it does |
 |---|---|
 | **⌘K** (**Ctrl+K**) | Opens the search. Press it again to close it. |
-| **⌘Enter** (**Ctrl+Enter**) | Runs the selected cases of the open workflow. |
+| **⌘Enter** (**Ctrl+Enter**) | Runs the selected cases of the open workflow, or sends the open request. |
 | **⌘S** (**Ctrl+S**) | Saves right now. Luvin also saves by itself. |
+| **⌘,** (**Ctrl+,**) | Opens **Preferences**. |
 | **Esc** | Closes the dialog, menu or search that is open. |
 
 ## Search
 
-**⌘K** (**Ctrl+K**) opens a search box. Type to find a workflow, step, request, contract, environment or collection.
+**⌘K** (**Ctrl+K**) opens a search box. Type to find a workflow, step, environment, contract, request, mock server or collection, or an action.
 
 | Key | What it does |
 |---|---|
@@ -28,15 +31,33 @@ This page lists the keyboard shortcuts that Luvin has. On macOS the main key is 
 
 You can also click **Search** in the bottom bar.
 
+### Actions
+
+The first group of the search, **Actions**, holds things that are not a file. Type a word of their name, such as `history` or `mock`, to find them.
+
+| Action | What it does |
+|---|---|
+| **Run requests** | Opens the runner with the requests of the collection. See [The runner](/runner/overview/). |
+| **Run workflows** | Opens the runner with the workflows of the collection. It shows only when the collection has workflows. |
+| **Open history** | Opens the history of the collection: past requests and runs. See [History](/workspaces/history/). |
+| **New request** | Creates a request. |
+| **New mock server** | Creates a mock server. See [Mock servers](/mocks/overview/). |
+
+![The search opened with ⌘K and nothing typed: the Actions group first (Run requests, Run workflows, Open history, New request, New mock server), then Workflows and Steps](/media/en/search-actions.webp)
+
 ## Run and save
 
 | Shortcut | Where | What it does |
 |---|---|---|
-| **⌘Enter** (**Ctrl+Enter**) | Anywhere | Runs the selected cases of the open workflow. |
+| **⌘Enter** (**Ctrl+Enter**) | Anywhere | Runs the selected cases of the open workflow. It does nothing while the YAML of the workflow can't be read. |
+| **⌘Enter** (**Ctrl+Enter**) | Anywhere in an open request: the URL, the headers, the body | Sends the request. WebSocket requests are the exception. |
+| **Enter** | The URL of an HTTP, GraphQL or gRPC request | Sends the request. While a `{{` suggestion list is open, Enter picks the suggestion instead. |
 | **⌘Enter** (**Ctrl+Enter**) | In **Try it out** of a contract | Sends that operation. It does not run the workflow behind it. |
 | **⌘Enter** (**Ctrl+Enter**) | In the box of **Import from cURL** | Imports the pasted command. |
 | **⌘Enter** (**Ctrl+Enter**) | In **Edit as JSON** of a request body in the Design tab | Applies the JSON. |
 | **⌘S** (**Ctrl+S**) | Anywhere | Saves the open workspace now. Without a workspace it does nothing. |
+
+While a dialog is open, such as **Preferences** or a new request, **⌘Enter** belongs to that dialog and does not run the workflow behind it.
 
 ## Design tab
 
@@ -46,6 +67,14 @@ You can also click **Search** in the bottom bar.
 | **⇧⌘Z** (**Ctrl+Shift+Z**) | Redoes it. The same as **Redo**. |
 
 They work when the focus is not in a text field. Inside a field, **⌘Z** undoes the text you typed, as in any program.
+
+The history of **Undo** is kept when you go to another tab of the workflow, such as YAML or Cases, and come back. If you edited the YAML in between, it starts again.
+
+| Key | Where | What it does |
+|---|---|---|
+| **Esc** | The menu of a **+** or a pencil on a step card | Closes it. See [Success and errors](/design/success-and-errors/). |
+| **Enter** | The field of **+ If it responds another status…** | The same as **Choose**. |
+| **Esc** | That same field | Cancels it. |
 
 ## Tabs (desktop app)
 
@@ -78,6 +107,7 @@ These work only in the desktop app.
 |---|---|
 | **→** | Next step of the tour. |
 | **←** | Previous step. |
+| **Esc** | Closes the section picker. |
 
 ## Resize with the keyboard
 

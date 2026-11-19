@@ -1,0 +1,178 @@
+---
+title: Guarda valores de una respuesta
+description: Guarda un token, un id o cualquier valor de una respuesta como {{variable}}, márcalo como secreto y úsalo en los requests siguientes, el runner y los workflows.
+sidebar:
+  order: 8
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+La pestaña **Variables** de un request guarda valores de su respuesta, como un token o el id de lo que acabas de crear. Cada valor se convierte en un `{{nombre}}` que puedes usar en los requests siguientes, en el runner y en las ejecuciones de workflows. Úsala siempre que una llamada necesite algo que devolvió la anterior.
+
+## Ejemplo: inicia sesión en una tienda y reutiliza el token
+
+La API de una tienda responde su login con un token:
+
+```http
+POST https://api.shop.test/login
+
+{ "access_token": "eyJhbGciOiJIUzI1NiJ9.c2hvcA.k3y", "expires_in": 3600 }
+```
+
+<Steps>
+
+1. Abre el request **Log in** y haz clic en la pestaña **Variables**.
+2. Haz clic en **Variable**. Aparece una fila marcada, con el nombre vacío y la expresión `res.body.`.
+3. Escribe el nombre `token`.
+4. Completa la expresión: `res.body.access_token`.
+5. Haz clic en el candado de la fila. Queda resaltado: el valor ahora es **Secreto**.
+6. Pulsa **Enviar** (⌘/Ctrl + Enter). En la respuesta, la pestaña **Comprobaciones** lista `{{token}}` en **Variables guardadas**, con el valor `••••`.
+7. Abre el request **List orders**, `GET https://api.shop.test/orders`, y usa `{{token}}` como token Bearer en su pestaña **Autorización**. Pulsa **Enviar**: sale con el token real, y el token no aparece en su pestaña **Request enviado**.
+
+</Steps>
+
+## La fila, campo por campo
+
+Cada fila de la pestaña **Variables** se lee de izquierda a derecha:
+
+| Parte | Qué es |
+|---|---|
+| Casilla (**Activa**) | Marcada, la fila guarda su valor en cada envío. Desmarcada, se conserva en el request pero no hace nada. |
+| Nombre (texto de ayuda `nombre`) | El nombre de la variable, que se usa como `{{nombre}}`. |
+| ← | Se lee "toma su valor de". |
+| Expresión (**De la respuesta**, texto de ayuda `res.body.token`) | Qué leer de la respuesta. Las filas nuevas empiezan con `res.body.`. Mira [Expresiones de la respuesta](/es/requests/check-expressions/). |
+| Vista previa | Lo que lee la expresión en la última respuesta, mientras escribes (mira abajo). |
+| Candado (**Secreto**) | Tapa el valor fuera de la respuesta. Su tooltip dice **Marcar como secreto (por ejemplo, un token)**, o **Secreto: su valor no se muestra (va tapado en lo enviado y en el historial)** cuando está encendido. |
+| Papelera (**Eliminar**) | Quita la fila. |
+
+El número de la pestaña **Variables** cuenta las filas activas que tienen nombre.
+
+![La pestaña Variables de GET products con dos filas activas: firstSku, que lee el sku del primer item, con la vista previa SKU-100, y total, que lee res.body.total, con 10; cada una tiene su candado y su papelera, y debajo está el botón + Variable](/media/es/request-vars.webp)
+
+### Reglas del nombre
+
+| Regla | Ejemplo |
+|---|---|
+| Letras sin tildes, números, `_`, `.` y `-` | `token`, `order_id`, `user.id`, `x-trace` |
+| Cualquier otro carácter se borra mientras escribes | Escribir `order id` deja `orderid`; `año` deja `ao` |
+| Mayúsculas y minúsculas son nombres distintos | `token` y `Token` son dos variables |
+| Escribe el nombre sin llaves | `pokemonId`, no `{{pokemonId}}` |
+
+Si dos filas activas tienen el mismo nombre y las dos encuentran un valor, gana la de más abajo.
+
+### La vista previa en vivo
+
+Cuando el request ya tiene una respuesta, cada fila muestra lo que su expresión lee en ella, mientras escribes:
+
+| La vista previa muestra | Significa |
+|---|---|
+| El valor, como `25` o `pikachu` | La expresión funciona. Los valores largos se cortan; apunta para leer más. |
+| `••••` | La fila es secreta. |
+| **no está en la última respuesta** | La expresión es válida pero ese campo no está en la respuesta. Revisa cómo está escrito y las mayúsculas. |
+| **expresión no válida** | Luvin no entiende la expresión. Apunta para ver por qué, por ejemplo **Usa res.status, res.body…, res.headers.nombre o res.responseTime**. |
+| Nada | El request todavía no tiene respuesta. Envíalo una vez. |
+
+### Agrega un campo con un clic
+
+Con una respuesta, **De la última respuesta:** ofrece hasta ocho campos del body como chips, como `id` o `name`. Haz clic en uno para agregar una fila con ese nombre y su expresión.
+
+- Ofrece campos con un texto, un número o `true`/`false` (no `null`, ni listas, ni objetos).
+- Mira el primer nivel del body y un nivel más abajo: `res.body.species.name` se ofrece como `name`.
+- Un campo cuya expresión ya está en una fila no se vuelve a ofrecer.
+- El nombre del chip es el nombre del campo. Si dos chips se llamarían `name`, cambia el nombre de una de las filas.
+
+## Qué valor se guarda
+
+| La expresión lee | Se guarda como | Ejemplo |
+|---|---|---|
+| Un texto | El texto, tal como llegó | `pikachu` |
+| Un número | El número como texto | `25` |
+| `true` o `false` | `true` o `false` | `true` |
+| `null` | El texto `null` | `null` |
+| Una lista o un objeto | Texto JSON | `{"name":"pikachu","url":"https://pokeapi.co/api/v2/pokemon-species/25/"}` |
+| Nada (el campo no está) | No se guarda: la variable conserva su valor anterior | |
+
+Todos los valores son texto. Cuando lo compares después en una comprobación, `25` sigue siendo igual al número `25`. Mira [Las comprobaciones, una por una](/es/requests/check-operators/#compara-valores).
+
+## Valores secretos
+
+Marca una fila como secreta para tokens, claves y cualquier valor que no quieras en pantalla ni en archivos. Su valor se muestra como `••••`:
+
+| Dónde | Tapado |
+|---|---|
+| La vista previa de la pestaña **Variables** | Sí |
+| **Variables guardadas**, en la pestaña **Comprobaciones** de la respuesta | Sí |
+| **Guardadas ahora**, en la pestaña **Variables** | Sí, y su tooltip no lo muestra |
+| El **Request enviado** de los requests siguientes que lo usan | Sí |
+| El historial: el request, su respuesta y las corridas del runner | Sí, también dentro del body y de los headers |
+| **Network**, en Dev Tools | Sí |
+| Los resultados y los reportes de una ejecución de workflow que lo usa | Sí |
+| El body de la respuesta que lo trajo, mientras la miras | No: muestra la respuesta tal como llegó |
+
+<Aside type="caution">
+Los valores de menos de 4 caracteres no se tapan, porque taparlos ocultaría letras sueltas en cualquier texto. Un secreto es para tokens y claves reales.
+</Aside>
+
+El valor se usa tal cual: solo cambia lo que se muestra.
+
+## En memoria, no en el ambiente
+
+Los valores guardados viven **en memoria** mientras la colección está abierta.
+
+- **No se escriben en el ambiente** ni en ningún archivo, así que un token nunca termina en git.
+- Se pierden al cerrar la app, al cerrar la colección o al abrir otra.
+- Son de la colección, no de un request: lo que guarda **Log in** lo ven todos los demás requests de la colección.
+
+La pestaña **Variables** de cualquier request los lista en **Guardadas ahora**, con la nota **las de todos los requests de la colección**. Cada línea muestra `{{nombre}}` y su valor (apunta para leerlo completo, salvo los secretos). Haz clic en **Borrar todas** para olvidar todos los valores. La lista aparece solo cuando hay al menos un valor guardado.
+
+![La pestaña Variables después de un envío: el recuadro Guardadas ahora, las de todos los requests de la colección, lista firstSku con SKU-100 y total con 10, con Borrar todas](/media/es/request-vars-runtime.webp)
+
+## Úsalos
+
+Escribe `{{nombre}}` en cualquier request posterior: en la URL, los params, los headers, la autorización, el body, o la consulta y las variables de GraphQL. Al escribir `{{`, las sugerencias incluyen los nombres que guardan tus requests, incluso antes del primer envío, así que `{{token}}` no se marca como desconocida.
+
+### Qué valor gana
+
+Cuando un valor guardado y otra variable tienen el mismo nombre:
+
+| Dónde | Orden, de más débil a más fuerte |
+|---|---|
+| Un envío suelto | Variable del ambiente → valor guardado |
+| El runner | Variable del ambiente → valor guardado al empezar → columna del archivo de datos → valor guardado durante la corrida |
+| Una ejecución de workflow | Variable del ambiente → valor guardado → columna del archivo de datos del runner |
+
+Un valor guardado siempre gana sobre una variable del ambiente con el mismo nombre. Para volver al valor del ambiente, haz clic en **Borrar todas**.
+
+### En los workflows
+
+Una ejecución de workflow ve los valores guardados por encima de las variables del ambiente: en las URLs base, las credenciales, los inputs y los datos de cada caso. Un valor guardado secreto se tapa en los resultados. Los workflows tienen su propia forma de pasar datos entre pasos: mira [Conectar datos entre pasos](/es/design/wire-data/).
+
+Lo mismo vale para **Try it out** en un contrato. Mira [Probar una operación](/es/contracts/try-it-out/).
+
+### En el runner
+
+**Ejecutar requests (runner)** y **Ejecutar carpeta (runner)** envían varios requests en orden. Lo que guarda un request pasa a los siguientes de la misma corrida, también de una iteración a la siguiente.
+
+**Conservar las variables al terminar** (encendido por defecto) deja los valores guardados en la corrida para la colección, en **Guardadas ahora**. Los valores iguales al ambiente, o iguales a una columna del archivo de datos, no se conservan. Apágalo para descartarlos al terminar.
+
+En una prueba de rendimiento, cada usuario virtual tiene sus propios valores guardados, y ninguno queda para la colección. Mira [Ejecuta requests](/es/runner/requests/).
+
+## Solución de problemas
+
+| Lo que ves | Por qué | Qué hacer |
+|---|---|---|
+| El request envía `{{token}}` tal cual | El valor no está guardado: no se envió el primer request desde que abriste la app, se hizo clic en **Borrar todas** o se abrió otra colección | Vuelve a enviar el request que lo guarda |
+| **no estaba en la respuesta** después de un envío | El campo no está: un error de tipeo, otras mayúsculas (`res.body.Id`) o la API respondió un error con otro body | Abre la pestaña **Body** de la respuesta y copia el camino exacto |
+| El valor es `{"name":…}` en vez de un texto | La expresión apunta a un objeto | Agrega el campo: `res.body.species.name` |
+| Se usa un valor viejo | La última respuesta no traía el campo, así que la variable conservó su valor anterior | Busca **no estaba en la respuesta** en la pestaña **Comprobaciones** de la respuesta |
+| Desaparece un carácter del nombre | Solo se admiten letras sin tildes, números, `_`, `.` y `-` | Usa `order_id` en vez de `order id` |
+| Se ignora el valor del ambiente | Gana un valor guardado con el mismo nombre | Haz clic en **Borrar todas**, o usa otro nombre |
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Expresiones de la respuesta" href="/es/requests/check-expressions/" />
+  <LinkCard title="Comprueba la respuesta" href="/es/requests/checks/" />
+  <LinkCard title="Variables y secretos" href="/es/environments/variables-and-secrets/" />
+  <LinkCard title="Ejecuta requests" href="/es/runner/requests/" />
+</CardGrid>

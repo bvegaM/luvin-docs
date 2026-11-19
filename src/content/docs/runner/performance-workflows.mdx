@@ -1,0 +1,109 @@
+---
+title: Performance of workflows
+description: Load test whole workflows. Which case each virtual user repeats, why simulated cases are left out, and how each step and each whole workflow are measured.
+sidebar:
+  order: 20
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A performance test of workflows repeats whole chains of calls under load, not single requests. Each virtual user runs one case of each ticked workflow, step by step, again and again. The results show each step on its own row, so you see which step of the chain slows down.
+
+## Example: Place order under load
+
+**Place order**, in `shop.arazzo.yaml`, has the steps `getProduct` and `createOrder`. The environment `staging` points to your test server.
+
+<Steps>
+1. Open the **⋯** menu of `shop.arazzo.yaml` and choose **Run workflows (runner)**.
+2. Under **Run type**, choose **Performance**. Under **Against**, **Real API** is chosen and **Simulated** cannot be pressed.
+3. The row of **Place order** says **Load: Happy path**. Click it: the happy path has the tag **Repeated in the load test**.
+4. Set 10 **Virtual users** for 30 **sec**. The sentence says *10 virtual users for 30 s, each executing the happy path of the selected workflows.*
+5. Read the box above the button: **Place order** creates orders, so it adds *1 of the selection creates, changes or deletes data: it will be repeated many times.* Tick it.
+6. Press **Start performance test**.
+</Steps>
+
+The table shows `Place order · getProduct`, `Place order · createOrder` and `Place order · whole workflow`.
+
+![The results of a performance test of two shop workflows: the table has a row per step, like View product · getProduct and Order product · createOrder, and a row in italics for each whole workflow](/media/en/runner-perf-results.webp)
+
+## The setup changes with Performance
+
+| Part | With **Performance** |
+|---|---|
+| **Against** | Always **Real API**. **Simulated** cannot be chosen. Its tooltip, and the hint under it, say *Performance measures the real API of the "…" environment: there is nothing to measure in simulation. To test without the API, point the environment at a mock server.* |
+| The row of each workflow | Says which case is repeated, for example **Load: Happy path**, instead of how many cases run. |
+| The cases of a workflow | Show where they would go against the real API. The repeated one has the tag **Repeated in the load test**. |
+| **Iterations**, **Settings** and **Picking from lists** | Not shown. The saved list rules still apply. |
+| The top of the list | Counts the workflows with a case to repeat, for example **2 of 3 selected**. |
+
+When you open the cases of a workflow, a hint says: *The performance test repeats one case per workflow against the real API: the happy path among the checked ones (or the first). Simulated cases are not measured.*
+
+## Which case is repeated
+
+Each workflow repeats one case. Luvin takes the ticked cases that can run against the real API and are not simulated, and chooses:
+
+1. The **Happy path**, if it is one of them.
+2. If not, the first of them, in the order they have in the list under the workflow.
+
+| Ticked cases of **Place order** | Repeated case | The row says |
+|---|---|---|
+| All | **Happy path** | **Load: Happy path** |
+| All except the happy path | The first data validation case, for example **Without the required input "quantity"** | **Load: Without the required input "quantity"** |
+| Only the two response cases | None | **no checked case against the real API** |
+
+A workflow with no case to repeat turns grey and is left out of the test. To change the repeated case, tick or untick cases in the list or in the **Cases** tab.
+
+## Why simulated cases are left out
+
+A simulated case does not call your API: Luvin makes up the answer from the contract. Measuring it would measure your computer, not your API. That is why:
+
+- Response and message cases, which are simulated even against the real API, are never repeated.
+- **Simulated** cannot be chosen under **Against**.
+
+To load test without your API, point the environment at a mock server: the calls then go to the mock, which answers for real. See [Mock servers with workflows](/mocks/with-workflows/).
+
+## What each virtual user does
+
+In each iteration, a virtual user runs the repeated case of each ticked workflow, in the order of the list, then waits for **Pause between iterations (ms)**.
+
+- **Dependencies**: if a workflow depends on others, they run first in every iteration, as when you press **Run**.
+- **Lists**: when a step returns a list, the saved rule chooses, or the item in the design. **A different one each iteration** counts the iterations of each user. See [Lists in the Runner](/runner/workflows-lists/).
+- **Data file**: each iteration takes a row, spread across the users. A column named like an input fills it. See [Columns, inputs and variables](/runner/data-mapping/).
+- **Credentials and OAuth 2.0**: as in a functional run. If a workflow signs in with OAuth 2.0, the sign-in opens before the test starts. A notice warns when credentials are missing.
+
+## Rows per step
+
+Each step of the repeated case that gets a response, or a message, is measured on its own row, named after the workflow and the step: `Place order · getProduct`.
+
+- The time is the response time of the step.
+- The step fails when it fails in the workflow: a status it does not expect, or success criteria it does not meet.
+- A step that gets no response, for example one that was not reached, is not measured.
+
+The workflows it depends on run, but their steps do not get rows.
+
+## The whole workflow row
+
+Each workflow also has a row for the whole run: `Place order · whole workflow`.
+
+- Its time goes from the start to the end of the workflow in that iteration, including the workflows it depends on.
+- It fails when the case fails.
+- It is not a request, so it is left out of the key numbers, the verdict, the chart of all requests, the **Errors** tab and the search for the slowest request.
+- It is in the table and in **All requests**: choose it there to see the whole workflow over time in the chart.
+
+## When the test does not start or measures nothing
+
+| What you see | Why | What to do |
+|---|---|---|
+| The row says **no checked case against the real API**. | Only simulated cases are ticked, or none. | Tick the **Happy path**, or another case that goes to the real API. |
+| **Start performance test** stays off. | No workflow has a case to repeat, or the confirmation is missing. | See [Confirm before sending load](/runner/safety/#when-the-start-button-stays-off). |
+| An error at the top, after the name of a workflow. | Its OAuth 2.0 sign-in failed. | Fix the sign-in and start again. See [OAuth 2.0](/authorization/oauth2/). |
+| Every step fails with `401`. | Credentials are missing in the environment. | Press **Fill in** in the notice and complete them. |
+| A step fails with `200` as the reason. | It answered, but did not meet its success criteria, or a list rule found no item. | Run the workflow by hand with **Run** and read the step. |
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Performance tests" href="/runner/performance/" />
+  <LinkCard title="Choose the cases" href="/runner/workflows-cases/" />
+  <LinkCard title="The table and the errors" href="/runner/performance-table/" />
+</CardGrid>

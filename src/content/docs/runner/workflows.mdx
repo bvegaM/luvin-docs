@@ -1,0 +1,117 @@
+---
+title: Run workflows
+description: Choose which workflows the Runner runs and in what order, against the real API or in simulation, with iterations, settings and the notices you see before it starts.
+sidebar:
+  order: 7
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+The workflows runner runs several workflows one after another, each with its ticked cases, and gives every case its verdict. It is the same as pressing **Run** in each workflow, but all at once and as many times as you want. Nobody has to watch: it never stops to ask you anything.
+
+## Example: the Pokédex workflows against the real API
+
+<Steps>
+1. In the sidebar, open the **⋯** menu of `pokemon.arazzo.yaml` and choose **Run workflows (runner)**.
+2. Under **Run order**, click **Pokemon card**. Its two cases appear below it: **Happy path** with the tag **Real API**, and the 404 case with the tag **Simulated**. The row says **2 of 2 cases**.
+3. Under **Against**, choose **Real API**. The hint says the requests go to the API of the environment.
+4. Press **Run (n cases)**.
+</Steps>
+
+<video controls muted playsinline preload="metadata" poster="/media/en/runner-workflows.webp" src="/media/en/runner-workflows.mp4"></video>
+
+The results show one row per workflow. Click **Pokemon card** to see its cases, as after **Run**. See [Read the results of workflows](/runner/workflows-results/).
+
+## The list of workflows
+
+The **Run order** list, on the left, has every workflow of the Arazzo file, or of the collection. Its title says which: the name of the file, for example `pokemon.arazzo.yaml`, or, for the whole collection, its name followed by "workflows", for example **Shop workflows**.
+
+Each row has:
+
+| Part | What it is |
+|---|---|
+| ⋮⋮ | The handle to drag the row. |
+| Checkbox | Ticked, the workflow runs. |
+| Number | Its position in the order. |
+| Name, with an arrow | Click it to see and choose its cases. Its tooltip says **See and choose its cases**. |
+| **changes data** | With **Real API**, the workflow has steps that create, change or delete data. |
+| **1 of 2 cases** | Ticked cases that can run in the chosen mode, out of all its cases. It also opens the cases. With none, it says **no cases in this mode**. |
+| ˄ ˅ | **Move up** and **Move down**. |
+
+A workflow that is unticked, or that has **no cases in this mode**, turns grey and does not run.
+
+## Choose and order the workflows
+
+<Steps>
+1. Untick the workflows you do not want.
+2. Drag a row to move it, or use **Move up** and **Move down**.
+3. To tick or untick every workflow, use the checkbox at the top of the list.
+4. **Reset** puts back the original order and ticks every workflow.
+</Steps>
+
+The top says how many will run, for example **3 of 4 selected**. A ticked workflow with no case to run in the chosen mode does not count.
+
+To choose the cases of a workflow, see [Choose the cases](/runner/workflows-cases/).
+
+## Real API or simulation
+
+Under **Against**, choose where the cases run:
+
+| Option | Hint under it | What happens |
+|---|---|---|
+| **Real API** | *Requests go to the API of the "…" environment.* | Each step calls your API. Some cases are simulated anyway, like most response cases. |
+| **Simulated** | *Answers with the contract examples: no API is called.* | No step calls an API. Cases that need the real API do not run. See [Simulation](/test/simulation/). |
+
+**Against** starts in the same mode as the run bar of your workflows, or with the mode of your last run of the same file or collection. Changing it changes how many cases can run: the counts on each row and on the start button update.
+
+## Iterations and settings
+
+| Field | Default | What it does |
+|---|---|---|
+| **Iterations** | 1 | How many times all the ticked workflows run, from 1 to 10,000. With a data file, it starts at the number of rows. See [Data files](/runner/data-files/). |
+| **Stop if a workflow fails** | Off | The run ends at the first workflow that fails. Its hint: *It fails when a case does not pass or when it could not run because of its dependencies.* |
+| **Delay between workflows of … ms** | Off | A pause between one workflow and the next, also between iterations. Ticking it sets 500 ms, in steps of 100. Setting it to `0` unticks it. |
+
+![The right column of the workflows Runner: Run type Functional, Against with Real API and Simulated and the hint about the local environment, Iteration data with Choose CSV or JSON…, Iterations 1, the settings Stop if a workflow fails and Delay between workflows, and the button Run (7 cases)](/media/en/runner-workflows-setup.webp)
+
+## Picking from lists
+
+When a step returns a list and the next step uses one item, a run by hand asks you which one. The Runner never asks. Under **Picking from lists**, it shows the rules saved in the steps of the ticked workflows, for example *the one where status is ACTIVE*, with **Remove** next to each one.
+
+With no saved rules it says *No saved rules: when a step returns a list, the runner uses the item in the design. When you run by hand you can save a rule from the question.*
+
+See [Lists in the Runner](/runner/workflows-lists/).
+
+## Notices before a run against the real API
+
+| Notice | What to do |
+|---|---|
+| *Credentials are missing in "…": calls that need them will answer 401.* | Press **Fill in** to open the environment and complete them. |
+| A box: *N workflow(s) create, change or delete data in "…". Tick to run anyway.* | Check that the environment is one where data can change, and tick the box. **Run (n cases)** stays off until you do. |
+| A workflow signs in with OAuth 2.0. | The sign-in opens when you press the start button. If it fails, the error appears at the top of the Runner, after the name of the workflow, and the run does not start. See [OAuth 2.0](/authorization/oauth2/). |
+
+With **Simulated**, none of these appear: no call reaches an API.
+
+## Start the run
+
+<Steps>
+1. Check the **Environment** at the top of the Runner.
+2. Under **Run type**, choose **Functional**: *Runs the selected cases of each workflow and gives their verdict.*
+3. Choose **Against**, the iterations and the settings.
+4. Press **Run (n cases)**. The number is the cases that will run times the iterations: 2 workflows with 3 cases each, in 4 iterations, read **Run (24 cases)**.
+</Steps>
+
+**Run (n cases)** stays off when no workflow can run, while another run of workflows is going on, including a **Run** in a workflow tab, or while the box about data changes is unticked.
+
+## Workflows that depend on others
+
+If a workflow depends on others, they run first, every time the workflow runs, as when you press **Run**. In 3 iterations, they run 3 times. If they fail, the cases of that workflow end as inconclusive, and the workflow counts as failed in that iteration. If every case that runs is simulated, the workflows it depends on are simulated too. See [Run](/test/run/#when-a-workflow-depends-on-another).
+
+## Next
+
+<CardGrid>
+  <LinkCard title="Choose the cases" href="/runner/workflows-cases/" />
+  <LinkCard title="Lists in the Runner" href="/runner/workflows-lists/" />
+  <LinkCard title="Read the results of workflows" href="/runner/workflows-results/" />
+  <LinkCard title="Data files" href="/runner/data-files/" />
+</CardGrid>

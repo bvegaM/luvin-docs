@@ -1,0 +1,104 @@
+---
+title: Columns, inputs and variables
+description: How each column of a data file reaches your requests and workflows, which value wins when names repeat, how text becomes numbers or objects, and how to fix a column that is not used.
+sidebar:
+  order: 12
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Each column of a data file becomes a value in every iteration. In a run of requests, a column is a variable. In a run of workflows, a column fills the input with the same name, and is also a variable. This page says exactly where each value goes and what to check when one does not arrive.
+
+## Example: orders with a coupon
+
+**Place order** has the inputs `sku` and `quantity`. This file has three columns:
+
+```csv title="orders.csv"
+sku,quantity,coupon
+SKU-100,2,WELCOME
+SKU-200,1,
+```
+
+<Steps>
+1. Open the workflows Runner for `shop.arazzo.yaml` and choose `orders.csv` under **Iteration data**.
+2. Read the line under the file: **Fill inputs: sku, quantity · Stay as `{{variables}}`: coupon**.
+3. Press **Run (n cases)**.
+</Steps>
+
+In iteration 1, the cases of **Place order** run with `sku` = `SKU-100` and `quantity` = the number `2`. Anything that uses `{{coupon}}` gets `WELCOME`.
+
+## In a run of requests
+
+Each column is a variable. Use it as `{{sku}}` in the URL, the parameters, the headers or the body of a request, like any variable of the environment.
+
+When the same name exists in several places, this is what wins:
+
+| From lowest to highest | Example with `token` |
+|---|---|
+| 1. The environment | `token` is `abc` in the environment. |
+| 2. The row of the iteration | The file has a column `token`: in each iteration, its value replaces `abc`. |
+| 3. What a request saves during the iteration | **Log in** saves `token`: from then on, in that iteration, the requests use the saved one. |
+
+At the start of the next iteration, the row wins again over a value saved in an earlier iteration with the same name. A name that is not a column keeps the value saved before: a `token` saved in iteration 1 is still there in iteration 2.
+
+In a performance test of requests, the row always wins: a column replaces a value with the same name that a request saved.
+
+## In a run of workflows
+
+The line under the file says what happens to each column, for the workflows that will run:
+
+- **Fill inputs**: the columns named exactly like an input of a workflow. The name must match, upper and lower case included.
+- **Stay as `{{variables}}`**: the other columns. Base URLs, credentials and input values can use them, as in an environment.
+
+Every column is also a variable, including the ones that fill an input.
+
+![Under Iteration data, the file pokemon-data.csv · 3 row(s) and the line Fill inputs: pokemon · Stay as variables: nickname](/media/en/runner-data-file.webp)
+
+### Which value an input gets
+
+| From lowest to highest | Example with `quantity` |
+|---|---|
+| 1. The default value, from the **Inputs** tab | `1` |
+| 2. The column of the row | `2` |
+| 3. What the case changes | A case **"quantity" with text instead of a number** keeps its own value. A case without the input leaves it out. |
+
+- An empty cell leaves the input out of that iteration, even if it has a default value.
+- An input value with a variable, like `{{coupon}}`, takes the value of the row.
+
+## Type conversion
+
+Values in a file are text. When an input has a type in the workflow, Luvin converts the value before the case runs:
+
+| Type of the input | Value in the file | What the input gets |
+|---|---|---|
+| `integer` or `number` | `2`, `2.5`, ` 3 ` | The number `2`, `2.5`, `3` |
+| `integer` or `number` | `two`, `2 units` | The text as it is |
+| `boolean` | `true`, `FALSE`, ` True ` | `true`, `false`, `true` |
+| `boolean` | `yes`, `1` | The text as it is |
+| `object` or `array` | `{"size": "M"}`, `[1, 2]` | The object or the list |
+| `object` or `array` | `{size: M}` (not valid JSON) | The text as it is |
+| Any other, or no type | `SKU-100` | The text `SKU-100` |
+
+When a value does not fit the type, the input gets the text as it is. An empty cell is not converted: it leaves the input out. A case that checks the type, for example **"quantity" with text instead of a number**, is the one that sends wrong values on purpose: the file does not need to.
+
+Decimals use a point: `2.5`, not `2,5`. Variables are always text. Only inputs are converted.
+
+## When a column is not used
+
+| What you see | Why | What to do |
+|---|---|---|
+| The column is under **Stay as `{{variables}}`** but you wanted it to fill an input. | Its name is not exactly the name of an input of the ticked workflows. | Rename the column, for example `Quantity` to `quantity`. |
+| **Fill inputs** says `—`. | No column has the name of an input. | Check the names in the **Inputs** tab of the workflow. |
+| One case keeps its own value. | That case changes that input on purpose. | Nothing to fix: the other cases use the column. |
+| The input is missing in some iterations. | The cell is empty in those rows. | Fill in the cell, or remove the column to use the default value. |
+| The input gets `" 2"` with a space, or the text `two`. | A space after the separator, or a value that is not a number. | Remove the spaces in the file. See [Write the file](/runner/data-files/#write-the-file). |
+| A request uses the value of the environment, not the column. | The request uses another name, or the column name has a different case. | Use exactly `{{column}}`, with the name of the column. |
+| A saved `token` is replaced in every iteration. | The file has a column with the same name. | Rename or remove the column. |
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Data files" href="/runner/data-files/" />
+  <LinkCard title="Inputs" href="/test/inputs/" />
+  <LinkCard title="Variables and secrets" href="/environments/variables-and-secrets/" />
+</CardGrid>

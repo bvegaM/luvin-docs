@@ -1,0 +1,120 @@
+---
+title: History
+description: What Luvin keeps of the requests you send and the runs you make, per collection, with its limits and where it is stored, and how to find an entry in the sidebar and the History tab.
+sidebar:
+  order: 8.5
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+History keeps the requests you send and the runs you make in a collection, with their results. Use it to see again a response from an hour ago, to compare a run with the one before, or to save as an example a response you did not save in time.
+
+## Example: get back a response
+
+You sent **Get pokemon** for `pikachu`, then for `eevee`. Now you want the `pikachu` response again.
+
+<Steps>
+1. In the sidebar, find the **History** section. The two sends are at the top, each with its status and time.
+2. Click the older one. The **History** tab opens on that entry.
+3. Read the response in **Body**, as it arrived.
+4. To keep it, press **Save response** and save it as an example of the request.
+</Steps>
+
+## What is saved
+
+| Kind | What it keeps | How many, per collection |
+|---|---|---|
+| Requests | Each HTTP, GraphQL or gRPC request you send, with its response. | The last 200. |
+| Workflow runs | Each run of a workflow with at least one finished case: its cases and steps. | The last 50. |
+| Runner runs | Each run of the runner, of requests or of workflows. | The last 50, of both kinds together. |
+| Performance tests | Each load test, with its metrics. No responses. | The last 50. |
+
+When a kind reaches its limit, its oldest entry is removed. The limits are separate: 200 requests do not push out any run.
+
+### What is not saved
+
+- A request that could not be sent: a variable that does not resolve, a file that cannot be read, or an authorization error before sending. A request sent without an answer (a network error, a timeout) is saved, with **No response**.
+- A workflow run cancelled before any case finished.
+- A runner run in which nothing ran.
+- The final variables of a runner run: they hold real values, such as tokens.
+- Anything, while history is off. See [Turn off and clear history](/workspaces/history-settings/).
+
+### Very large content
+
+Very large content is saved cut short, with `… [recortado]` at the cut:
+
+| What | Saved up to |
+|---|---|
+| The response of a request | 256 KB. |
+| The body of the request you sent | 256 KB. The bytes of files you sent are not kept. |
+| Each body of a step of a workflow run | 32 KB. If the whole run is above 4 MB, 2 KB per body. |
+| Each response in a runner run | 32 KB. |
+
+The entry then says *The response was very large: it was saved cut short.* (or *Some responses were very large: they were saved cut short.* for a run).
+
+## Per collection
+
+Each collection has its own history. The **History** section and tab show the history of the open collection, and what you send is saved in the collection you sent it from, even if you switch collection before the answer arrives. Without a workspace, there is a single history.
+
+## Where it is stored
+
+History stays **on this device**, in the storage of the app (IndexedDB). It is not written to the workspace files, it does not go to git and no one else sees it. In the browser version, it is in the storage of that browser for the site of Luvin.
+
+Secrets are saved masked. See [Turn off and clear history](/workspaces/history-settings/).
+
+## The History section of the sidebar
+
+The **History** section, at the bottom of the sidebar, shows the last 5 entries of the open collection. With a workspace open, its title also shows the name of the collection.
+
+| Entry | What it shows |
+|---|---|
+| A request | Its method (`GET`, `GQL`, `gRPC`…), its name, its status and the time. |
+| A workflow run, runner run or performance test | A dot with its result, its name and the time. |
+
+Click an entry to open it in the **History** tab. **See all** opens the tab with everything. With no entries, the section says *Requests and runs will show up here.*
+
+You can also press ⌘K (Ctrl+K on Windows and Linux) and choose the action **Open history**, *Past requests and runs*.
+
+![The History section of the sidebar with See all and the latest entries: a performance test, two workflow runs, POST orders with 201 and GET SKU-103 with 200, each with its time](/media/en/history-sidebar.webp)
+
+## The History tab
+
+The list on the left has two parts, each with its count:
+
+| Part | What it lists |
+|---|---|
+| **Requests** | The requests you sent. See [Requests in history](/workspaces/history-requests/). |
+| **Runs** | The workflow runs, the runner runs (marked **Runner**) and the performance tests (marked **Performance**). See [Runs in history](/workspaces/history-runs/). |
+
+Entries are grouped by day: **Today**, **Yesterday** or the date, newest first. Click an entry to open it on the right. When you open a part, its newest entry is shown.
+
+![The History tab: Requests and Runs with their counts, Search history, the requests sent Today with their status and time, and the GET SKU-103 entry open on the right](/media/en/history-request.webp)
+
+| State | The tab says |
+|---|---|
+| Still reading the history | *Loading…* |
+| No requests yet | *Nothing here yet* and *Every request you send in this collection shows up here, with its response.* |
+| No runs yet | *Nothing here yet* and *Every time you run a workflow in this collection, its results show up here.* |
+| History is off | *History is off: new activity is not saved.*, with **Turn on**. |
+
+### Search
+
+Type in **Search history**. It looks in:
+
+| Kind | Where it looks |
+|---|---|
+| Requests | The method, the name, the URL and the status. |
+| Workflow runs | The name and the environment. |
+| Runner runs | The name, the data file and the word `runner`. |
+| Performance tests | The name, the environment and the words `performance` and `rendimiento`. |
+
+Uppercase does not matter. Type `runner` in **Runs** to see only the runner runs. When nothing matches, it says *Nothing matches your search.*
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Requests in history" href="/workspaces/history-requests/" />
+  <LinkCard title="Runs in history" href="/workspaces/history-runs/" />
+  <LinkCard title="Turn off and clear history" href="/workspaces/history-settings/" />
+  <LinkCard title="Privacy and security" href="/reference/privacy/" />
+</CardGrid>

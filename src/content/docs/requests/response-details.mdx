@@ -39,6 +39,7 @@ When a call fails this way, a fold-out **Sent request** under the message shows 
 When the API answers, a bar shows, from left to right:
 
 - **The status**, for example `200 OK` or `404 Not Found`. Luvin colors it by family: 2xx, 3xx, 4xx and 5xx.
+- **The checks**, when the request has checks or saves variables: **✓ 9 of 9 checks** in green, or **✕ 2 of 9 checks failed** in red. A `200` in green does not say everything; this chip does. It also turns red when a variable could not be saved, and its tooltip names it: **Not saved: \{\{token\}\}**. Click it to open the **Checks** tab.
 - **The time**, for example `985 ms`.
 - **The size**, for example `1.26 KB`.
 - **A globe icon**, when Luvin knows the address of the server.
@@ -77,7 +78,7 @@ The card **Response size** shows the total and its parts: **Headers** and **Body
 
 The globe shows **HTTP version**, **Remote address**, **Local address**, **TLS protocol**, **Cipher**, **Certificate issuer** and **Certificate valid until**. Rows Luvin does not know are left out. This is the first place to look when a call fails because of a certificate.
 
-## The four tabs
+## The tabs
 
 | Tab | What it shows |
 |---|---|
@@ -85,6 +86,7 @@ The globe shows **HTTP version**, **Remote address**, **Local address**, **TLS p
 | **Headers** | A table with every header of the response. The number is how many there are. |
 | **Cookies** | The cookies the response set, with **Name**, **Value**, **Domain**, **Path**, **Expires** and **Attributes**. The number is how many there are. When there are none: **This response did not set cookies.** See [Cookies and saved examples](/requests/cookies-and-examples/). |
 | **Sent request** | What Luvin really sent. See below. |
+| **Checks** | Only when the request has checks or saves variables. Each check with ✓ or ✕ and, for a failed one, **Got:** with the value that came. Below, **Saved variables**. The number is how many checks failed, in red, or how many there are, in green, when all passed. See [Variables and checks](/requests/variables-and-checks/). |
 
 ## The body
 
@@ -124,5 +126,6 @@ If the request should carry an `Authorization` but none went out, a warning says
 ## Related
 
 - [Single requests](/requests/overview/)
+- [Variables and checks](/requests/variables-and-checks/)
 - [Dev Tools: Network](/dev-tools/network/)
 - [Read the results](/test/results/)

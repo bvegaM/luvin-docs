@@ -1,6 +1,6 @@
 ---
 title: Add steps
-description: Add operations from the palette to the canvas, and see what Luvin fills in for each new step.
+description: Add operations from the palette or with a + on the canvas, and see what Luvin fills in for each new step.
 sidebar:
   order: 3
 ---
@@ -61,8 +61,22 @@ The palette has one group per contract, named after it, with the number of opera
 |---|---|
 | Drag the operation onto the canvas | Below the step you drop it under. Dropped above the first step, it becomes the first one. |
 | Click **+** on its row | At the end of the workflow. |
+| Click the **+** on an arrow of the canvas, then the operation | Between the two cards that arrow joins. |
 
 After you add it, the new step is selected, its panel opens on the right and the canvas scrolls to keep it in view.
+
+### Insert a step between two others
+
+Each arrow of the canvas, from **Start** down to **End of workflow**, has a **+** in the middle. Its tooltip says **Insert a step here**.
+
+<Steps>
+1. Click the **+** on the arrow where the step should go. A dialog opens, titled **Insert a step**, with the palette inside.
+2. Click an operation, a request or a workflow. The whole row is clickable.
+</Steps>
+
+The step goes between the two cards. The **+** under **Start** makes it the first step, the **+** above **End of workflow** the last one. If the step above ends the happy path with an action named `done`, `done` moves to the new step, so the new step still runs.
+
+[Insert a step](/design/insert-step/) has every position, the YAML before and after, and how inserting differs from dragging. A similar dialog opens when you send an error to a new step: see [A new step for an error](/design/branch-new-step/).
 
 ## What a new step gets automatically
 

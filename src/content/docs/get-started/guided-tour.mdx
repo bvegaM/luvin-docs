@@ -1,100 +1,103 @@
 ---
 title: The guided tour
-description: What the guided tour covers, how to start it, the workspace it creates and what to do with that workspace when it ends.
+description: The guided tour in short sections, how to start one, how to move through it, and where to read what each section shows.
 sidebar:
   order: 5
 ---
 
 import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
 
-The guided tour walks you through Luvin on a real example, one highlighted area of the screen at a time. It takes about 6 minutes. Take it after the [quick start](/get-started/quick-start/) if you want to see every feature once.
+The guided tour shows Luvin on a real example, one highlighted area of the screen at a time. It is split into seven short sections of 1 or 2 minutes each, so you see only what you need. Start with **Workflows**: the other sections end by showing how their feature is used in a workflow.
 
-![The guided tour highlighting the results of a run, with an explanation card next to it](/media/en/tour.webp)
-
-## What the tour covers
-
-It uses the Pokédex example against the public PokéAPI, which needs no credentials. At the end it shows a payment with PayPal, to explain authorization and reusables. In order, it covers:
-
-- The workspace, **Home**, and the sidebar with collections, workflows and steps.
-- The diagram of a workflow, its inputs and its environments.
-- The generated cases, and a run against the real API.
-- One step in detail, the YAML editor and a contract open next to its preview.
-- A workflow that depends on another one, and a workflow that mixes an HTTP call with messaging steps.
-- The PayPal example: reusables, authorization per API, and a run in **Simulation**.
-- The **Design** tab, standalone requests, Dev Tools, search, the collection overview and Preferences.
-
-You can use the app at any time while the tour is open. The tour does not block it.
+![The tour card Workflows · step 2 of 7, Collections, workflows and steps, next to the highlighted collection tree in the sidebar, with Exit tour, Back and Next](/media/en/tour.webp)
 
 ## Start the tour
 
-Use any of these:
+| Where | What to click | What opens |
+|---|---|---|
+| Welcome screen | The **Guided tour** card: *Start with workflows (2 minutes) and continue with short sections* | The **Workflows** section |
+| The banner **You’re viewing an example.** | **Start the tour** | The **Workflows** section |
+| Status bar, at the bottom | **Tour** | The section picker |
+| **Preferences** → **About** | **Start the tour**, next to **Guided tour** | The section picker |
 
-| Where | What to click |
-|---|---|
-| Welcome screen | The **Guided tour** card |
-| Status bar, at the bottom | **Tour** |
-| Preferences (the gear icon in the status bar) | **Start the tour** |
-| The banner **You’re viewing an example** | **Start the tour** |
+The banner appears when you open an example: *Want a walkthrough? The tour starts with workflows (about 2 minutes) and continues by sections.* Its **✕** has the tooltip **Don’t show again**. Luvin remembers it on this computer, so the banner does not come back for any example. It does not appear while the tour is running.
 
 See [A tour of the interface](/get-started/interface/) for the status bar and Preferences.
 
-## The banner that offers the tour
+## Choose a section
 
-When you open an example, a banner appears at the top of the screen: **You’re viewing an example.** *Want us to walk you through it? The tour covers every feature in about 6 minutes.*
-
-- Click **Start the tour** to begin.
-- Click the **✕** to close it. Its tooltip says **Don’t show again**. Luvin remembers it on this computer, so the banner does not come back for any example.
-- The banner does not appear while the tour is running.
-
-The tour stays available from the other places in the table above.
-
-## What the tour creates
-
-When it starts, the tour says **Getting ready…** and builds its own workspace:
+The section picker is titled **What do you want to see?**, with the line *Short sections on the Pokédex. Each one ends by showing how it is used in a workflow, the heart of Luvin.*
 
 <Steps>
-
-1. If you have a workspace open, Luvin closes it.
-2. Luvin creates a workspace called **Pokédex (tour)**. It is kept in the storage of the browser (or of the desktop app), not in a folder on disk.
-3. It adds a collection, **Pokédex**, with the example files.
-
+1. Click **Tour** in the status bar.
+2. Click a section. The first one, **Workflows**, has the badge **Start here** until you see it.
 </Steps>
 
-Later steps add a second collection, **PayPal**. The tour does its work inside **Pokédex (tour)**.
+Each section shows its number, its title, a summary, its length and **View**. Close the picker with **×**, **Esc** or a click outside it.
 
-<Aside type="note">
-The tour runs the example by itself, as you would: it opens a workflow, a tab, and presses **Run**. The run at the **Run against the real API** step calls pokeapi.co, so you need an internet connection.
-</Aside>
+| Section | What it shows | Steps | Length |
+|---|---|---|---|
+| [**Workflows**](/get-started/guided-tour-sections/#1-workflows) | A workflow end to end: inputs, cases, run and which data went from one step to the next. | 7 | 2 min |
+| [**Design a workflow**](/get-started/guided-tour-sections/#2-design-a-workflow) | The canvas, the palette, the YAML, workflows that depend on others and events. | 5 | 2 min |
+| [**Contracts and environments**](/get-started/guided-tour-sections/#3-contracts-and-environments) | The contract, trying an operation, environments and secrets, and per-API authorization. It adds a second collection, **PayPal**. | 6 | 2 min |
+| [**Requests**](/get-started/guided-tour-sections/#4-requests) | A standalone request, its variables and checks, and how it becomes a workflow step. | 3 | 2 min |
+| [**Mock servers**](/get-started/guided-tour-sections/#5-mock-servers) | A mock from the contract and the workflow running against it, without the real API. | 3 | 1 min |
+| [**Runner and performance**](/get-started/guided-tour-sections/#6-runner-and-performance) | Several workflows with data, rules to pick from a list and the load test. | 4 | 2 min |
+| [**History and Dev Tools**](/get-started/guided-tour-sections/#7-history-and-dev-tools) | Going back to a workflow run, Network, search and preferences. | 5 | 1 min |
 
-## Move through the tour
+You can take the sections in any order. Each one gets the screen ready by itself. [Tour sections](/get-started/guided-tour-sections/) describes each step of each section.
+
+When you finish a section with one of the buttons of its last card, the picker shows **✓** instead of its number, and **View** becomes **View again**. See [Sections you have seen](/get-started/guided-tour-workspace/#sections-you-have-seen).
+
+![The section picker What do you want to see? with the seven sections and their minutes; Workflows shows ✓ and View again, and Delete the tour workspace is at the bottom](/media/en/tour-sections.webp)
+
+## Move through a section
+
+The card shows the section and the step, for example **Workflows · step 3 of 7**, and a progress bar. While a step gets the screen ready, the card says **Getting ready…** and **Next** waits.
 
 | Action | How |
 |---|---|
 | Next step | **Next** or the → key |
-| Previous step | **Back** or the ← key |
+| Previous step | **Back** or the ← key. The first step has no **Back**. |
+| Repeat a step | **Back**, then **Next**. The step gets the screen ready again, and runs again if it runs something. |
 | Leave the tour | **Exit tour** |
 
-The card shows **Step 3 of N** and a progress bar. While a step is getting the screen ready, the card shows **Getting ready…**.
+The highlighted area follows the screen as panels open or move. When a step has no area to highlight, or the area is not there, the card goes to the middle and the rest of the screen is dimmed.
 
-## When the tour ends
+You can use the app at any time while the tour is open. The tour does not block it.
 
-The last card is titled **All set!** and asks what to do with the **Pokédex (tour)** workspace:
+## The end of a section
+
+The last card of each section has three buttons instead of **Back**, **Next** and **Exit tour**:
 
 | Button | What happens |
 |---|---|
-| **Keep it** | The workspace stays. Find it later under **Open a workspace** on the welcome screen |
-| **Delete it** | The workspace is deleted, with its collections and its secrets. This cannot be undone |
+| **Next: Design a workflow** | Starts the next section, in the order of the picker. The last section, **History and Dev Tools**, does not have it. |
+| **All sections** | Opens the section picker. |
+| **Finish** | Closes the tour. |
 
-You can run the tour again at any time. Each time it builds a fresh **Pokédex (tour)** workspace.
+Any of the three marks the section as seen.
 
-<Aside type="caution">
-**Exit tour** closes the tour on the spot. It does not ask about the workspace, so **Pokédex (tour)** stays. To remove it later, open its menu in the top bar and choose **Delete workspace…**.
+## Where the tour works
+
+The tour opens its own workspace, **Pokédex (tour)**, kept in the storage of the browser or of the desktop app. If you have another workspace open, Luvin closes it first. What you change during the tour stays in that workspace until you delete it.
+
+The tour runs things by itself, as you would: it opens a workflow, a tab, and presses **Run**. Some steps call the real PokéAPI and need internet. The PayPal example runs in **Simulation**. A load test is never started.
+
+| To read about | Go to |
+|---|---|
+| What each step shows and what it runs | [Tour sections](/get-started/guided-tour-sections/) |
+| The tour workspace, reopening and deleting it, the ✓ of the sections and the Simple interface | [The tour workspace](/get-started/guided-tour-workspace/) |
+
+<Aside type="note">
+In the **Simple (product)** interface, **History and Dev Tools** skips its Dev Tools step, because that interface has no Dev Tools.
 </Aside>
 
 ## Next
 
 <CardGrid>
+  <LinkCard title="Tour sections" href="/get-started/guided-tour-sections/" />
+  <LinkCard title="The tour workspace" href="/get-started/guided-tour-workspace/" />
   <LinkCard title="A tour of the interface" href="/get-started/interface/" />
   <LinkCard title="Design a workflow" href="/design/overview/" />
-  <LinkCard title="Bring your own files and requests" href="/get-started/import/" />
 </CardGrid>

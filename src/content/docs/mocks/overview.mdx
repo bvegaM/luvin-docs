@@ -1,0 +1,84 @@
+---
+title: Mock servers
+description: What a mock server is, when to use one, what it answers with, how it differs from Simulation, and a map of this section.
+sidebar:
+  order: 1
+---
+
+import { Steps, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A mock server is a small server on your computer that answers like your API. Your requests and workflows call it as if it were the real API, and nothing reaches the real one. Use it when the API does not exist yet, when it is down, or when you do not want to use up its data or create real orders.
+
+A mock answers with responses you already have: the examples you saved in the requests of the collection, or the examples of an OpenAPI contract. You can also write your own routes.
+
+## When to use a mock
+
+| Situation | How a mock helps |
+|---|---|
+| The API is not built yet, but its contract is. | A mock from the contract answers every operation with its examples. |
+| The API is down, slow or has a rate limit. | You keep working against the mock. A **Delay (ms)** shows how your workflow behaves with a slow API. |
+| A call creates real data, such as an order in PayPal. | The mock answers the documented response and nothing is created. |
+| You need an error the API rarely gives, such as a `404` or a `422`. | You ask for it with a header, or write a route that always answers it. |
+| A frontend on `localhost` needs the API. | A local frontend in your browser can call the mock. |
+| You want to see exactly what your workflow sends. | The **Log** of the mock shows each call it received and what it answered. |
+
+## Example: a mock of the Pokédex in a minute
+
+The Pokédex collection has the contract `pokeapi.openapi.yaml`. Its server is `https://pokeapi.co/api/v2`.
+
+<Steps>
+1. In the sidebar, click the **+** next to **Mock servers**. The **New mock server** dialog opens.
+2. Under **Responses from**, choose **An OpenAPI contract** and press **Create mock**. The mock opens in its own tab, stopped.
+3. Press **Start**. The top of the tab shows `http://127.0.0.1:4010`.
+4. Call `http://127.0.0.1:4010/api/v2/pokemon/pikachu`, from a request or from cURL. The mock answers `200` with the example of `getPokemon` in the contract: Pikachu, number 25.
+5. Call `http://127.0.0.1:4010/api/v2/pokemon/eevee`. It answers the same Pikachu.
+</Steps>
+
+![The Shop mock tab, running at 127.0.0.1:4010 with Copy URL and Stop, its Port, Delay and Responses from fields, and the Routes tab listing the routes of shop.openapi.yaml, including the 404 and 422 alternatives](/media/en/mocks-running.webp)
+
+The last step shows what a mock is: it does not look anything up. It answers the response of the route that matches the call, whatever the value in the path. To answer something else for `eevee`, write your own route. See [Routes](/mocks/routes/).
+
+## What a mock answers with
+
+Each mock has one source for its responses. You choose it when you create the mock and can change it later:
+
+| Source | What the mock answers |
+|---|---|
+| **The collection** | The saved examples of the HTTP and GraphQL requests. It stays up to date when you save, change or delete an example. |
+| **An OpenAPI contract** | Every operation of the contract, with each documented status. The body is the example of the contract, or data built from its schema. |
+| **Only your routes** | Only the routes you write. |
+
+Your own routes always answer first, whatever the source. See [Create a mock server](/mocks/create/).
+
+## The parts of a mock
+
+| Part | Where | What it holds |
+|---|---|---|
+| The definition | A file in the `mocks/` folder of the collection. | Name, port, delay, source and your own routes. It travels with the collection, also in git. |
+| The server | Your computer, at `http://127.0.0.1` and the port. | It runs only while you keep it started, in the desktop app. |
+| The routes | The **Routes** tab of the mock. | Your own routes and the routes of the source. |
+| The Log | The **Log** tab of the mock. | The last calls it received. It is kept in memory only. |
+
+## Desktop app only
+
+A mock server opens a port, and a browser cannot do that. In the browser version you can create mocks and write their routes, but **Start** is disabled. The tab says *Mock servers run in the desktop app: a browser cannot open a port. You can define their routes here.*
+
+![The Shop mock in the browser version: a notice says mock servers run in the desktop app, and the Start button is disabled](/media/en/mocks-web-desktop-only.webp)
+
+## Mock server or Simulation
+
+Both let you run a workflow without the real API. **Simulation** makes no calls: it builds a response for each step so that the step passes. A mock answers real HTTP calls on your computer with fixed responses, so a step can fail as it would with the API. The full comparison is in [Use a mock with requests and workflows](/mocks/with-workflows/).
+
+## In this section
+
+<CardGrid>
+  <LinkCard title="Create a mock server" href="/mocks/create/" description="The three sources, the name and the file on disk." />
+  <LinkCard title="Start and stop a mock" href="/mocks/start-stop/" description="Port, delay, and why a mock does not start." />
+  <LinkCard title="Routes" href="/mocks/routes/" description="Your routes, the source routes and which one answers." />
+  <LinkCard title="Responses" href="/mocks/responses/" description="Status, headers, body, delay and alternative responses." />
+  <LinkCard title="Values from the request" href="/mocks/templates/" description="Answer with the id, the query or the body of the call." />
+  <LinkCard title="Credentials and errors" href="/mocks/auth-and-errors/" description="401 without credentials, 404 without a route, 500." />
+  <LinkCard title="The Log of a mock" href="/mocks/log/" description="Every call it received and what it answered." />
+  <LinkCard title="Use a mock with requests and workflows" href="/mocks/with-workflows/" description="The mock environment and running against it." />
+  <LinkCard title="Who can call a mock" href="/mocks/security/" description="127.0.0.1 only, local frontends and the Host check." />
+</CardGrid>

@@ -1,0 +1,136 @@
+---
+title: When the YAML can't be read
+description: What Luvin blocks while an Arazzo file has a syntax error, what you see before and after reopening the workspace, and how to fix it without losing cases.
+sidebar:
+  order: 13.5
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+One wrong indentation or a missing quote is enough for an Arazzo file to stop being YAML. Luvin then stops drawing and running its workflows, and tells you where to fix it. Nothing is lost: the text stays as you typed it, and the inputs and cases come back when the file can be read again.
+
+## Example: a quote that never closes
+
+In the YAML tab of **Pokemon card**, the example of the input `pokemon` loses its closing quote, on line 27 of the file:
+
+<Tabs>
+<TabItem label="Broken">
+
+```yaml title="pokemon.arazzo.yaml" {5}
+      properties:
+        pokemon:
+          type: string
+          # …
+          example: "pikachu
+```
+
+</TabItem>
+<TabItem label="Fixed">
+
+```yaml title="pokemon.arazzo.yaml" {5}
+      properties:
+        pokemon:
+          type: string
+          # …
+          example: "pikachu"
+```
+
+</TabItem>
+</Tabs>
+
+A moment after you stop typing, the badge above the text says **Invalid YAML**. Add the quote and the badge, the canvas and **Run** come back.
+
+## What counts as unreadable
+
+| Case | Example |
+|---|---|
+| The text is not valid YAML or JSON | A quote or bracket that is never closed, a key indented one space too much or too little, tabs used for indentation. |
+| The text is valid but is not an Arazzo | The `arazzo` field at the root was deleted. The message is **No Arazzo file found (it must have an "arazzo" field at the root).** |
+
+An error the analysis finds, such as a step that does not exist, is different: the file can be read, the canvas draws it and it can run. Those show in **Problems**. See [The YAML tab](/design/arazzo-editor/#validation-as-you-type).
+
+## While you are editing
+
+From the moment the text cannot be read, until you fix it:
+
+| Where | What you see |
+|---|---|
+| The YAML tab | The badge **Invalid YAML**. The text stays editable. |
+| The **Design** tab | The notice **The YAML has an error and can't be drawn. Fix it in the YAML tab and the design comes back.**, with the button **Go to YAML**. |
+| The **Run** button | Disabled. Its tooltip says **Can't run: the YAML in pokemon.arazzo.yaml has an error. Fix it in the YAML tab.** **⌘Enter** (**Ctrl+Enter**) does not run it either. |
+| The runner | The workflows of that file show **No cases to run in this mode**. The other workflows run. |
+| The sidebar, **Overview**, **Inputs** and **Cases** | The workflows stay, as they were in the last version Luvin could read. |
+| Other files of the collection | They work as usual. |
+
+![The notice The YAML has an error and can't be drawn. Fix it in the YAML tab and the design comes back., with the button Go to YAML](/media/en/design-yaml-broken.webp)
+
+Luvin does not run the last version it could read, because that is not what the file says now. The text is saved as you left it, with the error.
+
+![The run bar with Real API, Simulation and the environment local, the greyed-out Run 1 case button and the text Can't run: the YAML in catalog.arazzo.yaml has an error. Fix it in the YAML tab.](/media/en/design-run-disabled.webp)
+
+## If you reopen the workspace with the file broken
+
+If you leave the file broken and open the collection again later, for example after you close and reopen the workspace, Luvin cannot read its workflows, so it does not load them.
+
+| Where | What you see |
+|---|---|
+| Top of the window | A red bar with the file name and the error, for example **pokemon.arazzo.yaml: Could not read as YAML or JSON: Missing closing "quote at line 27, column 28:**, followed by the line, and **Close**. |
+| The sidebar | A row with the file name and **Can't be read**, at the top of the collection's files. Its tooltip says *This Arazzo has a syntax error and its workflows weren't loaded. Open it to fix it:* followed by the error. |
+| Workflows of that file | Not in the tree, the search or the runner. |
+| Other files of the collection | They load as usual. |
+
+![The sidebar with the row returns.arazzo.yaml Can't be read at the top of the Catalog collection, above catalog.arazzo.yaml and its workflow Buy product](/media/en/sidebar-broken-arazzo.webp)
+
+Luvin still recognizes the file as an Arazzo by its name (`.arazzo.yaml`, `.arazzo.yml` or `.arazzo.json`), or by a line of its text that starts with `arazzo:`.
+
+## Fix it
+
+<Steps>
+1. Read the error. It says what is wrong and, most of the time, the line and the column, for example **at line 27, column 28**.
+2. Open the text:
+   - While editing: click **Go to YAML** in the **Design** tab, or the **YAML** tab.
+   - After reopening: click the row **Can't be read** in the sidebar. The text of the file opens in the editor.
+3. Go to that line. The error is often on the line before, where a quote or a bracket was opened.
+4. Fix it and wait a moment.
+</Steps>
+
+What happens next:
+
+| You were | When the text can be read again |
+|---|---|
+| Editing in the YAML tab | The badge changes, the **Design** tab draws the workflow again and **Run** is enabled. |
+| In the text opened from **Can't be read** | The editor closes and the file opens again as an Arazzo, without reloading. Its workflows are back in the sidebar. |
+
+### Common errors
+
+| Message starts with | Usual cause | Fix |
+|---|---|---|
+| `Missing closing "quote` | A text opened with `"` that never closes. | Close the quote on the same line. |
+| `Tabs are not allowed as indentation` | A tab character at the start of a line. | Replace it with spaces. |
+| `Sequence item without - indicator` | A key of a list item indented one space less than the others. | Align it with the other keys of the item. |
+| `Nested mappings are not allowed in compact mappings` | A key indented one space more than the one above it. | Align it with the key above. |
+
+## Your inputs and cases are kept
+
+The inputs and cases of a workflow are not in the Arazzo file: they are in a separate file in `scenarios/`. See [What is on disk](/workspaces/files/).
+
+- While you edit, they stay as they are.
+- After a reopen with the file broken, Luvin does not load them, but keeps them in the workspace. When the file can be read again, it loads them with the workflows, including the cases you adjusted and your own cases.
+
+<Aside type="tip">
+If the workspace is in a git repository, you can also go back to the last version of the file you committed. See [Keep a workspace in git](/workspaces/git/).
+</Aside>
+
+## Troubleshooting
+
+**The badge says Invalid YAML but the line looks fine.** Look at the lines above it. YAML reads the indentation of each line against the previous ones, so the mistake can be earlier.
+
+**The text can be read, but the workflows did not come back.** The text has no `arazzo` field at its root, so Luvin no longer takes it as an Arazzo. Add the field, for example `arazzo: 1.1.0`, on the first line.
+
+## Related
+
+<CardGrid>
+  <LinkCard title="The YAML tab" href="/design/arazzo-editor/" />
+  <LinkCard title="What is on disk" href="/workspaces/files/" />
+  <LinkCard title="Troubleshooting" href="/get-started/troubleshooting/" />
+</CardGrid>

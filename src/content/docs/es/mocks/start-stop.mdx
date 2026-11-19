@@ -1,0 +1,117 @@
+---
+title: Enciende y apaga un mock
+description: Enciende y apaga un mock desde su pestaña o la barra lateral, elige su puerto y su demora, entiende por qué no enciende y qué pasa al recargar o cambiar de colección.
+sidebar:
+  order: 3
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Un mock responde solo mientras está encendido. Encenderlo abre su puerto en tu equipo, y apagarlo lo cierra. Esta página cubre las dos cosas, los campos **Puerto** y **Demora (ms)**, y qué hacer cuando un mock no enciende.
+
+## Ejemplo: enciende el mock de la Pokédex
+
+<Steps>
+1. En la sección **Mock servers** de la barra lateral, haz clic en **Mock de Pokédex**. Se abre su pestaña.
+2. Pulsa **Encender**. El botón dice **Encendiendo…** por un momento.
+3. Arriba de la pestaña aparecen `http://127.0.0.1:4010`, **Copiar URL** y **Apagar**. El punto junto al nombre está verde.
+4. Pulsa **Copiar URL** y pega la URL en un request o en cURL. El botón dice **✓ Copiada** por un momento.
+5. Cuando termines, pulsa **Apagar**.
+</Steps>
+
+![El Mock de Shop encendido: un punto verde junto al nombre, la URL 127.0.0.1:4010, Copiar URL y Apagar arriba de la pestaña, y el mock con :4010 en la barra lateral](/media/es/mocks-running.webp)
+
+## Enciende y apaga
+
+| Desde | Encender | Apagar |
+|---|---|---|
+| La pestaña del mock | **Encender**, arriba a la derecha. | **Apagar**, junto a la URL. |
+| La barra lateral | Menú **⋯** del mock → **Encender**. | Menú **⋯** del mock → **Apagar**. |
+
+El menú **⋯** de la barra lateral también tiene **Copiar URL** mientras el mock está encendido.
+
+![El menú ⋯ del Mock de Shop encendido en la sección Mock servers de la barra lateral, con Apagar, Copiar URL y Eliminar mock](/media/es/mocks-sidebar-menu.webp)
+
+### Qué ves mientras está encendido
+
+| Dónde | Encendido | Apagado |
+|---|---|---|
+| Arriba de la pestaña del mock | Un punto verde, la URL, **Copiar URL** y **Apagar**. | Un punto gris y **Encender**. |
+| La sección **Mock servers** de la barra lateral | Un punto verde y el puerto, por ejemplo `:4010`. Al pasar el mouse: *Encendido en el puerto 4010*. | Un punto gris y el puerto. Al pasar el mouse: *Apagado*. |
+| La barra de pestañas | La pestaña del mock muestra el mismo punto. | |
+| La paleta de comandos (⌘K) | El mock, en **Mock servers**, dice *Encendido en el puerto 4010*. | Dice *Apagado*. |
+
+En la paleta, elegir un mock abre su pestaña.
+
+### Los cambios se aplican con el mock encendido
+
+Un mock encendido responde al momento lo que cambias, sin reiniciarlo: sus rutas propias, la **Demora (ms)**, la lista **Respuestas desde**, los ejemplos guardados de los requests y el contrato. Solo un cambio de **Puerto** lo reinicia.
+
+## El puerto
+
+El mock responde en `http://127.0.0.1:` seguido de su puerto.
+
+| Regla | Detalle |
+|---|---|
+| Puerto de un mock nuevo | El 4010, o el siguiente número que no use otro mock de la colección: 4011, 4012… Luvin no revisa otros programas hasta que pulsas **Encender**. |
+| Cuándo se aplica un cambio | Al pulsar Enter o al salir del campo. Esc devuelve el valor anterior. |
+| Valores válidos | De 1 a 65535. Cualquier otro valor vuelve al anterior. |
+| Con el mock encendido | Se reinicia en el puerto nuevo. Si el puerto nuevo falla, el mock queda apagado y la pestaña dice por qué. |
+
+<Aside type="caution">
+Las URLs del ambiente del mock no siguen al puerto solas. Después de cambiar el puerto, pulsa **Actualizar ambiente** en la pestaña del mock. Mira [Usa un mock con requests y workflows](/es/mocks/with-workflows/).
+</Aside>
+
+## La demora
+
+**Demora (ms)** hace que el mock espere antes de cada respuesta, de 0 a 120000 ms (2 minutos). Con las flechas sube de 100 en 100, y se aplica al momento. Úsala para ver cómo se comporta un workflow con una API lenta, o para probar un tiempo de espera.
+
+- Una ruta puede tener su propia **Demora (ms)**, que reemplaza la del mock. Mira [Respuestas](/es/mocks/responses/).
+- La demora solo se aplica a las llamadas que responde una ruta. Un `404` sin ruta y un `403` por un host que no es local responden al momento.
+- El **Log** muestra la duración de cada llamada, con la demora incluida.
+
+## Cuando no enciende
+
+Si el mock no puede encenderse, la pestaña dice por qué, en rojo:
+
+| Mensaje | Qué hacer |
+|---|---|
+| *Ese puerto ya está en uso. Elige otro y vuelve a encenderlo.* | Otro programa, u otro mock de la colección, usa ese puerto. Cambia el **Puerto** y pulsa **Encender**. |
+| *El sistema no deja usar ese puerto. Prueba con uno mayor que 1024.* | Tu sistema reserva los puertos bajos. Usa uno mayor que 1024, como el 4010. |
+| *El puerto debe ser un número entre 1 y 65535.* | Escribe un número válido. |
+| Otro mensaje | Es el mensaje del sistema. Prueba con otro puerto. |
+
+## Cuándo se apaga solo
+
+Un mock no sigue encendido sin Luvin. Se apaga cuando:
+
+- abres otra colección o cierras la colección;
+- recargas la ventana;
+- cierras la app.
+
+Después de recargar, Luvin también apaga cualquier mock que haya quedado encendido, para que ninguno responda sin que lo veas. Su **Log** se vacía. Pulsa **Encender** de nuevo cuando lo necesites.
+
+## Solo en la app de escritorio
+
+Un navegador no puede abrir un puerto. En la versión del navegador, **Encender** está desactivado y la pestaña dice *Los mock servers se encienden en la app de escritorio: el navegador no puede abrir un puerto. Aquí puedes definir sus rutas.* Igual puedes crear mocks, escribir sus rutas y guardarlos con la colección, y encenderlos después en la app de escritorio.
+
+![El Mock de Shop en la versión del navegador: un aviso dice que los mock servers se encienden en la app de escritorio, y el botón Encender está desactivado](/media/es/mocks-web-desktop-only.webp)
+
+## Problemas frecuentes
+
+| Qué ves | Por qué, y qué hacer |
+|---|---|
+| **Encender** está desactivado. | Estás en la versión del navegador. Abre la colección en la app de escritorio. |
+| Las llamadas a `http://localhost:4010` fallan, pero `http://127.0.0.1:4010` funciona. | El mock escucha solo en `127.0.0.1`, y en algunos sistemas `localhost` va a la dirección IPv6. Usa la URL que da **Copiar URL**. |
+| Tus requests siguen yendo al puerto viejo. | El ambiente del mock conserva la URL vieja. Pulsa **Actualizar ambiente**. |
+| El mock se apagó mientras trabajabas. | Cambiaste de colección, recargaste o cerraste la app. Enciéndelo de nuevo. |
+| Hay un proxy de la empresa configurado. | No importa: `localhost` y `127.0.0.1` siempre se conectan directo. Mira [Ajustes de red](/es/get-started/network/). |
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Crea un mock server" href="/es/mocks/create/" />
+  <LinkCard title="Respuestas" href="/es/mocks/responses/" />
+  <LinkCard title="El Log de un mock" href="/es/mocks/log/" />
+  <LinkCard title="Usa un mock con requests y workflows" href="/es/mocks/with-workflows/" />
+</CardGrid>

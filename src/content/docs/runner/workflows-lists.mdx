@@ -1,0 +1,116 @@
+---
+title: Lists in the Runner
+description: How the Runner chooses an item when a step returns a list, what each saved rule does in each iteration, how to remove a rule, and what happens when no item matches.
+sidebar:
+  order: 9
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+When a step returns a list and a later step needs one item of it, a run by hand stops and asks you which one. The Runner never asks: nobody is watching. It uses the rule saved in the step, or the item the design points to. This page says what each rule chooses in a run of the Runner and how to manage the rules from it.
+
+## Example: always the card of one bank
+
+In a shop, the step `getCustomer` returns `activeCreditCards`, and the next step pays with the `bank` of one card. You saved the rule **The one where…** `bank` **is** `Banco Sur` from the list dialog.
+
+<Steps>
+1. Open the Runner for `shop.arazzo.yaml` with **Run workflows (runner)**.
+2. Under **Picking from lists**, read the line: **Place order** · `getCustomer` `/activeCreditCards`, *the one where bank is Banco Sur*.
+3. Press **Run (n cases)**.
+</Steps>
+
+In every iteration, the run goes on with the card of **Banco Sur**. The step keeps a note of what it chose. See [What is recorded](/test/lists/#what-is-recorded).
+
+## What each rule chooses in the Runner
+
+| Saved rule | What the Runner does |
+|---|---|
+| No rule | Uses the item in the design. |
+| **Ask me** | Uses the item in the design: there is nobody to ask. |
+| **Use the one in the design** | Uses the item in the design. |
+| **Pick one at random** | Any item, chosen again each time the step runs. |
+| **A different one each iteration** | The first item in iteration 1, the second in iteration 2, and so on. When the list is shorter than the iterations, it starts over: with 3 items, iteration 4 uses the first one. |
+| **The one where…** | The first item that meets the condition. If none does, the step fails. See [When no item matches](#when-no-item-matches). |
+| **All of them** | The whole list, when the next steps can take several items. If they take a single value, the item in the design. |
+
+In a performance test, **A different one each iteration** counts the iterations of each virtual user: each user starts with the first item. See [Performance of workflows](/runner/performance-workflows/).
+
+## The conditions of "The one where…"
+
+| Condition | Matches when the field… | Example |
+|---|---|---|
+| **is** | Is exactly the value, as text. | `status` **is** `ACTIVE` |
+| **is not** | Is anything else, including missing. | `status` **is not** `BLOCKED` |
+| **contains** | Contains the value, without minding upper or lower case. | `name` **contains** `pika` matches `Pikachu` |
+| **is greater than** | Is a number greater than the value. | `stock` **is greater than** `0` |
+| **is less than** | Is a number less than the value. | `price` **is less than** `100` |
+
+- The field can go inside an object, with dots: `address.city`.
+- **is greater than** and **is less than** compare numbers. A field that is empty or not a number never matches.
+- **is** compares text: `25` matches the number 25, but `25.0` does not.
+
+## The Picking from lists section
+
+**Picking from lists** is in the setup of the workflows Runner, under the settings. It lists the rules saved in the steps of the workflows that will run. Each line has:
+
+| Part | Example |
+|---|---|
+| The workflow, in bold | **Place order** |
+| The step | `getCustomer` |
+| The list | `/activeCreditCards`, or *the response* when the whole response is the list |
+| The rule | *the one where bank is Banco Sur*, *Pick one at random*… |
+| **Remove** | Deletes the rule. |
+
+A workflow that is unticked, or that has no case to run, does not show its rules. With no rules at all, it says *No saved rules: when a step returns a list, the runner uses the item in the design. When you run by hand you can save a rule from the question.*
+
+The section is not shown when **Run type** is **Performance**, but the rules still apply there.
+
+## Save a rule
+
+Rules are saved from the list dialog, when you run a workflow by hand:
+
+<Steps>
+1. Run a case of the workflow with **Run**. The dialog opens after the step that returns the list.
+2. Open **Next times:** and choose the rule.
+3. Choose the item for this run and continue.
+</Steps>
+
+![The bottom of the list dialog with the Next times: list open: Ask me, Use the one in the design, Pick one at random, A different one each iteration and The one where…](/media/en/list-pick-rule.webp)
+
+The rule is saved in the step of the Arazzo file, under `x-luvin-pick`. See [Saved rules for next times](/test/lists/#saved-rules-for-next-times).
+
+## Remove a rule
+
+<Steps>
+1. Under **Picking from lists**, find the line of the rule.
+2. Press **Remove**.
+</Steps>
+
+The rule is deleted from the Arazzo file, and the line goes away. From then on, the Runner uses the item in the design for that list, and a run by hand asks you again.
+
+## When no item matches
+
+If no item meets the condition of **The one where…**, the Runner does not go on with another item as if nothing happened. The step fails with a message like:
+
+*No item in the list (3) matches the rule: bank is Banco Sur.*
+
+- The case fails, so the workflow fails in that iteration.
+- With **Stop if a workflow fails** on, the run ends there with **Stopped on an error**.
+- In a performance test, it counts as an error of that step. The step did answer, so the **Errors** tab shows its status, for example `200`, as the reason.
+
+What to do:
+
+| Cause | Fix |
+|---|---|
+| The data changed: there is no card of that bank in this environment. | Use data that has one, or change the value of the rule. |
+| The field name is wrong, or it is inside an object. | Open the step's response and check the field, for example `address.city`. |
+| You compared a number with **is**. | Use the exact text of the value, or **is greater than** / **is less than**. |
+| Any item would do. | Save **Use the one in the design** or **Pick one at random** instead. |
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Choose an item from a list" href="/test/lists/" />
+  <LinkCard title="Run workflows" href="/runner/workflows/" />
+  <LinkCard title="Performance of workflows" href="/runner/performance-workflows/" />
+</CardGrid>

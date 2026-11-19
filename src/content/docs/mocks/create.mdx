@@ -1,0 +1,224 @@
+---
+title: Create a mock server
+description: Every way to create a mock, the three sources of its responses in detail, its name, and the file it is saved in.
+sidebar:
+  order: 2
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Creating a mock takes a name and a source for its responses. This page explains where to start, what each source turns into routes, and what Luvin writes to disk.
+
+## Example: a mock of the Pokédex contract
+
+<Steps>
+1. In the sidebar, click the **+** next to **Mock servers** (**New mock server**).
+2. The dialog suggests the name **Pokédex mock**. Keep it.
+3. Under **Responses from**, choose **An OpenAPI contract**.
+4. Press **Create mock**.
+</Steps>
+
+The mock opens in its own tab, stopped. Its **Routes** tab lists one route per documented status of each operation of `pokeapi.openapi.yaml`, and the file `mocks/pokedex-mock.mock.yaml` appears in the collection. Press **Start** to use it. See [Start and stop a mock](/mocks/start-stop/).
+
+## Where to start
+
+Use any of these. All open the same **New mock server** dialog:
+
+| Where | What to do |
+|---|---|
+| The **Mock servers** section of the sidebar | Click the **+** next to the title (**New mock server**). |
+| The same section, with no mocks yet | Click the **New mock server** link. Next to it, the section says *Serves the collection routes without the real API.* |
+| The command palette | Press ⌘K (Ctrl+K on Windows and Linux) and choose the action **New mock server**, *Answers without the real API*. |
+
+## The New mock server dialog
+
+The dialog starts with *A server on this computer that answers like your API. Its routes are saved in the collection (mocks/) and travel with git.*
+
+<Steps>
+1. **Name**: Luvin suggests the collection name followed by `mock`, already selected so you can type over it. **Create mock** stays disabled while the name is empty.
+2. **Responses from**: click one of the three options. Each one says what it answers (see below).
+3. If you chose **An OpenAPI contract** and the collection has more than one, pick it in the **An OpenAPI contract** list. With only one, there is no list.
+4. Press **Create mock**, or **Cancel** to close without creating anything.
+</Steps>
+
+![The New mock server dialog with the name Shop mock and An OpenAPI contract selected under Responses from, above Cancel and Create mock](/media/en/mocks-new-dialog.webp)
+
+The new mock opens in its own tab, stopped. It also appears in the **Mock servers** section of the sidebar, in alphabetical order, with a gray dot and its port.
+
+| Option | What it says in the dialog |
+|---|---|
+| **The collection** | *Answers with the saved examples of the requests and stays up to date.* |
+| **An OpenAPI contract** | *Answers each operation with the contract examples or data built from its schema.* Disabled when the collection has no OpenAPI contract: *The collection has no OpenAPI contracts.* |
+| **Only your routes** | *Only the routes you write.* |
+
+## Source: the collection
+
+The mock answers with the examples you saved in the requests of the collection. To save one, send a request and press **Save response**. See [Cookies and saved examples](/requests/cookies-and-examples/).
+
+### What becomes a route
+
+- Each saved example of an **HTTP** or **GraphQL** request becomes a route. gRPC and WebSocket requests do not.
+- The method is the method of the example. A GraphQL request without one uses `POST`.
+- The status, headers and body are those of the saved response.
+- The headers that describe the original connection are not answered: `content-length`, `transfer-encoding`, `connection`, `keep-alive`, `date`, `content-encoding`, `set-cookie`, `server`, `via`, `alt-svc`, `strict-transport-security` and every `access-control-` header.
+
+### The path of each route
+
+The path is the URL of the example, as it was written when you saved it, without what comes before the path:
+
+| URL of the example | Path of the route |
+|---|---|
+| `{{baseUrl}}/pokemon/:idOrName` | `/pokemon/:idOrName` |
+| `https://pokeapi.co/api/v2/pokemon/pikachu` | `/api/v2/pokemon/pikachu` |
+| `{{baseUrl}}/pokemon/{{pokemon}}` | `/pokemon/{{pokemon}}`: the variable works as a parameter and matches any value. |
+| `{{baseUrl}}/pokemon?limit=5` | `/pokemon`: the query and a `#` part are left out. |
+
+Only a variable at the start is removed. The example keeps the URL it had when you saved it: if you change the URL of the request later, the old examples still answer at the old path.
+
+### Several examples on the same route
+
+Examples with the same method and path are one route with several responses, even if they come from different requests. The mock answers the first `2xx` (or the first one, if there is no `2xx`). The others are asked for with the `x-mock-response-code` or `x-mock-response-name` header. See [Responses](/mocks/responses/).
+
+### Up to date on its own
+
+When you save, change or delete an example, the mock answers the new version at once, even while it runs.
+
+If no request has examples, the group says *No request has saved examples yet. Send a request and use “Save response” so the mock can serve it.*
+
+## Source: an OpenAPI contract
+
+The mock answers every operation of an OpenAPI contract of the collection. AsyncAPI contracts cannot be a source.
+
+### What becomes a route
+
+- Each documented status of each operation becomes a route: `200` and `404` of `getPokemon` are two responses of `GET /api/v2/pokemon/{idOrName}`.
+- Only statuses written as three digits count. `default` and ranges such as `4XX` are skipped. An operation with no status answers `200`.
+- The response by default is the first `2xx` of the operation.
+
+### The path of each route
+
+The path is the path of the contract's first server plus the path of the operation:
+
+| Server of the contract | Operation | Path of the route |
+|---|---|---|
+| `https://pokeapi.co/api/v2` | `/pokemon/{idOrName}` | `/api/v2/pokemon/{idOrName}` |
+| `https://api-m.sandbox.paypal.com` | `/v2/checkout/orders` | `/v2/checkout/orders` |
+| A server with a variable, such as `/{version}` | | The default value of the variable takes its place. |
+| A server written with `{{…}}` | | No prefix: only the path of the operation. |
+
+### The body of each response
+
+| The contract has | The mock answers |
+|---|---|
+| An `example` in the response (or the first of its `examples`) | That example, as JSON. |
+| Only a schema | Data built from the schema. |
+| Neither | `{}`. |
+| A `204`, a `304`, or a response with no content | No body. |
+
+A response with a body gets `content-type: application/json`.
+
+### The name of each response
+
+The name is the description of the response in the contract, for example `El Pokémon` for the `200` of `getPokemon`. When the response points to a shared one (`$ref`), as the `404` of the Pokédex does, the name is the status: `404`. You use these names with `x-mock-response-name`.
+
+### Up to date on its own
+
+When you edit the contract, the mock answers the new version at once. If the contract file is removed or renamed, the **Responses from** list shows it as *(no longer there)* and the group says *The contract has no operations or could not be read.* Choose another source.
+
+## Source: only your routes
+
+The mock answers only the routes you write under **Your routes**. Any other call gets `404`. Use it for an API without a contract, or for a few fixed answers. See [Routes](/mocks/routes/).
+
+## Change the source
+
+In the mock tab, open the **Responses from** list. It shows **The collection**, one **Contract** entry per OpenAPI contract of the collection, and **Only your routes**. The change applies at once, also to a running mock. Your own routes stay.
+
+## Rename a mock
+
+Click the name at the top of the mock tab, type the new one and press Enter or click outside. An empty name goes back to the previous one.
+
+The file keeps the name it got when you created the mock. The mock environment is found by name: after a rename, **Create mock environment** creates a new environment. See [Use a mock with requests and workflows](/mocks/with-workflows/).
+
+## The file on disk
+
+Each mock is a file in the `mocks/` folder of the collection. The file name is the mock name in lowercase, without accents and with hyphens, followed by `.mock.yaml`: **Pokédex mock** is saved as `mocks/pokedex-mock.mock.yaml`. If that file exists, Luvin adds `-2`, `-3` and so on.
+
+Luvin saves it on its own a moment after each change. It travels with the collection, also in git. Whether the mock is running is not saved.
+
+```yaml title="mocks/pokedex-mock.mock.yaml"
+# Mock server de Luvin: rutas propias y la fuente de sus respuestas.
+id: 6f1c…
+name: Pokédex mock
+port: 4010
+delay: 500
+source:
+  contract: pokeapi.openapi.yaml
+routes:
+  - id: m3k…
+    name: Pokémon not found
+    method: GET
+    path: /api/v2/pokemon/missingno
+    status: 404
+    headers:
+      content-type: application/json
+    body: '{"detail": "Not found."}'
+```
+
+| Key | What it holds |
+|---|---|
+| `id` | An identifier Luvin creates. |
+| `name` | The name of the mock. |
+| `port` | The port. |
+| `delay` | The delay in ms. Only when it is not 0. |
+| `source` | `collection`, `standalone` (only your routes) or `contract:` with the contract file. |
+| `routes` | Your own routes. Each one has `id`, `method`, `path` and `status`, and, when they have a value, `name`, `delay`, `headers`, `body` and `enabled: false` for an inactive route. |
+
+The routes of the source are not in the file: they come from the examples or the contract each time.
+
+### Edit the file by hand
+
+You can write or change a `.mock.yaml` file in a `mocks/` folder and open the collection again. Luvin fills what is missing or out of range:
+
+| Value | When it is missing or not valid |
+|---|---|
+| `name` | The file name without `.mock.yaml`. |
+| `port` | `4010` (valid: 1 to 65535). |
+| `delay` | `0` (valid: 0 to 120000). |
+| `source` | `collection`. |
+| `method`, `path`, `status` of a route | `GET`, `/`, `200` (valid status: 100 to 599). |
+| `body` written as YAML | Saved as JSON text. |
+
+A file that is not valid YAML is skipped. When Luvin saves the mock, it writes the file again: comments you added are lost.
+
+<Aside type="note">
+Without a workspace there is no collection folder, so a mock is not written to any file. See [Use Luvin without a workspace](/workspaces/without-workspace/).
+</Aside>
+
+## Delete a mock
+
+<Steps>
+1. Open the **⋯** menu of the mock in the sidebar, or the **⋯** menu at the top of its tab.
+2. Choose **Delete mock**. Luvin asks *Delete “Pokédex mock”? mocks/pokedex-mock.mock.yaml is removed.*
+3. Press **Delete** to confirm, or **Cancel**.
+</Steps>
+
+Deleting a mock stops it, closes its tab and removes its file. The mock environment stays: delete it like any other environment.
+
+## Troubleshooting
+
+| What you see | Why, and what to do |
+|---|---|
+| **An OpenAPI contract** is disabled. | The collection has no OpenAPI contract. Add one, or use **The collection** or **Only your routes**. |
+| The **From the collection** group is empty. | No HTTP or GraphQL request has a saved example. Send one and press **Save response**. |
+| The group of the contract says *The contract has no operations or could not be read.* | The contract has errors, has no paths, or is no longer in the collection. Open it in **Contracts** and fix it, or change the source. |
+| A route of the collection has a path you did not expect. | The path comes from the URL of the example when you saved it. Save the example again from the current request. |
+| The mock is gone after reloading. | There was no workspace open, so it was not saved. |
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Start and stop a mock" href="/mocks/start-stop/" />
+  <LinkCard title="Routes" href="/mocks/routes/" />
+  <LinkCard title="Cookies and saved examples" href="/requests/cookies-and-examples/" />
+  <LinkCard title="Contracts" href="/contracts/overview/" />
+</CardGrid>

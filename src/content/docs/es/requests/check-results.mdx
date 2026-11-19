@@ -1,0 +1,142 @@
+---
+title: Lee los resultados de las comprobaciones
+description: Qué dicen el chip junto al status, la pestaña Comprobaciones de la respuesta y el runner sobre las comprobaciones y las variables guardadas, y dónde volver a encontrarlos en el historial.
+sidebar:
+  order: 12
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Después de un envío, Luvin te dice en tres lugares si la respuesta cumplió sus comprobaciones y qué valores guardó: un chip junto al status, la pestaña **Comprobaciones** de la respuesta y, mientras editas, una marca en cada fila. Esta página explica cada uno, y cómo se ven los mismos resultados en el runner y en el historial.
+
+## Ejemplo: una comprobación que falla
+
+**Get pokemon** (`GET https://pokeapi.co/api/v2/pokemon/pikachu`) tiene cuatro comprobaciones. Una espera el tipo equivocado:
+
+| De la respuesta | Comprobación | Valor esperado |
+|---|---|---|
+| `res.status` | **es igual a** | `200` |
+| `res.body.name` | **es igual a** | `pikachu` |
+| `res.body.types[0].type.name` | **es igual a** | `fire` |
+| `res.responseTime` | **es menor que** | `1000` |
+
+<Steps>
+
+1. Pulsa **Enviar**. Junto al status `200 OK`, un chip rojo dice **✕ 1 de 4 comprobaciones fallaron**.
+2. Haz clic en el chip. Se abre la pestaña **Comprobaciones** de la respuesta. Su número, `1`, está en rojo.
+3. Lee la tercera línea: ✕, `res.body.types[0].type.name`, **es igual a**, `fire`, y **Llegó: electric**, el valor que vino.
+4. Corrige el valor esperado en la pestaña **Comprobaciones** del request: escribe `electric`. La fila pasa a ✓ al instante, frente a la última respuesta.
+5. Pulsa **Enviar** de nuevo. El chip dice **✓ 4 de 4 comprobaciones**, en verde.
+
+</Steps>
+
+## El chip junto al status
+
+Aparece cuando el request tiene comprobaciones, o cuando una variable no se pudo guardar. Haz clic en él para abrir la pestaña **Comprobaciones** de la respuesta.
+
+| Situación | El chip dice | Color |
+|---|---|---|
+| Pasaron todas las comprobaciones | **✓ 4 de 4 comprobaciones** | Verde |
+| Fallaron algunas | **✕ 2 de 9 comprobaciones fallaron** | Rojo |
+| Pasaron todas, pero una variable no se guardó | **✓ 4 de 4 comprobaciones**, y su tooltip dice **No se guardó: \{\{token\}\}** | Rojo |
+| Sin comprobaciones, y una variable no se guardó | **✕ No se guardó: \{\{token\}\}** | Rojo |
+| Sin comprobaciones, y se guardaron todas las variables | No hay chip | |
+
+Una comprobación que falló se muestra junto al status a propósito: un `200` en verde no lo dice todo.
+
+![La fila del status de una respuesta: 200 OK y el chip rojo ✕ 1 de 4 comprobaciones fallaron, luego el tiempo y el tamaño](/media/es/response-checks-chip.webp)
+
+## La pestaña Comprobaciones de la respuesta
+
+Aparece después de un envío cuando el request tiene comprobaciones o guarda variables. Su número son las comprobaciones que fallaron, en rojo, o todas, en verde, cuando pasaron todas. Con solo variables, no lleva número.
+
+### Las comprobaciones
+
+Una línea por cada comprobación activa, en el orden de las filas:
+
+| Parte | Ejemplo |
+|---|---|
+| ✓ o ✕ | ✕ |
+| La expresión | `res.body.types[0].type.name` |
+| La comprobación | **es igual a** |
+| El valor esperado, tal como lo escribiste | `fire` |
+| En qué se convirtieron las `{{variables}}`, entre paréntesis, solo si tenía | (25) |
+| En una que falló: lo que vino, o por qué falló | **Llegó: electric** |
+
+Los valores largos se cortan. Los motivos por los que una comprobación falla sin un **Llegó:**:
+
+| Mensaje | Significa | Mira |
+|---|---|---|
+| **Llegó: (no está)** | La expresión no leyó nada | [Cuando el camino no existe](/es/requests/check-expressions/#cuando-el-camino-no-existe) |
+| **No son números** | Una comprobación de números recibió un texto o nada | [Compara números](/es/requests/check-operators/#compara-números) |
+| **La expresión regular no es válida** | El patrón de **coincide con (regex)** tiene un error | [coincide con (regex)](/es/requests/check-operators/#coincide-con-regex) |
+| **No se entiende el camino «…»** | El camino tiene una parte que Luvin no entiende | [Expresiones que Luvin no entiende](/es/requests/check-expressions/#expresiones-que-luvin-no-entiende) |
+| **Usa res.status, res.body…, res.headers.nombre o res.responseTime** | La expresión no empieza como una de esas | [Lo que puedes leer](/es/requests/check-expressions/#lo-que-puedes-leer) |
+
+### Variables guardadas
+
+Debajo de las comprobaciones, **Variables guardadas** lista cada variable activa del request:
+
+- `{{pokemonId}}` y el valor que guardó, como `25`. Una secreta muestra `••••`.
+- `{{token}}` y **no estaba en la respuesta**, cuando su expresión no leyó nada. Esa variable no se guardó y conserva su valor anterior.
+
+![La pestaña Comprobaciones de la respuesta, con 1 en rojo: tres comprobaciones con ✓ y la del stock del primer item, es mayor que 50, con ✕ y Llegó: 40; debajo, Variables guardadas lista firstSku con SKU-100 y total con 10](/media/es/response-checks-tab.webp)
+
+## Mientras editas
+
+En la pestaña **Comprobaciones** del request, cada fila activa muestra ✓ o ✕ frente a la última respuesta, y cambia mientras escribes. Apunta a la marca para leer **Llegó:** y el valor, o el motivo. En la pestaña **Variables**, cada fila muestra el valor que guardaría. Ninguna guarda nada: solo un envío lo hace.
+
+## Cuando no hay respuesta
+
+Si el request falla antes de que llegue una respuesta (la API no respondió a tiempo, falló la conexión, se rechazó un certificado), el área de la respuesta muestra el error. No se revisa ninguna comprobación, no se guarda ninguna variable y no hay chip.
+
+## En el runner
+
+**Ejecutar requests (runner)**, en el menú ⋯ de **Requests** en la barra lateral, y **Ejecutar carpeta (runner)**, en el menú de una carpeta, envían varios requests en orden.
+
+**Antes de empezar**, la lista de requests marca los que tienen comprobaciones o variables con su número de comprobaciones, como **4 comprob.** Su tooltip dice **Tiene comprobaciones o guarda variables**.
+
+**Durante y después de la corrida:**
+
+- Cada request es una fila con ✓ o ✕, su método, nombre, URL, status (o **Sin respuesta**), tiempo, tamaño y las comprobaciones que pasaron sobre su total, como `3/4`, en verde o en rojo.
+- Un request pasa si recibió respuesta y pasaron todas sus comprobaciones. Sin comprobaciones, pasa si su status es menor que `400`.
+- Haz clic en una fila para abrirla: el error, si lo hubo, la misma lista de comprobaciones y **Variables guardadas** que en la respuesta, la respuesta misma (si **Guardar las respuestas para verlas** está encendido) y **Abrir el request**.
+- Un request fallido sin comprobaciones dice *Sin comprobaciones, un status de error cuenta como fallo. Agrega una comprobación (por ejemplo, status es 404) si es lo esperado.*
+- Los totales suman las comprobaciones que pasaron sobre el total, en **comprobaciones**, como `11/12`.
+- **Todos**, **Fallaron** y **Pasaron** filtran las filas.
+- **Detenerse si un request falla** detiene la corrida en el primer request que falla: *Falla si no responde, si no cumple una comprobación o, sin comprobaciones, si el status es un error.*
+
+Lo que guarda un request pasa a los requests siguientes de la corrida. Mira [Guarda valores de una respuesta](/es/requests/save-variables/#en-el-runner) y [Ejecuta requests](/es/runner/requests/).
+
+### En una prueba de rendimiento
+
+En una prueba de rendimiento de requests, un request con una comprobación que falló cuenta como fallido, aunque responda `200`. Su error es la expresión y el nombre de la comprobación en el archivo, como `res.body.name eq`. Mira [Lee una prueba de rendimiento](/es/runner/performance-results/).
+
+## En el historial
+
+Cada envío y cada corrida pasan al historial de la colección, con los resultados de sus comprobaciones:
+
+- Un request se abre con la misma vista de la respuesta: el chip junto al status y la pestaña **Comprobaciones** de la respuesta.
+- Una corrida del runner conserva el resultado de cada request, con sus comprobaciones y sus variables guardadas.
+- Los valores secretos se tapan como `••••`, también dentro del body y de los headers.
+
+Mira [Historial](/es/workspaces/history/).
+
+## Solución de problemas
+
+| Lo que ves | Por qué | Qué hacer |
+|---|---|---|
+| El chip está en rojo pero todas las líneas tienen ✓ | Una variable no se guardó | Busca **no estaba en la respuesta** en **Variables guardadas** |
+| **Llegó:** muestra el valor esperado pero la comprobación falló | No es texto frente a número (esos son iguales): son las mayúsculas, los espacios, el orden de una lista, o un texto `"true"` frente a `true` | Mira [Compara valores](/es/requests/check-operators/#compara-valores) |
+| No está la pestaña **Comprobaciones** de la respuesta | El request no tiene comprobaciones ni variables activas, o no recibió respuesta | Agrega una comprobación, o mira el error |
+| El runner marca un `404` como fallido | No tiene comprobaciones, así que un status de error es un fallo | Agrega `res.status` **es igual a** `404` |
+| El runner marca un `200` como fallido | Falló una de sus comprobaciones | Abre la fila para ver cuál |
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Comprueba la respuesta" href="/es/requests/checks/" />
+  <LinkCard title="Las comprobaciones, una por una" href="/es/requests/check-operators/" />
+  <LinkCard title="Ejecuta requests" href="/es/runner/requests/" />
+  <LinkCard title="Historial" href="/es/workspaces/history/" />
+</CardGrid>

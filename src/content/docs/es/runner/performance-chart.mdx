@@ -1,0 +1,116 @@
+---
+title: El gráfico de rendimiento
+description: Las cuatro series del gráfico de rendimiento, sus ejes, cómo leer un momento, cómo ocultar una serie, elegir un tramo de tiempo y filtrar por request o por métrica.
+sidebar:
+  order: 18
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+El gráfico muestra toda la prueba de rendimiento en una sola línea de tiempo: cuántos requests por segundo respondió la API, cuánto tardaron, cuántos fallaron y cuántos usuarios virtuales los estaban enviando. Úsalo para encontrar el momento en que algo cambió, y después mira ese momento solo.
+
+## Ejemplo: ¿cuándo subieron los tiempos?
+
+Terminó una prueba de subida gradual de 1 minuto, de 5 a 20 usuarios.
+
+<Steps>
+1. Mira la línea del tiempo de respuesta. Se mantiene plana y empieza a subir cerca de `0:30`, cuando la línea punteada de los usuarios llega arriba.
+2. Deja el puntero en `0:35`. El tooltip muestra el tiempo desde el inicio, la hora, los requests por segundo, el tiempo de respuesta, la tasa de error y los usuarios.
+3. Arrastra sobre el gráfico de `0:30` a `0:45`. Mientras arrastras, la leyenda dice *15 s seleccionados*.
+4. Suelta. La tabla de abajo dice **Detalle de 0:30 a 0:45** y muestra solo esa parte de la prueba.
+5. Pulsa **Quitar filtro** para volver a ver toda la prueba.
+</Steps>
+
+## Las series
+
+| Serie | Cómo se ve | Escala |
+|---|---|---|
+| **Requests por segundo** | Un área rellena. | A la izquierda, con el título `req/s`. Los números grandes se acortan: `1,2 k`. |
+| **Tiempo de respuesta (Promedio)** | Una línea. La métrica de su nombre sigue al filtro: **Promedio**, **p90**, **p95**, **p99** o **Máximo**. | A la derecha, en `ms`, o en `s` cuando los tiempos llegan a un segundo. |
+| **Usuarios virtuales** | Una línea punteada. | Ninguna: el número de usuarios va escrito al final de la línea, por ejemplo **20 VU**. |
+| **Tasa de error** | Barras en una franja bajo el gráfico, solo donde hubo errores. | La suya, a la izquierda de la franja, con el título `% err`. Va de 0 a por lo menos 1 %. |
+
+Las dos escalas del gráfico principal comparten las mismas líneas guía, con cuatro pasos cada una.
+
+La línea de los usuarios no tiene escala propia: muestra la forma de la carga, hasta el 90 % del alto del gráfico cuando corren todos los usuarios. Lee el número al final de la línea, o en el tooltip.
+
+## La línea de tiempo
+
+- Va de `0:00` a la duración de la prueba, con marcas en pasos redondos: cada 5 o 10 segundos en una prueba corta, cada minuto o más en una larga.
+- Cubre toda la duración desde el principio: mientras la prueba corre, las series crecen hacia la derecha.
+- Cada punto agrupa los requests que terminaron en un pedazo corto de tiempo. Una prueba tiene hasta unos 120 puntos, ninguno de menos de un cuarto de segundo.
+- En pruebas de un minuto o menos, los puntos duran menos de un segundo, y las series se promedian en alrededor de un segundo para que los saltos cortos no tapen la tendencia.
+- El último pedazo, cortado por el fin de la prueba, no se dibuja, así las líneas no caen a 0 al final. Mientras la prueba corre, tampoco se dibuja el pedazo en curso.
+
+## Lee un momento
+
+Deja el puntero sobre el gráfico. Una línea vertical marca el punto bajo el puntero, y un tooltip muestra:
+
+| Línea | Ejemplo |
+|---|---|
+| Tiempo desde el inicio · hora | **0:35** · 10:30:35 |
+| **Requests por segundo** | `38,5` |
+| **Tiempo de respuesta (Promedio)** | `240 ms`, o `—` si ningún request terminó en ese punto |
+| **Tasa de error** | `2,6 % (1)`: la parte y cuántos |
+| **Usuarios virtuales** | `20` |
+
+## Oculta o destaca una serie
+
+La leyenda bajo el gráfico tiene un botón por serie.
+
+- Haz clic en un nombre para ocultar su serie. Haz clic otra vez para mostrarla.
+- Deja el puntero sobre un nombre para atenuar las demás series.
+
+Junto a la leyenda, una pista dice *Arrastra sobre el gráfico para ver un tramo.*
+
+## Elige un tramo de tiempo
+
+<Steps>
+1. Presiona sobre el gráfico en un tiempo y arrastra hasta otro. La selección se sombrea, y la leyenda dice cuántos segundos elegiste, por ejemplo *10 s seleccionados*.
+2. Suelta. La tabla de abajo muestra solo ese tramo, y su título dice **Detalle de 0:20 a 0:30**.
+3. Pulsa **Quitar filtro**, junto a ese título, para volver a ver toda la prueba: **Detalle de toda la prueba**.
+</Steps>
+
+![El gráfico de rendimiento con un rango sombreado de 0:08 a 0:16, y debajo la tabla con el detalle de ese rango y el botón Quitar filtro](/media/es/runner-perf-range.webp)
+
+- Un clic sin arrastrar no elige nada.
+- Sacar el puntero del gráfico mientras arrastras cancela la selección.
+- Cuando ningún request terminó en el tramo, la tabla dice *Sin requests en este tramo.*
+
+Qué cambia el tramo y qué no:
+
+| Cambia | No cambia |
+|---|---|
+| La tabla, y la línea junto a su título. | El gráfico, que sigue mostrando toda la prueba. |
+| La línea sobre el request más lento y su etiqueta en la tabla se ocultan. | Los números clave y el veredicto. |
+| | La pestaña **Errores**, que siempre es de toda la prueba. |
+
+## Filtros
+
+Arriba del gráfico, a la derecha, dos listas:
+
+| Lista | Opciones | Qué cambia |
+|---|---|---|
+| **Todos los requests** | Cada request, o cada paso de un workflow, y cada workflow completo. | Elige uno y el gráfico y la tabla muestran solo ese. La línea sobre el request más lento se oculta. |
+| La métrica | **Promedio**, **p90**, **p95**, **p99** o **Máximo**. | La línea del tiempo de respuesta del gráfico, la columna destacada en la tabla y el tiempo de la línea junto al título de la tabla. |
+
+Un filtro de request y un tramo de tiempo funcionan juntos: el gráfico sigue al request, y la tabla sigue a los dos.
+
+## La línea junto al título de la tabla
+
+Junto a **Detalle de toda la prueba**, o al tramo, una línea corta resume lo que estás mirando:
+
+| Parte | Ejemplo |
+|---|---|
+| Requests por segundo | `38,5 req/s` |
+| Tiempo de respuesta, con la métrica elegida | `240 ms` |
+| Tasa de error | `0,4 %` |
+| La mayor cantidad de usuarios virtuales a la vez | `20 VU` |
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Lee una prueba de rendimiento" href="/es/runner/performance-results/" />
+  <LinkCard title="La tabla y los errores" href="/es/runner/performance-table/" />
+  <LinkCard title="Formas de la carga" href="/es/runner/load-profiles/" />
+</CardGrid>

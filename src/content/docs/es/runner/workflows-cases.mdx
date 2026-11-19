@@ -1,0 +1,83 @@
+---
+title: Elige los casos
+description: Mira y marca los casos de cada workflow en el runner, cuáles van a la API real y cuáles se simulan, y por qué un caso no se puede ejecutar.
+sidebar:
+  order: 8
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Cada workflow ejecuta sus casos marcados. En el runner puedes verlos bajo cada workflow, marcarlos o desmarcarlos, y revisar a dónde va cada uno antes de empezar: a la API real, simulado, o a ningún lado porque no se puede ejecutar en ese modo.
+
+## Ejemplo: Place order en los dos modos
+
+**Place order**, un workflow de tienda, tiene nueve casos, todos marcados: el camino feliz, cinco casos de validación de datos, **Sin credenciales** y dos casos por respuesta. Mira [Casos](/es/test/cases/#todos-los-tipos-de-caso-en-un-workflow).
+
+<Steps>
+1. Abre el runner para `shop.arazzo.yaml` con **Ejecutar workflows (runner)**.
+2. En **Contra**, elige **Simulado**. La fila de **Place order** dice **3 de 9 casos**.
+3. Haz clic en **Place order**. El camino feliz y los dos casos por respuesta tienen la etiqueta **Simulado**. Los otros seis casos dicen *Necesita la API real: la simulación no valida los datos enviados.*
+4. En **Contra**, elige **API real**. Ahora la fila dice **9 de 9 casos**: siete con la etiqueta **API real** y los dos casos por respuesta con **Simulado**.
+</Steps>
+
+## Mira los casos de un workflow
+
+Haz clic en el nombre de un workflow, o en la cuenta que tiene al lado, por ejemplo **3 de 9 casos**. Sus casos aparecen debajo. Haz clic otra vez para ocultarlos.
+
+![El Orden de ejecución de pokemon.arazzo.yaml con Pokemon card abierto: Camino feliz con la etiqueta API real y getPokemon responde 404 → pokemonNotFound con la etiqueta Simulado; cada fila muestra su cuenta, como 2 de 2 casos](/media/es/runner-workflows-cases.webp)
+
+Cada caso tiene:
+
+| Parte | Qué es |
+|---|---|
+| Casilla | Marcada, el caso se ejecuta, si puede ejecutarse en el modo elegido. |
+| Nombre | El nombre del caso, como en la pestaña **Casos**. |
+| **API real** o **Simulado** | A dónde va en el modo elegido. |
+| Un motivo, en gris | En lugar de la etiqueta, cuando no se puede ejecutar en este modo. Deja el puntero sobre el nombre para leerlo completo. |
+
+Un caso sin marcar, o que no se puede ejecutar, queda en gris.
+
+## Marca y desmarca casos
+
+La casilla de un caso es la misma de la pestaña **Casos** del workflow. Marcarla aquí la marca allá también, y al revés. Mira [Elige qué casos se ejecutan](/es/test/cases/#elige-qué-casos-se-ejecutan).
+
+La fila del workflow cuenta los casos marcados que se pueden ejecutar en este modo, del total de sus casos, por ejemplo **1 de 2 casos**. Sin ninguno, dice **sin casos en este modo**, y el workflow no se ejecuta. El botón para empezar los suma para todos los workflows marcados y multiplica por las vueltas.
+
+## API real o simulado, caso por caso
+
+**Contra** es un valor por defecto. Algunos tipos de caso siempre van de una forma:
+
+| Tipo de caso | Con **API real** | Con **Simulado** |
+|---|---|---|
+| **Camino feliz** | **API real** | **Simulado** |
+| **Validación de datos** | **API real** | No se puede ejecutar |
+| **Seguridad** | **API real** | No se puede ejecutar |
+| **Casos con datos propios** | **API real** | No se puede ejecutar |
+| Caso por respuesta | **Simulado** | **Simulado** |
+| Caso por respuesta puesto en **API real**, con sus inputs cambiados | **API real** | **API real** |
+| Caso por respuesta puesto en **API real**, sin ningún input cambiado | No se puede ejecutar | No se puede ejecutar |
+| Caso por mensaje | **Simulado** | **Simulado** |
+
+Un caso por respuesta simula que un paso responde una respuesta dada, así que no necesita la API. Para revisar lo mismo contra tu API, dale datos que provoquen esa respuesta. Mira [Ajusta un caso](/es/test/adjust-cases/#ejecuta-un-caso-por-respuesta-contra-la-api-real).
+
+## Por qué un caso no se puede ejecutar
+
+| Motivo | Qué casos | Qué hacer |
+|---|---|---|
+| *Necesita la API real: la simulación no valida los datos enviados.* | **Validación de datos** y **Seguridad**, con **Simulado**. | Elige **API real** en **Contra**. |
+| *Los casos con datos propios solo tienen sentido contra la API real.* | **Casos con datos propios**, con **Simulado**. | Elige **API real**. |
+| *Para probarlo contra la API real, cambia en los inputs del caso los valores que provocan esta respuesta.* | Un caso por respuesta puesto en **API real** sin cambiar sus inputs, en cualquier modo. | Cambia sus inputs en la pestaña **Casos**, o vuelve a ponerlo en **Simulado**. |
+
+Un caso marcado que no se puede ejecutar se salta. Los demás casos del workflow se ejecutan.
+
+## En una prueba de rendimiento
+
+Con **Rendimiento**, la lista muestra los casos con las etiquetas que tendrían contra la API real, y uno de ellos tiene la etiqueta **Se repite en la carga**. La fila del workflow dice cuál, por ejemplo **Carga: Camino feliz**. Mira [Rendimiento de workflows](/es/runner/performance-workflows/).
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Ejecuta workflows" href="/es/runner/workflows/" />
+  <LinkCard title="Casos" href="/es/test/cases/" />
+  <LinkCard title="Simulación" href="/es/test/simulation/" />
+</CardGrid>

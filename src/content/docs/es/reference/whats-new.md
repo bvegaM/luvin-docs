@@ -5,7 +5,34 @@ sidebar:
   order: 12
 ---
 
-Esta página lista qué puede hacer Luvin y cuándo llegó cada capacidad. Lo más nuevo va primero. La versión actual es la **0.1.0**.
+Esta página lista qué puede hacer Luvin y cuándo llegó cada capacidad. Lo más nuevo va primero. La versión actual es la **0.1.5**.
+
+## 19 de noviembre de 2026 · versiones 0.1.4 y 0.1.5
+
+**Runner, pruebas de rendimiento, mock servers, historial y red.**
+
+- **Runner de requests y de workflows.** Ejecuta varios requests o workflows en orden, una o varias vueltas, con un archivo de datos CSV o JSON. En los workflows ves y eliges los casos de cada uno, y las listas se eligen solas con una regla guardada en el paso. Mira [El runner](/es/runner/overview/).
+- **Pruebas de rendimiento** para requests y workflows: usuarios virtuales, formas de carga (fija, subida gradual, pico repentino, pico sostenido), criterios para pasar y resultados por paso con el cuello de botella. Mira [Pruebas de rendimiento](/es/runner/performance/).
+- **Mock servers locales** por colección, con las rutas de los ejemplos guardados o de un contrato, plantillas y respuestas alternativas. Mira [Mock servers](/es/mocks/overview/).
+- **Historial** de requests y ejecuciones por colección, con búsqueda y para volver a ejecutar. Mira [Historial](/es/workspaces/history/).
+- **Variables y comprobaciones después de la respuesta**, sin scripts. Al importar de Postman o Bruno, sus tests se convierten. Mira [Variables y comprobaciones](/es/requests/variables-and-checks/).
+- **Red en la app de escritorio:** proxy, certificados de cliente y ajustes de los requests en las Preferencias. gRPC, WebSocket y el inicio de sesión OAuth usan los mismos ajustes. Mira [Ajustes de red](/es/get-started/network/).
+- **En el diseño, un + para cada rama y entre los pasos.** "Si responde 404, ir a un paso nuevo" se arma desde la tarjeta del paso, y el (+) de cada flecha inserta un paso ahí. Mira [Éxito y errores](/es/design/success-and-errors/).
+- **El tour guiado va por secciones cortas**, empezando por los workflows. Mira [El tour guiado](/es/get-started/guided-tour/).
+- **Un error de escritura en el YAML ya no rompe la colección.** El archivo aparece como "no se puede leer", Ejecutar queda bloqueado y, al corregirlo, vuelven sus workflows con sus casos.
+- **Más seguro:** los secretos que guarda un request no aparecen en el historial ni en Network; un mock server solo responde a tu equipo; una respuesta comprimida gigante ya no llena la memoria; una redirección de https a http no lleva la autorización.
+- **Otras mejoras:** Enter en la URL envía el request y ⌘/Ctrl+Enter lo envía desde cualquier parte; deshacer en el diseño sobrevive al cambiar de pestaña; un Arazzo en JSON sigue en JSON; la paleta ⌘K tiene acciones y mock servers.
+
+## 18 de noviembre de 2026 · versiones 0.1.2 y 0.1.3
+
+**Más de 70 correcciones de los testers.**
+
+- **Variables de ruta con su propio valor** en los requests, y sugerencias para crearlas.
+- **Ejecución más fiel:** los bucles de `goto` y `retry` entre workflows se detienen, nunca se envía un request con un parámetro de ruta vacío, se usan los servidores que declara una operación, los filtros JSONPath siguen la especificación (RFC 9535) y un valor que la respuesta no trae ya no pasa una comprobación.
+- **Autorización:** AWS SigV4, OAuth 2.0 (credenciales de cliente y refresh), Digest y NTLM corregidos.
+- **Requests:** las respuestas binarias se descargan intactas, las cookies de una redirección se guardan, los números JSON grandes no pierden precisión y el body de un GET se envía.
+- **Diseño:** las anclas y alias de YAML se respetan, y renombrar pasos, outputs, componentes o workflows actualiza lo que los usa, también en otros archivos Arazzo.
+- **Workspaces, ambientes y secretos:** cada ambiente conserva su archivo, un archivo que no se puede leer nunca se sobrescribe, los cambios pendientes se guardan antes de cerrar y los secretos siguen a cada ambiente y request aunque cambien de nombre.
 
 ## 17 de noviembre de 2026
 

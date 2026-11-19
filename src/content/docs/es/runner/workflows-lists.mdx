@@ -1,0 +1,116 @@
+---
+title: Listas en el runner
+description: Cómo elige el runner un elemento cuando un paso devuelve una lista, qué hace cada regla guardada en cada vuelta, cómo quitar una regla y qué pasa cuando ningún elemento cumple.
+sidebar:
+  order: 9
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Cuando un paso devuelve una lista y un paso siguiente necesita un elemento de ella, una ejecución a mano se detiene y te pregunta cuál. El runner nunca pregunta: no hay nadie mirando. Usa la regla guardada en el paso, o el elemento al que apunta el diseño. Esta página dice qué elige cada regla en una ejecución del runner y cómo manejar las reglas desde ahí.
+
+## Ejemplo: siempre la tarjeta de un banco
+
+En una tienda, el paso `getCustomer` devuelve `activeCreditCards`, y el paso siguiente paga con el `bank` de una tarjeta. Guardaste la regla **El que cumpla…** `bank` **es** `Banco Sur` desde el diálogo de la lista.
+
+<Steps>
+1. Abre el runner para `shop.arazzo.yaml` con **Ejecutar workflows (runner)**.
+2. En **Elegir de las listas**, lee la línea: **Place order** · `getCustomer` `/activeCreditCards`, *el que cumpla bank es Banco Sur*.
+3. Pulsa **Ejecutar (n casos)**.
+</Steps>
+
+En cada vuelta, la ejecución sigue con la tarjeta de **Banco Sur**. El paso guarda una nota de lo que eligió. Mira [Qué queda registrado](/es/test/lists/#qué-queda-registrado).
+
+## Qué elige cada regla en el runner
+
+| Regla guardada | Qué hace el runner |
+|---|---|
+| Sin regla | Usa el elemento que dice el diseño. |
+| **Preguntarme** | Usa el elemento que dice el diseño: no hay a quién preguntar. |
+| **Usar el que dice el diseño** | Usa el elemento que dice el diseño. |
+| **Elegir uno al azar** | Cualquier elemento, elegido otra vez cada vez que el paso se ejecuta. |
+| **Uno distinto en cada vuelta** | El primer elemento en la vuelta 1, el segundo en la vuelta 2, y así. Cuando la lista es más corta que las vueltas, vuelve a empezar: con 3 elementos, la vuelta 4 usa el primero. |
+| **El que cumpla…** | El primer elemento que cumple la condición. Si ninguno la cumple, el paso falla. Mira [Cuando ningún elemento cumple](#cuando-ningún-elemento-cumple). |
+| **Todos** | Toda la lista, cuando los pasos siguientes pueden recibir varios elementos. Si reciben un solo valor, el elemento que dice el diseño. |
+
+En una prueba de rendimiento, **Uno distinto en cada vuelta** cuenta las vueltas de cada usuario virtual: cada usuario empieza con el primer elemento. Mira [Rendimiento de workflows](/es/runner/performance-workflows/).
+
+## Las condiciones de «El que cumpla…»
+
+| Condición | Cumple cuando el campo… | Ejemplo |
+|---|---|---|
+| **es** | Es exactamente el valor, como texto. | `status` **es** `ACTIVE` |
+| **no es** | Es cualquier otra cosa, incluso si falta. | `status` **no es** `BLOCKED` |
+| **contiene** | Contiene el valor, sin importar mayúsculas o minúsculas. | `name` **contiene** `pika` cumple con `Pikachu` |
+| **es mayor que** | Es un número mayor que el valor. | `stock` **es mayor que** `0` |
+| **es menor que** | Es un número menor que el valor. | `price` **es menor que** `100` |
+
+- El campo puede estar dentro de un objeto, con puntos: `address.city`.
+- **es mayor que** y **es menor que** comparan números. Un campo vacío o que no es un número nunca cumple.
+- **es** compara texto: `25` cumple con el número 25, pero `25.0` no.
+
+## La sección Elegir de las listas
+
+**Elegir de las listas** está en la configuración del runner de workflows, bajo los ajustes. Lista las reglas guardadas en los pasos de los workflows que se van a ejecutar. Cada línea tiene:
+
+| Parte | Ejemplo |
+|---|---|
+| El workflow, en negrita | **Place order** |
+| El paso | `getCustomer` |
+| La lista | `/activeCreditCards`, o *la respuesta* cuando la respuesta entera es la lista |
+| La regla | *el que cumpla bank es Banco Sur*, *Elegir uno al azar*… |
+| **Quitar** | Borra la regla. |
+
+Un workflow sin marcar, o sin casos que ejecutar, no muestra sus reglas. Sin ninguna regla, dice *Sin reglas guardadas: cuando un paso devuelve una lista, el runner usa el elemento que dice el diseño. Al ejecutar a mano puedes guardar una regla desde la pregunta.*
+
+La sección no aparece cuando **Tipo de ejecución** es **Rendimiento**, pero las reglas se aplican igual.
+
+## Guarda una regla
+
+Las reglas se guardan desde el diálogo de la lista, cuando ejecutas un workflow a mano:
+
+<Steps>
+1. Ejecuta un caso del workflow con **Ejecutar**. El diálogo se abre después del paso que devuelve la lista.
+2. Abre **Las próximas veces:** y elige la regla.
+3. Elige el elemento para esta ejecución y continúa.
+</Steps>
+
+![La parte de abajo del diálogo de la lista con la lista Las próximas veces: abierta: Preguntarme, Usar el que dice el diseño, Elegir uno al azar, Uno distinto en cada vuelta y El que cumpla…](/media/es/list-pick-rule.webp)
+
+La regla se guarda en el paso del archivo Arazzo, bajo `x-luvin-pick`. Mira [Reglas para las próximas veces](/es/test/lists/#reglas-para-las-próximas-veces).
+
+## Quita una regla
+
+<Steps>
+1. En **Elegir de las listas**, busca la línea de la regla.
+2. Pulsa **Quitar**.
+</Steps>
+
+La regla se borra del archivo Arazzo, y la línea desaparece. Desde ahí, el runner usa el elemento que dice el diseño para esa lista, y una ejecución a mano te vuelve a preguntar.
+
+## Cuando ningún elemento cumple
+
+Si ningún elemento cumple la condición de **El que cumpla…**, el runner no sigue con otro elemento como si nada. El paso falla con un mensaje como:
+
+*Ningún elemento de la lista (3) cumple la regla: bank es Banco Sur.*
+
+- El caso falla, así que el workflow falla en esa vuelta.
+- Con **Detenerse si un workflow falla** marcado, la ejecución termina ahí con **Se detuvo en un error**.
+- En una prueba de rendimiento, cuenta como un error de ese paso. El paso sí respondió, así que la pestaña **Errores** muestra su status, por ejemplo `200`, como motivo.
+
+Qué hacer:
+
+| Causa | Arreglo |
+|---|---|
+| Los datos cambiaron: en este ambiente no hay una tarjeta de ese banco. | Usa datos que la tengan, o cambia el valor de la regla. |
+| El nombre del campo está mal, o está dentro de un objeto. | Abre la respuesta del paso y revisa el campo, por ejemplo `address.city`. |
+| Comparaste un número con **es**. | Usa el texto exacto del valor, o **es mayor que** / **es menor que**. |
+| Cualquier elemento sirve. | Guarda **Usar el que dice el diseño** o **Elegir uno al azar** en su lugar. |
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Elige un elemento de una lista" href="/es/test/lists/" />
+  <LinkCard title="Ejecuta workflows" href="/es/runner/workflows/" />
+  <LinkCard title="Rendimiento de workflows" href="/es/runner/performance-workflows/" />
+</CardGrid>

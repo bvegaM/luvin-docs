@@ -40,6 +40,9 @@ Uses $steps.getPokemn.outputs.id, but step "getPokemn" does not exist.
 
 The canvas and the YAML are two views of the same file. Each change you make on the canvas is written in the YAML, and each change you type in the YAML shows on the canvas. Nothing is kept apart, so what you write by hand is kept.
 
+- **An Arazzo written in JSON stays JSON.** Editing it on the canvas keeps the format and its indentation.
+- **Undo survives a visit to another tab.** **Undo** and **Redo** of the **Design** tab keep their history when you open the YAML tab, or another tab of the workflow, and come back. If you edited the YAML in between, the history starts again, so undoing does not erase what you typed.
+
 ![The YAML tab with the Arazzo file and a list of problems below it](/media/en/yaml-editor.webp)
 
 <Steps>
@@ -61,13 +64,28 @@ A moment after you stop typing, Luvin reads the file again and checks it. The ba
 | **2 error(s)** / **1 warning(s)** | There are problems. Each one is underlined in the text. |
 | **Invalid YAML** | The text cannot be read, for example because of a wrong indentation. |
 
-While the YAML is invalid, the canvas cannot show it. The **Design** tab says **The YAML can’t be read** and offers **View the YAML**. Fix the line and the canvas comes back.
+While the YAML is invalid, the workflow cannot be drawn or run. See [When the YAML can't be read](#when-the-yaml-cant-be-read).
 
 When there is something to report, a list appears under the text, called **Problems**. Click a problem and the cursor goes to the place in the text. When the list has only information, it is called **Notes** and starts folded. A note is not a mistake, for example **Receive step without “timeout”**.
 
 ![The YAML tab with the badge 1 error(s), the wrong value underlined, and the Problems list with an info note and the error Uses $steps.createOrdr.outputs.orderId, but step "createOrdr" does not exist](/media/en/design-yaml-problems.webp)
 
-![The Design tab while the YAML cannot be read: the message with the line of the problem and the link View the YAML](/media/en/design-yaml-broken.webp)
+## When the YAML can't be read
+
+A wrong indentation or a missing quote is enough for the text to stop being YAML. The badge says **Invalid YAML**. Until you fix it:
+
+| Where | What you see |
+|---|---|
+| The **Run** button | It is disabled. Its tooltip says **Can't run: the YAML in pokemon.arazzo.yaml has an error. Fix it in the YAML tab.** **⌘Enter** (**Ctrl+Enter**) does not run it either. |
+| The **Design** tab | The notice **The YAML has an error and can't be drawn. Fix it in the YAML tab and the design comes back.**, with the button **Go to YAML**. |
+
+Luvin does not run the last version it could read, because that is not what the file says now. Fix the line and the canvas and **Run** come back.
+
+![The Design tab while the YAML cannot be read: the notice and the button Go to YAML](/media/en/design-yaml-broken.webp)
+
+If you reopen the workspace with the file still broken, its workflows are not loaded and its row in the sidebar says **Can't be read**. Click the row, fix the line, and the workflows come back with their inputs and cases.
+
+[When the YAML can't be read](/design/broken-yaml/) explains what is blocked, the messages before and after a reopen, common errors and how your cases are kept.
 
 ## Autocomplete
 
