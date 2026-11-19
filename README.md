@@ -104,6 +104,8 @@ La documentación tiene que entenderse sin ayuda. Las reglas con las que se escr
 - Google Chrome (`CHROME_PATH=/ruta` si no está en el lugar de siempre).
 - Conexión a internet: usa la PokéAPI real. Para las listas levanta una API local de prueba.
 
+Lo que solo existe en la app de escritorio (mock servers encendidos, las Preferencias con red, proxy y certificados) se captura con `node scripts/capture-desktop.mjs <en|es> <carpeta>` y luego `convert.mjs`. Abre la app de Electron de `../luvin` con un perfil temporal y necesita su `dist/` (`npx vite build` en la app). Las pruebas de rendimiento de las escenas usan solo servidores locales (127.0.0.1), nunca una API pública.
+
 Para rehacer solo una parte: `node scripts/capture.mjs es .media/es requests clip-quick-start` y luego `node scripts/convert.mjs .media/es public/media/es`.
 
 Las escenas están al final de `scripts/capture.mjs` y en `scripts/scenes/` (un archivo por tema: `design.mjs` para Diseñar workflows, `test.mjs` para Probar workflows). Cada archivo de `scenes/` exporta una función que recibe las herramientas de la captura (abrir los ejemplos, mover el cursor, poner leyendas, capturar) y devuelve sus escenas; sus capturas llevan el prefijo del tema (`design-…`, `test-…`). Los videos son las escenas que empiezan con `clip-` y llevan un cursor y una leyenda por paso, en los dos idiomas. La API local de prueba usa un puerto libre, así se pueden grabar varias tandas a la vez.

@@ -423,11 +423,8 @@ const scenes = {
     await page.locator('.palette input').fill('get')
     await shot(page, 'command-palette')
     await page.keyboard.press('Escape')
-    // Preferencias
-    await page.getByRole('button', { name: T.prefs }).click()
-    await page.locator('.prefs').waitFor()
-    await shot(page, 'preferences')
-    await page.keyboard.press('Escape')
+    // Preferencias: la captura sale de scripts/capture-desktop.mjs (la app de escritorio muestra
+    // todos sus grupos, red y certificados incluidos); aquí ya no se toma para no pisarla.
     // Importar de Postman o Bruno
     await page.locator('.home-action', { hasText: T.importPm }).click()
     await page.locator('.import-sources').waitFor()
