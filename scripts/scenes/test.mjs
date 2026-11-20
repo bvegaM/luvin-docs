@@ -164,7 +164,7 @@ cases:
   // Leyendas de los videos.
   const C = ES
     ? {
-        o1: 'Inputs: los valores con los que parte cada caso', o2: 'Casos: Luvin ya los generó desde el contrato y el diseño', o3: 'Primero en Simulación: sin llamar a la API', o4: 'Cada caso termina con un veredicto', o5: 'Ahora contra la API real, en el ambiente elegido', o6: 'Un paso devolvió una lista: confirma con qué elemento sigue', o7: 'Abre un paso: request, respuesta y criterios', o8: 'Exporta el reporte para compartirlo',
+        o1: 'Inputs: los valores con los que parte cada caso', o2: 'Casos: Luvin ya los generó desde el contrato y el diseño', o3: 'Primero en Simulación: sin llamar a la API', o4: 'Cada caso termina con un veredicto', o5: 'Ahora contra la API real, en el ambiente activo: el de arriba a la derecha', o6: 'Un paso devolvió una lista: confirma con qué elemento sigue', o7: 'Abre un paso: request, respuesta y criterios', o8: 'Exporta el reporte para compartirlo',
         i1: 'Los inputs obligatorios tienen *', i2: 'Un dato fijo: el mismo en cada ejecución', i3: 'Escribe {{ para ver las sugerencias', i4: 'Un generador da un valor nuevo en cada ejecución', i5: 'Un input con opciones se elige de una lista',
         k1: 'Camino feliz: el workflow normal, de punta a punta', k2: 'Validación de datos: falta un input obligatorio…', k3: '…o lleva un valor que el contrato no permite', k4: 'Seguridad: el paso protegido sin credenciales', k5: 'Casos por respuesta: qué hace el workflow ante cada error documentado', k6: 'Casos con datos propios: los que agregas tú', k7: 'La línea de arriba dice qué hará Ejecutar',
         s1: 'Luvin sugiere los status que documenta el contrato', s2: 'Si la API responde otra cosa, es una advertencia', s3: 'Elige tú el status: no cumplirlo será un error', s4: 'Un status que no está en la lista: escríbelo', s5: 'Vuelve a lo sugerido cuando quieras',
@@ -177,7 +177,7 @@ cases:
         c1: 'Exporta los casos a un archivo YAML', c2: 'Impórtalos en otro equipo o desde git', c3: 'Luvin dice cuántos agregó', c4: 'Los casos con datos propios ya están aquí',
       }
     : {
-        o1: 'Inputs: the values every case starts with', o2: 'Cases: Luvin generated them from the contract and the design', o3: 'First in Simulation: no calls to the API', o4: 'Every case ends with a verdict', o5: 'Now against the real API, in the chosen environment', o6: 'A step returned a list: confirm which item it continues with', o7: 'Open a step: request, response and criteria', o8: 'Export the report to share it',
+        o1: 'Inputs: the values every case starts with', o2: 'Cases: Luvin generated them from the contract and the design', o3: 'First in Simulation: no calls to the API', o4: 'Every case ends with a verdict', o5: 'Now against the real API, in the active environment: the one at the top right', o6: 'A step returned a list: confirm which item it continues with', o7: 'Open a step: request, response and criteria', o8: 'Export the report to share it',
         i1: 'Required inputs have a *', i2: 'Fixed data: the same on every run', i3: 'Type {{ to see the suggestions', i4: 'A generator gives a new value on every run', i5: 'An input with options is chosen from a list',
         k1: 'Happy path: the normal workflow, end to end', k2: 'Data validation: a required input is missing…', k3: '…or has a value the contract does not allow', k4: 'Security: the protected step without credentials', k5: 'Cases by response: what the workflow does on each documented error', k6: 'Custom data cases: the ones you add', k7: 'The line at the top says what Run will do',
         s1: 'Luvin suggests the statuses the contract documents', s2: 'If the API answers something else, it is a warning', s3: 'Choose the status yourself: missing it will be an error', s4: 'A status that is not in the list: type it', s5: 'Go back to the suggestion whenever you want',
@@ -393,12 +393,7 @@ cases:
       await page.locator('.prelude-row').first().click()
       await settle(page, 500)
       await shot(page, 'test-preparation', page.locator('.ws-results'))
-      // Otro ambiente en la barra de ejecución
-      await page.locator('.tree-list li.active .link.small').first().click()
-      await page.locator('.env-add').click()
-      await page.locator('.env-name-input').fill('staging')
-      await page.keyboard.press('Enter')
-      await settle(page, 600)
+      // La barra de ejecución (el ambiente ya no está en ella: se elige arriba a la derecha, en .app-env)
       await page.locator('[data-journey="pokemonCard"]').click()
       await page.locator('.ws-runbar .segmented button').nth(0).click()
       await settle(page, 500)
@@ -447,7 +442,7 @@ cases:
       await say(page, C.o4, 2400)
       await say(page, C.o5, 300)
       await go(page, page.locator('.ws-runbar .segmented button').nth(0), { pause: 500 })
-      await go(page, page.locator('.ws-env-select select'), { click: false, pause: 900 })
+      await go(page, page.locator('.app-env'), { click: false, pause: 1400 })
       await go(page, page.locator('.ws-run'), { pause: 300 })
       await page.locator('.lp-dialog').waitFor({ timeout: 25000 })
       await say(page, C.o6, 1800)

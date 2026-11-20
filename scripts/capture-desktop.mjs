@@ -225,14 +225,23 @@ async function openShop() {
   await settle(900)
 }
 
-const mocksSection = () => page.locator('.tree-section').filter({ has: page.locator('.tree-mocks') })
+/** Muestra un panel de la barra lateral con su ícono de arriba (collections, envs, history o mocks). */
+async function sidebarPanel(name) {
+  await page.locator(`.sb-rail-btn[data-panel="${name}"]`).click()
+  await settle(300)
+}
+/** El panel "Mock servers" de la barra lateral (se abre con su ícono). */
+async function mocksSection() {
+  await sidebarPanel('mocks')
+  return page.locator('.tree-section').filter({ has: page.locator('.tree-mocks') })
+}
 let port
 
 const scenes = {
   async mocks() {
     await openShop()
     // Crear un mock: nombre y de dónde salen sus respuestas (el contrato).
-    await mocksSection().locator('.tree-head .icon-btn').click()
+    await (await mocksSection()).locator('.tree-head .icon-btn').click()
     const dialog = page.locator('.rq-dialog').filter({ has: page.locator('.mock-new') })
     await dialog.waitFor()
     await dialog.locator('.mock-new-source').nth(1).click()
@@ -281,7 +290,8 @@ const scenes = {
     const side = await page.locator('aside').first().boundingBox()
     const rowBox = await row.boundingBox()
     const menu = await page.locator('.row-menu-list').boundingBox()
-    const top = Math.max(side.y, rowBox.y - 90)
+    // Desde arriba de la barra: se ven los íconos de los paneles (el de mocks con su punto verde).
+    const top = side.y
     const bottom = Math.min(VIEW.height, Math.max(menu.y + menu.height, rowBox.y + rowBox.height) + 24)
     await clip('mocks-sidebar-menu', { x: side.x, y: top, width: Math.max(side.width, menu.x + menu.width - side.x + 10), height: bottom - top }, 0)
     await page.keyboard.press('Escape')
@@ -305,8 +315,10 @@ const scenes = {
     await shot('mocks-log')
 
     // Un ambiente que apunta al mock: se crea desde el mock y queda activo.
+    // Se ve en la pastilla del ambiente (arriba a la derecha) y en el panel de ambientes.
     await page.locator('.mock-env button').click()
     await settle(800)
+    await sidebarPanel('envs')
     await page.locator('.tree-list li.active .link.small').first().click()
     await page.locator('.ws-view .field-grid').first().waitFor()
     await page.mouse.move(5, 5)

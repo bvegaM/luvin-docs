@@ -227,7 +227,7 @@ const C = ES
       r1: 'Elige Simulación: responde con los ejemplos del contrato', r2: 'Ejecuta los casos', r3: 'Cada caso termina con un veredicto y su razón', r4: 'Este caso espera un error 404, y lo obtiene', r5: 'Abre el paso para ver lo que respondió',
       l1: 'Ejecuta el caso', l2: 'El paso devolvió 10 productos: elige con cuál probar', l3: 'Las columnas marcadas «se usa» pasan al paso siguiente', l4: 'Continúa con el elemento elegido', l5: 'El paso deja anotado lo que elegiste', l6: 'El siguiente paso usó ese producto',
       c1: 'Crea un request', c2: 'Pega un cURL', c3: 'Luvin convierte método, URL y cabeceras', c4: 'Envía el request', c5: 'Lee la respuesta',
-      e1: 'Abre el ambiente activo', e2: 'Crea otro ambiente: empieza como copia del activo', e3: 'Cambia lo que difiere, por ejemplo la URL base', e4: 'Elige con qué ambiente ejecutas',
+      e1: 'Abre el ambiente activo', e2: 'Crea otro ambiente: empieza como copia del activo', e3: 'Cambia lo que difiere, por ejemplo la URL base', e4: 'Elige con qué ambiente ejecutas, arriba a la derecha',
     }
   : {
       qs1: 'Open the example: a Pokédex against the real PokéAPI', qs2: 'Open a workflow: each step is an API call', qs3: 'Its cases are already generated', qs4: 'Run against the real API', qs5: 'A step returned a list: confirm which item it continues with', qs6: 'Every case ends with a verdict', qs7: 'Open a step to see its request and response',
@@ -235,7 +235,7 @@ const C = ES
       r1: 'Choose Simulation: it answers from the contract examples', r2: 'Run the cases', r3: 'Every case ends with a verdict and its reason', r4: 'This case expects a 404 error, and gets it', r5: 'Open the step to see what it answered',
       l1: 'Run the case', l2: 'The step returned 10 products: choose which one to test with', l3: 'The columns marked "used" go to the next step', l4: 'Continue with the chosen item', l5: 'The step records what you chose', l6: 'The next step used that product',
       c1: 'Create a request', c2: 'Paste a cURL', c3: 'Luvin converts the method, URL and headers', c4: 'Send the request', c5: 'Read the response',
-      e1: 'Open the active environment', e2: 'Create another environment: it starts as a copy of the active one', e3: 'Change what differs, for example the base URL', e4: 'Choose which environment you run with',
+      e1: 'Open the active environment', e2: 'Create another environment: it starts as a copy of the active one', e3: 'Change what differs, for example the base URL', e4: 'Choose which environment you run with, at the top right',
     }
 const untilDone = (page) => page.waitForFunction(() => !document.querySelector('.lp-dialog') && document.querySelector('.case-nav-item') && !document.querySelector('.case-nav-item .sd-running, .case-nav-item .sd-pending'), null, { timeout: 45000 })
 
@@ -389,9 +389,11 @@ const scenes = {
     await page.locator('.dev-tabs [role="tab"]', { hasText: 'Console' }).click()
     await shot(page, 'devtools-console')
     await page.locator('.status-btn', { hasText: 'Dev Tools' }).click()
-    // Ambiente
+    // Ambiente: el panel de ambientes de la barra lateral (ícono de arriba) y "Configurar" en el activo.
+    await page.locator('.sb-rail-btn[data-panel="envs"]').click()
     await page.locator('.tree-list li.active .link.small').first().click()
     await shot(page, 'environment')
+    await page.locator('.sb-rail-btn[data-panel="collections"]').click()
     // Contrato con Swagger UI
     await page.locator('.tree-contract', { hasText: 'pokeapi' }).first().click()
     await page.locator('.swagger-ui .opblock').first().waitFor({ timeout: 25000 })
@@ -590,11 +592,13 @@ Object.assign(scenes, {
     await focusStep(page, 'publishSighting')
     await shot(page, 'messaging-step')
     // La API no responde: el panel de ayuda de conexión, con las cabeceras de CORS.
+    await page.locator('.sb-rail-btn[data-panel="envs"]').click()
     await page.locator('.tree-list li.active .link.small').first().click()
     const base = page.locator('.ws-view .field-grid .field input').first()
     await base.fill('http://127.0.0.1:9/api/v2')
     await base.press('Tab')
     await settle(page, 600)
+    await page.locator('.sb-rail-btn[data-panel="collections"]').click()
     await page.locator('[data-journey="pokemonCard"]').click()
     await tab(page, 'cases').click()
     await page.locator('.ws-runbar .segmented button').nth(0).click()
@@ -679,8 +683,7 @@ Object.assign(scenes, {
     await settle(page, 800)
     const from = Date.now()
     await say(page, C.d1)
-    await go(page, page.locator('.tree-add', { hasText: T.newRequest }), { pause: 700 })
-    await go(page, page.locator('.nr-arazzo'), { pause: 400 })
+    await go(page, page.locator('.tree-add', { hasText: ES ? 'Nuevo workflow' : 'New workflow' }), { pause: 400 })
     await page.locator('.builder').waitFor()
     await settle(page, 1200)
     await say(page, C.d2)
@@ -697,7 +700,11 @@ Object.assign(scenes, {
     await say(page, C.d4, 600)
     await go(page, page.locator('.start-node').first(), { click: false, pause: 2600 })
     await say(page, C.d5, 500)
-    await go(page, tab(page, 'yaml'), { pause: 3200 })
+    await go(page, tab(page, 'yaml'), { pause: 900 })
+    // El workflow nuevo queda al final del archivo de la Pokédex: el editor baja hasta él.
+    await page.locator('.cm-content').first().waitFor()
+    await page.locator('.editor-code .cm-scroller').first().evaluate((el) => el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' }))
+    await settle(page, 3000)
     await say(page, '', 400)
     await saveClip(page, 'design-workflow', started, from)
   },
@@ -781,8 +788,10 @@ Object.assign(scenes, {
     await openPokedex(page)
     await settle(page, 800)
     const from = Date.now()
+    // El ambiente activo es la pastilla de arriba a la derecha: su menú lleva a la configuración.
     await say(page, C.e1)
-    await go(page, page.locator('.tree-list li.active .link.small').first(), { pause: 1800 })
+    await go(page, page.locator('.app-env'), { pause: 700 })
+    await go(page, page.locator('.context-menu [role="menuitem"]', { hasText: ES ? 'Configurar ambiente' : 'Configure environment' }), { pause: 1800 })
     await say(page, C.e2, 500)
     await go(page, page.locator('.env-add'), { pause: 500 })
     await page.locator('.env-name-input').pressSequentially('staging', { delay: 70 })
@@ -795,8 +804,8 @@ Object.assign(scenes, {
     await base.pressSequentially('https://staging.example.com/api/v2', { delay: 28 })
     await settle(page, 1500)
     await say(page, C.e4, 500)
-    await go(page, page.locator('.ws-runbar select, .tree-env').first(), { click: false, pause: 1200 })
-    await go(page, page.locator('.tree-env').first(), { pause: 2400 })
+    await go(page, page.locator('.app-env'), { pause: 1200 })
+    await go(page, page.locator('.context-menu [role="menuitem"]').first(), { pause: 2400 })
     await say(page, '', 400)
     await saveClip(page, 'environments', started, from)
   },

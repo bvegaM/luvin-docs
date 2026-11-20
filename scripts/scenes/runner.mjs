@@ -226,9 +226,10 @@ workflows:
     if (value === undefined) throw new Error(`no hay opción "${label}"`)
     await select.selectOption(value)
   }
-  /** Otro ambiente (copia del activo) desde la barra lateral; queda activo. */
+  /** Otro ambiente (copia del activo), desde la pastilla del ambiente arriba a la derecha → Configurar ambiente…; queda activo. */
   async function addEnv(page, name) {
-    await page.locator('.tree-list li.active .link.small').first().click()
+    await page.locator('.app-env').click()
+    await page.locator('.context-menu button').last().click()
     await page.locator('.env-add').click()
     await page.locator('.env-name-input').fill(name)
     await page.keyboard.press('Enter')

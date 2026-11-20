@@ -277,6 +277,8 @@ workflows:
     await settle(page, 700)
   }
   const node = (page, name) => page.locator('.builder .step-node', { hasText: name }).first()
+  /** El + de la barra de pestañas (Crear o importar): el último botón de sus herramientas; las flechas y la lista de pestañas solo aparecen si no caben. */
+  const plusBtn = (page) => page.locator('.ws-tabs-tools > .ws-tab-plus').last()
   const detail = (page) => page.locator('.bl-detail').first()
   const detailBox = async (page) => (await page.locator('.bl-detail-stack, .bl-detail').first().boundingBox())
 
@@ -598,7 +600,9 @@ workflows:
     await clipTop(page, 'design-order-warning', 300)
     await page.locator('.callout.warn .link', { hasText: L('Deshacer', 'Undo') }).click()
     await settle(page, 400)
-    await page.locator('.callout.warn .link', { hasText: L('Cerrar', 'Close') }).click()
+    // Deshacer ya puede cerrar el aviso: "Cerrar" solo si sigue ahí.
+    const closeWarn = page.locator('.callout.warn .link', { hasText: L('Cerrar', 'Close') })
+    if (await closeWarn.count()) await closeWarn.click()
     await settle(page, 400)
     // Borrar un paso que otros usan.
     await select(page, 'listProducts')
@@ -639,8 +643,11 @@ workflows:
     await page.keyboard.type(' }}: [', { delay: 20 })
     await settle(page, 2000)
     await tab(page, 'design').click()
+    // Con el YAML roto, Diseño ya no dibuja el lienzo: muestra el aviso arriba (como en design-branches.mjs).
+    await page.locator('.ws-yaml-broken').waitFor()
     await settle(page, 800)
-    await clipTop(page, 'design-yaml-broken', 300)
+    const body = await page.locator('.ws-center-body').boundingBox()
+    await cut(page, 'design-yaml-broken', { ...body, height: 130 })
     await page.context().close()
   }
 
@@ -665,11 +672,16 @@ workflows:
     await cut(page, 'design-card', { x: card.x - 30, y: card.y - 14, width: card.width + 170, height: card.height + 28 })
     await palette(page, true)
     // Crear un Arazzo nuevo desde el + de las pestañas.
-    await page.locator('.ws-tab-plus').click()
+    await plusBtn(page).click()
     await settle(page, 400)
     const menu = await page.locator('.context-menu').boundingBox()
-    const plus = await page.locator('.ws-tab-plus').boundingBox()
-    await cut(page, 'design-plus-menu', { x: plus.x - 16, y: plus.y - 8, width: Math.max(menu.width + 40, 300), height: menu.y + menu.height - plus.y + 24 })
+    const plus = await plusBtn(page).boundingBox()
+    {
+      // El + y su menú juntos (el menú puede abrirse hacia la izquierda si el + está cerca del borde).
+      const x = Math.min(menu.x, plus.x) - 16
+      const right = Math.max(menu.x + menu.width, plus.x + plus.width) + 16
+      await cut(page, 'design-plus-menu', { x, y: plus.y - 8, width: Math.max(right - x, 300), height: menu.y + menu.height - plus.y + 24 })
+    }
     await page.locator('.context-menu [role="menuitem"], .context-menu button', { hasText: L('Nuevo Arazzo', 'New Arazzo') }).first().click()
     await page.locator('.builder .graph').waitFor()
     await settle(page, 1200)
@@ -751,7 +763,7 @@ workflows:
   scenes['clip-design-wire'] = async () => {
     const { page, started } = await video()
     await openPokedex(page)
-    await page.locator('.ws-tab-plus').click()
+    await plusBtn(page).click()
     await page.locator('.context-menu [role="menuitem"], .context-menu button', { hasText: L('Nuevo Arazzo', 'New Arazzo') }).first().click()
     await page.locator('.builder .graph').waitFor()
     await settle(page, 900)
@@ -998,7 +1010,9 @@ workflows:
     await go(page, page.locator('.callout.warn'), { click: false, pause: 2400 })
     await say(page, C.m3, 300)
     await go(page, page.locator('.callout.warn .link', { hasText: L('Deshacer', 'Undo') }), { pause: 600 })
-    await go(page, page.locator('.callout.warn .link', { hasText: L('Cerrar', 'Close') }), { pause: 900 })
+    const closeWarn = page.locator('.callout.warn .link', { hasText: L('Cerrar', 'Close') })
+    if (await closeWarn.count()) await go(page, closeWarn, { pause: 900 })
+    else await settle(page, 900)
     await say(page, C.m4, 300)
     await openStep(page, 'listProducts', 500)
     await go(page, detail(page).locator('.bl-detail-head .icon-btn.danger'), { pause: 900 })
@@ -1064,8 +1078,8 @@ workflows:
   const CREATE_CURL = `curl -X POST '${API}/orders' -H 'content-type: application/json' -d '{"customer":"Ana","currency":"EUR"}'`
   const GET_CURL = `curl '${API}/orders/{{order_id}}'`
   async function newArazzo(page, v = false) {
-    if (v) await go(page, page.locator('.ws-tab-plus'), { pause: 400 })
-    else await page.locator('.ws-tab-plus').click()
+    if (v) await go(page, plusBtn(page), { pause: 400 })
+    else await plusBtn(page).click()
     const item = page.locator('.context-menu [role="menuitem"], .context-menu button', { hasText: L('Nuevo Arazzo', 'New Arazzo') }).first()
     if (v) await go(page, item, { pause: 300 })
     else await item.click()

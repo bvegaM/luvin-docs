@@ -72,18 +72,17 @@ export default (ctx) => {
     async history() {
       const page = await freshPage()
       await withActivity(page)
-      // Las secciones de contratos y mocks, cerradas: así el historial queda cerca de la colección.
-      for (const label of [/contracts|contratos/i, /mock/i]) {
-        const t = page.locator('aside .tree-toggle', { hasText: label }).first()
-        if (await t.count()) await t.click()
-      }
-      await page.locator('.tree-history').scrollIntoViewIfNeeded()
+      // El panel Historial de la barra lateral (un panel a la vez: se elige arriba, en sus iconos).
+      await page.locator('.sb-rail-btn[data-panel="history"]').click()
+      await page.locator('.tree-history').waitFor()
+      await settle(page, 400)
       // La sección Historial de la barra lateral.
       const side = await page.locator('aside').first().boundingBox()
       const hist = await page.locator('.tree-section', { has: page.locator('.tree-history') }).first().boundingBox()
       const top = hist.y + 2
       await page.mouse.move(900, 500)
       await clip(page, 'history-sidebar', { x: side.x, y: top, width: side.width, height: hist.y + hist.height - top + 4 }, 0)
+      // Las entradas se abren desde ese mismo panel; al final se vuelve al de colecciones.
       await openFromSidebar(page, 'GET SKU-103')
       await shot(page, 'history-request')
       await openFromSidebar(page, 'View product')
@@ -101,6 +100,7 @@ export default (ctx) => {
       await page.locator('.hist-off').waitFor()
       await openFromSidebar(page, 'POST orders')
       await shot(page, 'history-off')
+      await page.locator('.sb-rail-btn[data-panel="collections"]').click()
       await page.context().close()
     },
   }

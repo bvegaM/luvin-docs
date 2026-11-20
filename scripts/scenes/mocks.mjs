@@ -8,7 +8,9 @@ export default (ctx) => {
     async 'mocks-web-desktop-only'() {
       const page = await freshPage()
       await openShop(page)
-      // Un mock nuevo desde la sección "Mock servers" de la barra lateral, con las respuestas del contrato.
+      // Un mock nuevo desde el panel "Mock servers" de la barra lateral (su ícono arriba), con las
+      // respuestas del contrato.
+      await page.locator('.sb-rail-btn[data-panel="mocks"]').click()
       const section = page.locator('.tree-section').filter({ has: page.locator('.tree-mocks') })
       await section.locator('.tree-head .icon-btn').click()
       const dialog = page.locator('.rq-dialog').filter({ has: page.locator('.mock-new') })
