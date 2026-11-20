@@ -21,6 +21,7 @@ This page lists what Luvin can do and when each capability arrived. The newest i
 - **The guided tour comes in short sections**, starting with workflows. See [The guided tour](/get-started/guided-tour/).
 - **A YAML typo no longer breaks the collection.** The file shows as "can't be read", Run is blocked and, once fixed, its workflows come back with their cases.
 - **Simulation is labelled as such.** Each case says whether it ran against your API or in simulation, and the summary says when nothing called your API, so a simulated pass isn't read as a real one. See [Results](/test/results/).
+- **The environment is always in view, and the sidebar has panels.** The active environment shows at the top right of the window, in its color (Luvin green by default), where you also switch it. Icons at the top of the sidebar switch between collections, environments, history and mock servers. When there are more tabs than fit, arrows and a list of every open tab let you reach them, and the + stays visible. See [A tour of the interface](/get-started/interface/) and [The sidebar](/get-started/sidebar/).
 - **Safer:** secrets saved by a request don't show in history or Network; a mock server only answers your machine; a huge compressed response no longer fills the memory; an https to http redirect doesn't carry the authorization.
 - **Other improvements:** Enter in the URL sends the request and ⌘/Ctrl+Enter sends it from anywhere; undo in the designer survives switching tabs; a JSON Arazzo stays JSON; the ⌘K palette has actions and mock servers.
 

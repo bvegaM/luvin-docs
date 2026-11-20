@@ -71,7 +71,7 @@ The results open at the bottom. The case ends as **Passed**, with a **Sim** badg
 
 ## 8. Run against the real API
 
-1. In the run bar, choose **Real API**. The environment shows `local`.
+1. In the run bar, choose **Real API**. The environment at the top right of the window shows `local`.
 2. Click **Run**.
 
 Luvin calls pokeapi.co. After `getPokemon`, a dialog titled **Run paused** opens: the step returned the list `types`, and `getType` needs one of its items. Against the real API the dialog appears **even when the list has a single item**. Pikachu has one type.

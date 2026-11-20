@@ -72,7 +72,7 @@ Para ejecutar de verdad necesitas una app del sandbox. El sandbox no mueve diner
 
 1. Entra a [developer.paypal.com/dashboard](https://developer.paypal.com/dashboard/). Abre **Apps & Credentials**, elige la pestaña **Sandbox** y haz clic en **Create App**.
 2. Copia el **Client ID** y el **Secret** de la app.
-3. En Luvin, abre el ambiente **Sandbox**, en **Ambientes** en la barra lateral.
+3. En Luvin, abre el ambiente **Sandbox**, en el panel **Ambientes** de la barra lateral.
 4. En **Variables**, escribe el Client ID en el **Valor** de `clientId`.
 5. En **Secretos**, escribe el Secret en el **Valor** de `clientSecret`.
 
@@ -81,7 +81,7 @@ El secret se guarda cifrado en tu computador y nunca se escribe en los archivos 
 ## 7. Ejecuta Create order de verdad
 
 1. Abre **Create order** y haz clic en su pestaña **Inputs**. `amount` es `25.00` y `currency` es `USD`.
-2. En la barra de ejecución, elige **API real** y el ambiente **Sandbox**.
+2. En la barra de ejecución, elige **API real**. Arriba a la derecha de la ventana, elige el ambiente **Sandbox**.
 3. Haz clic en **Ejecutar**.
 4. Luvin avisa que los pasos modifican datos en **Sandbox**. Haz clic en **Ejecutar igual**.
 

@@ -13,8 +13,8 @@ This page names every part of the screen and says what it is for. Read it once a
 
 | Area | Where | What it is for |
 |---|---|---|
-| Top bar | Top edge | The open workspace and its save state |
-| Sidebar | Left | Everything in your collections |
+| Top bar | Top edge | The open workspace, its save state and the active environment |
+| Sidebar | Left | Your collections, environments, history and mock servers |
 | Tabs | Above the main area | What you have open |
 | Run bar | Under the tabs, in a workflow | Where and how to run |
 | Results bar | Bottom of a workflow | The results of the last run |
@@ -25,23 +25,28 @@ This page names every part of the screen and says what it is for. Read it once a
 - **Home** (the house icon) opens the workspace home, with its collections and quick actions.
 - **The workspace switcher** is the button with the workspace name. Its menu shows where the workspace is saved and offers **Rename workspace**, **Close and switch workspace** and **Delete workspace…**. The desktop app adds **Show in Finder** (**Show in file explorer** on Windows and Linux).
 - **The save state**, on the right, reads **Saving…**, **✓ Saved** or **Save failed**. Every change is saved automatically. ⌘S (Ctrl+S) saves at once.
+- **The active environment**, at the top right: a pill with its name, in the color you chose for it, or in Luvin green if it has none. It shows whenever a collection is open, so you always know where your runs go, and it is the only place in the window that shows it. Click it to choose another environment, marked in a list. Its last option, **Configure environment…**, opens the environment tab. See [Environments](/environments/overview/).
 
 ## Sidebar
 
-| Section | What it shows |
-|---|---|
-| **Collections** | Each collection. Click the arrow to unfold one, or its name to open the collection overview. Inside: the Arazzo files, their workflows, the steps of each workflow and the **Requests**. |
-| **Contracts** | The contracts of the open collection: ✓ loaded, ✕ not loaded, ○ not used by any workflow yet. |
-| **Environments** | The environments of the open collection. Click one to make it active and open it. |
+At the top of the sidebar, four icons switch between its panels. Luvin remembers your choice on this computer. With no collection open, only the collections show.
 
-The dot next to a workflow tells how its last run went. Hover over it to read the state, for example **Passed**, **Failed** or **Not run**. Most rows have a ⋯ menu with actions such as **Rename** and **Delete**.
+| Panel | What it shows |
+|---|---|
+| **Collections** | Each collection. Click the arrow to unfold one, or its name to open the collection overview. Inside: the Arazzo files, their workflows, the steps of each workflow and the **Requests**. Below them, the **Contracts** of the open collection: ✓ loaded, ✕ not loaded, ○ not used by any workflow yet. |
+| **Environments** | The environments of the open collection. Click one to make it active and open it. |
+| **History** | The latest entries of the collection's history. **See all** opens the **History** tab. |
+| **Mock servers** | The mock servers of the collection. A green dot on the icon means one is running. |
+
+See [The sidebar](/get-started/sidebar/) for each panel. The dot next to a workflow tells how its last run went. Hover over it to read the state, for example **Passed**, **Failed** or **Not run**. Most rows have a ⋯ menu with actions such as **Rename** and **Delete**.
 
 ## Tabs
 
 Everything you open becomes a tab: a workflow, a request, a contract, an environment. In a workspace, **Home** is always the first tab.
 
 - **Preview tabs.** In a workspace, a single click opens a preview tab, with its name in italics. The next thing you open replaces it. To keep it, double-click the tab or the sidebar row, edit it, or run it.
-- **The + button** (**Create or import**) opens a menu with **New request**, **New workflow in this file**, **New Arazzo**, **New OpenAPI contract**, **New AsyncAPI contract** and **Import from Postman or Bruno**. An item is off when it cannot apply, for example when there is no open collection.
+- **The + button** (**Create or import**), at the right end of the tab bar, opens a menu with **New workflow in this file**, **New Arazzo**, **New request**, **New OpenAPI contract**, **New AsyncAPI contract** and **Import from Postman or Bruno**. An item is off when it cannot apply, for example when there is no open collection. The **+** stays outside the tabs, so it is always visible.
+- **More tabs than fit.** When the tabs do not fit, three buttons appear next to the **+**. The arrows (**Show the tabs on the left**, **Show the tabs on the right**) scroll the tabs; an arrow is off when there is nothing more on that side. The chevron (**All open tabs**) lists every open tab, with a check on the current one. Choose one to open it.
 - **Right-click a tab** for **New Arazzo**, **Close**, **Close Others**, **Close to the Left**, **Close to the Right** and **Close All**. An item is off when there is nothing to close. The tab **Home** cannot be closed.
 
 ## The tabs of a workflow
@@ -59,7 +64,7 @@ Click a step in the sidebar and one more tab opens, with the name of that step.
 
 ## Run bar
 
-From left to right: the workflow name and description (click either to edit it), **Real API** or **Simulation**, the **Environment** selector with **Configure environment…** at the end of its list, and the **Run** button. ⌘ Enter (Ctrl+Enter) runs too. During a run the button turns into **Cancel**.
+From left to right: the workflow name and description (click either to edit it), **Real API** or **Simulation**, and the **Run** button. With **Real API**, the run uses the active environment shown at the top right. ⌘ Enter (Ctrl+Enter) runs too. During a run the button turns into **Cancel**.
 
 ## Results bar
 
@@ -72,7 +77,6 @@ From left to right: the workflow name and description (click either to edit it),
 | Gear icon | Opens **Preferences** |
 | Theme icon | Switches the theme: **System**, **Light**, **Dark** |
 | **Local and private** | Hover to read where your data is kept |
-| Environment name | The active environment. Click to open it |
 | **Tour** | Starts the [guided tour](/get-started/guided-tour/) |
 | **Search** | Opens the search |
 | **Dev Tools** | Opens Console, Network and Performance, plus a Terminal in the desktop app |

@@ -22,7 +22,7 @@ El workflow envía los requests de verdad. Apunta el ambiente a un servidor de p
 
 ![El diálogo Importar de Postman o Bruno con una tarjeta para Postman y otra para Bruno](/media/es/import-postman.webp)
 
-Luvin crea una colección nueva y la abre. Bruno no guarda el valor de sus secretos: si tu ambiente tiene alguno, llega vacío. Abre el ambiente en la barra lateral y escríbelos. Mira [Trae tus propios archivos y requests](/es/get-started/import/).
+Luvin crea una colección nueva y la abre. Bruno no guarda el valor de sus secretos: si tu ambiente tiene alguno, llega vacío. Abre el ambiente en el panel **Ambientes** de la barra lateral y escríbelos. Mira [Trae tus propios archivos y requests](/es/get-started/import/).
 
 ## 2. Abre un request y envíalo
 
@@ -56,7 +56,7 @@ Cada request es un paso, con su nombre: `createOrder` y `getOrder`. Un paso se e
 Un request guardado no dice qué responde la API. Luvin lo aprende en la primera ejecución contra la API real.
 
 1. Abre la pestaña **Casos**. El caso **Camino feliz** está marcado.
-2. En la barra de ejecución, elige **API real** y el **Ambiente** de pruebas.
+2. En la barra de ejecución, elige **API real**. Arriba a la derecha de la ventana, elige el ambiente de pruebas.
 3. Haz clic en **Ejecutar**.
 4. Luvin avisa que los pasos modifican datos en ese ambiente. Lee el nombre del ambiente y haz clic en **Ejecutar igual**.
 

@@ -72,7 +72,7 @@ To run for real you need a sandbox app. The sandbox moves no real money.
 
 1. Go to [developer.paypal.com/dashboard](https://developer.paypal.com/dashboard/). Open **Apps & Credentials**, choose the **Sandbox** tab and click **Create App**.
 2. Copy the **Client ID** and the **Secret** of the app.
-3. In Luvin, open the **Sandbox** environment, under **Environments** in the sidebar.
+3. In Luvin, open the **Sandbox** environment, in the **Environments** panel of the sidebar.
 4. In **Variables**, type the Client ID in the **Value** of `clientId`.
 5. In **Secrets**, type the Secret in the **Value** of `clientSecret`.
 
@@ -81,7 +81,7 @@ The secret is stored encrypted on your computer and never written in the files o
 ## 7. Run Create order for real
 
 1. Open **Create order** and click its **Inputs** tab. `amount` is `25.00` and `currency` is `USD`.
-2. In the run bar, choose **Real API** and the environment **Sandbox**.
+2. In the run bar, choose **Real API**. At the top right of the window, choose the environment **Sandbox**.
 3. Click **Run**.
 4. Luvin warns that the steps modify data in **Sandbox**. Click **Run anyway**.
 

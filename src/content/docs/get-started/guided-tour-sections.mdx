@@ -69,7 +69,7 @@ What each step uses when it calls the API: the contract, the environment and the
 |---|---|---|---|
 | 1 | **Contracts like in Swagger Editor** | Opens the contract `pokeapi` from the sidebar. | The contract editor, next to Swagger UI. |
 | 2 | **A step in detail** | Opens **Pokemon card** and its step `getPokemon`. | The step, with its operation, criteria, actions and **▶ Try alone**. The tour does not press it. |
-| 3 | **Environments** | Opens the active environment. | The environment: URLs, credentials, variables and secrets. |
+| 3 | **Environments** | Switches the sidebar to the **Environments** panel and opens the active environment. | The environment: URLs, credentials, variables and secrets. The card says the active one shows, and changes, at the top right. |
 | 4 | **Another example: charging with PayPal** | The first time, creates the collection **PayPal** with its files, the **Sandbox** environment and the authorization of its workflows, and switches to **Simulation**. Then opens **Create order** on its **Overview** tab. | The diagram of **Create order**. |
 | 5 | **Authorization per API and per workflow** | Opens the **Authorization** tab of **Create order**. | OAuth 2.0 per API, with `{{clientId}}` and `{{clientSecret}}` from **Sandbox**. |
 | 6 | **Simulated without credentials, real with yours** | Opens **Capture order** on its **Cases** tab, switches to **Simulation** and presses **Run**. | The results, with the webhook simulated. |
@@ -98,7 +98,7 @@ A server that answers with the examples of the contract, and the workflow runnin
 
 | Step | Card | What the tour does | What it highlights |
 |---|---|---|---|
-| 1 | **A mock server from the contract** | The first time, creates the mock **PokéAPI mock** from `pokeapi.openapi.yaml`. Then opens it. | The mock and its routes. |
+| 1 | **A mock server from the contract** | The first time, creates the mock **PokéAPI mock** from `pokeapi.openapi.yaml`. Then switches the sidebar to the **Mock servers** panel and opens it. | The mock and its routes. |
 | 2 | **Running, on your machine** | Desktop app: starts the mock, if it is not running. Browser: nothing. | The mock. |
 | 3 | **The workflow, against the mock** | Desktop app: clicks **Create mock environment**, opens **Pokemon card** on **Cases**, chooses **Real API** and presses **Run**. Browser: opens **Pokemon card** on **Cases**, chooses **Simulation** and presses **Run**. | The results. |
 
@@ -129,7 +129,7 @@ Going back to what happened. 5 steps, about 1 minute; 4 in the Simple interface.
 
 | Step | Card | What the tour does | What it highlights |
 |---|---|---|---|
-| 1 | **The collection's history** | Opens **Pokemon card** on **Cases**, chooses **Simulation** and presses **Run**. Then opens the history with **See all** and the filter **Runs**. | The history of the collection. |
+| 1 | **The collection's history** | Opens **Pokemon card** on **Cases**, chooses **Simulation** and presses **Run**. Then switches the sidebar to the **History** panel and opens the history with **See all** and the filter **Runs**. | The history of the collection. |
 | 2 | **Dev Tools** | Opens Dev Tools on **Network**. Skipped in the Simple interface. | The Dev Tools panel. |
 | 3 | **Search everything** | Opens the search and types `weak`. | The search, with the step `getWeakness`. |
 | 4 | **Preferences** | Closes what was open. | The status bar, where **Preferences** and **Tour** are. |

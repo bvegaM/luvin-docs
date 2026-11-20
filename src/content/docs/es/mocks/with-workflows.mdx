@@ -14,7 +14,7 @@ Tus requests y tus workflows llaman a las URLs del ambiente activo. Para que lla
 <Steps>
 1. Crea un mock de la Pokédex con **Respuestas desde** en **Un contrato OpenAPI** y pulsa **Encender**. Mira [Crea un mock server](/es/mocks/create/).
 2. En la pestaña del mock, pulsa **Crear ambiente del mock**. Se crea el ambiente **Mock · Mock de Pokédex** y queda activo.
-3. Abre **Pokemon card**. En la barra de ejecución, elige **API real**. El selector **Ambiente** muestra **Mock · Mock de Pokédex**.
+3. Abre **Pokemon card**. En la barra de ejecución, elige **API real**. El ambiente de arriba a la derecha de la ventana muestra **Mock · Mock de Pokédex**.
 4. Pulsa **Ejecutar**. Cada paso llama al mock en vez de a la PokéAPI.
 5. Abre la pestaña **Log** del mock. Ves las llamadas de cada caso, con lo que enviaron y lo que respondió el mock.
 </Steps>
@@ -58,7 +58,7 @@ Un mock desde un contrato cuyo servidor tiene ruta responde bajo esa ruta: las r
 | Un paso de un workflow, por la URL base del contrato | `/api/v2/pokemon/pikachu` | Responde `200`: la URL base ya tiene `/api/v2`. |
 | `{{baseUrl}}/pokemon/pikachu`, en el ambiente de un mock desde la colección | `/pokemon/pikachu` | Responde `200`: las rutas salen de lo que va después de `{{baseUrl}}` en tus requests, así que `baseUrl` es solo la URL del mock. |
 
-Si un request escribe él mismo la ruta del servidor después de la variable, como `{{host}}/api/v2/pokemon/pikachu`, queda con la ruta dos veces (`/api/v2/api/v2/pokemon/pikachu`) y el **Log** muestra **Sin ruta (404)**. Haz clic en el ambiente del mock en **Ambientes** y quita `/api/v2` de esa variable.
+Si un request escribe él mismo la ruta del servidor después de la variable, como `{{host}}/api/v2/pokemon/pikachu`, queda con la ruta dos veces (`/api/v2/api/v2/pokemon/pikachu`) y el **Log** muestra **Sin ruta (404)**. Haz clic en el ambiente del mock en el panel **Ambientes** de la barra lateral y quita `/api/v2` de esa variable.
 
 <Aside type="note">
 Un request escrito con la URL completa, como `https://pokeapi.co/api/v2/pokemon/pikachu`, no tiene variable que reemplazar: sigue llamando a la API real. Usa `{{baseUrl}}` en la URL para pasar de la API al mock con el ambiente.
@@ -81,9 +81,9 @@ El ambiente se busca por su nombre. Si cambias el nombre del mock, la pestaña v
 ## Ejecuta un workflow contra el mock
 
 <Steps>
-1. Comprueba que el mock está encendido: un punto verde junto a él en la barra lateral. Si está apagado, nada responde en su URL y los pasos fallan.
+1. Comprueba que el mock está encendido: un punto verde junto a él en el panel **Mock servers** de la barra lateral. Si está apagado, nada responde en su URL y los pasos fallan.
 2. Abre el workflow y elige **API real** en la barra de ejecución.
-3. Comprueba que el **Ambiente** es el del mock.
+3. Comprueba que el ambiente de arriba a la derecha de la ventana es el del mock.
 4. Pulsa **Ejecutar**.
 </Steps>
 
@@ -101,7 +101,7 @@ Un proxy en **Preferencias** no estorba: `localhost` y `127.0.0.1` siempre se co
 
 ## Vuelve a tu ambiente de siempre
 
-Elige tu ambiente de siempre en el selector **Ambiente** de la barra de ejecución, o haz clic en él en **Ambientes**, en la barra lateral. El ambiente del mock queda en la lista para la próxima vez. Eliminar el mock no lo elimina. Mira [Ambientes](/es/environments/overview/).
+Elige tu ambiente de siempre arriba a la derecha de la ventana, o haz clic en él en el panel **Ambientes** de la barra lateral. El ambiente del mock queda en la lista para la próxima vez. Eliminar el mock no lo elimina. Mira [Ambientes](/es/environments/overview/).
 
 ## Mock server o Simulación
 
@@ -125,7 +125,7 @@ Usa la **Simulación** para comprobar rápido la lógica de un workflow. Usa un 
 |---|---|
 | Todos los pasos fallan con un error de conexión. | El mock está apagado, o cambió su puerto. Enciéndelo, y pulsa **Actualizar ambiente** después de cambiar el puerto. |
 | El **Log** muestra **Sin ruta (404)** para tus requests. | A la ruta le falta la ruta del servidor, como `/api/v2`, o la tiene dos veces. Mira [La ruta del servidor](#la-ruta-del-servidor). |
-| El **Log** está vacío después de ejecutar. | La ejecución usó otro ambiente, o la **Simulación**. Revisa la barra de ejecución. |
+| El **Log** está vacío después de ejecutar. | La ejecución usó otro ambiente, o la **Simulación**. Revisa el ambiente de arriba a la derecha y la barra de ejecución. |
 | Un request sigue llegando a la API real. | Su URL está escrita completa, sin variable. Usa `{{baseUrl}}`. |
 | Una llamada a otra API ahora falla. | Su URL estaba en una variable y ahora apunta al mock. Edítala en el ambiente del mock. |
 | Hay dos ambientes del mock. | Se cambió el nombre del mock. Elimina el que ya no uses. |

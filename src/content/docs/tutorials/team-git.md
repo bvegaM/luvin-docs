@@ -21,7 +21,7 @@ Luvin creates the folder with a file `luvin.yaml` inside. Every change you make 
 1. On **Home**, click **Create your first collection**. Type `payments` in **Collection name** and click **Create**.
 2. Under **Quick actions**, click **Import Arazzo or contracts** and choose your OpenAPI contract.
 3. Click **+** (**Create or import**) and choose **New Arazzo**. Drag two operations onto the canvas, as in [Build your first workflow](/tutorials/first-workflow/).
-4. In the sidebar, under **Environments**, click **+** (**New environment**), name it `staging`, and set its base URL.
+4. At the top of the sidebar, click the **Environments** icon. In its panel, click **+** (**New environment**), name it `staging`, and set its base URL.
 5. In **Variables** add `clientId`, and in **Secrets** add `clientSecret` with its **Value**.
 
 See [Base URLs, variables and secrets](/environments/variables-and-secrets/).
@@ -91,7 +91,7 @@ On the teammate's computer:
 
 1. Clone the repository: `git clone <your repository>`.
 2. Open Luvin and click **Open a workspace**. Choose the cloned folder, the one with `luvin.yaml`.
-3. In the sidebar, under **Environments**, open `staging`.
+3. In the **Environments** panel of the sidebar, open `staging`.
 4. In **Secrets**, type the **Value** of `clientSecret`. The name is already listed.
 5. In the run bar, choose **Real API** and run a case.
 

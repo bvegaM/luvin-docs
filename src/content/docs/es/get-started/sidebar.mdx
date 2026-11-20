@@ -1,17 +1,34 @@
 ---
 title: La barra lateral
-description: Lee el árbol de la barra lateral, busca en él, abre un workflow o uno de sus pasos, y administra contratos y ambientes desde sus secciones.
+description: Cambia la barra lateral entre colecciones, ambientes, historial y mock servers, lee su árbol, busca en él, abre un workflow o uno de sus pasos, y administra contratos y ambientes.
 sidebar:
   order: 8
 ---
 
 import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
 
-La barra lateral es el mapa de la colección abierta: sus archivos Arazzo, workflows, pasos, requests, contratos y ambientes. Úsala para abrir cosas, para ver cómo salió la última ejecución y para encontrar lo que sea por su nombre.
+La barra lateral es el mapa de la colección abierta: sus archivos Arazzo, workflows, pasos, requests, contratos y ambientes, además de su historial y sus mock servers. Úsala para abrir cosas, para ver cómo salió la última ejecución y para encontrar lo que sea por su nombre.
+
+## Cambia de panel
+
+Arriba de la barra lateral hay cuatro íconos. Cada uno muestra un panel que usa todo el alto de la barra lateral. Apunta a un ícono para leer su nombre.
+
+| Ícono | El panel muestra |
+|---|---|
+| **Colecciones** | El árbol de tus colecciones: archivos Arazzo, workflows, pasos, requests, **+ Nuevo workflow**, **+ Nuevo request** y **Agregar archivos a la colección**. Debajo, la sección **Contratos**. |
+| **Ambientes** | Los ambientes de la colección abierta. Consulta [El panel Ambientes](#el-panel-ambientes). |
+| **Historial** | Las últimas 50 entradas del historial de la colección. **Ver todo** abre la pestaña **Historial**. Consulta [Historial](/es/workspaces/history/). |
+| **Mock servers** | Los mock servers de la colección, cada uno con su estado y su puerto. **+** crea uno. Consulta [Mock servers](/es/mocks/overview/). |
+
+- Luvin recuerda en este equipo el panel que elegiste.
+- Un punto verde en el ícono **Mock servers** indica que hay un mock encendido, aunque esté abierto otro panel.
+- Sin una colección abierta no hay íconos: la barra lateral muestra solo tus colecciones.
+
+El ambiente activo, además, siempre se ve arriba a la derecha de la ventana. Consulta [Recorrido por la interfaz](/es/get-started/interface/#barra-superior).
 
 ## Lee el árbol
 
-Dentro de una colección, de arriba hacia abajo:
+En el panel **Colecciones**, dentro de una colección, de arriba hacia abajo:
 
 | Fila | Qué es | Un clic hace |
 |---|---|---|
@@ -19,8 +36,7 @@ Dentro de una colección, de arriba hacia abajo:
 | Un workflow | Un workflow del archivo, con un punto de color. | Abre el workflow. |
 | Un paso | Una llamada del workflow, con su método (`GET`, `POST`…). | Abre una pestaña con ese paso. |
 | **Requests** | Los requests guardados de la colección y sus carpetas. | Abre el request. Consulta [Requests](/es/requests/overview/). |
-| **Contratos** | Los archivos OpenAPI y AsyncAPI. | Abre el contrato. Consulta [Contratos](/es/contracts/overview/). |
-| **Ambientes** | Los ambientes de la colección. | Lo deja activo y lo abre. Consulta [Ambientes](/es/environments/overview/). |
+| **Contratos** | Los archivos OpenAPI y AsyncAPI, en una sección debajo de las colecciones. | Abre el contrato. Consulta [Contratos](/es/contracts/overview/). |
 
 La flecha antes del nombre de un workflow tiene el tooltip **Mostrar u ocultar los pasos**. Haz clic en ella para plegar o desplegar los pasos sin abrir el workflow.
 
@@ -61,7 +77,7 @@ Qué compara la búsqueda:
 | El nombre y la URL de un request, y el nombre de una carpeta | El request, dentro de su carpeta. |
 | El nombre de una colección | La colección. La abierta siempre se queda. |
 
-Mientras buscas, todo lo que coincide aparece desplegado. Las secciones **Contratos** y **Ambientes** no se filtran.
+Mientras buscas, todo lo que coincide aparece desplegado. La sección **Contratos** no se filtra.
 
 **Ejemplo.** En la colección Pokédex, escribe `species`. El árbol deja **Pokemon card**, con el paso `getSpecies`, y **Type explorer**, con `getFirstSpecies`. Los dos coinciden por el nombre, y también por la ruta `/pokemon-species/{idOrName}`.
 
@@ -95,7 +111,9 @@ El número junto a **Contratos** es cuántos están cargados, o `1/2` cuando fal
 
 El **+** del encabezado de **Contratos** (**Agregar contrato**) ofrece **Nuevo contrato OpenAPI**, **Nuevo contrato AsyncAPI** e **Importar contrato…**. El **⋯** de una fila ofrece **Eliminar contrato…** (o **Quitar contrato…** cuando no hay archivo). Luvin pregunta antes. Consulta [Contratos](/es/contracts/overview/).
 
-## Los ambientes en la barra lateral
+## El panel Ambientes
+
+Haz clic en el ícono **Ambientes** arriba de la barra lateral. Su título muestra el nombre de la colección abierta.
 
 - El punto lleno marca el ambiente activo. Un punto de color muestra su [color](/es/environments/overview/).
 - Haz clic en una fila para usar ese ambiente y abrirlo. Su tooltip dice **Usar y abrir este ambiente**.

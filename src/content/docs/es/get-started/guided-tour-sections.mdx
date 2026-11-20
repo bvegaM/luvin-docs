@@ -69,7 +69,7 @@ Lo que cada paso usa al llamar a la API: el contrato, el ambiente y la autorizac
 |---|---|---|---|
 | 1 | **Contratos como en Swagger Editor** | Abre el contrato `pokeapi` desde la barra lateral. | El editor del contrato, junto a la Swagger UI. |
 | 2 | **Un paso, en detalle** | Abre **Pokemon card** y su paso `getPokemon`. | El paso, con su operación, criterios, acciones y **▶ Probar sola**. El tour no lo pulsa. |
-| 3 | **Ambientes** | Abre el ambiente activo. | El ambiente: URLs, credenciales, variables y secretos. |
+| 3 | **Ambientes** | Cambia la barra lateral al panel **Ambientes** y abre el ambiente activo. | El ambiente: URLs, credenciales, variables y secretos. La tarjeta dice que el activo se ve, y se cambia, arriba a la derecha. |
 | 4 | **Otro ejemplo: cobrar con PayPal** | La primera vez, crea la colección **PayPal** con sus archivos, el ambiente **Sandbox** y la autorización de sus workflows, y cambia a **Simulación**. Luego abre **Create order** en su pestaña **Resumen**. | El diagrama de **Create order**. |
 | 5 | **Autorización por API y por workflow** | Abre la pestaña **Autorización** de **Create order**. | OAuth 2.0 por API, con `{{clientId}}` y `{{clientSecret}}` de **Sandbox**. |
 | 6 | **Simulado sin credenciales, real con las tuyas** | Abre **Capture order** en su pestaña **Casos**, cambia a **Simulación** y pulsa **Ejecutar**. | Los resultados, con el webhook simulado. |
@@ -98,7 +98,7 @@ Un servidor que responde con los ejemplos del contrato, y el workflow corriendo 
 
 | Paso | Tarjeta | Qué hace el tour | Qué resalta |
 |---|---|---|---|
-| 1 | **Un mock server desde el contrato** | La primera vez, crea el mock **Mock de la PokéAPI** desde `pokeapi.openapi.yaml`. Luego lo abre. | El mock y sus rutas. |
+| 1 | **Un mock server desde el contrato** | La primera vez, crea el mock **Mock de la PokéAPI** desde `pokeapi.openapi.yaml`. Luego cambia la barra lateral al panel **Mock servers** y lo abre. | El mock y sus rutas. |
 | 2 | **Encendido, en tu equipo** | App de escritorio: enciende el mock, si no está encendido. Navegador: nada. | El mock. |
 | 3 | **El workflow, contra el mock** | App de escritorio: hace clic en **Crear ambiente del mock**, abre **Pokemon card** en **Casos**, elige **API real** y pulsa **Ejecutar**. Navegador: abre **Pokemon card** en **Casos**, elige **Simulación** y pulsa **Ejecutar**. | Los resultados. |
 
@@ -129,7 +129,7 @@ Volver a lo que pasó. 5 pasos, alrededor de 1 minuto; 4 en la interfaz Simple.
 
 | Paso | Tarjeta | Qué hace el tour | Qué resalta |
 |---|---|---|---|
-| 1 | **El historial de la colección** | Abre **Pokemon card** en **Casos**, elige **Simulación** y pulsa **Ejecutar**. Luego abre el historial con **Ver todo** y el filtro **Ejecuciones**. | El historial de la colección. |
+| 1 | **El historial de la colección** | Abre **Pokemon card** en **Casos**, elige **Simulación** y pulsa **Ejecutar**. Luego cambia la barra lateral al panel **Historial** y abre el historial con **Ver todo** y el filtro **Ejecuciones**. | El historial de la colección. |
 | 2 | **Dev Tools** | Abre Dev Tools en **Network**. Se salta en la interfaz Simple. | El panel de Dev Tools. |
 | 3 | **Buscar en todo** | Abre la búsqueda y escribe `weak`. | La búsqueda, con el paso `getWeakness`. |
 | 4 | **Preferencias** | Cierra lo que quedó abierto. | La barra de estado, donde están **Preferencias** y **Tour**. |

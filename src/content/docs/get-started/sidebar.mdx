@@ -1,17 +1,34 @@
 ---
 title: The sidebar
-description: Read the tree of the sidebar, search in it, open a workflow or one of its steps, and manage contracts and environments from its sections.
+description: Switch the sidebar between collections, environments, history and mock servers, read its tree, search in it, open a workflow or one of its steps, and manage contracts and environments.
 sidebar:
   order: 8
 ---
 
 import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
 
-The sidebar is the map of the open collection: its Arazzo files, workflows, steps, requests, contracts and environments. Use it to open things, to see how the last run went and to find anything by name.
+The sidebar is the map of the open collection: its Arazzo files, workflows, steps, requests, contracts and environments, plus its history and its mock servers. Use it to open things, to see how the last run went and to find anything by name.
+
+## Switch panels
+
+At the top of the sidebar there are four icons. Each one shows a panel that uses the whole height of the sidebar. Point at an icon to read its name.
+
+| Icon | The panel shows |
+|---|---|
+| **Collections** | The tree of your collections: Arazzo files, workflows, steps, requests, **+ New workflow**, **+ New request** and **Add files to the collection**. Below it, the **Contracts** section. |
+| **Environments** | The environments of the open collection. See [The Environments panel](#the-environments-panel). |
+| **History** | The latest 50 entries of the collection's history. **See all** opens the **History** tab. See [History](/workspaces/history/). |
+| **Mock servers** | The mock servers of the collection, each with its state and port. **+** creates one. See [Mock servers](/mocks/overview/). |
+
+- Luvin remembers the panel you chose on this computer.
+- A green dot on the **Mock servers** icon means a mock is running, even when another panel is open.
+- With no collection open, there are no icons: the sidebar shows only your collections.
+
+The active environment is also always visible at the top right of the window. See [A tour of the interface](/get-started/interface/#top-bar).
 
 ## Read the tree
 
-Inside a collection, from top to bottom:
+In the **Collections** panel, inside a collection, from top to bottom:
 
 | Row | What it is | A click does |
 |---|---|---|
@@ -19,8 +36,7 @@ Inside a collection, from top to bottom:
 | A workflow | One workflow of the file, with a colored dot. | Opens the workflow. |
 | A step | One call of the workflow, with its method (`GET`, `POST`…). | Opens a tab with that step. |
 | **Requests** | The saved requests of the collection and their folders. | Opens the request. See [Requests](/requests/overview/). |
-| **Contracts** | The OpenAPI and AsyncAPI files. | Opens the contract. See [Contracts](/contracts/overview/). |
-| **Environments** | The environments of the collection. | Makes it active and opens it. See [Environments](/environments/overview/). |
+| **Contracts** | The OpenAPI and AsyncAPI files, in a section below the collections. | Opens the contract. See [Contracts](/contracts/overview/). |
 
 The arrow before a workflow name has the tooltip **Show or hide the steps**. Click it to fold or unfold the steps without opening the workflow.
 
@@ -61,7 +77,7 @@ What the search compares:
 | The name and the URL of a request, and the name of a folder | The request, inside its folder. |
 | The name of a collection | The collection. The open one always stays. |
 
-While you search, everything that matches is unfolded. The **Contracts** and **Environments** sections are not filtered.
+While you search, everything that matches is unfolded. The **Contracts** section is not filtered.
 
 **Example.** In the Pokédex collection, type `species`. The tree keeps **Pokemon card**, with the step `getSpecies`, and **Type explorer**, with `getFirstSpecies`. Both match by name, and also by the path `/pokemon-species/{idOrName}`.
 
@@ -95,7 +111,9 @@ The number next to **Contracts** is how many are loaded, or `1/2` when one is mi
 
 The **+** in the header of **Contracts** (**Add contract**) offers **New OpenAPI contract**, **New AsyncAPI contract** and **Import contract…**. The **⋯** of a row offers **Delete contract…** (or **Remove contract…** when there is no file). Luvin asks first. See [Contracts](/contracts/overview/).
 
-## Environments in the sidebar
+## The Environments panel
+
+Click the **Environments** icon at the top of the sidebar. Its title shows the name of the open collection.
 
 - The filled dot marks the active environment. A colored dot shows its [color](/environments/overview/).
 - Click a row to use that environment and open it. Its tooltip says **Use and open this environment**.

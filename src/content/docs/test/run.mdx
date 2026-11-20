@@ -30,11 +30,12 @@ The run bar is at the top of an open workflow, above its tabs. The workflow name
 
 | Control | What it does |
 |---|---|
-| **Real API** / **Simulation** | Where the cases run. **Real API** sends the requests to the base URLs of the environment. **Simulation** answers from the contract, with no network calls. See [Simulation](/test/simulation/). |
-| **Environment** | The environment whose base URLs, variables and credentials are used. **Configure environment…**, at the end of the list, opens it. |
+| **Real API** / **Simulation** | Where the cases run. **Real API** sends the requests to the base URLs of the active environment. **Simulation** answers from the contract, with no network calls. See [Simulation](/test/simulation/). |
 | **Run** | Runs the selected cases that are ready. Its label says how many: **Run 3 cases**, **Run 1 case**. With none ready it says **Run** and cannot be pressed. |
 
 ![The run bar of Pokemon card: Real API, the environment staging and Run 2 cases](/media/en/test-runbar.webp)
+
+The environment is not in the run bar. The active one is always visible at the top right of the window, in its color, or in Luvin green without one: it is the one whose base URLs, variables and credentials are used. Open it to switch. **Configure environment…**, at the end of its list, opens it. See [Environments](/environments/overview/).
 
 Before you press **Run**, the line at the top of the **Cases** tab says what will happen: how many cases are selected, how many go against the real API, how many are simulated and how many will not run. See [Cases](/test/cases/#the-cases-tab).
 
@@ -44,7 +45,7 @@ Before you press **Run**, the line at the top of the **Cases** tab says what wil
 1. Open the workflow.
 2. In the **Cases** tab, tick the cases you want. See [Cases](/test/cases/).
 3. In the run bar, choose **Real API** or **Simulation**.
-4. Choose the **Environment**.
+4. Check the environment at the top right of the window. Open it to choose another one.
 5. Press **Run**. You can also press ⌘ + Enter on macOS, or Ctrl + Enter on Windows and Linux.
 </Steps>
 

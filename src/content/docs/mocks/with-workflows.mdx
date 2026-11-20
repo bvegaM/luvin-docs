@@ -14,7 +14,7 @@ Your requests and workflows call the URLs of the active environment. To make the
 <Steps>
 1. Create a mock of the Pokédex with **Responses from** set to **An OpenAPI contract**, and press **Start**. See [Create a mock server](/mocks/create/).
 2. In the mock tab, press **Create mock environment**. The environment **Mock · Pokédex mock** is created and becomes active.
-3. Open **Pokemon card**. In the run bar, choose **Real API**. The **Environment** selector shows **Mock · Pokédex mock**.
+3. Open **Pokemon card**. In the run bar, choose **Real API**. The environment at the top right of the window shows **Mock · Pokédex mock**.
 4. Press **Run**. Each step calls the mock instead of the PokéAPI.
 5. Open the **Log** tab of the mock. You see the calls of each case, with what they sent and what the mock answered.
 </Steps>
@@ -58,7 +58,7 @@ A mock from a contract whose server has a path answers under that path: the Pok�
 | A step of a workflow, through the contract's base URL | `/api/v2/pokemon/pikachu` | Answers `200`: the base URL already has `/api/v2`. |
 | `{{baseUrl}}/pokemon/pikachu`, in the environment of a mock from the collection | `/pokemon/pikachu` | Answers `200`: the routes come from what follows `{{baseUrl}}` in your requests, so `baseUrl` is the mock's URL alone. |
 
-If a request writes the server path itself after the variable, such as `{{host}}/api/v2/pokemon/pikachu`, it ends up with the path twice (`/api/v2/api/v2/pokemon/pikachu`) and the **Log** shows **No route (404)**. Click the mock environment under **Environments** and remove `/api/v2` from that variable.
+If a request writes the server path itself after the variable, such as `{{host}}/api/v2/pokemon/pikachu`, it ends up with the path twice (`/api/v2/api/v2/pokemon/pikachu`) and the **Log** shows **No route (404)**. Click the mock environment in the **Environments** panel of the sidebar and remove `/api/v2` from that variable.
 
 <Aside type="note">
 A request written with a full URL, such as `https://pokeapi.co/api/v2/pokemon/pikachu`, has no variable to replace: it still calls the real API. Use `{{baseUrl}}` in the URL to switch between the API and the mock with the environment.
@@ -81,9 +81,9 @@ The environment is found by its name. If you rename the mock, the tab shows **Cr
 ## Run a workflow against the mock
 
 <Steps>
-1. Make sure the mock is running: a green dot next to it in the sidebar. If it is stopped, nothing answers at its URL and the steps fail.
+1. Make sure the mock is running: a green dot next to it in the **Mock servers** panel of the sidebar. If it is stopped, nothing answers at its URL and the steps fail.
 2. Open the workflow and choose **Real API** in the run bar.
-3. Check that the **Environment** is the mock environment.
+3. Check that the environment at the top right of the window is the mock environment.
 4. Press **Run**.
 </Steps>
 
@@ -101,7 +101,7 @@ A proxy in **Preferences** does not get in the way: `localhost` and `127.0.0.1` 
 
 ## Go back to your usual environment
 
-Choose your usual environment in the **Environment** selector of the run bar, or click it under **Environments** in the sidebar. The mock environment stays in the list for the next time. Deleting the mock does not delete it. See [Environments](/environments/overview/).
+Choose your usual environment at the top right of the window, or click it in the **Environments** panel of the sidebar. The mock environment stays in the list for the next time. Deleting the mock does not delete it. See [Environments](/environments/overview/).
 
 ## Mock server or Simulation
 
@@ -125,7 +125,7 @@ Use **Simulation** to check the logic of a workflow fast. Use a mock to test how
 |---|---|
 | Every step fails with a connection error. | The mock is stopped, or its port changed. Start it, and press **Update environment** after a port change. |
 | The **Log** shows **No route (404)** for your requests. | The path is missing the server path, such as `/api/v2`, or has it twice. See [The server path](#the-server-path). |
-| The **Log** is empty after the run. | The run used another environment, or **Simulation**. Check the run bar. |
+| The **Log** is empty after the run. | The run used another environment, or **Simulation**. Check the environment at the top right and the run bar. |
 | A request still reaches the real API. | Its URL is written in full, without a variable. Use `{{baseUrl}}`. |
 | A call to another API now fails. | Its URL was in a variable and now points to the mock. Edit it in the mock environment. |
 | There are two mock environments. | The mock was renamed. Delete the one you no longer use. |

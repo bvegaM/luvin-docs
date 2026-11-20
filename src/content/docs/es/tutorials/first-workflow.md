@@ -71,7 +71,7 @@ Los resultados se abren abajo. El caso termina como **Pasó**, con la etiqueta *
 
 ## 8. Ejecuta contra la API real
 
-1. En la barra de ejecución, elige **API real**. El ambiente muestra `local`.
+1. En la barra de ejecución, elige **API real**. El ambiente de arriba a la derecha de la ventana muestra `local`.
 2. Haz clic en **Ejecutar**.
 
 Luvin llama a pokeapi.co. Después de `getPokemon`, se abre un diálogo con el título **Ejecución en pausa**: el paso devolvió la lista `types`, y `getType` necesita uno de sus elementos. Contra la API real el diálogo aparece **aunque la lista tenga un solo elemento**. Pikachu tiene un solo tipo.

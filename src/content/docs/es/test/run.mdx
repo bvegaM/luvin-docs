@@ -30,11 +30,12 @@ La barra de ejecución está arriba de un workflow abierto, sobre sus pestañas.
 
 | Control | Qué hace |
 |---|---|
-| **API real** / **Simulación** | Dónde se ejecutan los casos. **API real** envía los requests a las URLs base del ambiente. **Simulación** responde desde el contrato, sin llamadas de red. Mira [Simulación](/es/test/simulation/). |
-| **Ambiente** | El ambiente cuyas URLs base, variables y credenciales se usan. **Configurar ambiente…**, al final de la lista, lo abre. |
+| **API real** / **Simulación** | Dónde se ejecutan los casos. **API real** envía los requests a las URLs base del ambiente activo. **Simulación** responde desde el contrato, sin llamadas de red. Mira [Simulación](/es/test/simulation/). |
 | **Ejecutar** | Ejecuta los casos seleccionados que están listos. Su texto dice cuántos: **Ejecutar 3 casos**, **Ejecutar 1 caso**. Sin ninguno listo dice **Ejecutar** y no se puede pulsar. |
 
 ![La barra de ejecución de Pokemon card: API real, el ambiente staging y Ejecutar 2 casos](/media/es/test-runbar.webp)
+
+El ambiente no está en la barra de ejecución. El activo siempre se ve arriba a la derecha de la ventana, de su color, o en el verde de Luvin si no tiene: es el que aporta las URLs base, las variables y las credenciales. Ábrelo para cambiarlo. **Configurar ambiente…**, al final de su lista, lo abre. Mira [Ambientes](/es/environments/overview/).
 
 Antes de pulsar **Ejecutar**, la línea de arriba de la pestaña **Casos** dice qué va a pasar: cuántos casos están seleccionados, cuántos van contra la API real, cuántos se simulan y cuántos no se ejecutarán. Mira [Casos](/es/test/cases/#la-pestaña-casos).
 
@@ -44,7 +45,7 @@ Antes de pulsar **Ejecutar**, la línea de arriba de la pestaña **Casos** dice 
 1. Abre el workflow.
 2. En la pestaña **Casos**, marca los casos que quieres. Mira [Casos](/es/test/cases/).
 3. En la barra de ejecución, elige **API real** o **Simulación**.
-4. Elige el **Ambiente**.
+4. Revisa el ambiente arriba a la derecha de la ventana. Ábrelo para elegir otro.
 5. Pulsa **Ejecutar**. También puedes pulsar ⌘ + Enter en macOS, o Ctrl + Enter en Windows y Linux.
 </Steps>
 

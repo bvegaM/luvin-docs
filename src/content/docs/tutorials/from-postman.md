@@ -22,7 +22,7 @@ The workflow sends the requests for real. Point the environment at a test server
 
 ![The Import from Postman or Bruno dialog with a card for Postman and a card for Bruno](/media/en/import-postman.webp)
 
-Luvin creates a new collection and opens it. Bruno does not save the value of its secrets: if your environment has some, they arrive empty. Open the environment in the sidebar and type them. See [Import your existing work](/get-started/import/).
+Luvin creates a new collection and opens it. Bruno does not save the value of its secrets: if your environment has some, they arrive empty. Open the environment in the **Environments** panel of the sidebar and type them. See [Import your existing work](/get-started/import/).
 
 ## 2. Open a request and send it
 
@@ -56,7 +56,7 @@ Each request is a step, named after it: `createOrder` and `getOrder`. A step is 
 A saved request does not say what the API answers. Luvin learns it from the first run against the real API.
 
 1. Open the **Cases** tab. The **Happy path** case is ticked.
-2. In the run bar, choose **Real API** and the test **Environment**.
+2. In the run bar, choose **Real API**. At the top right of the window, choose the test environment.
 3. Click **Run**.
 4. Luvin warns that the steps modify data in that environment. Read the name of the environment and click **Run anyway**.
 

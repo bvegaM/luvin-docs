@@ -58,9 +58,9 @@ Environments belong to the open [collection](/reference/glossary/). Each collect
 
 | Place | What you find |
 |---|---|
-| Sidebar | The **Environments** section, at the bottom, with the open collection's name. The active one has its dot filled in |
-| Run bar of a workflow | The **Environment** selector, next to **Real API** and **Simulation** |
-| Bottom bar | The active environment's name, on the right. Click it to open the environment |
+| Top bar | The active environment, at the top right of the window: a pill in its color, or in Luvin green without one. It is always visible while a collection is open, and it is the only place outside the sidebar that shows it |
+| Sidebar | The **Environments** panel: click the **Environments** icon at the top of the sidebar. Its title shows the open collection's name. The active one has its dot filled in |
+| Runner | The **Environment** list, at the top left while you set up a run |
 
 ## Choose the active environment
 
@@ -68,18 +68,19 @@ The active environment is the one Luvin uses for every run, every request and **
 
 <Steps>
 
-1. In the sidebar, under **Environments**, click an environment.
-2. It becomes active and opens in a tab titled **Environment “name”**.
+1. At the top of the sidebar, click the **Environments** icon.
+2. Click an environment.
+3. It becomes active and opens in a tab titled **Environment “name”**.
 
 </Steps>
 
-To switch without leaving a workflow, use the **Environment** selector in the run bar. Its last option, **Configure environment…**, opens the active environment. Luvin remembers the active environment of each collection on this computer.
+To switch without leaving what you are doing, use the environment at the top right of the window. Open it and choose another one. Its last option, **Configure environment…**, opens the active environment. Luvin remembers the active environment of each collection on this computer.
 
 ## Create an environment
 
 <Steps>
 
-1. In the sidebar, click **+** (**New environment**) in **Environments**. Inside an open environment you can also click **+ New**.
+1. In the **Environments** panel of the sidebar, click **+** (**New environment**). Inside an open environment you can also click **+ New**.
 2. A new environment called **New environment** is added and becomes active.
 3. Type its name and press **Enter**.
 
@@ -106,7 +107,7 @@ The new environment is a copy of the active one: same base URLs and variables. F
 
 </Steps>
 
-The color shows in the sidebar, in the **Environment** selector and in the bottom bar. A common choice: local in green, integration in yellow, production in red.
+The color shows in the sidebar and in the pill of the environment at the top right. An environment without a color shows there in Luvin green, so **No color (Luvin green at the top)** is the first option. A common choice: local in green, integration in yellow, production in red.
 
 ## Delete an environment
 
@@ -115,7 +116,7 @@ The color shows in the sidebar, in the **Environment** selector and in the botto
 
 <Steps>
 
-1. Hover the environment and open its **⋯** menu.
+1. In the **Environments** panel, hover the environment and open its **⋯** menu.
 2. Choose **Delete environment…**.
 3. Confirm with **Delete**.
 

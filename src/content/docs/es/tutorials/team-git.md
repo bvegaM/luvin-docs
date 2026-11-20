@@ -21,7 +21,7 @@ Luvin crea la carpeta con un archivo `luvin.yaml` dentro. Desde ahora, cada camb
 1. En **Inicio**, haz clic en **Crea tu primera colección**. Escribe `payments` en **Nombre de la colección** y haz clic en **Crear**.
 2. En **Acciones rápidas**, haz clic en **Importar Arazzo o contratos** y elige tu contrato OpenAPI.
 3. Haz clic en **+** (**Crear o importar**) y elige **Nuevo Arazzo**. Arrastra dos operaciones al lienzo, como en [Arma tu primer workflow](/es/tutorials/first-workflow/).
-4. En la barra lateral, bajo **Ambientes**, haz clic en **+** (**Nuevo ambiente**), ponle el nombre `staging` y define su URL base.
+4. Arriba de la barra lateral, haz clic en el ícono **Ambientes**. En su panel, haz clic en **+** (**Nuevo ambiente**), ponle el nombre `staging` y define su URL base.
 5. En **Variables** agrega `clientId`, y en **Secretos** agrega `clientSecret` con su **Valor**.
 
 Mira [URLs base, variables y secretos](/es/environments/variables-and-secrets/).
@@ -91,7 +91,7 @@ En el computador del compañero:
 
 1. Clona el repositorio: `git clone <tu repositorio>`.
 2. Abre Luvin y haz clic en **Abrir un workspace**. Elige la carpeta clonada, la que tiene `luvin.yaml`.
-3. En la barra lateral, bajo **Ambientes**, abre `staging`.
+3. En el panel **Ambientes** de la barra lateral, abre `staging`.
 4. En **Secretos**, escribe el **Valor** de `clientSecret`. El nombre ya está en la lista.
 5. En la barra de ejecución, elige **API real** y ejecuta un caso.
 

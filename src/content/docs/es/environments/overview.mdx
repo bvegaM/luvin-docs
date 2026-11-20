@@ -58,9 +58,9 @@ Los ambientes son de la [colección](/es/reference/glossary/) abierta. Cada cole
 
 | Lugar | Qué encuentras |
 |---|---|
-| Barra lateral | La sección **Ambientes**, al final, con el nombre de la colección abierta. El activo tiene su punto relleno |
-| Barra de ejecución de un workflow | El selector **Ambiente**, junto a **API real** y **Simulación** |
-| Barra inferior | El nombre del ambiente activo, a la derecha. Haz clic en él para abrir el ambiente |
+| Barra superior | El ambiente activo, arriba a la derecha de la ventana: una pastilla de su color, o en el verde de Luvin si no tiene. Siempre se ve mientras hay una colección abierta, y es el único lugar fuera de la barra lateral que lo muestra |
+| Barra lateral | El panel **Ambientes**: haz clic en el ícono **Ambientes** arriba de la barra lateral. Su título muestra el nombre de la colección abierta. El activo tiene su punto relleno |
+| Runner | La lista **Ambiente**, arriba a la izquierda mientras configuras una ejecución |
 
 ## Elige el ambiente activo
 
@@ -68,18 +68,19 @@ El ambiente activo es el que Luvin usa en cada ejecución, en cada request y en 
 
 <Steps>
 
-1. En la barra lateral, en **Ambientes**, haz clic en un ambiente.
-2. Queda activo y se abre en una pestaña con el título **Ambiente «nombre»**.
+1. Arriba de la barra lateral, haz clic en el ícono **Ambientes**.
+2. Haz clic en un ambiente.
+3. Queda activo y se abre en una pestaña con el título **Ambiente «nombre»**.
 
 </Steps>
 
-Para cambiar sin salir de un workflow, usa el selector **Ambiente** de la barra de ejecución. Su última opción, **Configurar ambiente…**, abre el ambiente activo. Luvin recuerda en este equipo el ambiente activo de cada colección.
+Para cambiar sin dejar lo que estás haciendo, usa el ambiente que se ve arriba a la derecha de la ventana. Ábrelo y elige otro. Su última opción, **Configurar ambiente…**, abre el ambiente activo. Luvin recuerda en este equipo el ambiente activo de cada colección.
 
 ## Crea un ambiente
 
 <Steps>
 
-1. En la barra lateral, haz clic en **+** (**Nuevo ambiente**) en **Ambientes**. Dentro de un ambiente abierto también puedes hacer clic en **+ Nuevo**.
+1. En el panel **Ambientes** de la barra lateral, haz clic en **+** (**Nuevo ambiente**). Dentro de un ambiente abierto también puedes hacer clic en **+ Nuevo**.
 2. Se agrega un ambiente llamado **Nuevo ambiente**, que queda activo.
 3. Escribe su nombre y pulsa **Enter**.
 
@@ -106,7 +107,7 @@ El ambiente nuevo es una copia del activo: las mismas URLs base y variables. De 
 
 </Steps>
 
-El color se ve en la barra lateral, en el selector **Ambiente** y en la barra inferior. Una elección común: local en verde, integración en amarillo, producción en rojo.
+El color se ve en la barra lateral y en la pastilla del ambiente de arriba a la derecha. Un ambiente sin color se ve ahí en el verde de Luvin, por eso la primera opción es **Sin color (verde de Luvin arriba)**. Una elección común: local en verde, integración en amarillo, producción en rojo.
 
 ## Elimina un ambiente
 
@@ -115,7 +116,7 @@ El color se ve en la barra lateral, en el selector **Ambiente** y en la barra in
 
 <Steps>
 
-1. Pasa el mouse sobre el ambiente y abre su menú **⋯**.
+1. En el panel **Ambientes**, pasa el mouse sobre el ambiente y abre su menú **⋯**.
 2. Elige **Eliminar ambiente…**.
 3. Confirma con **Eliminar**.
 
