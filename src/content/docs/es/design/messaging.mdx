@@ -24,13 +24,20 @@ Un *canal* es la dirección por la que viajan los mensajes, por ejemplo `pokedex
 
 ## Agrega un paso de mensajería
 
-Las operaciones de los contratos AsyncAPI no están en la paleta **Operaciones**, así que estos pasos se agregan en la [pestaña YAML](/es/design/arazzo-editor/). Una vez escrito, el paso aparece en el lienzo como cualquier otro, con una etiqueta **SEND** o **RECEIVE** y la dirección del canal. Al abrirlo, el panel dice **Este paso usa cosas que el lienzo no edita**, las nombra (por ejemplo `channel`) y ofrece **Editar en el YAML**. Sus outputs, criterios de éxito y acciones de error se siguen editando en el panel.
+Las operaciones de los contratos AsyncAPI están en la paleta **Operaciones**, bajo el nombre del contrato, con una etiqueta **SEND** o **RECEIVE** y la dirección del canal. Arrastra una al lienzo, o usa su **+**, como con cualquier operación. Luvin escribe el paso:
 
-En la pestaña YAML, el editor te ayuda a escribirlos: después de `channelPath:` y `operationId:` ofrece los canales y las operaciones de los contratos cargados, y después de `action:` ofrece `send` y `receive`.
+| Agregas | Luvin escribe |
+|---|---|
+| Una operación **SEND** | `action: send`. El header de correlación del mensaje, como `correlationId`, como parámetro `in: header`, más los headers que el contrato marca como obligatorios. Los campos obligatorios del payload en `requestBody.payload`. Cada valor sale de un paso anterior cuando Luvin encuentra uno, o de un input nuevo. Un input de correlación nuevo trae el ejemplo `{{$guid}}`, así cada ejecución envía un id nuevo. |
+| Una operación **RECEIVE** | `action: receive`. Un `correlationId` con el valor que el último paso de envío antes de él pone en su header de correlación, o un input nuevo `correlationId` si no hay paso de envío. `timeout: 5000`. Los campos de su payload se ofrecen como outputs en el panel, y los pasos siguientes pueden tomarlos. |
+
+Un mensaje no tiene código de estado, así que Luvin no agrega `$statusCode == 200`. En **Es éxito si**, el panel dice qué se comprueba y ofrece **Editar en el YAML** para exigir un valor del payload, como `$message.payload#/status == 'CONFIRMED'`. También dice **Este paso usa cosas que el lienzo no edita** y las nombra, por ejemplo `correlationId` y `timeout`. Los outputs y los parámetros se editan en el panel. Los criterios sobre el mensaje y las acciones de error se escriben en el YAML.
+
+También puedes escribir estos pasos en la [pestaña YAML](/es/design/arazzo-editor/). El editor te ayuda: después de `channelPath:` y `operationId:` ofrece los canales y las operaciones de los contratos cargados, y después de `action:` ofrece `send` y `receive`.
 
 ![El workflow Register sighting en la pestaña Diseño, con un paso SEND elegido y su canal, parámetros y body en el panel](/media/es/messaging-step.webp)
 
-![El panel de awaitConfirmation, un paso que recibe: el aviso de lo que el lienzo no edita (channel, dependsOn), el criterio sobre el mensaje y el output entryNumber](/media/es/design-messaging-receive.webp)
+![El panel de awaitConfirmation, un paso que recibe: el aviso de lo que el lienzo no edita (channelPath, correlationId, timeout, dependsOn), el criterio sobre el mensaje en Es éxito si, y el output entryNumber](/media/es/design-messaging-receive.webp)
 
 ## Ejemplo: Register sighting
 

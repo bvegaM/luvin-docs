@@ -415,9 +415,9 @@ Detalle: [Reutilizables](/es/design/reusables/).
 Los pasos de mensajería siempre se simulan. Luvin todavía no se conecta a brokers (Kafka, AMQP, MQTT…): el paso usa los ejemplos del contrato AsyncAPI, también cuando ejecutas contra la API real.
 </Aside>
 
-Las operaciones de AsyncAPI no están en la paleta. Escribe el paso en la pestaña YAML, con `action: send` o `action: receive`. En el lienzo se ve con **SEND** o **RECEIVE**, y sus outputs, criterios y acciones de error se editan en el panel.
+Arrastra la operación de AsyncAPI desde la paleta, como cualquier operación: lleva la etiqueta **SEND** o **RECEIVE**. Luvin escribe `action`, el id de correlación y, en una que recibe, `timeout: 5000`. Los outputs se editan en el panel. Los criterios sobre el mensaje, como el de abajo, se escriben en la pestaña YAML. Mira [Agrega un paso de mensajería](/es/design/messaging/#agrega-un-paso-de-mensajería).
 
-![El panel de awaitConfirmation, un paso que recibe: dice que el lienzo no edita su canal y lista su criterio sobre el mensaje y su output entryNumber](/media/es/design-messaging-receive.webp)
+![El panel de awaitConfirmation, un paso que recibe: dice que el lienzo no edita su canal, su correlación ni su tiempo límite, y lista su criterio sobre el mensaje y su output entryNumber](/media/es/design-messaging-receive.webp)
 
 ```yaml
 - stepId: awaitConfirmation

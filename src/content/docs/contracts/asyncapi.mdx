@@ -98,7 +98,7 @@ In a 3.x contract, every operation needs an `action` and a `channel` with a `$re
 
 When a channel has a send and a receive operation and the step has no `action`, the analysis warns: *Channel "x" has more than one operation; the "send" one is used. Set "action: send" or "action: receive" on the step.* When the step says one action and the operation is the other, it notes that the step's value is used.
 
-In the YAML tab, after `channelPath:` and `operationId:` the editor offers the channels and operations of the loaded contracts. AsyncAPI operations are not in the **Operations** palette. See [Messaging steps](/design/messaging/).
+The operations of the contract are in the **Operations** palette of the design, tagged **SEND** or **RECEIVE**: dragging one writes the step with `operationId` and `action`. In the YAML tab, after `channelPath:` and `operationId:` the editor offers the channels and operations of the loaded contracts. See [Messaging steps](/design/messaging/).
 
 ## Messages
 

@@ -24,13 +24,20 @@ A *channel* is the address messages travel on, for example `pokedex.sighting.con
 
 ## Add a messaging step
 
-Operations of AsyncAPI contracts are not in the **Operations** palette, so you add these steps in the [YAML tab](/design/arazzo-editor/). Once written, the step appears on the canvas like any other, with a **SEND** or **RECEIVE** tag and the address of the channel. When you open it, the panel says **This step uses things the canvas doesn’t edit**, names them (for example `channel`) and offers **Edit in the YAML**. Its outputs, success criteria and error actions are still edited in the panel.
+The operations of AsyncAPI contracts are in the **Operations** palette, under the name of the contract, with a **SEND** or **RECEIVE** tag and the address of the channel. Drag one onto the canvas, or use its **+**, as with any operation. Luvin writes the step:
 
-In the YAML tab, the editor helps you write them: after `channelPath:` and `operationId:` it offers the channels and operations of the loaded contracts, and after `action:` it offers `send` and `receive`.
+| You add | Luvin writes |
+|---|---|
+| A **SEND** operation | `action: send`. The correlation header of the message, such as `correlationId`, as a parameter `in: header`, plus the headers the contract marks as required. The required fields of the payload in `requestBody.payload`. Each value comes from an earlier step when Luvin finds one, or from a new input. A new correlation input has the example `{{$guid}}`, so each run sends a new id. |
+| A **RECEIVE** operation | `action: receive`. A `correlationId` with the value that the last send step before it puts in its correlation header, or a new input `correlationId` if there is no send step. `timeout: 5000`. The fields of its payload are offered as outputs in the panel, and steps after it can take them. |
+
+A message has no status code, so Luvin does not add `$statusCode == 200`. Under **It’s a success if**, the panel says what is checked and offers **Edit in the YAML** to require a value of the payload, such as `$message.payload#/status == 'CONFIRMED'`. It also says **This step uses things the canvas doesn’t edit** and names them, for example `correlationId` and `timeout`. Outputs and parameters are edited in the panel. Criteria on the message and error actions are written in the YAML.
+
+You can also write these steps in the [YAML tab](/design/arazzo-editor/). The editor helps you: after `channelPath:` and `operationId:` it offers the channels and operations of the loaded contracts, and after `action:` it offers `send` and `receive`.
 
 ![The Register sighting workflow in the Design tab, with a SEND step selected and its channel, parameters and body in the panel](/media/en/messaging-step.webp)
 
-![The panel of awaitConfirmation, a receive step: the note about what the canvas does not edit (channel, dependsOn), the criterion on the message and the output entryNumber](/media/en/design-messaging-receive.webp)
+![The panel of awaitConfirmation, a receive step: the note about what the canvas does not edit (channelPath, correlationId, timeout, dependsOn), the criterion on the message under It’s a success if, and the output entryNumber](/media/en/design-messaging-receive.webp)
 
 ## Example: Register sighting
 

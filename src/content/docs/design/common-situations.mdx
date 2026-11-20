@@ -415,9 +415,9 @@ Details: [Reusables](/design/reusables/).
 Messaging steps are always simulated. Luvin does not connect to brokers (Kafka, AMQP, MQTT…) yet: the step uses the examples of the AsyncAPI contract, also when you run against the real API.
 </Aside>
 
-AsyncAPI operations are not in the palette. Write the step in the YAML tab, with `action: send` or `action: receive`. On the canvas it shows **SEND** or **RECEIVE**, and its outputs, criteria and error actions are edited in the panel.
+Drag the AsyncAPI operation from the palette, as with any operation: it is tagged **SEND** or **RECEIVE**. Luvin writes `action`, the correlation id and, for a receive, `timeout: 5000`. Outputs are edited in the panel. Criteria on the message, such as the one below, are written in the YAML tab. See [Add a messaging step](/design/messaging/#add-a-messaging-step).
 
-![The panel of awaitConfirmation, a receive step: it says the canvas does not edit its channel, and lists its criterion on the message and its output entryNumber](/media/en/design-messaging-receive.webp)
+![The panel of awaitConfirmation, a receive step: it says the canvas does not edit its channel, correlation and timeout, and lists its criterion on the message and its output entryNumber](/media/en/design-messaging-receive.webp)
 
 ```yaml
 - stepId: awaitConfirmation

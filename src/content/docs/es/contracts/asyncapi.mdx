@@ -98,7 +98,7 @@ En un contrato 3.x, cada operación necesita un `action` y un `channel` con un `
 
 Cuando un canal tiene una operación send y una receive y el paso no tiene `action`, el análisis avisa: *El canal "x" tiene más de una operación; se usa la de tipo "send". Indica "action: send" o "action: receive" en el paso.* Cuando el paso dice una acción y la operación es la otra, el análisis anota que se usa la del paso.
 
-En la pestaña YAML, después de `channelPath:` y de `operationId:` el editor ofrece los canales y las operaciones de los contratos cargados. Las operaciones AsyncAPI no están en la paleta **Operaciones**. Mira [Pasos de mensajería](/es/design/messaging/).
+Las operaciones del contrato están en la paleta **Operaciones** del diseño, con la etiqueta **SEND** o **RECEIVE**: arrastrar una escribe el paso con `operationId` y `action`. En la pestaña YAML, después de `channelPath:` y de `operationId:` el editor ofrece los canales y las operaciones de los contratos cargados. Mira [Pasos de mensajería](/es/design/messaging/).
 
 ## Mensajes
 
