@@ -107,6 +107,16 @@ Cada input de **Inicio**, cada output de un paso y cada parámetro tienen un pun
 
 Para quitar una conexión, haz clic en su línea y pulsa Delete o Backspace. Si reemplazas un input arrastrando y ningún otro paso lo usa, Luvin lo quita del workflow.
 
+## Un dato de un output que es un objeto
+
+Cuando un paso anterior devuelve un objeto, por ejemplo un workflow reutilizado que devuelve `customer` con `bank`, `segment` y `address`, eliges aquí, en el diseño, qué dato recibe un parámetro. Al ejecutar no se pregunta nada.
+
+1. Haz clic en el paso y busca el parámetro en su panel.
+2. Abre la lista de origen. Bajo el paso anterior ves `customer (el objeto entero)` y una fila por cada dato: `customer › bank`, `customer › segment`, `customer › address › city`.
+3. Elige `customer › bank`.
+
+El valor del parámetro pasa a ser `$steps.info.outputs.customer.bank`, y en el lienzo su línea de datos dice `customer.bank`. Luvin encuentra los datos siguiendo el output hasta el paso que lo produce y leyendo el esquema de la respuesta de su contrato, también a través de un workflow llamado. Los datos de dentro de una lista no aparecen: de una lista se elige el elemento al ejecutar. Mira [Elige un elemento de una lista](/es/test/lists/).
+
 ## Valores que vienen de una lista
 
 Un campo dentro de una lista se muestra sin su posición: `cards/bank`, no `cards/0/bank`. En la lista **Origen** se lee **cards/bank (de una lista: eliges cuál al ejecutar)**.

@@ -66,6 +66,12 @@ En el último caso de la tabla, el diálogo agrega **Qué recibe cada paso del e
 
 Un campo que viene de una lista se nombra sin su posición: `activeCreditCards/bank`, no `activeCreditCards/0/bank`. Mira [Conecta datos entre pasos](/es/design/wire-data/).
 
+## Una lista que devuelve un workflow llamado
+
+Un paso puede llamar a otro workflow, por ejemplo uno que reutilizas para traer las tarjetas de un cliente. Si ese workflow devuelve una lista como output, y el paso siguiente la pone en un parámetro de un solo valor, la ejecución se pausa igual. Pregunta el paso que llamó al workflow, y cada parámetro recibe su dato del elemento elegido: `bank` recibe el `bank` de la tarjeta elegida, `id` recibe el `id` del beneficio elegido. Sin nadie que elija (el runner o una prueba de carga), se usa el primer elemento.
+
+Antes, la lista entera llegaba al parámetro y el request salía con `[object Object]` en lugar del valor.
+
 ## Varios casos a la vez
 
 Cuando ejecutas varios casos, el diálogo ofrece **Usar esta elección en los demás casos de esta ejecución**. Déjalo marcado para que se te pregunte una sola vez. Desmárcalo para elegir en cada caso. Si un caso posterior recibe una lista sin los elementos que elegiste, el diálogo vuelve a preguntar.

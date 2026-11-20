@@ -107,6 +107,16 @@ Each input in **Start**, each output of a step and each parameter has a dot on i
 
 To remove a connection, click its line and press Delete or Backspace. If you replace an input by dragging and no other step uses it, Luvin removes it from the workflow.
 
+## A field of an output that is an object
+
+When a previous step returns an object, for example a reused workflow that returns `customer` with `bank`, `segment` and `address`, choose which field a parameter receives here, in the design. Nothing is asked when you run.
+
+1. Click the step and find the parameter in its panel.
+2. Open its source list. Under the previous step you see `customer (the whole object)` and one row per field: `customer › bank`, `customer › segment`, `customer › address › city`.
+3. Choose `customer › bank`.
+
+The parameter's value becomes `$steps.info.outputs.customer.bank`, and on the canvas its data line is labelled `customer.bank`. Luvin finds the fields by following the output to the step that produces it and reading the response schema of its contract, also through a called workflow. Fields inside a list are not listed: from a list you choose the item when you run. See [Choose an item from a list](/test/lists/).
+
 ## Values that come from a list
 
 A field inside a list is shown without its position: `cards/bank`, not `cards/0/bank`. In the **Source** list it reads **cards/bank (from a list: you choose which at run time)**.

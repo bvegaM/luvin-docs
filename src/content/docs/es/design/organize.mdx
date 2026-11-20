@@ -70,6 +70,18 @@ Puede que otros pasos usaran sus datos. En ese caso una barra roja sobre el lien
 
 ![Después de eliminar listProducts: la barra roja nombra a createOrder, y su tarjeta tiene borde rojo y dice 1 error(es), porque leía el sku del paso eliminado](/media/es/design-dangling.webp)
 
+## Teclado y clic derecho en el lienzo
+
+| Sobre | Haz | Qué pasa |
+|---|---|---|
+| Una línea de datos | Clic en la línea o en su etiqueta, y luego **Supr** o **Retroceso** | Se quita la conexión: el parámetro queda sin origen. La línea se resalta mientras está seleccionada. |
+| Una línea de datos | Clic derecho | **Quitar esta conexión** |
+| Una flecha del orden | Clic derecho | **Insertar un paso aquí** |
+| Un paso | Clic derecho | **Ver el detalle del paso**, **Insertar un paso después**, **Mover arriba**, **Mover abajo**, **Eliminar el paso** |
+| El fondo | Clic derecho | **Agregar un paso al final**, **Ajustar a la vista**, y mostrar u ocultar las acciones según la respuesta y el flujo de datos |
+
+**Deshacer** recupera lo que quites así.
+
 ## Deshacer y rehacer
 
 Sobre el lienzo, **Deshacer** y **Rehacer** retroceden y avanzan por los cambios que hiciste en la pestaña **Diseño**: agregar, mover, renombrar y eliminar pasos, conexiones, valores y outputs.

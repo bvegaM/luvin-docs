@@ -70,6 +70,18 @@ Other steps may have used its data. In that case a red bar above the canvas name
 
 ![After deleting listProducts: the red bar names createOrder, and its card has a red border and says 1 error(s), because it read the sku of the deleted step](/media/en/design-dangling.webp)
 
+## Keyboard and right-click on the canvas
+
+| On | Do | What happens |
+|---|---|---|
+| A data line | Click the line or its label, then press **Delete** or **Backspace** | The connection is removed: the parameter is left without a source. The line is highlighted while selected. |
+| A data line | Right-click | **Remove this connection** |
+| An arrow of the order | Right-click | **Insert a step here** |
+| A step | Right-click | **See the step details**, **Insert a step after**, **Move up**, **Move down**, **Delete the step** |
+| The background | Right-click | **Add a step at the end**, **Fit to view**, and show or hide the actions by response and the data flow |
+
+**Undo** brings back anything you removed this way.
+
 ## Undo and redo
 
 Above the canvas, **Undo** and **Redo** step back and forward through the changes you made in the **Design** tab: adding, moving, renaming and deleting steps, connections, values and outputs.

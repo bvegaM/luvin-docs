@@ -66,6 +66,12 @@ In the last case of the table, the dialog adds **What each step receives from th
 
 A field that comes from a list is named without its position: `activeCreditCards/bank`, not `activeCreditCards/0/bank`. See [Wire data between steps](/design/wire-data/).
 
+## A list returned by a called workflow
+
+A step can call another workflow, for example one you reuse to get a customer's cards. If that workflow returns a list as an output, and the next step puts it in a single-value parameter, the run pauses the same way. It's the step that called the workflow that asks, and each parameter receives its field of the chosen item: `bank` gets the `bank` of the chosen card, `id` gets the `id` of the chosen benefit. Without someone to choose (the Runner or a load test), the first item is used.
+
+Before, the whole list went to the parameter and the request was sent with `[object Object]` in place of the value.
+
 ## Several cases at once
 
 When you run several cases, the dialog offers **Use this choice for the other cases in this run**. Leave it ticked to be asked once. Untick it to choose in every case. If a later case gets a list without the items you chose, the dialog asks again.
