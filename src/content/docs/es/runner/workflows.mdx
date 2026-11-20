@@ -74,13 +74,13 @@ En **Contra**, elige dónde se ejecutan los casos:
 
 ![La columna derecha del Runner de workflows: Tipo de ejecución Funcional, Contra con API real y Simulado y la pista sobre el ambiente local, Datos por vuelta con Elegir CSV o JSON…, Vueltas 1, los ajustes Detenerse si un workflow falla y Pausa entre workflows, y el botón Ejecutar (7 casos)](/media/es/runner-workflows-setup.webp)
 
-## Elegir de las listas
+## Listas en las respuestas
 
-Cuando un paso devuelve una lista y el paso siguiente usa un elemento, una ejecución a mano te pregunta cuál. El runner nunca pregunta. En **Elegir de las listas** muestra las reglas guardadas en los pasos de los workflows marcados, por ejemplo *el que cumpla status es ACTIVE*, con **Quitar** junto a cada una.
+Cuando un paso devuelve una lista y un paso siguiente usa un elemento, una ejecución a mano te pregunta cuál. El runner nunca pregunta. En **Listas en las respuestas** muestra cada lista que los pasos siguientes leen por posición, y cada lista con una regla guardada, en los workflows marcados. Cada línea dice con qué sigue la ejecución: la regla guardada, por ejemplo *el que cumpla ability.name es lightning-rod*, con **Quitar** junto a ella, o *El elemento 1 (el que dice el diseño)*.
 
-Sin reglas guardadas dice *Sin reglas guardadas: cuando un paso devuelve una lista, el runner usa el elemento que dice el diseño. Al ejecutar a mano puedes guardar una regla desde la pregunta.*
+Si no hay ninguna, dice *Ningún paso devuelve una lista que usen los pasos siguientes.* La sección también aparece cuando **Tipo de ejecución** es **Rendimiento**.
 
-Mira [Listas en el runner](/es/runner/workflows-lists/).
+Mira [Listas en el runner](/es/runner/workflows-lists/#la-sección-listas-en-las-respuestas).
 
 ## Avisos antes de ejecutar contra la API real
 

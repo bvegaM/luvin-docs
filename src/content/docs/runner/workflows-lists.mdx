@@ -9,17 +9,19 @@ import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components'
 
 When a step returns a list and a later step needs one item of it, a run by hand stops and asks you which one. The Runner never asks: nobody is watching. It uses the rule saved in the step, or the item the design points to. This page says what each rule chooses in a run of the Runner and how to manage the rules from it.
 
-## Example: always the card of one bank
+## Example: the type and the ability of Pokemon card
 
-In a shop, the step `getCustomer` returns `activeCreditCards`, and the next step pays with the `bank` of one card. You saved the rule **The one where…** `bank` **is** `Banco Sur` from the list dialog.
+In **Pokemon card**, the step `getPokemon` returns two lists, `types` and `abilities`. Later steps read one item of each by its position: `$response.body#/types/0/type/name` and `$response.body#/abilities/0/ability/name`. For `abilities`, you saved the rule **The one where…** `ability.name` **is** `lightning-rod` from the list dialog.
 
 <Steps>
-1. Open the Runner for `shop.arazzo.yaml` with **Run workflows (runner)**.
-2. Under **Picking from lists**, read the line: **Place order** · `getCustomer` `/activeCreditCards`, *the one where bank is Banco Sur*.
+1. Open the Runner for `pokemon.arazzo.yaml` with **Run workflows (runner)**.
+2. Under **Lists in the responses**, read the two lines:
+   - **Pokemon card** · `getPokemon` types, *Item 1 (the one in the design)*.
+   - **Pokemon card** · `getPokemon` abilities, *the one where ability.name is lightning-rod*, with **Remove**.
 3. Press **Run (n cases)**.
 </Steps>
 
-In every iteration, the run goes on with the card of **Banco Sur**. The step keeps a note of what it chose. See [What is recorded](/test/lists/#what-is-recorded).
+In every iteration, the run goes on with the type `electric` and the ability `lightning-rod`. The step keeps a note of what it chose. See [What is recorded](/test/lists/#what-is-recorded).
 
 ## What each rule chooses in the Runner
 
@@ -49,21 +51,35 @@ In a performance test, **A different one each iteration** counts the iterations 
 - **is greater than** and **is less than** compare numbers. A field that is empty or not a number never matches.
 - **is** compares text: `25` matches the number 25, but `25.0` does not.
 
-## The Picking from lists section
+## The Lists in the responses section
 
-**Picking from lists** is in the setup of the workflows Runner, under the settings. It lists the rules saved in the steps of the workflows that will run. Each line has:
+**Lists in the responses** is in the setup of the workflows Runner, under **Iteration data**. It shows with both values of **Run type**: **Functional** and **Performance**. For each ticked workflow, it lists:
+
+- Every list in a step's response that later steps read by its position, with an output like `$response.body#/types/0/type/name`.
+- Every list with a rule saved in the step.
+
+Nobody chooses in the Runner, so each line says which item the run goes on with. Each line has:
 
 | Part | Example |
 |---|---|
-| The workflow, in bold | **Place order** |
-| The step | `getCustomer` |
-| The list | `/activeCreditCards`, or *the response* when the whole response is the list |
-| The rule | *the one where bank is Banco Sur*, *Pick one at random*… |
-| **Remove** | Deletes the rule. |
+| The workflow, in bold | **Pokemon card** |
+| The step | `getPokemon` |
+| The list: the last part of its path, or *the response* when the whole response is the list | `types`, `abilities` |
+| The item the run goes on with: the saved rule or, without one, the item in the design | *Item 1 (the one in the design)*, *the one where ability.name is lightning-rod*, *Pick one at random*… |
+| **Remove**, only next to a saved rule | Deletes the rule. |
 
-A workflow that is unticked, or that has no case to run, does not show its rules. With no rules at all, it says *No saved rules: when a step returns a list, the runner uses the item in the design. When you run by hand you can save a rule from the question.*
+The number in *Item N (the one in the design)* is the position in the output plus one: `types/0` is *Item 1*.
 
-The section is not shown when **Run type** is **Performance**, but the rules still apply there.
+The hint above the lines depends on the run type:
+
+| Run type | Hint |
+|---|---|
+| **Functional** | *Nobody chooses here: on every iteration, the step goes on with this item of its list. To change it, run the workflow and save a rule from the pause.* |
+| **Performance** | *Nobody chooses in a load test: every user, on every iteration, goes on with this item of the list the step returns. To change it, run the workflow and save a rule from the pause.* |
+
+A workflow that is unticked, or that has no case to run, does not show its lists. With no lists at all, the section says *No step returns a list that later steps use.*
+
+After a performance test, the results count which items each list went on with. See [Items used from the lists](/runner/performance-results/#items-used-from-the-lists).
 
 ## Save a rule
 
@@ -82,11 +98,11 @@ The rule is saved in the step of the Arazzo file, under `x-luvin-pick`. See [Sav
 ## Remove a rule
 
 <Steps>
-1. Under **Picking from lists**, find the line of the rule.
-2. Press **Remove**.
+1. Under **Lists in the responses**, find the line of the rule.
+2. Press **Remove**. Only a line with a saved rule has it.
 </Steps>
 
-The rule is deleted from the Arazzo file, and the line goes away. From then on, the Runner uses the item in the design for that list, and a run by hand asks you again.
+The rule is deleted from the Arazzo file. If the design reads that list by position, the line stays and shows the item in the design, for example *Item 1 (the one in the design)*. If not, the line goes away. From then on, the Runner uses the item in the design for that list, and a run by hand asks you again.
 
 ## When no item matches
 

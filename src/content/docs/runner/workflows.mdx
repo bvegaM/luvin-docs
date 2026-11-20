@@ -74,13 +74,13 @@ Under **Against**, choose where the cases run:
 
 ![The right column of the workflows Runner: Run type Functional, Against with Real API and Simulated and the hint about the local environment, Iteration data with Choose CSV or JSON…, Iterations 1, the settings Stop if a workflow fails and Delay between workflows, and the button Run (7 cases)](/media/en/runner-workflows-setup.webp)
 
-## Picking from lists
+## Lists in the responses
 
-When a step returns a list and the next step uses one item, a run by hand asks you which one. The Runner never asks. Under **Picking from lists**, it shows the rules saved in the steps of the ticked workflows, for example *the one where status is ACTIVE*, with **Remove** next to each one.
+When a step returns a list and a later step uses one item, a run by hand asks you which one. The Runner never asks. Under **Lists in the responses**, it shows each list that later steps read by position, and each list with a saved rule, in the ticked workflows. Each line says what the run goes on with: the saved rule, for example *the one where ability.name is lightning-rod*, with **Remove** next to it, or *Item 1 (the one in the design)*.
 
-With no saved rules it says *No saved rules: when a step returns a list, the runner uses the item in the design. When you run by hand you can save a rule from the question.*
+With no such lists it says *No step returns a list that later steps use.* The section also shows when **Run type** is **Performance**.
 
-See [Lists in the Runner](/runner/workflows-lists/).
+See [Lists in the Runner](/runner/workflows-lists/#the-lists-in-the-responses-section).
 
 ## Notices before a run against the real API
 

@@ -98,8 +98,40 @@ Under the key numbers, two tabs:
 
 | Tab | What it has |
 |---|---|
-| **Summary** | The line about the slowest request, the filters, the chart and the table. See [The performance chart](/runner/performance-chart/) and [The table and the errors](/runner/performance-table/). |
+| **Summary** | The line about the slowest request, the filters, the chart and the table. In a test of workflows, also [Items used from the lists](#items-used-from-the-lists). See [The performance chart](/runner/performance-chart/) and [The table and the errors](/runner/performance-table/). |
 | **Errors** | The failures grouped by reason. Its title shows how many errors there were, in red when there is at least one. See [Errors](/runner/performance-table/#the-errors-tab). |
+
+## Items used from the lists
+
+In a performance test of workflows, the **Summary** tab has one more block under the table: **Items used from the lists**. Nobody chooses in a load test. Each virtual user, on every iteration, gets its own response and goes on with one item of each list. The block counts which items those were, so you know what data the test measured with.
+
+Each list has a line with the workflow, the step and the list, and in brackets how the item was chosen:
+
+| In brackets | When |
+|---|---|
+| The saved rule, for example *The one where…* or *Pick one at random* | The step has a rule for that list. |
+| *the one in the design* | No rule: the run takes the item the output points to, like `types/0`. |
+| *the list had only one* | The list came back with a single item. |
+
+Under the line, one row per item used: its position and its name, and how many iterations went on with it. The item used most comes first. With **All of them**, the row says *All items*.
+
+### Example: Pokemon card against a mock
+
+The environment points at a mock server of the Pokédex, which answers `getPokemon` with Pikachu: one type and two abilities. Pokemon card ran with 10 users for 30 s:
+
+```text
+Items used from the lists
+Nobody chooses in a load test: this is what each iteration went on with in the lists the steps returned.
+
+Pokemon card · getPokemon · types (the list had only one)
+  #1 · electric        308 of 308 iterations (100 %)
+Pokemon card · getPokemon · abilities (the one in the design)
+  #1 · static          308 of 308 iterations (100 %)
+```
+
+With the rule **Pick one at random** saved for `abilities`, its line says *(Pick one at random)* and has two rows, for example `#2 · lightning-rod` with *160 of 308 iterations (51.9 %)* and `#1 · static` with *148 of 308 iterations (48.1 %)*.
+
+The block fills in while the test runs. It is not kept in **History**: a test you open from there shows the chart and the table without it. To change the item a list goes on with, see [Lists in the Runner](/runner/workflows-lists/).
 
 ## In the history
 

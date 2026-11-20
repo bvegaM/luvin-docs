@@ -33,7 +33,8 @@ The table shows `Place order · getProduct`, `Place order · createOrder` and `P
 | **Against** | Always **Real API**. **Simulated** cannot be chosen. Its tooltip, and the hint under it, say *Performance measures the real API of the "…" environment: there is nothing to measure in simulation. To test without the API, point the environment at a mock server.* |
 | The row of each workflow | Says which case is repeated, for example **Load: Happy path**, instead of how many cases run. |
 | The cases of a workflow | Show where they would go against the real API. The repeated one has the tag **Repeated in the load test**. |
-| **Iterations**, **Settings** and **Picking from lists** | Not shown. The saved list rules still apply. |
+| **Iterations** and **Settings** | Not shown. |
+| **Lists in the responses** | Shown, with its own hint: *Nobody chooses in a load test: every user, on every iteration, goes on with this item of the list the step returns. To change it, run the workflow and save a rule from the pause.* See [Lists in the Runner](/runner/workflows-lists/#the-lists-in-the-responses-section). |
 | The top of the list | Counts the workflows with a case to repeat, for example **2 of 3 selected**. |
 
 When you open the cases of a workflow, a hint says: *The performance test repeats one case per workflow against the real API: the happy path among the checked ones (or the first). Simulated cases are not measured.*
@@ -67,7 +68,7 @@ To load test without your API, point the environment at a mock server: the calls
 In each iteration, a virtual user runs the repeated case of each ticked workflow, in the order of the list, then waits for **Pause between iterations (ms)**.
 
 - **Dependencies**: if a workflow depends on others, they run first in every iteration, as when you press **Run**.
-- **Lists**: when a step returns a list, the saved rule chooses, or the item in the design. **A different one each iteration** counts the iterations of each user. See [Lists in the Runner](/runner/workflows-lists/).
+- **Lists**: each user, on every iteration, gets its own response and goes on with one item of each list: the one the saved rule chooses, or the item in the design. Nobody is asked. **A different one each iteration** counts the iterations of each user. The results count the items used. See [Lists in the Runner](/runner/workflows-lists/) and [Items used from the lists](/runner/performance-results/#items-used-from-the-lists).
 - **Data file**: each iteration takes a row, spread across the users. A column named like an input fills it. See [Columns, inputs and variables](/runner/data-mapping/).
 - **Credentials and OAuth 2.0**: as in a functional run. If a workflow signs in with OAuth 2.0, the sign-in opens before the test starts. A notice warns when credentials are missing.
 

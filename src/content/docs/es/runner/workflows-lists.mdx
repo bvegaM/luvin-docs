@@ -9,17 +9,19 @@ import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components'
 
 Cuando un paso devuelve una lista y un paso siguiente necesita un elemento de ella, una ejecución a mano se detiene y te pregunta cuál. El runner nunca pregunta: no hay nadie mirando. Usa la regla guardada en el paso, o el elemento al que apunta el diseño. Esta página dice qué elige cada regla en una ejecución del runner y cómo manejar las reglas desde ahí.
 
-## Ejemplo: siempre la tarjeta de un banco
+## Ejemplo: el tipo y la habilidad de Pokemon card
 
-En una tienda, el paso `getCustomer` devuelve `activeCreditCards`, y el paso siguiente paga con el `bank` de una tarjeta. Guardaste la regla **El que cumpla…** `bank` **es** `Banco Sur` desde el diálogo de la lista.
+En **Pokemon card**, el paso `getPokemon` devuelve dos listas, `types` y `abilities`. Los pasos siguientes leen un elemento de cada una por su posición: `$response.body#/types/0/type/name` y `$response.body#/abilities/0/ability/name`. Para `abilities` guardaste la regla **El que cumpla…** `ability.name` **es** `lightning-rod` desde el diálogo de la lista.
 
 <Steps>
-1. Abre el runner para `shop.arazzo.yaml` con **Ejecutar workflows (runner)**.
-2. En **Elegir de las listas**, lee la línea: **Place order** · `getCustomer` `/activeCreditCards`, *el que cumpla bank es Banco Sur*.
+1. Abre el runner para `pokemon.arazzo.yaml` con **Ejecutar workflows (runner)**.
+2. En **Listas en las respuestas**, lee las dos líneas:
+   - **Pokemon card** · `getPokemon` types, *El elemento 1 (el que dice el diseño)*.
+   - **Pokemon card** · `getPokemon` abilities, *el que cumpla ability.name es lightning-rod*, con **Quitar**.
 3. Pulsa **Ejecutar (n casos)**.
 </Steps>
 
-En cada vuelta, la ejecución sigue con la tarjeta de **Banco Sur**. El paso guarda una nota de lo que eligió. Mira [Qué queda registrado](/es/test/lists/#qué-queda-registrado).
+En cada vuelta, la ejecución sigue con el tipo `electric` y la habilidad `lightning-rod`. El paso guarda una nota de lo que eligió. Mira [Qué queda registrado](/es/test/lists/#qué-queda-registrado).
 
 ## Qué elige cada regla en el runner
 
@@ -49,21 +51,35 @@ En una prueba de rendimiento, **Uno distinto en cada vuelta** cuenta las vueltas
 - **es mayor que** y **es menor que** comparan números. Un campo vacío o que no es un número nunca cumple.
 - **es** compara texto: `25` cumple con el número 25, pero `25.0` no.
 
-## La sección Elegir de las listas
+## La sección Listas en las respuestas
 
-**Elegir de las listas** está en la configuración del runner de workflows, bajo los ajustes. Lista las reglas guardadas en los pasos de los workflows que se van a ejecutar. Cada línea tiene:
+**Listas en las respuestas** está en la configuración del runner de workflows, bajo **Datos por vuelta**. Aparece con los dos valores de **Tipo de ejecución**: **Funcional** y **Rendimiento**. Para cada workflow marcado, lista:
+
+- Cada lista de la respuesta de un paso que los pasos siguientes leen por su posición, con un output como `$response.body#/types/0/type/name`.
+- Cada lista con una regla guardada en el paso.
+
+En el runner nadie elige, así que cada línea dice con qué elemento sigue la ejecución. Cada línea tiene:
 
 | Parte | Ejemplo |
 |---|---|
-| El workflow, en negrita | **Place order** |
-| El paso | `getCustomer` |
-| La lista | `/activeCreditCards`, o *la respuesta* cuando la respuesta entera es la lista |
-| La regla | *el que cumpla bank es Banco Sur*, *Elegir uno al azar*… |
-| **Quitar** | Borra la regla. |
+| El workflow, en negrita | **Pokemon card** |
+| El paso | `getPokemon` |
+| La lista: la última parte de su ruta, o *la respuesta* cuando la respuesta entera es la lista | `types`, `abilities` |
+| El elemento con que sigue la ejecución: la regla guardada o, sin regla, el que dice el diseño | *El elemento 1 (el que dice el diseño)*, *el que cumpla ability.name es lightning-rod*, *Elegir uno al azar*… |
+| **Quitar**, solo junto a una regla guardada | Borra la regla. |
 
-Un workflow sin marcar, o sin casos que ejecutar, no muestra sus reglas. Sin ninguna regla, dice *Sin reglas guardadas: cuando un paso devuelve una lista, el runner usa el elemento que dice el diseño. Al ejecutar a mano puedes guardar una regla desde la pregunta.*
+El número de *El elemento N (el que dice el diseño)* es la posición del output más uno: `types/0` es *El elemento 1*.
 
-La sección no aparece cuando **Tipo de ejecución** es **Rendimiento**, pero las reglas se aplican igual.
+La pista sobre las líneas depende del tipo de ejecución:
+
+| Tipo de ejecución | Pista |
+|---|---|
+| **Funcional** | *Aquí nadie elige: en cada vuelta, el paso sigue con este elemento de su lista. Para cambiarlo, ejecuta el workflow y guarda una regla desde la pausa.* |
+| **Rendimiento** | *En la prueba de carga nadie elige: cada usuario, en cada vuelta, sigue con este elemento de la lista que le devuelve el paso. Para cambiarlo, ejecuta el workflow y guarda una regla desde la pausa.* |
+
+Un workflow sin marcar, o sin casos que ejecutar, no muestra sus listas. Sin ninguna lista, la sección dice *Ningún paso devuelve una lista que usen los pasos siguientes.*
+
+Después de una prueba de rendimiento, los resultados cuentan con qué elementos siguió cada lista. Mira [Elementos usados de las listas](/es/runner/performance-results/#elementos-usados-de-las-listas).
 
 ## Guarda una regla
 
@@ -82,11 +98,11 @@ La regla se guarda en el paso del archivo Arazzo, bajo `x-luvin-pick`. Mira [Reg
 ## Quita una regla
 
 <Steps>
-1. En **Elegir de las listas**, busca la línea de la regla.
-2. Pulsa **Quitar**.
+1. En **Listas en las respuestas**, busca la línea de la regla.
+2. Pulsa **Quitar**. Solo aparece en una línea con una regla guardada.
 </Steps>
 
-La regla se borra del archivo Arazzo, y la línea desaparece. Desde ahí, el runner usa el elemento que dice el diseño para esa lista, y una ejecución a mano te vuelve a preguntar.
+La regla se borra del archivo Arazzo. Si el diseño lee esa lista por posición, la línea queda y muestra el elemento que dice el diseño, por ejemplo *El elemento 1 (el que dice el diseño)*. Si no, la línea desaparece. Desde ahí, el runner usa el elemento que dice el diseño para esa lista, y una ejecución a mano te vuelve a preguntar.
 
 ## Cuando ningún elemento cumple
 

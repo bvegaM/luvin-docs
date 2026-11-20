@@ -98,8 +98,40 @@ Bajo los números clave, dos pestañas:
 
 | Pestaña | Qué tiene |
 |---|---|
-| **Resumen** | La línea sobre el request más lento, los filtros, el gráfico y la tabla. Mira [El gráfico de rendimiento](/es/runner/performance-chart/) y [La tabla y los errores](/es/runner/performance-table/). |
+| **Resumen** | La línea sobre el request más lento, los filtros, el gráfico y la tabla. En una prueba de workflows, también [Elementos usados de las listas](#elementos-usados-de-las-listas). Mira [El gráfico de rendimiento](/es/runner/performance-chart/) y [La tabla y los errores](/es/runner/performance-table/). |
 | **Errores** | Las fallas agrupadas por motivo. Su título muestra cuántos errores hubo, en rojo cuando hay al menos uno. Mira [Errores](/es/runner/performance-table/#la-pestaña-errores). |
+
+## Elementos usados de las listas
+
+En una prueba de rendimiento de workflows, la pestaña **Resumen** tiene un bloque más bajo la tabla: **Elementos usados de las listas**. En una prueba de carga nadie elige. Cada usuario virtual, en cada vuelta, recibe su propia respuesta y sigue con un elemento de cada lista. El bloque cuenta cuáles fueron, así sabes con qué datos se midió.
+
+Cada lista tiene una línea con el workflow, el paso y la lista, y entre paréntesis cómo se eligió el elemento:
+
+| Entre paréntesis | Cuándo |
+|---|---|
+| La regla guardada, por ejemplo *El que cumpla…* o *Elegir uno al azar* | El paso tiene una regla para esa lista. |
+| *el que dice el diseño* | Sin regla: la ejecución toma el elemento al que apunta el output, como `types/0`. |
+| *la lista traía uno solo* | La lista volvió con un solo elemento. |
+
+Bajo la línea, una fila por elemento usado: su posición y su nombre, y cuántas vueltas siguieron con él. El más usado va primero. Con **Todos**, la fila dice *Todos los elementos*.
+
+### Ejemplo: Pokemon card contra un mock
+
+El ambiente apunta a un mock server de la Pokédex, que responde `getPokemon` con Pikachu: un tipo y dos habilidades. Pokemon card se ejecutó con 10 usuarios durante 30 s:
+
+```text
+Elementos usados de las listas
+En una prueba de carga nadie elige: así siguió cada vuelta en las listas que devolvieron los pasos.
+
+Pokemon card · getPokemon · types (la lista traía uno solo)
+  #1 · electric        308 de 308 vueltas (100 %)
+Pokemon card · getPokemon · abilities (el que dice el diseño)
+  #1 · static          308 de 308 vueltas (100 %)
+```
+
+Con la regla **Elegir uno al azar** guardada para `abilities`, su línea dice *(Elegir uno al azar)* y tiene dos filas, por ejemplo `#2 · lightning-rod` con *160 de 308 vueltas (51,9 %)* y `#1 · static` con *148 de 308 vueltas (48,1 %)*.
+
+El bloque se llena mientras la prueba corre. No queda en el **Historial**: una prueba que abres desde ahí muestra el gráfico y la tabla sin él. Para cambiar el elemento con que sigue una lista, mira [Listas en el runner](/es/runner/workflows-lists/).
 
 ## En el historial
 

@@ -62,7 +62,7 @@ A virtual user is a loop that runs on your computer. Each one repeats an iterati
 | **Iteration data** | No file | Rows spread across the users. | [Data files](/runner/data-files/#in-a-performance-test) |
 | The confirmation | Unticked | You confirm the load before it starts. | [Confirm before sending load](/runner/safety/) |
 
-The settings of a functional run do not apply here: there are no **Iterations**, no stop on failure, no responses kept and no cookies or variables left for the collection. With workflows, **Against** is fixed on the real API and **Picking from lists** is not shown. The load setup is the same for **Requests** and **Workflows**: what you set on one side is there on the other.
+The settings of a functional run do not apply here: there are no **Iterations**, no stop on failure, no responses kept and no cookies or variables left for the collection. With workflows, **Against** is fixed on the real API. **Lists in the responses** is shown: it says which item of each list every iteration goes on with, and the results count the items used. See [Lists in the Runner](/runner/workflows-lists/#the-lists-in-the-responses-section) and [Items used from the lists](/runner/performance-results/#items-used-from-the-lists). The load setup is the same for **Requests** and **Workflows**: what you set on one side is there on the other.
 
 ## What is measured
 

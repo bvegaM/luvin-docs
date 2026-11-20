@@ -33,7 +33,8 @@ La tabla muestra `Place order · getProduct`, `Place order · createOrder` y `Pl
 | **Contra** | Siempre **API real**. **Simulado** no se puede elegir. Su tooltip, y la pista de abajo, dicen *En Rendimiento se mide la API real del ambiente «…»: en simulación no hay nada que medir. Para probar sin la API, apunta el ambiente a un mock server.* |
 | La fila de cada workflow | Dice qué caso se repite, por ejemplo **Carga: Camino feliz**, en lugar de cuántos casos se ejecutan. |
 | Los casos de un workflow | Muestran a dónde irían contra la API real. El que se repite tiene la etiqueta **Se repite en la carga**. |
-| **Vueltas**, **Ajustes** y **Elegir de las listas** | No aparecen. Las reglas de listas guardadas se aplican igual. |
+| **Vueltas** y **Ajustes** | No aparecen. |
+| **Listas en las respuestas** | Aparece, con su propia pista: *En la prueba de carga nadie elige: cada usuario, en cada vuelta, sigue con este elemento de la lista que le devuelve el paso. Para cambiarlo, ejecuta el workflow y guarda una regla desde la pausa.* Mira [Listas en el runner](/es/runner/workflows-lists/#la-sección-listas-en-las-respuestas). |
 | Arriba de la lista | Cuenta los workflows con un caso que repetir, por ejemplo **2 de 3 elegidos**. |
 
 Cuando abres los casos de un workflow, una pista dice: *La prueba de rendimiento repite un caso por workflow contra la API real: el camino feliz entre los marcados (o el primero). Los casos simulados no se miden.*
@@ -67,7 +68,7 @@ Para hacer una prueba de carga sin tu API, apunta el ambiente a un mock server: 
 En cada vuelta, un usuario virtual ejecuta el caso que se repite de cada workflow marcado, en el orden de la lista, y después espera **Pausa entre vueltas (ms)**.
 
 - **Dependencias**: si un workflow depende de otros, esos corren primero en cada vuelta, como cuando pulsas **Ejecutar**.
-- **Listas**: cuando un paso devuelve una lista, elige la regla guardada, o el elemento que dice el diseño. **Uno distinto en cada vuelta** cuenta las vueltas de cada usuario. Mira [Listas en el runner](/es/runner/workflows-lists/).
+- **Listas**: cada usuario, en cada vuelta, recibe su propia respuesta y sigue con un elemento de cada lista: el que elige la regla guardada, o el que dice el diseño. No se pregunta a nadie. **Uno distinto en cada vuelta** cuenta las vueltas de cada usuario. Los resultados cuentan los elementos usados. Mira [Listas en el runner](/es/runner/workflows-lists/) y [Elementos usados de las listas](/es/runner/performance-results/#elementos-usados-de-las-listas).
 - **Archivo de datos**: cada vuelta toma una fila, repartidas entre los usuarios. Una columna con el nombre de un input lo llena. Mira [Columnas, inputs y variables](/es/runner/data-mapping/).
 - **Credenciales y OAuth 2.0**: como en una ejecución funcional. Si un workflow inicia sesión con OAuth 2.0, el inicio de sesión se abre antes de que empiece la prueba. Un aviso te dice cuando faltan credenciales.
 
