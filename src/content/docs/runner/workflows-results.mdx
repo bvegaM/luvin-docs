@@ -30,7 +30,7 @@ The happy path failed because that Pokémon does not exist. Its data, not the wo
 
 ## The top
 
-The top shows the name of what ran, the date and time, the environment, **Real API** or **Simulated**, and the data file, if any.
+The top shows the name of what ran, the date and time, the environment it ran with, **Real API** or **Simulated**, and the data file, if any. The environment is the one of that run: it does not change if you switch environments afterwards.
 
 On the right, the status:
 
@@ -101,7 +101,7 @@ While it runs, press **Stop**. The status becomes **Stopped**. With **Stop if a 
 
 | What you see | Why | What to do |
 |---|---|---|
-| A row says **No cases to run in this mode**. | The Arazzo file of that workflow has an error, so it could not run. | Open the file and fix it. The sidebar marks it with **Can't be read**. |
+| A workflow is missing from the results. | It was unticked, or its Arazzo file has an error: in the list it is grey and says **the file's YAML has an error**. | Open the file and fix it. The sidebar marks it with **Can't be read**. |
 | Every case of a workflow is inconclusive and the row shows an error. | A workflow it depends on failed. | Open the row to see which one, and run that workflow by hand. |
 | Many steps answer `401`. | The environment has no credentials for them. | Check the notice *Credentials are missing in "…"* in the setup, and press **Fill in**. |
 | A step fails with *No item in the list (…) matches the rule: …* | A saved rule found no item. | See [Lists in the Runner](/runner/workflows-lists/#when-no-item-matches). |

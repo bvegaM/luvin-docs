@@ -17,7 +17,7 @@ Además de las respuestas de sus rutas, un mock responde por su cuenta en alguno
 | `404` | Ninguna ruta coincide con el método y la ruta. | `"error": "mock_not_found"` |
 | `403` | La llamada usa un nombre de host que no es local. | `"error": "mock_host"` |
 | `500` | La ruta tiene un status que el mock no puede enviar. | `"error": "mock_error"` |
-| `204` | Un navegador pregunta antes de llamar (`OPTIONS`) y ninguna ruta coincide. | Ninguno. Mira [Quién puede llamar a un mock](/es/mocks/security/). |
+| `204` | Un navegador pregunta antes de llamar (`OPTIONS` con `access-control-request-method`), o una llamada `OPTIONS` no coincide con ninguna ruta. | Ninguno. Mira [Quién puede llamar a un mock](/es/mocks/security/). |
 | Sin respuesta | El mock está apagado, o el puerto no es el suyo. | La llamada falla con un error de conexión. |
 
 ## 401: llamadas sin credenciales
@@ -74,7 +74,7 @@ Si la operación acepta varios esquemas, basta con uno. El mock solo comprueba q
 Si ninguna ruta activa coincide con el método y la ruta, el mock responde `404` al momento, sin demora:
 
 ```json
-{"error":"mock_not_found","message":"No hay una ruta del mock para GET /pokemon/pikachu"}
+{"error":"mock_not_found","message":"The mock has no route for GET /pokemon/pikachu"}
 ```
 
 El `message` nombra el método y la ruta. El **Log** muestra la llamada con **Sin ruta (404)**.
@@ -93,7 +93,7 @@ Un `404` que sale de una ruta, como el `404` de `getPokemon`, no es este: tiene 
 El mock responde solo a llamadas dirigidas a `localhost`, un nombre que termina en `.localhost`, `127.0.0.1` o `::1`. Cualquier otro `Host` recibe `403` al momento:
 
 ```json
-{"error":"mock_host","message":"El mock solo responde a localhost o 127.0.0.1."}
+{"error":"mock_host","message":"The mock only answers localhost or 127.0.0.1."}
 ```
 
 Así un sitio web que apunta su propio dominio a tu equipo no puede leer tu mock. Mira [Quién puede llamar a un mock](/es/mocks/security/).
@@ -103,7 +103,7 @@ Así un sitio web que apunta su propio dominio a tu equipo no puede leer tu mock
 Si una ruta no se puede enviar, el mock responde `500`:
 
 ```json
-{"error":"mock_error","message":"El mock no pudo responder: status 150 no válido (de 200 a 599)"}
+{"error":"mock_error","message":"The mock could not answer: status 150 is not valid (200 to 599)"}
 ```
 
 La causa habitual es un **Status** menor que 200: el campo acepta de 100 a 599, pero un `1xx` no es una respuesta final. Cámbialo a un status de 200 a 599.

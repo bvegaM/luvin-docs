@@ -20,6 +20,7 @@ Esta página lista qué puede hacer Luvin y cuándo llegó cada capacidad. Lo m�
 - **En el diseño, un + para cada rama y entre los pasos.** "Si responde 404, ir a un paso nuevo" se arma desde la tarjeta del paso, y el (+) de cada flecha inserta un paso ahí. Mira [Éxito y errores](/es/design/success-and-errors/).
 - **El tour guiado va por secciones cortas**, empezando por los workflows. Mira [El tour guiado](/es/get-started/guided-tour/).
 - **Un error de escritura en el YAML ya no rompe la colección.** El archivo aparece como "no se puede leer", Ejecutar queda bloqueado y, al corregirlo, vuelven sus workflows con sus casos.
+- **La simulación se nota.** Cada caso dice si se ejecutó contra tu API o en simulación, y el resumen avisa cuando nada llamó a tu API, para que un caso simulado que pasa no se lea como uno real. Mira [Resultados](/es/test/results/).
 - **Más seguro:** los secretos que guarda un request no aparecen en el historial ni en Network; un mock server solo responde a tu equipo; una respuesta comprimida gigante ya no llena la memoria; una redirección de https a http no lleva la autorización.
 - **Otras mejoras:** Enter en la URL envía el request y ⌘/Ctrl+Enter lo envía desde cualquier parte; deshacer en el diseño sobrevive al cambiar de pestaña; un Arazzo en JSON sigue en JSON; la paleta ⌘K tiene acciones y mock servers.
 

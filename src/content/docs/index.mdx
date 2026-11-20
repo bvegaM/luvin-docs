@@ -10,16 +10,39 @@ hero:
       link: /get-started/quick-start/
     - text: What you can test
       link: /get-started/use-cases/
-    - text: Design a workflow
-      link: /design/overview/
-    - text: Run your cases
-      link: /test/run/
-    - text: Examples
-      link: /reference/examples/
 ---
 
 import TopicCard from '../../components/TopicCard.astro'
 import TopicGrid from '../../components/TopicGrid.astro'
+import { Aside } from '@astrojs/starlight/components'
+
+## Start with what you want to do
+
+<TopicGrid>
+  <TopicCard title="Test my first API" href="/get-started/quick-start/" icon="rocket">
+    Open the example, run its cases and read each verdict in a few minutes. Then add your own contract.
+  </TopicCard>
+  <TopicCard title="Turn my requests into a workflow" href="/tutorials/from-postman/" icon="send">
+    Import a Postman or Bruno collection and chain its requests, so each one uses what the previous one returned.
+  </TopicCard>
+  <TopicCard title="Design a process across several APIs" href="/tutorials/first-workflow/" icon="workflow">
+    Drag operations onto the canvas; Luvin connects the data between them. From the contract to a passing run.
+  </TopicCard>
+  <TopicCard title="Check a workflow against my real API" href="/test/run/" icon="flask">
+    Choose an environment, run with Real API and read why each case passed or failed.
+  </TopicCard>
+  <TopicCard title="Share my workflows with Git" href="/tutorials/team-git/" icon="folder">
+    Keep the workspace in a repository, review workflow changes in a pull request and keep secrets out.
+  </TopicCard>
+</TopicGrid>
+
+<Aside type="caution" title="Real API or Simulation: know which one passed">
+With **Real API**, Luvin calls your API. With **Simulation**, it calls nothing and answers with the examples in your contracts. A case that passes in simulation proves the workflow's logic, not your API. Each result says which one it ran against. See [Simulation](/test/simulation/).
+</Aside>
+
+## Your workflow isn't locked into Luvin
+
+Every workflow is saved as a standard [Arazzo](https://spec.openapis.org/arazzo/latest.html) file, the OpenAPI Initiative's format for sequences of API calls. It is a readable YAML file in your folder: review it in a pull request, version it next to your code, and take it to other tools that read Arazzo, such as linters or a CI runner. If you stop using Luvin, your workflows stay with you. See [The Arazzo file](/design/arazzo-file/).
 
 ## Explore by topic
 

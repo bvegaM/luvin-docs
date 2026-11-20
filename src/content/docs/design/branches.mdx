@@ -88,7 +88,7 @@ A run that loops through jumps or retries more than 200 times stops with **The r
 | End, retry or go to any step, earlier ones too | The step panel, **If it responds with an error** | [Success and errors](/design/success-and-errors/) |
 | Actions on success, actions that depend on a field of the response, several statuses in one action | The **YAML** tab | [The YAML tab](/design/arazzo-editor/) |
 
-Every branch you create with the card menu or with the actions of the step panel, other than a reusable, is written the same way: an action named `on` followed by the status, such as `on404`, with the criterion `$statusCode == 404`.
+Every branch you create with the card menu or with the actions of the step panel, other than a reusable, is written the same way: an action named `on` followed by the status, such as `on404`, with the criterion `$statusCode == 404`. When you change a branch that already had an action with another name, Luvin keeps that name.
 
 <Aside type="note">
 Only operation steps have branches on the canvas. A step that calls another workflow, a messaging step (a message has no status) and a step whose operation is not in any contract of the collection have no **+** in **On failure**.

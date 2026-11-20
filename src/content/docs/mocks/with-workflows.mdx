@@ -1,6 +1,6 @@
 ---
 title: Use a mock with requests and workflows
-description: Create the environment that points to a mock, what it copies and changes, the server path caveat, run a workflow against the mock, go back to your usual environment, and how a mock differs from Simulation.
+description: Create the environment that points to a mock, what it copies and changes, the server path, run a workflow against the mock, go back to your usual environment, and how a mock differs from Simulation.
 sidebar:
   order: 9
 ---
@@ -29,7 +29,7 @@ Luvin creates an environment named **Mock ·** and the name of the mock, in purp
 
 | Part of the environment | In the mock environment |
 |---|---|
-| Variables whose value is a URL (starts with `http://` or `https://`) | The URL of the mock, for example `http://127.0.0.1:4010`. A request with `{{baseUrl}}` goes to the mock as is. |
+| Variables whose value is a URL (starts with `http://` or `https://`) | The URL of the mock, plus the path of the contract's server when the mock comes from a contract: `http://127.0.0.1:4010/api/v2` for the Pokédex contract, `http://127.0.0.1:4010` for a mock from the collection. A request with `{{baseUrl}}` goes to the mock as is. See [The server path](#the-server-path). |
 | Base URLs of the contracts | The URL of the mock plus the path of the contract's server, for example `http://127.0.0.1:4010/api/v2`. |
 | Other variables | Copied as they are. |
 | Secrets | Only their names, with empty values. |
@@ -48,25 +48,17 @@ Which base URLs change depends on the source of the mock:
 Every variable whose value is a URL changes, not only `baseUrl`. If your environment has the URL of another API in a variable, such as a token URL, it also points to the mock. Edit it in the mock environment if that call must still reach the real service.
 </Aside>
 
-## The server path caveat
+## The server path
 
-A variable gets the mock's URL alone, without a path. A mock from a contract whose server has a path answers under that path: the Pokédex contract's routes start with `/api/v2`.
+A mock from a contract whose server has a path answers under that path: the Pokédex contract's routes start with `/api/v2`. So the variables of the mock environment carry that path too.
 
 | Your request uses | It calls | The mock |
 |---|---|---|
-| `{{baseUrl}}/pokemon/pikachu`, with `baseUrl` = `http://127.0.0.1:4010` | `/pokemon/pikachu` | Answers `404`: **No route (404)** in the Log. |
-| `{{baseUrl}}/pokemon/pikachu`, with `baseUrl` = `http://127.0.0.1:4010/api/v2` | `/api/v2/pokemon/pikachu` | Answers `200`. |
+| `{{baseUrl}}/pokemon/pikachu`, in the environment of a mock from the Pokédex contract | `/api/v2/pokemon/pikachu` | Answers `200`: `baseUrl` is `http://127.0.0.1:4010/api/v2`. |
 | A step of a workflow, through the contract's base URL | `/api/v2/pokemon/pikachu` | Answers `200`: the base URL already has `/api/v2`. |
+| `{{baseUrl}}/pokemon/pikachu`, in the environment of a mock from the collection | `/pokemon/pikachu` | Answers `200`: the routes come from what follows `{{baseUrl}}` in your requests, so `baseUrl` is the mock's URL alone. |
 
-To fix the first case:
-
-<Steps>
-1. Click the mock environment under **Environments** in the sidebar.
-2. Change `baseUrl` to `http://127.0.0.1:4010/api/v2`.
-3. Send the request again. The **Log** of the mock shows the call with its route.
-</Steps>
-
-A mock from the collection does not have this problem: its paths come from what follows `{{baseUrl}}` in your requests.
+If a request writes the server path itself after the variable, such as `{{host}}/api/v2/pokemon/pikachu`, it ends up with the path twice (`/api/v2/api/v2/pokemon/pikachu`) and the **Log** shows **No route (404)**. Click the mock environment under **Environments** and remove `/api/v2` from that variable.
 
 <Aside type="note">
 A request written with a full URL, such as `https://pokeapi.co/api/v2/pokemon/pikachu`, has no variable to replace: it still calls the real API. Use `{{baseUrl}}` in the URL to switch between the API and the mock with the environment.
@@ -80,7 +72,7 @@ Once the environment exists, the tab says *Environment “Mock · Pokédex mock�
 |---|---|
 | The mock environment is active | It starts from itself: its other variables stay as you left them. |
 | Another environment is active | It starts again from that environment's variables. |
-| Variables whose value is a URL | Set again to the URL of the mock, without a path. A `baseUrl` you changed to `.../api/v2` goes back to the bare URL: change it again. |
+| Variables whose value is a URL | Set again to the URL of the mock, with the path of the contract's server when the mock comes from a contract. A change you made to them is lost: make it again. |
 | Secrets and credentials | The values you filled in the mock environment stay. |
 | Active environment | The mock environment becomes active. |
 
@@ -132,7 +124,7 @@ Use **Simulation** to check the logic of a workflow fast. Use a mock to test how
 | What you see | Why, and what to do |
 |---|---|
 | Every step fails with a connection error. | The mock is stopped, or its port changed. Start it, and press **Update environment** after a port change. |
-| The **Log** shows **No route (404)** for your requests. | The path is missing the server path, such as `/api/v2`. See the caveat above. |
+| The **Log** shows **No route (404)** for your requests. | The path is missing the server path, such as `/api/v2`, or has it twice. See [The server path](#the-server-path). |
 | The **Log** is empty after the run. | The run used another environment, or **Simulation**. Check the run bar. |
 | A request still reaches the real API. | Its URL is written in full, without a variable. Use `{{baseUrl}}`. |
 | A call to another API now fails. | Its URL was in a variable and now points to the mock. Edit it in the mock environment. |

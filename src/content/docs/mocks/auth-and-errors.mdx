@@ -17,7 +17,7 @@ Besides the responses of its routes, a mock answers on its own in a few cases: a
 | `404` | No route matches the method and path. | `"error": "mock_not_found"` |
 | `403` | The call uses a host name that is not local. | `"error": "mock_host"` |
 | `500` | The route has a status the mock cannot send. | `"error": "mock_error"` |
-| `204` | A browser asks before calling (`OPTIONS`) and no route matches. | None. See [Who can call a mock](/mocks/security/). |
+| `204` | A browser asks before calling (`OPTIONS` with `access-control-request-method`), or an `OPTIONS` call matches no route. | None. See [Who can call a mock](/mocks/security/). |
 | No answer | The mock is stopped, or the port is wrong. | The call fails with a connection error. |
 
 ## 401: calls without credentials
@@ -74,7 +74,7 @@ If the operation accepts several schemes, one of them is enough. The mock only c
 If no active route matches the method and path, the mock answers `404` at once, without delay:
 
 ```json
-{"error":"mock_not_found","message":"No hay una ruta del mock para GET /pokemon/pikachu"}
+{"error":"mock_not_found","message":"The mock has no route for GET /pokemon/pikachu"}
 ```
 
 The `message` is always in Spanish and names the method and path. The **Log** shows the call with **No route (404)**.
@@ -93,7 +93,7 @@ A `404` that comes from a route, such as the `404` of `getPokemon`, is not this 
 The mock answers only to calls addressed to `localhost`, a name ending in `.localhost`, `127.0.0.1` or `::1`. Any other `Host` gets `403` at once:
 
 ```json
-{"error":"mock_host","message":"El mock solo responde a localhost o 127.0.0.1."}
+{"error":"mock_host","message":"The mock only answers localhost or 127.0.0.1."}
 ```
 
 This stops a website that points its own domain at your computer from reading your mock. See [Who can call a mock](/mocks/security/).
@@ -103,7 +103,7 @@ This stops a website that points its own domain at your computer from reading yo
 If a route cannot be sent, the mock answers `500`:
 
 ```json
-{"error":"mock_error","message":"El mock no pudo responder: status 150 no válido (de 200 a 599)"}
+{"error":"mock_error","message":"The mock could not answer: status 150 is not valid (200 to 599)"}
 ```
 
 The usual cause is a **Status** below 200: the field takes 100 to 599, but a `1xx` is not a final response. Change it to a status from 200 to 599.

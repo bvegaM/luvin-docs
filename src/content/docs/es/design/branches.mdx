@@ -88,7 +88,7 @@ Una ejecución que da vueltas con saltos o reintentos más de 200 veces se detie
 | Terminar, reintentar o ir a cualquier paso, también a los anteriores | El panel del paso, **Si responde con error** | [Éxito y errores](/es/design/success-and-errors/) |
 | Acciones de éxito, acciones que dependen de un campo de la respuesta, varios estados en una acción | La pestaña **YAML** | [La pestaña YAML](/es/design/arazzo-editor/) |
 
-Cada rama que creas con el menú de la tarjeta o con las acciones del panel del paso, salvo un reutilizable, se escribe igual: una acción llamada `on` seguido del estado, como `on404`, con el criterio `$statusCode == 404`.
+Cada rama que creas con el menú de la tarjeta o con las acciones del panel del paso, salvo un reutilizable, se escribe igual: una acción llamada `on` seguido del estado, como `on404`, con el criterio `$statusCode == 404`. Cuando cambias una rama que ya tenía una acción con otro nombre, Luvin conserva ese nombre.
 
 <Aside type="note">
 Solo los pasos de operación tienen ramas en el lienzo. Un paso que llama a otro workflow, un paso de mensajería (un mensaje no tiene estado) y un paso cuya operación no está en ningún contrato de la colección no tienen **+** en **Si falla**.

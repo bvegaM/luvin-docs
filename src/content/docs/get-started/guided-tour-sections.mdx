@@ -15,15 +15,15 @@ All sections work on the **Pokédex** collection of the workspace **Pokédex (to
 
 | Section | Runs | Against |
 |---|---|---|
-| **Workflows** | The cases of **Pokemon card** | The mode selected next to **Run**: the real PokéAPI with **Real API** |
-| **Design a workflow** | The cases of **Battle matchup**, after **Type explorer** | The mode selected next to **Run** |
-| **Contracts and environments** | The cases of **Capture order** (PayPal) | **Simulation**, the first time |
+| **Workflows** | The cases of **Pokemon card** | **Real API**: the real PokéAPI |
+| **Design a workflow** | The cases of **Battle matchup**, after **Type explorer** | **Real API** |
+| **Contracts and environments** | The cases of **Capture order** (PayPal) | **Simulation** |
 | **Requests** | One request to `pokeapi.co` | The real PokéAPI |
 | **Mock servers** | The cases of **Pokemon card** | The mock, in the desktop app. **Simulation**, in the browser |
 | **Runner and performance** | The workflows of `pokemon.arazzo.yaml`, in the runner | **Simulated** |
 | **History and Dev Tools** | The cases of **Pokemon card** | **Simulation** |
 
-The tour leaves the mode it chose selected. After **Contracts and environments** (the first time), **Mock servers** in the browser, **Runner and performance** or **History and Dev Tools**, the switch next to **Run** reads **Simulation**. Set it back to **Real API** before you start **Workflows** again if you want the real call.
+Each step that runs something chooses its mode first, so a section never inherits the mode another one left. The tour leaves the last mode it chose selected: after **Contracts and environments**, **Mock servers** in the browser, **Runner and performance** or **History and Dev Tools**, the switch next to **Run** reads **Simulation**.
 
 ## 1. Workflows
 
@@ -41,7 +41,7 @@ The core of Luvin: a workflow that chains calls and passes data from one step to
 
 ![The last card of Workflows, step 7 of 7, How data travels between steps, next to the step getWeakness, with Finish, All sections and Next: Design a workflow](/media/en/tour-section-end.webp)
 
-**What it runs.** Step 6 runs the cases with the mode selected next to **Run**. With **Real API**, it calls pokeapi.co and needs internet. The case for the 404 is simulated: it shows what the workflow does on that error without causing it in the API. If **Run** asks to confirm because a step changes data, the tour confirms; the PokéAPI never asks.
+**What it runs.** Step 6 switches to **Real API** and runs the cases, so it calls pokeapi.co and needs internet. The case for the 404 is simulated: it shows what the workflow does on that error without causing it in the API. If **Run** asks to confirm because a step changes data, the tour confirms; the PokéAPI never asks.
 
 Read more: [Run](/test/run/), [Cases](/test/cases/).
 
@@ -57,7 +57,7 @@ How a workflow is built: the canvas, the palette, the YAML, workflows that depen
 | 4 | **Workflows that depend on others** | Opens **Battle matchup** on its **Cases** tab and presses **Run**. | **Preparation**: **Type explorer** ran once before the cases. |
 | 5 | **APIs and events in the same workflow** | Opens **Register sighting** on its **Overview** tab. | The diagram, with an HTTP call, a SEND and a RECEIVE. |
 
-**What it runs.** Step 4 runs **Battle matchup**, and before it **Type explorer**, with the mode selected next to **Run**. The events of **Register sighting** are fictional: step 5 only shows them, it does not run them.
+**What it runs.** Step 4 switches to **Real API** and runs **Battle matchup**, and before it **Type explorer**, against the real PokéAPI. The events of **Register sighting** are fictional: step 5 only shows them, it does not run them.
 
 Read more: [Design a workflow](/design/overview/), [Workflows that use other workflows](/design/dependencies/), [Messaging steps](/design/messaging/).
 
@@ -72,9 +72,9 @@ What each step uses when it calls the API: the contract, the environment and the
 | 3 | **Environments** | Opens the active environment. | The environment: URLs, credentials, variables and secrets. |
 | 4 | **Another example: charging with PayPal** | The first time, creates the collection **PayPal** with its files, the **Sandbox** environment and the authorization of its workflows, and switches to **Simulation**. Then opens **Create order** on its **Overview** tab. | The diagram of **Create order**. |
 | 5 | **Authorization per API and per workflow** | Opens the **Authorization** tab of **Create order**. | OAuth 2.0 per API, with `{{clientId}}` and `{{clientSecret}}` from **Sandbox**. |
-| 6 | **Simulated without credentials, real with yours** | Opens **Capture order** on its **Cases** tab and presses **Run**. | The results, with the webhook simulated. |
+| 6 | **Simulated without credentials, real with yours** | Opens **Capture order** on its **Cases** tab, switches to **Simulation** and presses **Run**. | The results, with the webhook simulated. |
 
-**What it runs.** Step 6 runs **Capture order**. The first time, the tour has just switched to **Simulation**, so no credentials and no network are needed. **Sandbox** comes with an empty `clientId` and `clientSecret`: to use the real PayPal sandbox, fill them in and choose **Real API**.
+**What it runs.** Step 6 runs **Capture order** in **Simulation**, every time, so no credentials and no network are needed. **Sandbox** comes with an empty `clientId` and `clientSecret`: to use the real PayPal sandbox, fill them in and choose **Real API**.
 
 Read more: [Contracts](/contracts/overview/), [Environments](/environments/overview/), [Authorization overview](/authorization/overview/).
 

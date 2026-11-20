@@ -119,7 +119,7 @@ La fila dice `404 → on404` **reintenta ×3**. Para usar otros números, cámbi
 
 ### Quitar la rama
 
-Aparece solo cuando el estado ya tiene una acción. Quita la acción llamada `on404`. Si el paso no tiene otra acción de falla, también desaparece `onFailure`. La fila vuelve a `404 → sin acción` **falla**, o desaparece si el contrato no documenta ese estado.
+Aparece solo cuando el estado ya tiene una acción. Quita la acción que maneja el `404`, se llame como se llame: `on404`, una que escribiste a mano como `pokemonNotFound`, o un reutilizable cuyo criterio es `$statusCode == 404`. Si el paso no tiene otra acción de falla, también desaparece `onFailure`. La fila vuelve a `404 → sin acción` **falla**, o desaparece si el contrato no documenta ese estado.
 
 No quita un paso creado con **+ Un paso nuevo…**, ni el `done` que vino con él. Mira [Quita una rama a un paso nuevo](/es/design/branch-new-step/#quita-una-rama-a-un-paso-nuevo).
 
@@ -130,7 +130,7 @@ No quita un paso creado con **+ Un paso nuevo…**, ni el `done` que vino con é
 2. Elige otra opción.
 </Steps>
 
-Luvin reemplaza la acción `on404` en su lugar de la lista, así que su posición no cambia.
+Luvin reemplaza la acción que maneja ese estado en su lugar de la lista, así que su posición no cambia. Una acción con otro nombre, como `pokemonNotFound` en `getPokemon`, conserva su nombre: la fila dice `404 → pokemonNotFound` **reintenta ×3**. Un reutilizable pasa a ser una acción propia llamada `on404`; el reutilizable sigue en **Reutilizables** para los otros pasos que lo usan.
 
 ## El menú y el panel del paso
 
@@ -147,7 +147,7 @@ Los dos escriben la misma acción. Cada uno tiene algo que el otro no tiene:
 
 ## Solución de problemas
 
-**Dos filas para el mismo estado.** El menú y el panel escriben y quitan solo la acción llamada `on` más el estado. Si el estado lo manejaba una acción con otro nombre, como `pokemonNotFound` en `getPokemon`, elegir una opción agrega `on404` después de ella, y **Quitar la rama** la deja en su lugar. La ejecución usa la primera acción de la lista que se cumple, así que `pokemonNotFound` sigue ganando. Cambia o borra la otra acción en la pestaña YAML.
+**La acción de un estado cambió de nombre.** Era un reutilizable: cambiar la rama reemplaza la referencia por una acción del paso, llamada `on404`. Deshazlo con ⌘Z si querías cambiar el reutilizable para todos los pasos; ábrelo en **Reutilizables**.
 
 **La fila no tiene + ni lápiz.** Mira la lista de [Abre el menú](#abre-el-menú). Revisa también que estés en la pestaña **Diseño**: el diagrama de la pestaña **Resumen** solo muestra las ramas.
 

@@ -11,6 +11,10 @@ import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starli
 
 To use it, choose **Simulation** in the run bar, next to **Real API**, and press **Run**. See [Run](/test/run/).
 
+<Aside type="caution" title="A pass in simulation doesn't prove your API">
+The answers come from your contract, so a passed case shows the workflow's logic is right, not that your API behaves. The results make this visible: simulated cases carry a **Sim** badge, the **Ran against** row of the case says **Simulation**, and the summary adds *Everything ran in simulation…*. See [Results](/test/results/).
+</Aside>
+
 ## Example: simulate getSpecies
 
 In **Pokemon card**, `getSpecies` only needs `capture_rate >= 0`. In simulation it answers with the example of the contract.

@@ -1,13 +1,13 @@
 ---
 title: Las comprobaciones, una por una
-description: Cada una de las 21 comprobaciones de un request, con su nombre en español y en inglés, su nombre en el archivo, qué compara y ejemplos que pasan y que fallan.
+description: Cada una de las 22 comprobaciones de un request, con su nombre en español y en inglés, su nombre en el archivo, qué compara y ejemplos que pasan y que fallan.
 sidebar:
   order: 10
 ---
 
 import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
 
-El menú **Comprobación** de una fila tiene 21 formas de comparar lo que trae la respuesta con lo que esperas. Esta página dice exactamente cuándo pasa cada una, para que elijas la correcta y entiendas un ✕. Para agregar comprobaciones, mira [Comprueba la respuesta](/es/requests/checks/).
+El menú **Comprobación** de una fila tiene 22 formas de comparar lo que trae la respuesta con lo que esperas. Esta página dice exactamente cuándo pasa cada una, para que elijas la correcta y entiendas un ✕. Para agregar comprobaciones, mira [Comprueba la respuesta](/es/requests/checks/).
 
 ![El menú Comprobación abierto en una fila de la pestaña Comprobaciones, con es igual a, no es igual a, es mayor que (resaltado), es mayor o igual a, es menor que, es menor o igual a, contiene y las siguientes hasta está vacío](/media/es/request-checks.webp)
 
@@ -57,6 +57,7 @@ Tardó 180 ms. No tiene un campo `color`: los ejemplos usan `res.body.color` par
 | **es null** | **is null** | `isNull` | No |
 | **está vacío** | **is empty** | `isEmpty` | No |
 | **no está vacío** | **is not empty** | `isNotEmpty` | No |
+| **es verdadero** | **is truthy** | `isTruthy` | No |
 | **es texto** | **is text** | `isString` | No |
 | **es número** | **is a number** | `isNumber` | No |
 | **es true/false** | **is true/false** | `isBoolean` | No |
@@ -72,7 +73,7 @@ Los nombres del archivo son los mismos que los operadores de assert de Bruno. An
 Pasa cuando lo que lee la expresión es el valor esperado.
 
 - Un número y el mismo número escrito como texto son iguales: `19.9` es igual a `"19.9"`.
-- Un `true`/`false` de la respuesta es igual al texto `"true"`/`"false"`. Un texto `"true"` en la respuesta no es igual a `true`: escribe `"true"` entre comillas.
+- Un `true`/`false` y el texto `"true"`/`"false"` son iguales, esté el texto del lado que esté: `res.body.active` es igual a `"true"`, y un texto `"true"` en la respuesta es igual a `true`.
 - El texto se compara exacto: cuentan las mayúsculas, las minúsculas y los espacios.
 - Las listas y los objetos se comparan completos, como JSON: los elementos tienen que estar en el mismo orden, y los campos de un objeto también.
 - Un campo que no está nunca es igual a nada, ni siquiera a un valor esperado vacío.
@@ -192,6 +193,7 @@ Estas comprobaciones no llevan valor esperado.
 | **es null** | Es exactamente `null` |
 | **está vacío** | No está, es `null`, un texto vacío `""`, una lista vacía `[]` o un objeto vacío `{}` |
 | **no está vacío** | Es cualquier otra cosa. `0`, `false` y un texto con un espacio no están vacíos |
+| **es verdadero** | Está y no es `false`, `0`, `""` ni `null`. Una lista `[]` o un objeto `{}` vacíos son verdaderos. Es lo que comprueba `.to.be.ok` de Postman |
 
 | Comprobación | Expresión | Resultado | Por qué |
 |---|---|---|---|
@@ -209,6 +211,9 @@ Estas comprobaciones no llevan valor esperado.
 | **está vacío** | `res.body.color` | ✓ | No está |
 | **está vacío** | `res.body.stock` | ✕ | `0` es un número, no está vacío |
 | **no está vacío** | `res.body.tags` | ✓ | |
+| **es verdadero** | `res.body.active` | ✓ | `true` |
+| **es verdadero** | `res.body.stock` | ✕ | `0` no es verdadero |
+| **es verdadero** | `res.body.reviews` | ✓ | `[]` es verdadero, aunque esté vacío |
 
 Una expresión que Luvin no entiende no cuenta como "no está": **no existe** falla con el motivo, como **Usa res.status, res.body…, res.headers.nombre o res.responseTime**.
 
@@ -233,6 +238,7 @@ Un campo que no está falla en todas las comprobaciones de tipo.
 | Que un campo tiene un valor exacto | **es igual a** |
 | Que un campo está, sea cual sea su valor | **existe** |
 | Que una lista tiene algo | **no está vacío** |
+| Que un campo está y no es `false`, `0`, `""` ni `null` | **es verdadero** |
 | Cuántos elementos tiene una lista | **es igual a** sobre `res.body.items.length` |
 | Que una lista incluye un valor | **contiene** sobre la lista |
 | Que un texto incluye una palabra | **contiene**, o **coincide con (regex)** con `/palabra/i` para ignorar las mayúsculas |

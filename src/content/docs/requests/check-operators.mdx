@@ -1,13 +1,13 @@
 ---
 title: The checks, one by one
-description: Each of the 21 checks of a request, with its name in English and Spanish, its name in the file, what it compares, and examples that pass and fail.
+description: Each of the 22 checks of a request, with its name in English and Spanish, its name in the file, what it compares, and examples that pass and fail.
 sidebar:
   order: 10
 ---
 
 import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
 
-The **Check** menu of a row has 21 ways to compare what the response brings with what you expect. This page says exactly when each one passes, so you can choose the right one and understand a ✕. To add checks, see [Check the response](/requests/checks/).
+The **Check** menu of a row has 22 ways to compare what the response brings with what you expect. This page says exactly when each one passes, so you can choose the right one and understand a ✕. To add checks, see [Check the response](/requests/checks/).
 
 ![The Check menu open on a row of the Checks tab, listing equals, does not equal, is greater than (highlighted), is at least, is less than, is at most, contains and the next checks down to is empty](/media/en/request-checks.webp)
 
@@ -57,6 +57,7 @@ It took 180 ms. There is no `color` field: the examples use `res.body.color` for
 | **is null** | **es null** | `isNull` | No |
 | **is empty** | **está vacío** | `isEmpty` | No |
 | **is not empty** | **no está vacío** | `isNotEmpty` | No |
+| **is truthy** | **es verdadero** | `isTruthy` | No |
 | **is text** | **es texto** | `isString` | No |
 | **is a number** | **es número** | `isNumber` | No |
 | **is true/false** | **es true/false** | `isBoolean` | No |
@@ -72,7 +73,7 @@ The names in the file are the same as the assert operators of Bruno. Before comp
 Passes when what the expression reads is the expected value.
 
 - A number and the same number written as text are equal: `19.9` equals `"19.9"`.
-- A `true`/`false` of the response equals the text `"true"`/`"false"`. A text `"true"` in the response does not equal `true`: write `"true"` in quotes.
+- A `true`/`false` and the text `"true"`/`"false"` are equal, whichever side has the text: `res.body.active` equals `"true"`, and a text `"true"` in the response equals `true`.
 - Text is compared exactly: upper and lower case and spaces count.
 - Lists and objects are compared whole, as JSON: the items must be in the same order, and the fields of an object too.
 - A missing field never equals anything, not even an empty expected value.
@@ -192,6 +193,7 @@ These checks have no expected value.
 | **is null** | Is exactly `null` |
 | **is empty** | Is missing, `null`, an empty text `""`, an empty list `[]` or an empty object `{}` |
 | **is not empty** | Is anything else. `0`, `false` and a text with a space are not empty |
+| **is truthy** | Is there and is not `false`, `0`, `""` or `null`. An empty list `[]` or object `{}` is truthy. It is what Postman's `.to.be.ok` checks |
 
 | Check | Expression | Result | Why |
 |---|---|---|---|
@@ -209,6 +211,9 @@ These checks have no expected value.
 | **is empty** | `res.body.color` | ✓ | Missing |
 | **is empty** | `res.body.stock` | ✕ | `0` is a number, not empty |
 | **is not empty** | `res.body.tags` | ✓ | |
+| **is truthy** | `res.body.active` | ✓ | `true` |
+| **is truthy** | `res.body.stock` | ✕ | `0` is not truthy |
+| **is truthy** | `res.body.reviews` | ✓ | `[]` is truthy, though it is empty |
 
 An expression Luvin cannot read does not count as missing: **does not exist** fails with the reason, such as **Use res.status, res.body…, res.headers.name or res.responseTime**.
 
@@ -233,6 +238,7 @@ A missing field fails every type check.
 | That a field has one exact value | **equals** |
 | That a field is there, whatever its value | **exists** |
 | That a list has something | **is not empty** |
+| That a field is there and is not `false`, `0`, `""` or `null` | **is truthy** |
 | How many items a list has | **equals** on `res.body.items.length` |
 | That a list includes a value | **contains** on the list |
 | That a text includes a word | **contains**, or **matches (regex)** with `/word/i` to ignore case |

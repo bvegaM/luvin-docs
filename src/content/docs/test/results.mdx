@@ -18,12 +18,13 @@ After a run of **Pokemon card** in **Simulation**, the results show a summary an
 
 ```text title="Results of Pokemon card"
 The happy path works and every check went as expected.
+· Everything ran in simulation: Luvin answered from the contract's examples and didn't call your API.
 
-● Happy path                                   Passed
+● Happy path                                   Passed   Sim
 ● getPokemon responds 404 → pokemonNotFound    Passed   Sim
 ```
 
-The dot has the color of the verdict. **Sim** marks a simulated case. Click a row to see its steps on the right.
+The dot has the color of the verdict. **Sim** marks a simulated case: in **Simulation** every case has it. Against **Real API**, only the 404 case has it, because it simulates the error on purpose. Click a row to see its steps on the right.
 
 ![The results of a run: the case list on the left and the steps of a passed case on the right](/media/en/results.webp)
 
@@ -71,6 +72,12 @@ When the run ends, a line says in plain words whether the workflow works:
 Under it, short points name the checks that failed, the warnings and the checks that could not be completed. For example, after a run of a shop workflow, **Place order**, against an API that accepts any order:
 
 ![The summary of Place order: The happy path works, but other cases failed, with the failed checks, the warnings and one check that couldn't be completed, and the filters by verdict below](/media/en/test-verdicts.webp)
+
+When cases ran in simulation, a point says so: *Everything ran in simulation…* or *1 case(s) ran in simulation and didn't call your API.* The happy path "works" there only against the contract's examples.
+
+<Aside type="caution" title="Passed in simulation is not passed against your API">
+A simulated case answers with the examples in the contract, so it proves the logic of the workflow, not your API. Before you trust a result, check the **Ran against** row of the case, or run it again with **Real API**. See [Simulation](/test/simulation/).
+</Aside>
 
 If the API could not be reached, a panel titled **Could not reach the API** explains what to check and offers **Try in simulation**. See [Connection help](/dev-tools/connection-help/).
 
@@ -122,6 +129,7 @@ The top of the detail has the case name, its verdict and these rows:
 |---|---|
 | **What it checks** | What the case does differently. The happy path does not have this row. |
 | **Expected** | The expected result. |
+| **Ran against** | **Your API** when every step called it; **Your API, but 1 of 4 steps were simulated** when some steps answered from the contract (messaging steps, or an error simulated on purpose); **Simulation** when Luvin called nothing. A pass in simulation does not prove the real API. |
 | **Result** | The reason for the verdict, for example *Failed at step "getSpecies": …* |
 | **Inputs** | `default values`, or what the case changes. **Show values sent** lists every input with the value that was sent: generators resolved, secrets masked. |
 | **Outputs** | The outputs of the workflow, when it has them. |

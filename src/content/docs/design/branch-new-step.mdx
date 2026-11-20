@@ -209,8 +209,9 @@ The steps below the happy path belong to the branches. Keep that in mind when yo
 | How you add it | Where it goes | Runs on the happy path? |
 |---|---|---|
 | The **+** on the arrow right below the step with `done` | Between them. `done` moves to the new step. | Yes |
-| The **+** of a palette row, or dropped at the bottom | After the last branch step | No: it runs after that branch step |
-| Dropped right below the step with `done` | After it. `done` stays where it was. | No |
+| The **+** of a palette row | After the step with `done`. `done` moves to the new step. | Yes |
+| Dropped right below the step with `done` | After it. `done` moves to the new step. | Yes |
+| Dropped at the bottom, below a branch step | After that branch step | No: it runs after that branch step |
 
 See [Insert a step](/design/insert-step/).
 

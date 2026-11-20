@@ -30,7 +30,7 @@ El camino feliz falló porque ese Pokémon no existe. Lo que hay que corregir so
 
 ## La parte de arriba
 
-Arriba se ve el nombre de lo que se ejecutó, la fecha y hora, el ambiente, **API real** o **Simulado**, y el archivo de datos, si hay.
+Arriba se ve el nombre de lo que se ejecutó, la fecha y hora, el ambiente con que se ejecutó, **API real** o **Simulado**, y el archivo de datos, si hay. El ambiente es el de esa ejecución: no cambia si después cambias de ambiente.
 
 A la derecha, el estado:
 
@@ -101,7 +101,7 @@ Mientras se ejecuta, pulsa **Detener**. El estado pasa a **Detenido**. Con **Det
 
 | Qué ves | Por qué | Qué hacer |
 |---|---|---|
-| Una fila dice **Sin casos que ejecutar en este modo**. | El archivo Arazzo de ese workflow tiene un error, así que no se pudo ejecutar. | Abre el archivo y corrígelo. La barra lateral lo marca con **No se puede leer**. |
+| Falta un workflow en los resultados. | Estaba sin marcar, o su archivo Arazzo tiene un error: en la lista queda en gris y dice **el YAML del archivo tiene un error**. | Abre el archivo y corrígelo. La barra lateral lo marca con **No se puede leer**. |
 | Todos los casos de un workflow están sin concluir y la fila muestra un error. | Falló un workflow del que depende. | Abre la fila para ver cuál, y ejecuta ese workflow a mano. |
 | Muchos pasos responden `401`. | El ambiente no tiene credenciales para ellos. | Revisa el aviso *Faltan credenciales en «…»* en la configuración, y pulsa **Completar**. |
 | Un paso falla con *Ningún elemento de la lista (…) cumple la regla: …* | Una regla guardada no encontró ningún elemento. | Mira [Listas en el runner](/es/runner/workflows-lists/#cuando-ningún-elemento-cumple). |

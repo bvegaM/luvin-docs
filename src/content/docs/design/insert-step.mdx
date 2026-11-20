@@ -135,7 +135,7 @@ Starting from **Pokemon card** with `listPokemon` as the step for the 404 of `ge
 
 On the canvas, the row `success → done` **end ✓** moves from the card of `getAbility` to the card of `getEvolutionChain`.
 
-Luvin only moves an action that is named `done`, of type `end` and without criteria. If the step above ends the happy path with an action you wrote by hand, with another name, Luvin leaves it there and the new step comes after the end. Move that action in the YAML tab.
+The same happens when you click **+** on a palette row, or drop a step right below the step with `done`. Luvin only moves an action that is named `done`, of type `end` and without criteria. If the step above ends the happy path with an action you wrote by hand, with another name, Luvin leaves it there and the new step comes after the end. Move that action in the YAML tab.
 
 ### Other positions after the end
 
@@ -148,8 +148,8 @@ Luvin only moves an action that is named `done`, of type `end` and without crite
 
 | | **+** on an arrow | Drag onto the canvas | **+** on a palette row |
 |---|---|---|---|
-| Where it goes | Exactly between the two cards | Below the last card whose middle is above the drop point | At the end of the workflow |
-| Moves `done` | Yes, when inserted right below it | No | No |
+| Where it goes | Exactly between the two cards | Below the last card whose middle is above the drop point | Right after the step with `done`, at the end of the happy path. Without a `done`, at the end of the workflow |
+| Moves `done` | Yes, when inserted right below it | Yes, when dropped right below it | Yes |
 | Choose from | A dialog with the palette | The palette on the left | The palette on the left |
 
 ## Undo

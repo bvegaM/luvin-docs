@@ -47,7 +47,7 @@ A browser lets a page read a response from another address only if that address 
 
 ### The call before the call
 
-For some calls, such as a `POST` with JSON, the browser first sends an `OPTIONS` call to ask. When no route of the mock answers `OPTIONS`, the mock answers it itself with `204` and:
+For some calls, such as a `POST` with JSON, the browser first sends an `OPTIONS` call to ask, with the header `access-control-request-method`. The mock always answers that question itself, with `204` and:
 
 | Header | Value |
 |---|---|
@@ -56,8 +56,8 @@ For some calls, such as a `POST` with JSON, the browser first sends an `OPTIONS`
 | `access-control-max-age` | `600`: the browser can skip asking for 10 minutes. |
 | `access-control-allow-origin` | The address of the page, only if it is local. |
 
-<Aside type="caution">
-A route with method **Any** also matches `OPTIONS`. It answers the browser's question with its own response, without `access-control-allow-methods` or `access-control-allow-headers`, and the browser can refuse the real call. Give that route a specific method.
+<Aside type="note">
+Your routes don't get in the way: a route with method **Any** or `OPTIONS` matches the question, but the mock answers it as above anyway. Those routes answer only the `OPTIONS` calls that are not a browser's question, such as one you send from a request or cURL. An `OPTIONS` call that no route matches also gets `204`.
 </Aside>
 
 A header your route writes, such as `access-control-allow-origin`, replaces the one the mock adds. The routes of the collection never carry these headers: they are removed from the saved examples.
@@ -86,7 +86,7 @@ The **Log** is kept only in the memory of the app, and is emptied when you reloa
 
 | What you see | Why, and what to do |
 |---|---|
-| Your frontend gets a CORS error. | Its address is not local, or a route with **Any** answers the `OPTIONS` call. Serve the frontend from `localhost`, and give the route a method. |
+| Your frontend gets a CORS error. | Its address is not local. Serve the frontend from `localhost` or `127.0.0.1`. |
 | A call gets `403` with `mock_host`. | It used a name that is not local, such as the name of your computer or a custom domain. Use `127.0.0.1`. |
 | A colleague cannot reach your mock. | It only listens on your computer. Share the mock file instead: it travels with the collection. |
 

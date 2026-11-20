@@ -119,7 +119,7 @@ The row reads `404 → on404` **retries ×3**. To use other numbers, change them
 
 ### Remove the branch
 
-Shows only when the status already has an action. It removes the action named `on404`. If the step has no other action on failure, `onFailure` goes away too. The row goes back to `404 → no action` **fails**, or disappears if the contract does not document that status.
+Shows only when the status already has an action. It removes the action that handles `404`, whatever its name: `on404`, one you wrote by hand such as `pokemonNotFound`, or a reusable whose criterion is `$statusCode == 404`. If the step has no other action on failure, `onFailure` goes away too. The row goes back to `404 → no action` **fails**, or disappears if the contract does not document that status.
 
 It does not remove a step created with **+ A new step…**, nor the `done` that came with it. See [Remove a branch to a new step](/design/branch-new-step/#remove-a-branch-to-a-new-step).
 
@@ -130,7 +130,7 @@ It does not remove a step created with **+ A new step…**, nor the `done` that 
 2. Choose another option.
 </Steps>
 
-Luvin replaces the action `on404` in its place in the list, so its position does not change.
+Luvin replaces the action that handles that status in its place in the list, so its position does not change. An action with another name, such as `pokemonNotFound` in `getPokemon`, keeps its name: the row reads `404 → pokemonNotFound` **retries ×3**. A reusable becomes an action of its own named `on404`; the reusable stays in **Reusables** for the other steps that use it.
 
 ## The menu and the step panel
 
@@ -147,7 +147,7 @@ Both write the same action. Each one has something the other does not:
 
 ## Troubleshooting
 
-**Two rows for the same status.** The menu and the panel write and remove only the action named `on` plus the status. If the status was handled by an action with another name, such as `pokemonNotFound` in `getPokemon`, choosing an option adds `on404` after it, and **Remove the branch** leaves it in place. The run uses the first action of the list that matches, so `pokemonNotFound` still wins. Change or delete the other action in the YAML tab.
+**The action of a status changed its name.** It was a reusable: changing the branch replaces the reference with an action of the step, named `on404`. Undo with ⌘Z if you wanted to change the reusable for every step instead; open it in **Reusables**.
 
 **The row has no + or pencil.** See the list in [Open the menu](#open-the-menu). Check also that you are in the **Design** tab: the diagram of the **Overview** tab only shows the branches.
 

@@ -18,12 +18,13 @@ Después de ejecutar **Pokemon card** en **Simulación**, los resultados muestra
 
 ```text title="Resultados de Pokemon card"
 El camino feliz funciona y todas las comprobaciones salieron como se esperaba.
+· Todo se ejecutó en simulación: Luvin respondió con los ejemplos del contrato y no llamó a tu API.
 
-● Camino feliz                                  Pasó
+● Camino feliz                                  Pasó   Sim
 ● getPokemon responde 404 → pokemonNotFound     Pasó   Sim
 ```
 
-El punto tiene el color del veredicto. **Sim** marca un caso simulado. Haz clic en una fila para ver sus pasos a la derecha.
+El punto tiene el color del veredicto. **Sim** marca un caso simulado: en **Simulación** lo tienen todos. Con **API real**, solo lo tiene el caso 404, porque simula el error a propósito. Haz clic en una fila para ver sus pasos a la derecha.
 
 ![Los resultados de una ejecución: la lista de casos a la izquierda y los pasos de un caso que pasó a la derecha](/media/es/results.webp)
 
@@ -71,6 +72,12 @@ Cuando termina la ejecución, una línea dice en palabras simples si el workflow
 Debajo, puntos breves nombran las comprobaciones que fallaron, las advertencias y las comprobaciones que no se pudieron completar. Por ejemplo, después de ejecutar un workflow de tienda, **Place order**, contra una API que acepta cualquier pedido:
 
 ![El resumen de Place order: El camino feliz funciona, pero fallaron otros casos, con las comprobaciones que no pasaron, las advertencias y una que no se pudo completar, y debajo los filtros por veredicto](/media/es/test-verdicts.webp)
+
+Cuando hubo casos simulados, un punto lo dice: *Todo se ejecutó en simulación…* o *1 caso(s) se ejecutaron en simulación y no llamaron a tu API.* Ahí el camino feliz "funciona" solo contra los ejemplos del contrato.
+
+<Aside type="caution" title="Pasar en simulación no es pasar contra tu API">
+Un caso simulado responde con los ejemplos del contrato: prueba la lógica del workflow, no tu API. Antes de confiar en un resultado, mira la fila **Se ejecutó contra** del caso, o ejecútalo de nuevo con **API real**. Consulta [Simulación](/es/test/simulation/).
+</Aside>
 
 Si no se pudo llegar a la API, un panel titulado **No se pudo conectar con la API** explica qué revisar y ofrece **Probar en simulación**. Mira [Ayuda de conexión](/es/dev-tools/connection-help/).
 
@@ -122,6 +129,7 @@ La parte de arriba del detalle tiene el nombre del caso, su veredicto y estas fi
 |---|---|
 | **Qué prueba** | Qué hace distinto el caso. El camino feliz no tiene esta fila. |
 | **Esperado** | El resultado esperado. |
+| **Se ejecutó contra** | **Tu API** cuando todos los pasos la llamaron; **Tu API, pero 1 de 4 pasos se simularon** cuando algunos pasos respondieron con el contrato (pasos de mensajería, o un error simulado a propósito); **Simulación** cuando Luvin no llamó a nada. Pasar en simulación no prueba la API real. |
 | **Resultado** | El motivo del veredicto, por ejemplo *Falló en el paso "getSpecies": …* |
 | **Inputs** | `valores por defecto`, o lo que cambia el caso. **Ver valores enviados** lista cada input con el valor que se envió: generadores resueltos, secretos ocultos. |
 | **Outputs** | Los outputs del workflow, cuando los tiene. |

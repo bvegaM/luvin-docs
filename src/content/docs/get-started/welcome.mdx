@@ -47,8 +47,8 @@ You enter one value, `pokemon: pikachu`. Luvin runs the four steps, passes each 
 
 1. **Bring your contracts.** A contract is the OpenAPI or AsyncAPI file that describes an API. Add the contracts of the APIs involved, or import your Postman or Bruno collection.
 2. **Design the workflow visually.** Drag the operations onto a canvas. Luvin connects the data between operations automatically, by rules and with no AI involved. For example, a `customerId` parameter is connected to the `id` that the "create customer" step returned.
-3. **Test its scenarios.** Luvin generates **cases** (a case is one run of the workflow with given inputs): the happy path, invalid inputs, calls without credentials and one case per error path. Add your own and run them against the real API, or in **simulation**, where Luvin answers from the examples in the contract without calling anything.
-4. **Share the evidence.** Export the results as an HTML report anyone can open. The workflow itself is saved as a standard [Arazzo](https://spec.openapis.org/arazzo/latest.html) file, the OpenAPI Initiative's open format for sequences of API calls: it is yours, readable as YAML, kept in git and portable to other Arazzo tools.
+3. **Test its scenarios.** Luvin generates **cases** (a case is one run of the workflow with given inputs): the happy path, invalid inputs, calls without credentials and one case per error path. Add your own and run them against the real API, or in **simulation**, where Luvin answers from the examples in the contract without calling anything. A case that passes in simulation proves the logic of the workflow, not your API: each result says whether it ran against your API or in simulation.
+4. **Share the evidence.** Export the results as an HTML report anyone can open. The workflow itself is saved as a standard [Arazzo](https://spec.openapis.org/arazzo/latest.html) file, the OpenAPI Initiative's open format for sequences of API calls: it is yours, readable as YAML, kept in git and portable to other Arazzo tools. Your workflow isn't locked into Luvin: you can review it in a pull request, version it next to your code and run it in a CI runner that reads Arazzo.
 
 </Steps>
 
@@ -74,6 +74,7 @@ Logging a customer in and keeping the session alive, placing an order, paying wi
 Luvin is for designing, debugging and demonstrating processes that span several APIs. It does not run integrations in production and it is not a CI runner: the workflows it saves are standard Arazzo files, which you can take to your pipeline. See [What Luvin does not do](/reference/faq/#what-does-luvin-not-do).
 
 <Aside type="caution" title="Know these limits before you plan a test">
+- **A pass in Simulation is not a pass against your API.** Simulation answers with the contract's examples. To prove the API, run with **Real API**.
 - **Messaging steps are always simulated.** AsyncAPI `send` and `receive` steps answer from the contract, even when you run against the real API. Luvin does not connect to Kafka, AMQP or MQTT yet, so it cannot prove an asynchronous integration end to end.
 - **In the browser, the API must allow CORS.** The desktop app has no such limit and adds gRPC and NTLM.
 

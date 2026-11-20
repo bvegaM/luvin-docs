@@ -114,7 +114,8 @@ Los nombres de los headers pasan a minúsculas. Los índices negativos (`[-1]`) 
 | `.to.include(x)`, `.to.contain(x)`, `.to.contains(x)`, `.to.have.string(x)` | **contiene** |
 | `.to.not.include(x)`, `.to.not.contain(x)` | **no contiene** |
 | `.to.match(/…/)` | **coincide con (regex)**, con el patrón y sus opciones |
-| `.to.exist`, `.to.not.be.undefined`, `.to.be.ok` | **existe** |
+| `.to.exist`, `.to.not.be.undefined` | **existe** |
+| `.to.be.ok` | **es verdadero** |
 | `.to.not.exist`, `.to.be.undefined` | **no existe** |
 | `.to.be.null` | **es null** |
 | `.to.be.empty` | **está vacío** |
@@ -125,8 +126,8 @@ Los nombres de los headers pasan a minúsculas. Los índices negativos (`[-1]`) 
 | `.to.be.an("array")` | **es una lista** |
 | `.to.be.an("object")` | **es un objeto** |
 
-<Aside type="caution">
-En Postman, `.to.be.ok` significa "es verdadero" (no es `0`, `""`, `false` ni `null`). Luvin lo convierte en **existe**, que pasa con cualquier valor que esté, incluso `false`. Revisa esas comprobaciones.
+<Aside type="note">
+En Postman, `.to.be.ok` significa "es verdadero": no es `0`, `""`, `false` ni `null`. Luvin lo convierte en **es verdadero**, que pasa y falla con los mismos valores. Solo `pm.response.to.be.ok`, sobre la respuesta entera, se convierte en las dos comprobaciones de status de arriba.
 </Aside>
 
 ### El valor esperado

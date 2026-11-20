@@ -114,7 +114,8 @@ Header names become lower case. Negative indices (`[-1]`) and method calls (`.ma
 | `.to.include(x)`, `.to.contain(x)`, `.to.contains(x)`, `.to.have.string(x)` | **contains** |
 | `.to.not.include(x)`, `.to.not.contain(x)` | **does not contain** |
 | `.to.match(/…/)` | **matches (regex)**, with the pattern and its flags |
-| `.to.exist`, `.to.not.be.undefined`, `.to.be.ok` | **exists** |
+| `.to.exist`, `.to.not.be.undefined` | **exists** |
+| `.to.be.ok` | **is truthy** |
 | `.to.not.exist`, `.to.be.undefined` | **does not exist** |
 | `.to.be.null` | **is null** |
 | `.to.be.empty` | **is empty** |
@@ -125,8 +126,8 @@ Header names become lower case. Negative indices (`[-1]`) and method calls (`.ma
 | `.to.be.an("array")` | **is a list** |
 | `.to.be.an("object")` | **is an object** |
 
-<Aside type="caution">
-In Postman, `.to.be.ok` means "is truthy" (not `0`, `""`, `false` or `null`). Luvin turns it into **exists**, which passes with any value that is there, even `false`. Review those checks.
+<Aside type="note">
+In Postman, `.to.be.ok` means "is truthy": not `0`, `""`, `false` or `null`. Luvin turns it into **is truthy**, which passes and fails with the same values. Only `pm.response.to.be.ok`, on the whole response, becomes the two status checks above.
 </Aside>
 
 ### The expected value

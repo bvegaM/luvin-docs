@@ -47,7 +47,7 @@ Un navegador deja que una página lea una respuesta de otra dirección solo si e
 
 ### La llamada antes de la llamada
 
-Para algunas llamadas, como un `POST` con JSON, el navegador primero envía una llamada `OPTIONS` para preguntar. Cuando ninguna ruta del mock responde `OPTIONS`, el mock la responde él mismo con `204` y:
+Para algunas llamadas, como un `POST` con JSON, el navegador primero envía una llamada `OPTIONS` para preguntar, con el header `access-control-request-method`. El mock siempre responde él mismo esa pregunta, con `204` y:
 
 | Header | Valor |
 |---|---|
@@ -56,8 +56,8 @@ Para algunas llamadas, como un `POST` con JSON, el navegador primero envía una 
 | `access-control-max-age` | `600`: el navegador puede no preguntar durante 10 minutos. |
 | `access-control-allow-origin` | La dirección de la página, solo si es local. |
 
-<Aside type="caution">
-Una ruta con método **Cualquiera** también coincide con `OPTIONS`. Responde la pregunta del navegador con su propia respuesta, sin `access-control-allow-methods` ni `access-control-allow-headers`, y el navegador puede rechazar la llamada real. Dale a esa ruta un método concreto.
+<Aside type="note">
+Tus rutas no estorban: una ruta con método **Cualquiera** u `OPTIONS` coincide con la pregunta, pero el mock la responde igual que arriba. Esas rutas solo responden las llamadas `OPTIONS` que no son una pregunta del navegador, como una que envías desde un request o desde cURL. Una llamada `OPTIONS` sin ruta que coincida también recibe `204`.
 </Aside>
 
 Un header que escribe tu ruta, como `access-control-allow-origin`, reemplaza al que agrega el mock. Las rutas de la colección nunca llevan estos headers: se quitan de los ejemplos guardados.
@@ -86,7 +86,7 @@ El **Log** queda solo en la memoria de la app, y se vacía cuando recargas o la 
 
 | Qué ves | Por qué, y qué hacer |
 |---|---|
-| Tu frontend recibe un error de CORS. | Su dirección no es local, o una ruta con **Cualquiera** responde la llamada `OPTIONS`. Sirve el frontend desde `localhost`, y dale un método a la ruta. |
+| Tu frontend recibe un error de CORS. | Su dirección no es local. Sirve el frontend desde `localhost` o `127.0.0.1`. |
 | Una llamada recibe `403` con `mock_host`. | Usó un nombre que no es local, como el nombre de tu equipo o un dominio propio. Usa `127.0.0.1`. |
 | Un compañero no llega a tu mock. | Solo escucha en tu equipo. Comparte el archivo del mock: viaja con la colección. |
 

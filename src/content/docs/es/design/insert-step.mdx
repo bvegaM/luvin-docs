@@ -135,7 +135,7 @@ Partiendo de **Pokemon card** con `listPokemon` como paso para el 404 de `getSpe
 
 En el lienzo, la fila `éxito → done` **fin ✓** pasa de la tarjeta de `getAbility` a la de `getEvolutionChain`.
 
-Luvin solo mueve una acción llamada `done`, de tipo `end` y sin criterios. Si el paso de arriba termina el camino feliz con una acción que escribiste a mano, con otro nombre, Luvin la deja donde está y el paso nuevo queda después del fin. Mueve esa acción en la pestaña YAML.
+Lo mismo pasa cuando haces clic en **+** de una fila de la paleta, o sueltas un paso justo debajo del paso con `done`. Luvin solo mueve una acción llamada `done`, de tipo `end` y sin criterios. Si el paso de arriba termina el camino feliz con una acción que escribiste a mano, con otro nombre, Luvin la deja donde está y el paso nuevo queda después del fin. Mueve esa acción en la pestaña YAML.
 
 ### Otras posiciones después del fin
 
@@ -148,8 +148,8 @@ Luvin solo mueve una acción llamada `done`, de tipo `end` y sin criterios. Si e
 
 | | **+** de una flecha | Arrastrar al lienzo | **+** de una fila de la paleta |
 |---|---|---|---|
-| Dónde queda | Exactamente entre las dos tarjetas | Debajo de la última tarjeta cuyo centro queda por encima del punto donde sueltas | Al final del workflow |
-| Mueve `done` | Sí, cuando insertas justo debajo de él | No | No |
+| Dónde queda | Exactamente entre las dos tarjetas | Debajo de la última tarjeta cuyo centro queda por encima del punto donde sueltas | Justo después del paso con `done`, al final del camino feliz. Sin un `done`, al final del workflow |
+| Mueve `done` | Sí, cuando insertas justo debajo de él | Sí, cuando lo sueltas justo debajo de él | Sí |
 | Eliges desde | Un diálogo con la paleta | La paleta de la izquierda | La paleta de la izquierda |
 
 ## Deshacer

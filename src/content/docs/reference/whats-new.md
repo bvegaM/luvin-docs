@@ -20,6 +20,7 @@ This page lists what Luvin can do and when each capability arrived. The newest i
 - **In the designer, a + for each branch and between steps.** "If it responds 404, go to a new step" is built from the step card, and the (+) on each arrow inserts a step there. See [Success and errors](/design/success-and-errors/).
 - **The guided tour comes in short sections**, starting with workflows. See [The guided tour](/get-started/guided-tour/).
 - **A YAML typo no longer breaks the collection.** The file shows as "can't be read", Run is blocked and, once fixed, its workflows come back with their cases.
+- **Simulation is labelled as such.** Each case says whether it ran against your API or in simulation, and the summary says when nothing called your API, so a simulated pass isn't read as a real one. See [Results](/test/results/).
 - **Safer:** secrets saved by a request don't show in history or Network; a mock server only answers your machine; a huge compressed response no longer fills the memory; an https to http redirect doesn't carry the authorization.
 - **Other improvements:** Enter in the URL sends the request and ⌘/Ctrl+Enter sends it from anywhere; undo in the designer survives switching tabs; a JSON Arazzo stays JSON; the ⌘K palette has actions and mock servers.
 

@@ -11,6 +11,10 @@ La **simulación** ejecuta un workflow sin enviar ningún request. Cada paso res
 
 Para usarla, elige **Simulación** en la barra de ejecución, junto a **API real**, y pulsa **Ejecutar**. Mira [Ejecutar](/es/test/run/).
 
+<Aside type="caution" title="Pasar en simulación no prueba tu API">
+Las respuestas salen de tu contrato, así que un caso que pasa muestra que la lógica del workflow está bien, no que tu API se comporta. Los resultados lo dejan a la vista: los casos simulados llevan la insignia **Sim**, la fila **Se ejecutó contra** del caso dice **Simulación** y el resumen agrega *Todo se ejecutó en simulación…*. Consulta [Resultados](/es/test/results/).
+</Aside>
+
 ## Ejemplo: simula getSpecies
 
 En **Pokemon card**, `getSpecies` solo necesita `capture_rate >= 0`. En simulación responde con el ejemplo del contrato.
