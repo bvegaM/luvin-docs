@@ -170,22 +170,19 @@ A workflow file names its contracts in `sourceDescriptions`, each with an addres
 
 ### A contract added after the workflow file
 
-An existing workflow file does not pick up contracts you add later. The new contract shows ○, and its operations are not in the palette of that file's workflows. Do one of these:
-
-- Create a new workflow file with **New Arazzo**: it lists every contract.
-- Or add the contract to `sourceDescriptions` of the existing file, in the [YAML tab](/design/arazzo-editor/):
+A workflow file that already exists doesn't list contracts you add later, so the new contract shows ○. You don't need to edit the YAML: its operations are in the **Operations** palette of every workflow, in their own group with the mark **new**. Add one, with **+** or by dragging it, and Luvin adds the contract to the `sourceDescriptions` of that workflow file, with its path relative to the file:
 
 ```yaml title="pokemon.arazzo.yaml" {5-7}
 sourceDescriptions:
   - name: pokeapi
     url: ./pokeapi.openapi.yaml
     type: openapi
-  - name: pokedexEvents
-    url: ./pokedex-events.asyncapi.yaml
-    type: asyncapi
+  - name: nuevocontrato
+    url: ./nuevo-contrato.openapi.yaml
+    type: openapi
 ```
 
-The row of the contract changes from ○ to ✓ and shows the name you gave it.
+The row of the contract changes from ○ to ✓, with the name of the group. From then on it gets a base URL in the environment and its credentials, like any other contract. You can still list it by hand in the [YAML tab](/design/arazzo-editor/), or create a workflow file with **New Arazzo**, which lists every contract.
 
 ## Related
 

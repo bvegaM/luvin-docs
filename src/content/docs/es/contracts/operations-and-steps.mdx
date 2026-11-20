@@ -85,8 +85,8 @@ La paleta a la izquierda de la pestaña **Diseño** tiene un grupo por contrato,
 
 | Se muestra | No se muestra |
 |---|---|
-| Las operaciones de los contratos OpenAPI que lista un archivo de workflow de la colección y que cargaron (✓). | Las operaciones AsyncAPI. Los pasos de mensajería se agregan en la pestaña YAML. Mira [Pasos de mensajería](/es/design/messaging/). |
-| | Los contratos que no cargaron, y los contratos ○ que ningún archivo de workflow lista todavía. Un contrato que cargó pero al que le faltan archivos de `$ref` sí se muestra, sin las partes de esos archivos. |
+| Las operaciones de los contratos OpenAPI que lista un archivo de workflow de la colección y que cargaron (✓), y las de los contratos OpenAPI ○ que ningún archivo de workflow lista todavía, en un grupo con la marca **nuevo**. Usar una suma el contrato al archivo de workflow. Mira [Un contrato agregado después del archivo de workflow](/es/contracts/add/#un-contrato-agregado-después-del-archivo-de-workflow). | Las operaciones AsyncAPI. Los pasos de mensajería se agregan en la pestaña YAML. Mira [Pasos de mensajería](/es/design/messaging/). |
+| | Los contratos que no cargaron. Un contrato que cargó pero al que le faltan archivos de `$ref` sí se muestra, sin las partes de esos archivos. |
 | | Los contratos que Luvin arma a partir de tus requests. Sus operaciones están en **Requests de la colección**. |
 
 La búsqueda **Buscar operación…** filtra por `operationId`, ruta, `summary` y `tags`. Buscar `pokemon` encuentra cada operación que tenga esa palabra en su ruta o en su tag. Si no hay ningún grupo que mostrar, la paleta dice *La colección no tiene contratos OpenAPI. Agrega uno para ver sus operaciones aquí.*

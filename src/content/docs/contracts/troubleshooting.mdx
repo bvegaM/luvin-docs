@@ -30,7 +30,7 @@ If `pokeapi` had shown ✕, the problem would have been the file, not the operat
 |---|---|---|
 | The row shows ✕ and **Attach**, and the workflows say *The contract for source "x" (url) is missing.* | No file of the collection has the name at the end of `url` in the workflow file. | Import the file with that name, use **Attach**, or fix `url`. See [How a workflow finds its file](/contracts/add/#how-a-workflow-finds-its-file). |
 | ✕ with *Files referenced with $ref are missing: …* | The contract uses `$ref` to files that are not in the collection. | Add those files. See [References between files](/contracts/references/#missing-references). |
-| ✕ on the contract, and its file listed apart with ○ and the type `schemas`. The tooltip of that file says *Could not read as YAML or JSON:* | The file has a syntax error, so Luvin cannot tell it is a contract. | Click the ○ row, fix the line the editor points to, then open the collection again so the workflow file finds it. |
+| ✕ on the contract, and its file listed apart with ○ and the type `schemas`. The tooltip of that file says *Could not read as YAML or JSON:* | The file has a syntax error, so Luvin cannot tell it is a contract. | Click the ○ row and fix the line the editor points to. As soon as it reads as a contract, the workflow file finds it: the mark changes to ✓. |
 | ✕ with *"name" does not look like an OpenAPI document.* | The file you attached is an AsyncAPI, or not a contract, or the workflow file says the wrong `type`. | Attach the right file, or fix `type` in `sourceDescriptions`. |
 | ✕ with *Could not download: …* | The contract lives at a URL that could not be downloaded. | See [Remote contracts and references](/contracts/remote-and-refs/#download-a-contract). |
 | The counter shows `2/3` in a warning color | One of the contracts that workflow files name did not load. | Hover over the rows with ✕ to read why. |
@@ -41,9 +41,9 @@ If `pokeapi` had shown ✕, the problem would have been the file, not the operat
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| The row shows ○ | No workflow file lists the contract in `sourceDescriptions`. | Create a new workflow file with **New Arazzo**, or add the contract to `sourceDescriptions` in the YAML tab. See [A contract added after the workflow file](/contracts/add/#a-contract-added-after-the-workflow-file). |
+| The row shows ○ | No workflow file lists the contract in `sourceDescriptions`. | Add one of its operations from the **Operations** palette (group marked **new**): Luvin lists the contract for you. Or create a workflow file with **New Arazzo**, or add it to `sourceDescriptions` in the YAML tab. See [A contract added after the workflow file](/contracts/add/#a-contract-added-after-the-workflow-file). |
 | The row shows the type `schemas` | The file starts with neither `openapi:` nor `asyncapi:`. Often a file of shared schemas, which is fine. Sometimes a typo such as `openApi:`. | If it is a contract, fix the first key. |
-| Its operations are not in the **Operations** palette | The contract is ○ or did not load, it is an AsyncAPI, or the search box filters them out. | Check the mark in the list and clear the search. AsyncAPI steps go in the YAML tab. See [The Operations palette](/contracts/operations-and-steps/#the-operations-palette). |
+| Its operations are not in the **Operations** palette | The contract did not load, it is an AsyncAPI, or the search box filters them out. | Check the mark in the list and clear the search. AsyncAPI steps go in the YAML tab. See [The Operations palette](/contracts/operations-and-steps/#the-operations-palette). |
 | The palette says *The collection has no OpenAPI contracts. Add one to see its operations here.* | No OpenAPI contract that a workflow file lists has loaded. | Add one, or list it in the workflow file. |
 | The **Credentials** of the environment do not list a scheme of the contract | Credentials are listed only for schemes that a step of a workflow uses. | Add a step that calls a protected operation. See [Servers and credentials](/contracts/servers-and-credentials/#from-security-to-credentials). |
 
