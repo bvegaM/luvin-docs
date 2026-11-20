@@ -1,113 +1,147 @@
 ---
 title: Edit a contract
-description: How to edit the YAML of a contract next to its preview, read the live errors, see which workflows a change affects and make a local copy of a contract you cannot edit.
+description: The contract editor, its top bar, the live preview, how changes are saved, and how to make a local copy of a contract you cannot edit.
 sidebar:
-  order: 2
+  order: 4
 ---
 
-import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
 
-Click a contract in the sidebar and Luvin opens it in an editor. On the left you edit the YAML. On the right you see the contract as a readable page, which updates as you type.
+Click a contract in the sidebar and Luvin opens it in an editor. On the left you edit the YAML. On the right you see the contract as a readable page, which updates as you type. The workflows that use the contract are analysed again with every change, so you see the effect of an edit before you run anything.
 
 ![A contract open: YAML editor on the left and the Swagger UI preview on the right](/media/en/contract.webp)
 
-## Example: a rename that breaks a workflow
+## Example: add an operation to the PokéAPI contract
 
-In the PokéAPI contract, the **Pokemon card** workflow uses the operation `getPokemon`. You rename it in the YAML:
+You want a step that reads the color of a Pokémon. Open `pokeapi` from the **Contracts** list and add an operation under `paths`:
 
-```yaml title="pokeapi.openapi.yaml" {3-4}
-  /pokemon/{idOrName}:
+<Tabs>
+<TabItem label="Before">
+
+```yaml title="pokeapi.openapi.yaml" {6}
+  /pokemon-color/{idOrName}:
     get:
-      # operationId: getPokemon
-      operationId: getPokemonByName
+      operationId: getPokemonColor
+      summary: Consulta un color
+      parameters:
+        - { name: idOrName, in: path, schema: { type: string } }
+      responses:
+        '200':
+          description: El color
 ```
 
-The bar above the preview now says *This change breaks N workflow(s).* Click **Show**, then the step that now has no operation: the workflow opens at that step. Rename it back and the bar returns to *no new problems*.
+**Errors (1)** appears above the preview: **Error** · **Line 6** · *The path parameter "idOrName" must have required: true.*
 
-## The screen
+</TabItem>
+<TabItem label="After">
 
-The top bar shows:
+```yaml title="pokeapi.openapi.yaml" {6}
+  /pokemon-color/{idOrName}:
+    get:
+      operationId: getPokemonColor
+      summary: Consulta un color
+      parameters:
+        - { name: idOrName, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: El color
+```
 
-- The file name and a badge with the type and version, for example **OpenAPI 3.0.3** or **AsyncAPI 3.0.0**.
-- A **Read-only** badge when you cannot edit the file. See below.
-- A **$ref: file** button for each file that this contract references. Click it to open that file.
-- The save state. In a workspace the state is **Saved automatically**. Outside a workspace you see **Changes not saved to a file** and the **Save file** button, plus **Discard changes** to go back to the text you opened.
-- **Generate requests** (OpenAPI only). See [Generate requests from a contract](/requests/generate-from-contract/).
+The panel disappears. Swagger UI shows `GET /pokemon-color/{idOrName}`, and the **Operations** palette of the **Design** tab lists it in the group `pokeapi`.
 
-The preview depends on the contract:
+</TabItem>
+</Tabs>
 
-| Contract | Preview |
+The line number points to the parameter. Click the message and the editor jumps to it.
+
+## The top bar
+
+| Element | What it shows or does |
 |---|---|
-| OpenAPI | The official **Swagger UI**. You can try an operation from it: see [Try one operation](/contracts/try-it-out/). |
-| AsyncAPI | Luvin's own preview. See [AsyncAPI contracts](/contracts/asyncapi/). |
-| A file of schemas that others reference | A list of its schemas. |
+| File name | The file of the contract, for example `pokeapi.openapi.yaml`. |
+| Kind and version | A badge such as **OpenAPI 3.0.3**, **Swagger 2.0** or **AsyncAPI 3.0.0**. A file of schemas has no badge. |
+| **Read-only** | The file is not part of your collection, so you cannot change it. See [Make a local copy](#make-a-local-copy). |
+| **$ref: file** | One button for each file of the collection that this contract mentions, such as a file of schemas. Click it to open that file. |
+| Save state | In a workspace, **Saved automatically**. Outside a workspace, **Changes not saved to a file** while you have unsaved changes. |
+| **Generate requests** | OpenAPI only. Opens **Generate requests from «name»**. See [Generate requests from a contract](/requests/generate-from-contract/). |
+| **Make a local copy** | Only on a **Read-only** contract. |
+| **Discard changes** and **Save file** | Only outside a workspace. See [Save your changes](#save-your-changes). |
 
-At the top of the Swagger UI, **Servers** lists the address of the active environment first, named *“name” environment (Luvin)*.
+## The editor
 
-## Live errors
+The editor colors the YAML, numbers the lines and marks each problem in the margin. Luvin reads the text about a third of a second after you stop typing. Then it:
 
-Luvin checks the contract every time you stop typing. Problems appear in two places: marked in the YAML, and in a panel above the preview. The panel is called **Errors (n)**, or **Warnings (n)** when there are only warnings.
+1. checks the YAML and the contract, and lists the problems above the preview,
+2. updates the preview,
+3. loads the new version for the workflows that use the contract, and analyses them again.
 
-<Steps>
+A problem shows in two places: underlined in the YAML, with a mark in the margin, and in the panel above the preview. The panel is called **Errors (n)** when there is at least one error, and **Warnings (n)** when there are only warnings or information. Each line shows the level (**Error**, **Warning** or **Info**), the line (**Line 12**) and the message. Click a line to jump to it. **Hide** and **Show** fold the panel.
 
-1. Read the list. Each line shows the level (**Error**, **Warning** or **Info**), the line (**Line 12**) and the message.
-2. Click a line. The editor jumps to it.
-3. Fix the YAML. The line disappears when the problem is gone.
-4. Use **Hide** and **Show** to fold the panel.
+Every message, what it means and how to fix it is in [Contract errors and warnings](/contracts/lint-errors/).
 
-</Steps>
-
-While the YAML cannot be read, the preview keeps showing the last version that could.
-
-These are some of the things Luvin checks:
-
-| Check | Why it matters |
-|---|---|
-| Two operations with the same `operationId` | A workflow would not know which one to use. |
-| An operation without `operationId` | The workflow has to point to it by its path instead. |
-| A path parameter that is not `required: true`, or that is not in the path | The URL cannot be built. |
-| A `$ref` that points to nothing | Part of the contract cannot be read. |
-| An operation with no documented response | Luvin cannot check the answer. |
-| No `servers` | The base URL comes from the environment. This is only information. |
-| A version other than OpenAPI 3.x or AsyncAPI 2.x or 3.x, or Swagger 2.0 | Luvin works with OpenAPI 3.x. |
-| An AsyncAPI operation without `action: send` or `receive`, or without a channel | The operation cannot be used as a step. |
-
-## When a change breaks a workflow
-
-A workflow that uses the contract is analysed again as you edit. Above the preview, a bar tells you the effect:
-
-- *N workflow(s) use this contract · no new problems* when the change is safe.
-- *This change breaks N workflow(s).* when your edit created new problems in some workflow. For example, you renamed an `operationId` that a step uses.
-
-Click the bar (**Show**) to see the list of workflows that use the contract. Each row has the name of the workflow and either *no change* or *N new problem(s)*. Under a workflow with problems you see the messages and the step they belong to. Click one to open that workflow at that step.
-
-The list shows only the problems that appeared after you opened the contract, so existing ones do not hide the new ones. If no workflow uses the contract, the bar does not appear.
-
-<Aside type="tip">
-A step that shows an error after you edit a contract is the quickest way to find what your change broke. Fix the contract, or open the workflow and adjust the step.
+<Aside type="note" title="While the YAML cannot be read">
+A YAML syntax error, such as a wrong indentation, is listed as an error with its line. Until you fix it, the preview keeps showing the last version that could be read, and the workflows keep using it too. Nothing breaks while you type.
 </Aside>
+
+## The preview
+
+| File | Preview |
+|---|---|
+| OpenAPI | The official **Swagger UI**. You can try an operation from it. See [Try one operation](/contracts/try-it-out/). |
+| AsyncAPI | Luvin's own preview, with **SEND** and **RECEIVE** operations. See [AsyncAPI contracts](/contracts/asyncapi/). |
+| A file of schemas that other files reference | A section **Schemas**, with each schema as a tree you can unfold. |
+| A file that cannot be shown | *This file’s documentation can’t be shown.* |
+
+When a workflow file names the contract, the preview shows it complete: the parts that come from other files with `$ref` are already joined. If Swagger UI fails to start, you see *Couldn’t load Swagger UI:* and the reason.
+
+### Servers in Swagger UI
+
+At the top of Swagger UI, **Servers** lists the base URL of the active environment first, named *“name” environment (Luvin)*, followed by the servers of the contract. Calls from **Try it out** go to the server you pick there.
+
+This only happens when a workflow file names the contract (✓ in the list). For a ○ contract, **Servers** lists only the servers of the contract, and the credentials of the environment are not filled in. See [Servers and credentials](/contracts/servers-and-credentials/).
+
+## When a change affects a workflow
+
+Above the preview, a bar shows the effect of your edit on the workflows that use the contract:
+
+- *N workflow(s) use this contract · no new problems*
+- *This change breaks N workflow(s).*
+
+Click it to see each workflow and the new problems, and click a problem to open the step. The bar does not appear when no workflow uses the contract. See [When a change breaks a workflow](/contracts/impact/).
+
+## Save your changes
+
+| Where you work | How it is saved |
+|---|---|
+| A workspace | Every change is written to the file in the collection folder by itself. The bar says **Saved automatically**. |
+| Outside a workspace (files opened in the browser) | Luvin keeps your text in the session. Press **Save file** to write it. When the browser cannot write the file, it downloads it instead, and the bar says **Downloaded**. **Discard changes** puts back the text you opened. |
+
+Saving does not run anything and does not change the workflow files. If your change breaks a workflow, fix the contract or adjust the workflow afterwards.
 
 ## Make a local copy
 
-Not every contract can be edited. A contract that was downloaded from a URL, or that you attached to a row, comes in **Read-only**. The file is not part of your collection, so changing it would not be saved.
+A contract that was downloaded from a URL, or that you attached to a row with **Attach**, opens as **Read-only**. The file is not part of your collection, so a change would have nowhere to be saved.
 
 <Steps>
 
 1. Open the contract.
-2. Click **Make a local copy**.
+2. Click **Make a local copy**. The tooltip says *This contract comes from a URL or was attached: create a copy in the collection to edit it.*
 
 </Steps>
 
-Luvin adds the contract as a file of the collection. The **Read-only** badge disappears and you can edit it. Workflows keep using it, now from the copy.
+Luvin adds the contract as a file of the collection, with the same name. The **Read-only** badge disappears and you can edit it. Workflows keep using it, now from the copy.
 
 <Aside type="note">
-From then on the copy and the remote original are separate. Edits to the copy do not change the original, and changes published at the URL do not reach your copy.
+From then on, the copy and the original are separate. Edits to the copy do not change the original, and changes published at the URL do not reach your copy. To take a newer version, import the new file: a file with the same name replaces the copy.
 </Aside>
+
+The text of a downloaded contract is Luvin's reading of the file, so comments and the original layout may not be there. An attached file keeps its text as it was.
 
 ## Related
 
 <CardGrid>
-  <LinkCard title="Contracts" href="/contracts/overview/" />
-  <LinkCard title="Remote contracts and references" href="/contracts/remote-and-refs/" />
-  <LinkCard title="Edit the Arazzo file" href="/design/arazzo-editor/" />
+  <LinkCard title="Contract errors and warnings" href="/contracts/lint-errors/" />
+  <LinkCard title="When a change breaks a workflow" href="/contracts/impact/" />
+  <LinkCard title="Try one operation" href="/contracts/try-it-out/" />
+  <LinkCard title="The YAML tab of a workflow" href="/design/arazzo-editor/" />
 </CardGrid>

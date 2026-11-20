@@ -1,0 +1,108 @@
+---
+title: Solución de problemas de contratos
+description: Síntomas, causas y soluciones para contratos que no cargan, operaciones que no aparecen, llamadas que van al servidor equivocado, avisos del contrato y datos simulados que no ayudan.
+sidebar:
+  order: 16
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+La mayoría de los problemas con contratos vienen de cuatro lugares: un archivo que no está donde lo espera el archivo de workflow, un contrato que cambió debajo de un workflow, un ambiente que conserva un valor viejo, y un contrato con muy poco detalle. Busca tu síntoma en las tablas de abajo. Cada fila dice por qué pasa y qué hacer.
+
+## Ejemplo: un paso que no encuentra getPokemon
+
+Después de actualizar el contrato de la PokéAPI, **Pokemon card** muestra un punto rojo en la barra lateral y su paso `getPokemon` dice *La operación "$sourceDescriptions.pokeapi.getPokemon" no existe en los contratos cargados.*
+
+<Steps>
+
+1. Mira la lista **Contratos**. `pokeapi` muestra ✓, así que el contrato cargó. El problema está dentro de él.
+2. Abre `pokeapi` y busca `getPokemon` con ⌘F (Ctrl+F). La versión nueva llama a la operación `getPokemonByName`.
+3. Decide qué nombre es el correcto. Para dejar el contrato como está, abre el paso, ve a la pestaña YAML y cambia `operationId` por `$sourceDescriptions.pokeapi.getPokemonByName`. Para dejar los workflows como están, vuelve a poner el nombre anterior en el contrato.
+4. El punto rojo desaparece. Ejecuta el workflow una vez en **Simulación** para comprobar que sus outputs siguen encontrando sus campos.
+
+</Steps>
+
+Si `pokeapi` hubiera mostrado ✕, el problema habría estado en el archivo, no en la operación: mira la primera tabla.
+
+## El contrato no carga
+
+| Síntoma | Causa | Solución |
+|---|---|---|
+| La fila muestra ✕ y **Adjuntar**, y los workflows dicen *Falta el contrato de la fuente "x" (url).* | Ningún archivo de la colección tiene el nombre que está al final de `url` en el archivo de workflow. | Importa el archivo con ese nombre, usa **Adjuntar**, o corrige `url`. Mira [Cómo encuentra su archivo un workflow](/es/contracts/add/#cómo-encuentra-su-archivo-un-workflow). |
+| ✕ con *Faltan archivos referenciados con $ref: …* | El contrato usa `$ref` a archivos que no están en la colección. | Agrega esos archivos. Mira [Referencias entre archivos](/es/contracts/references/#referencias-que-faltan). |
+| ✕ en el contrato, y su archivo listado aparte con ○ y el tipo `schemas`. El tooltip de ese archivo dice *No se pudo leer como YAML o JSON:* | El archivo tiene un error de sintaxis, así que Luvin no puede saber que es un contrato. | Haz clic en la fila ○, corrige la línea que señala el editor, y después vuelve a abrir la colección para que el archivo de workflow lo encuentre. |
+| ✕ con *"nombre" no parece un OpenAPI.* | El archivo que adjuntaste es un AsyncAPI, o no es un contrato, o el archivo de workflow dice un `type` equivocado. | Adjunta el archivo correcto, o corrige `type` en `sourceDescriptions`. |
+| ✕ con *No se pudo descargar: …* | El contrato vive en una URL que no se pudo descargar. | Mira [Contratos remotos y referencias](/es/contracts/remote-and-refs/#descargar-un-contrato). |
+| El contador muestra `2/3` en color de advertencia | Uno de los contratos que nombran los archivos de workflow no cargó. | Pasa el mouse sobre las filas con ✕ para leer el motivo. |
+| Un contrato que ayer cargaba hoy muestra ✕ | Se descargó o se adjuntó, y eso no se guarda en la colección. | Haz clic otra vez en **Descargar** o **Adjuntar**, o en **Hacer copia local** para conservarlo. |
+| Un contrato que importaste reemplazó a otro | Los dos archivos tenían el mismo nombre. Un archivo con el mismo nombre reemplaza al de la colección. | Cambia el nombre de uno de ellos y vuelve a importarlo. |
+
+## El contrato carga, pero no se usa
+
+| Síntoma | Causa | Solución |
+|---|---|---|
+| La fila muestra ○ | Ningún archivo de workflow lista el contrato en `sourceDescriptions`. | Crea un archivo de workflow nuevo con **Nuevo Arazzo**, o agrega el contrato a `sourceDescriptions` en la pestaña YAML. Mira [Un contrato agregado después del archivo de workflow](/es/contracts/add/#un-contrato-agregado-después-del-archivo-de-workflow). |
+| La fila muestra el tipo `schemas` | El archivo no empieza con `openapi:` ni con `asyncapi:`. Muchas veces es un archivo de schemas compartidos, y está bien. A veces es un error de tipeo como `openApi:`. | Si es un contrato, corrige la primera clave. |
+| Sus operaciones no están en la paleta **Operaciones** | El contrato es ○ o no cargó, es un AsyncAPI, o la búsqueda las filtra. | Revisa la marca en la lista y limpia la búsqueda. Los pasos AsyncAPI van en la pestaña YAML. Mira [La paleta Operaciones](/es/contracts/operations-and-steps/#la-paleta-operaciones). |
+| La paleta dice *La colección no tiene contratos OpenAPI. Agrega uno para ver sus operaciones aquí.* | No cargó ningún contrato OpenAPI que liste un archivo de workflow. | Agrega uno, o lístalo en el archivo de workflow. |
+| Las **Credenciales** del ambiente no listan un esquema del contrato | Solo se listan credenciales para los esquemas que usa un paso de algún workflow. | Agrega un paso que llame a una operación protegida. Mira [Servidores y credenciales](/es/contracts/servers-and-credentials/#de-security-a-credenciales). |
+
+## Al editar el contrato
+
+| Síntoma | Causa | Solución |
+|---|---|---|
+| No puedes escribir, y la barra muestra **Solo lectura** | El contrato se descargó o se adjuntó. | **Hacer copia local**. Mira [Editar un contrato](/es/contracts/edit/#hacer-una-copia-local). |
+| La vista previa deja de cambiar mientras escribes | El YAML no se puede leer. La vista previa conserva la última versión legible. | Corrige el error que el panel lista con su línea. |
+| *No se pudo cargar Swagger UI:* | La vista previa no pudo arrancar. | Cierra la pestaña del contrato y vuelve a abrirla. Mientras tanto, el editor y sus errores siguen funcionando. |
+| **Servers** en Swagger UI no lista el ambiente | El contrato es ○, o el ambiente no tiene URL base para él. | Lista el contrato en un archivo de workflow, y revisa las **URLs base** del ambiente. |
+| La barra dice *sin problemas nuevos*, pero un workflow muestra errores | Saliste de la pestaña del contrato y volviste: la comparación empezó de nuevo, y los problemas anteriores cuentan como existentes. | Mira el workflow mismo. Mira [Cuando un cambio rompe un workflow](/es/contracts/impact/#qué-cuenta-como-problema-nuevo). |
+| Un mensaje apunta a una línea que se ve bien | Una sangría equivocada más arriba mueve todo lo que está debajo. | Mira una o dos líneas más arriba. Mira [Errores y advertencias del contrato](/es/contracts/lint-errors/). |
+
+## Al diseñar workflows
+
+| Síntoma | Causa | Solución |
+|---|---|---|
+| *La operación "x" no existe en los contratos cargados.* | El `operationId` cambió en el contrato, o el contrato no cargó. | Alinea el paso y el contrato, o carga el contrato. |
+| *"x" existe en varias fuentes; se usa "y". …* | Dos operaciones, en un contrato o en dos, comparten el `operationId`. | Dales ids distintos, o escribe la forma completa `$sourceDescriptions.<fuente>.<operationId>`. |
+| *El contrato exige el parámetro query "x" y el paso no lo envía.* | El parámetro es obligatorio en el contrato, y el paso se hizo antes, o a mano. | Usa **Completar** en la barra **A este workflow le faltan datos**, o agrega el parámetro. Mira [Completa los datos que faltan](/es/design/complete-gaps/). |
+| Un paso nuevo pide un input que devuelve un paso anterior | Los nombres son demasiado distintos para coincidir, o la respuesta anterior no tiene schema. | Elige el origen en el panel del paso. Agrega un schema a la respuesta y usa los mismos nombres en todas las operaciones. Mira [Cómo se conectan los datos](/es/contracts/operations-and-steps/#cómo-se-conectan-los-datos). |
+| El criterio de éxito es `200`, pero la API responde `201` | El contrato no documenta `201`. | Documenta el status de éxito real y después cambia el criterio. |
+| No hay caso **Sin el input obligatorio** para un input | El input va en la ruta de la URL, o ningún paso lo envía. | Es a propósito: sin él, la URL apunta a otro recurso. Mira [Schemas, inputs y casos](/es/contracts/schemas-and-cases/#casos-que-salen-de-los-schemas). |
+| No hay caso **con un valor fuera del enum**, aunque el contrato tiene `enum` | Los inputs nuevos no copian `enum`, `pattern` ni otras reglas del contrato. | Agrega la regla al input en la pestaña YAML. |
+
+## Al ejecutar contra la API
+
+| Síntoma | Causa | Solución |
+|---|---|---|
+| Las llamadas siguen yendo al servidor viejo después de cambiar `servers` | Los ambientes conservan la URL base que ya tienen. | Cambia la URL base en cada ambiente. Mira [Servidores y credenciales](/es/contracts/servers-and-credentials/#de-servers-a-urls-base). |
+| *No hay URL de servidor para la fuente "x". Defínela en la pantalla de parámetros.* | El ambiente no tiene URL base y el contrato no tiene `servers`. | Define la URL base en el ambiente. |
+| Una operación ignora el ambiente | La operación, o su ruta, declara sus propios `servers` con una dirección completa. | Quítalos de la operación, o hazlos relativos. |
+| La API responde `401` | Las credenciales del ambiente están vacías, o la API espera otro esquema. | Completa las **Credenciales** del ambiente. Mira [Credenciales del contrato](/es/authorization/contract-credentials/). |
+| Un paso termina **Exitoso con advertencias**, *Respuesta fuera de contrato* | La respuesta difiere del schema. | Lee la pestaña **Contrato** del paso. Mira [¿La respuesta cumple el contrato?](/es/contracts/response-check/) |
+| *El código N no está documentado en el contrato de …* | La API respondió un status que la operación no lista. | Documéntalo, con su schema y un ejemplo. |
+| *No se pudo validar contra el schema del contrato:* | Faltan archivos que el schema referencia, o el schema tiene algo que Luvin no puede compilar. | Agrega los archivos `$ref` que faltan y después revisa el schema. |
+| **Try it out** falla en la versión de navegador | La API no permite CORS. | Usa la app de escritorio, o permite el origen de Luvin en la API. Mira [Solución de problemas](/es/get-started/troubleshooting/). |
+
+## Simulación y mocks
+
+| Síntoma | Causa | Solución |
+|---|---|---|
+| Los datos simulados son planos: cada id es `1`, cada texto es `ejemplo` | Las respuestas no tienen ejemplos, así que Luvin los arma desde el schema. | Agrega ejemplos realistas. Mira [Ejemplos, simulación y mocks](/es/contracts/examples/#escribir-ejemplos-que-ayuden). |
+| Un paso simulado termina con un aviso del contrato | Un ejemplo del contrato no cumple su propio schema. | Corrige el ejemplo o el schema. |
+| Un paso simulado responde un status que no esperabas | Los criterios piden un status, o el contrato documenta otro 2xx primero. | Revisa los criterios de éxito y el 2xx documentado. Mira [Cómo se arma una respuesta simulada](/es/contracts/examples/#cómo-se-arma-una-respuesta-simulada). |
+| Un caso por respuesta tiene el body vacío | La respuesta de error documentada no tiene ejemplo ni schema. | Agrega un ejemplo a esa respuesta. |
+| Un paso de mensajería no encuentra su canal: *No se encontró el canal "x" en ningún AsyncAPI cargado.* | En AsyncAPI 3, `channelPath` debe usar la clave del canal, no su `address`. | Escribe `#/channels/sightingConfirmed`, no `#/channels/pokedex.sighting.confirmed`. Mira [Contratos AsyncAPI](/es/contracts/asyncapi/#cómo-apunta-un-paso-al-contrato). |
+| A un paso le falta **Probar sola** | Es un paso de mensajería, o no se encontró su operación. | Los pasos de mensajería siempre son simulados. Primero corrige la operación. |
+
+<Aside type="tip">
+Cuando nada de esto encaja, abre **Dev Tools**: la pestaña **Console** registra lo que hizo Luvin, y **Network** muestra cada llamada con su request y su respuesta. Mira [Dev Tools](/es/dev-tools/overview/).
+</Aside>
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="La lista Contratos" href="/es/contracts/list/" />
+  <LinkCard title="Errores y advertencias del contrato" href="/es/contracts/lint-errors/" />
+  <LinkCard title="Mensajes del análisis y del contrato" href="/es/reference/analysis-messages/" />
+  <LinkCard title="Solución de problemas" href="/es/get-started/troubleshooting/" />
+</CardGrid>

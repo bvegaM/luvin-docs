@@ -1,0 +1,121 @@
+---
+title: The Contracts list
+description: The Contracts section of the sidebar, what ✓, ✕ and ○ mean, the counter, the buttons of each row, the contracts Luvin builds from requests, and how to delete a contract.
+sidebar:
+  order: 3
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+The **Contracts** section of the sidebar shows every contract of the open collection and whether it is ready to use. It is the first place to look when a step cannot find its operation.
+
+## Example: the Pokédex collection
+
+Open the Pokédex example and look at the **Collections** panel of the sidebar, below the collections:
+
+```text title="Contracts · Pokédex"
+Contracts  Pokédex  2
+✓ pokeapi        openapi   +  ⋯
+✓ pokedexEvents  asyncapi     ⋯
+```
+
+Both contracts are loaded, so the counter says `2`. Now imagine the workflow file also named a contract published at a URL that you have not downloaded yet:
+
+```text title="Contracts · Pokédex"
+Contracts  Pokédex  2/3
+✓ pokeapi        openapi   +  ⋯
+✓ pokedexEvents  asyncapi     ⋯
+✕ partnerApi     openapi   Attach  Download  ⋯
+```
+
+The counter turns to `2/3`, in a warning color. Its tooltip says *2 of 3 contracts loaded*. The row with ✕ offers **Attach** and **Download**.
+
+![The sidebar of a collection whose contracts did not load: each one shows ✕ and an Attach link](/media/en/contract-missing.webp)
+
+## Where it is
+
+The section is in the **Collections** panel of the sidebar, under the collections. Its title is **Contracts**, followed by the name of the open collection. Without an open collection, the section is not shown. Click the title to fold or unfold the list.
+
+The counter only counts the contracts that workflow files name. Files that no workflow uses yet (the ○ rows) are listed, but not counted.
+
+## The marks
+
+| Mark | Meaning | Tooltip |
+|---|---|---|
+| ✓ | Loaded, with every file it references. Ready to use. | The file name. |
+| ✕ | Not ready: the file is missing, it cannot be read, it is of the wrong kind, or files it references with `$ref` are missing. | The reason, for example *Files referenced with $ref are missing: schemas.yaml. Drop them into the upload area.* |
+| ○ | The file is in the collection, but no workflow file names it yet. | *No Arazzo in the collection uses this file yet*, or the reading error if the file cannot be read. |
+
+A contract with ✕ is not always empty. When only `$ref` files are missing, the contract loads, but the parts that come from those files are not validated and are not used in simulation. See [References between files](/contracts/references/).
+
+## The name of each row
+
+| Row | Name shown | Type shown |
+|---|---|---|
+| A contract that a workflow file names | The name of the source, for example `pokeapi`. It is the name that steps, base URLs and credentials use. | `openapi` or `asyncapi`, as the workflow file says. |
+| A ○ file | The file name, for example `pokeapi.openapi.yaml`. | `openapi`, `asyncapi`, or `schemas` for a file that is neither, such as a file of shared schemas. |
+
+Click the name to open the contract in the editor. Its tooltip says *Open pokeapi.openapi.yaml in the editor*, with the file name. A contract that never loaded has no file, so its name is plain text.
+
+## The buttons of a row
+
+| Button | Shown on | What it does |
+|---|---|---|
+| **+** | Loaded OpenAPI contracts, including ○ ones | Opens **Generate requests from «name»**. See [Generate requests from a contract](/requests/generate-from-contract/). |
+| **Attach** | Contracts that did not load | Opens a file picker. Choose the contract file and Luvin links it to that row. |
+| **Download** | Contracts that did not load and whose address starts with `http://` or `https://` | Downloads the contract from its address. See [Remote contracts and references](/contracts/remote-and-refs/). |
+| **⋯** | Every row except the contracts built from requests | Opens the menu of the row. |
+
+The **⋯** menu has:
+
+- **Show in Finder** (macOS) or **Show in file explorer** (Windows and Linux), in the desktop app, for a file of the collection.
+- **Delete contract…** for a contract with a file, or **Remove contract…** for a contract that never loaded.
+
+![The ⋯ menu of a contract row, with its delete action](/media/en/sidebar-menu.webp)
+
+## Contracts built from requests
+
+When you drag saved requests into a workflow, Luvin builds a small OpenAPI contract with them, so the workflow file stays standard. These contracts live in `requests/_contracts/` inside the collection, one per base URL, and they also show in the list.
+
+- They have no **⋯** menu. Luvin rebuilds them when your requests change, so you never delete them by hand.
+- Their operations are not repeated in the palette: you find them under **Collection requests**.
+
+See [Workflows from requests](/design/from-requests/).
+
+## Delete a contract
+
+<Steps>
+
+1. Open the **⋯** menu of the row.
+2. Choose **Delete contract…**, or **Remove contract…** for a contract that never loaded.
+3. Read the question in the row and confirm with **Delete** or **Remove**, or press **Cancel**.
+
+</Steps>
+
+What Luvin asks and does depends on the contract:
+
+| Case | What Luvin says and does |
+|---|---|
+| No workflow uses it | *Delete the contract “name”? Its file is deleted. This can’t be undone.* The file is deleted. If a workflow file only declared it, without any step using it, that declaration is removed too. |
+| A workflow uses it | *“name” is used in: workflow names. Those steps will have no contract until you attach another one. Delete its file? This can’t be undone.* If you confirm, the file is deleted. The steps stay in the workflows and show an error, and the row stays in the list with ✕ and **Attach**. |
+| It never loaded and no step uses it | *“name” has no file and no step uses it. Remove it from the workflows?* **Remove** takes it out of the workflow files. |
+| It never loaded and a step uses it | *“name” is used in: workflow names. Attach its file, or delete the steps that use it to remove it.* There is nothing to delete: use **Attach**, or delete the steps. The row offers only **Close**. |
+
+<Aside type="caution">
+In a workspace, deleting a contract deletes its file from the collection folder. If the folder is in git, you can get the file back from there.
+</Aside>
+
+## Other places that list contracts
+
+- The **Collection overview** has a **Contracts** card: *N of M loaded*, with a link to each contract that has a file.
+- The home screen counts the **Contracts** that the workflow files of the open collection name.
+- ⌘K (Ctrl+K) finds those contracts by their name, in the group **Contracts**, and opens them.
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Add a contract" href="/contracts/add/" />
+  <LinkCard title="Edit a contract" href="/contracts/edit/" />
+  <LinkCard title="Remote contracts and references" href="/contracts/remote-and-refs/" />
+  <LinkCard title="Troubleshooting contracts" href="/contracts/troubleshooting/" />
+</CardGrid>

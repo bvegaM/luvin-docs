@@ -1,0 +1,94 @@
+---
+title: Importar ambientes
+description: Trae a Luvin los ambientes de una colección de Postman o Bruno, en qué se convierte cada variable, cómo llegan los secretos y qué revisar después de importar.
+sidebar:
+  order: 12
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Cuando importas una colección de Postman o Bruno, sus ambientes vienen con ella. Cada uno se convierte en un ambiente de Luvin de la colección nueva, con sus variables y sus secretos. Tus requests conservan su `{{baseUrl}}` y funcionan como antes.
+
+## Ejemplo: la tienda desde Postman
+
+Exportaste de Postman la colección **Shop API** y dos ambientes, **Shop local** y **Shop staging**. Cada ambiente tiene `baseUrl`, `clientId` y un secreto `apiKey`.
+
+<Steps>
+
+1. Haz clic en **+** de las pestañas (**Crear o importar**) y luego en **Importar de Postman o Bruno**.
+2. En Postman, haz clic en **Elegir archivos .json** y selecciona los tres archivos juntos: la colección y los dos ambientes.
+3. Lee el resumen. Dice **2** ambientes y los lista con cuántas variables tiene cada uno: *Ambientes: Shop local (3) · Shop staging (3)*.
+4. Haz clic en **Importar (N requests)**.
+
+</Steps>
+
+La colección nueva tiene los ambientes `Shop local` y `Shop staging`, en `environments/shop-local.yaml` y `environments/shop-staging.yaml`. Abre **Get customer**, que envía `GET {{baseUrl}}/customers/42`, y envíalo: `baseUrl` sale del ambiente activo, como en Postman.
+
+![El diálogo Importar de Postman o Bruno con una tarjeta para Postman y otra para Bruno](/media/es/import-postman.webp)
+
+## Qué elegir
+
+<Tabs>
+<TabItem label="Postman">
+
+Haz clic en **Elegir archivos .json** y elige la colección exportada (v2.0 o v2.1) junto con sus archivos de ambiente. También puedes soltarlos todos sobre el diálogo. Un archivo de globals exportado de Postman se lee como un ambiente más.
+
+Si eliges varias colecciones a la vez, cada una recibe todos los ambientes que elegiste.
+
+</TabItem>
+<TabItem label="Bruno">
+
+Haz clic en **Elegir carpeta** y elige la carpeta de la colección, como Bruno la guarda en git. Cada archivo de su carpeta `environments/`, como `environments/staging.bru`, se convierte en un ambiente con el nombre del archivo: `staging`.
+
+O haz clic en **Elegir .json** y elige el archivo que exporta Bruno. Sus ambientes vienen adentro.
+
+</TabItem>
+</Tabs>
+
+## En qué se convierte cada variable
+
+| En Postman o Bruno | En Luvin |
+|---|---|
+| Una variable activa | Una variable con su valor. |
+| Una variable de Postman de tipo secret | Un secreto, con su valor. El valor se guarda cifrado en este equipo, no en el archivo. |
+| Un secreto de Bruno (`vars:secret`) | Un secreto con el valor vacío. Bruno no guarda el valor de los secretos, así que vuelve a escribirlos. |
+| Una variable desactivada | No se importa. |
+| Una variable con un nombre que Luvin no acepta, como `my var` | No se importa. El resumen dice *La variable «my var» tiene un nombre no válido y se omitió.* |
+| El mismo nombre dos veces en un ambiente | Se queda el primero. |
+| Una variable de la colección | Se agrega a cada ambiente que no la define. |
+
+Si con la colección no vino ningún ambiente, Luvin crea uno llamado `local` con las variables de la colección.
+
+Una variable llamada `baseUrl` sigue siendo una variable, no una [URL base](/es/environments/base-urls/). Funciona igual en `{{baseUrl}}/customers`. Los ambientes importados no tienen color: ponles uno si quieres. Mira [Crear, renombrar, colorear y eliminar](/es/environments/manage/).
+
+<Aside type="note" title="Las variables dinámicas vienen incluidas">
+Los requests que usan `{{$guid}}`, `{{$randomEmail}}` u otra variable dinámica de Postman siguen funcionando, porque Luvin usa los mismos nombres. Un nombre con `$` que Luvin no tiene se pinta de rojo. Mira [Variables compatibles con Postman](/es/environments/postman-variables/).
+</Aside>
+
+## Después de importar
+
+<Steps>
+
+1. Abre el panel **Ambientes**. El primer ambiente importado queda activo.
+2. Abre cada ambiente y revisa **Secretos**. Completa cada valor vacío, como lo están siempre los secretos de Bruno.
+3. Abre un request y revisa que ningún `{{nombre}}` esté en rojo. Uno en rojo se omitió o nunca existió en ese ambiente.
+4. Si después agregas un contrato y workflows, completa las **Credenciales** que piden sus esquemas de seguridad. Mira [Credenciales](/es/environments/credentials/).
+
+</Steps>
+
+Los scripts de Postman que guardan variables, como `pm.environment.set("token", …)`, se convierten en valores guardados del request, no en variables del ambiente. Se guardan en memoria mientras la colección está abierta. Mira [Trae tus propios archivos y requests](/es/get-started/import/).
+
+## Lo que conviene saber
+
+- Importar siempre crea una colección nueva. Para agregar un ambiente de Postman a una colección que ya tienes, crea el ambiente en Luvin y copia los valores.
+- Si eliges solo archivos de ambiente, Luvin dice **Eso son solo ambientes: elige también la colección.**
+- Necesitas un workspace abierto para importar. Mira [Crear y abrir un workspace](/es/workspaces/create-and-open/).
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Trae tus propios archivos y requests" href="/es/get-started/import/" />
+  <LinkCard title="De una colección de Postman o Bruno a un workflow probado" href="/es/tutorials/from-postman/" />
+  <LinkCard title="Variables y secretos" href="/es/environments/variables-and-secrets/" />
+  <LinkCard title="Variables compatibles con Postman" href="/es/environments/postman-variables/" />
+</CardGrid>

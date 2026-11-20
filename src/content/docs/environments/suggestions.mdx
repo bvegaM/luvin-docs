@@ -1,0 +1,106 @@
+---
+title: Suggestions and colors
+description: The list Luvin opens when you type two braces, what each kind of suggestion means, the colors of each variable in a field, and the card that shows, edits or creates its value.
+sidebar:
+  order: 7
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Fields that accept variables help you write them. Type `{{` and Luvin suggests every name it knows. Once a name is in the field, its color tells you whether it will be replaced, and a card shows its value.
+
+## Example: the PayPal authorization
+
+Open the PayPal example, then a workflow, and its **Authorization** tab. The fields **Client ID** and **Client Secret** already hold `{{clientId}}` and `{{clientSecret}}`.
+
+<Steps>
+
+1. Look at the two fields. Until you fill them in the environment, both names are amber: they exist in `Sandbox` but are empty.
+2. Point at `{{clientId}}`. A card opens with **variable**, the name, an empty value field, and *Value in the “Sandbox” environment*.
+3. Paste your client ID in the card's field. The name turns green, and the value is saved in `Sandbox`, as if you had typed it in the environment.
+4. Clear **Client ID** and type `{{cl`. The list shows `clientId` with its value, and `clientSecret` marked **secret**, with its value hidden as `••••••`.
+5. Press **Enter**. `{{clientId}}` is back in the field.
+
+</Steps>
+
+## Open the suggestions
+
+<Steps>
+
+1. In a field that accepts variables, type `{{`. The list opens below the field, or above it if there is no room.
+2. Keep typing to narrow it. A name matches when it contains what you typed, in any case: `{{id` finds `clientId` and `{{$guid}}`.
+3. Choose a row with **↑** and **↓**, then press **Enter** or **Tab**. Or click it.
+
+</Steps>
+
+Luvin inserts the name with its closing braces. If the braces were already there, it does not add them twice. Press **Esc** to close the list without choosing. In the URL of a request, **Enter** picks the suggestion while the list is open, instead of sending.
+
+## What each row shows
+
+Each row has a kind, the name, and a detail:
+
+| Kind | What it is | Detail |
+|---|---|---|
+| **variable** | A variable of the active environment, or a value saved by a request | Its value, cut at 40 characters, or *(empty)* |
+| **secret** | A secret of the active environment, or a saved value marked secret | `••••••`, or *(empty)* |
+| **base URL** | A base URL of the active environment, from a contract or your own | The address |
+| **dynamic** | A Postman-compatible dynamic variable, such as `$randomEmail` | What it produces, and an example: *Email · e.g. Daniela.Rojas42@yahoo.com* |
+| **generator** | One of Luvin's own generators, such as `email` or `number:8` | What it produces |
+
+The names of the active environment come first, then the dynamic variables, then the generators. A generator that has the same name as a variable is left out, because the variable wins. At most 60 rows show at once: type more letters to find the rest. Type `{{$` to see only the dynamic variables.
+
+![Typing in the email input: the suggestions list the dynamic variables with an example of each](/media/en/test-inputs-generators.webp)
+
+## The colors of a variable
+
+Each `{{name}}` in a field gets a color:
+
+| Color | Meaning | What happens when it is sent |
+|---|---|---|
+| Green | The variable exists in the active environment and has a value. | Replaced by the value. |
+| Amber | The variable exists but is empty. | Replaced by nothing. |
+| Purple | A generator or a dynamic variable. | Replaced by a new value. |
+| Red | No variable, base URL or generator has that name in the active environment. | Sent as written, `{{name}}` included. |
+
+The color follows the active environment. A name that is green in `staging` can be red in `local` if `local` does not have it. Switch environments and the colors change at once.
+
+Fields that hide what you type, such as a password, are not colored. A secret field of the **Authorization** tab shows its text, with colors, as soon as it holds a `{{name}}`.
+
+## The card of a variable
+
+Point at a colored name, or put the cursor inside it, and a card opens below it. It floats over the page, so nothing moves.
+
+| The name is | The card shows |
+|---|---|
+| A variable or a base URL | Its kind and its value, in a field you can edit. Below: *Value in the “staging” environment* and **Open environment**. |
+| A secret | The same, with the value hidden. |
+| A generator or a dynamic variable | *⚡ is generated when running*. |
+| Unknown | *does not exist in “staging”*, with **Create variable** and **Create secret**. |
+
+What you type in the card goes straight to the active environment. **Create variable** and **Create secret** add an empty one with that name to the active environment. The name turns amber; type its value in the card and it turns green.
+
+<Aside type="caution" title="It changes the environment, not the field">
+Editing a value in the card changes it for every request and workflow that uses that name in this environment. To use a different value in one place only, type the value in the field instead of the variable.
+</Aside>
+
+## Fields with suggestions
+
+Suggestions, colors and the card work in:
+
+- The URL of a request, its params, headers, path variables and form fields.
+- Every field of the **Authorization** tab, of a request, of the collection or of a workflow.
+- **Inputs** and the data of each case.
+- The value of a parameter of a step, in the **Design** tab.
+- The fields of **Try it out**.
+- The base URLs and credentials of the environment.
+
+The body editor of a request and the YAML editor of an Arazzo file do not suggest or color names. A `{{name}}` you write there is still replaced when it goes out.
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Use variables" href="/environments/use-variables/" />
+  <LinkCard title="Variables and secrets" href="/environments/variables-and-secrets/" />
+  <LinkCard title="Dynamic variables" href="/environments/dynamic-variables/" />
+  <LinkCard title="Environment troubleshooting" href="/environments/troubleshooting/" />
+</CardGrid>

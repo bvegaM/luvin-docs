@@ -1,0 +1,133 @@
+---
+title: De la operación al paso
+description: Qué partes de una operación OpenAPI deciden el paso que escribe Luvin, cómo lista la paleta las operaciones, cómo se conectan los datos a partir de los schemas de respuesta y cómo escribir contratos que diseñen bien.
+sidebar:
+  order: 8
+---
+
+import { Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Cuando arrastras una operación al lienzo, Luvin escribe un paso a partir del contrato, con reglas fijas. Nada se adivina con IA. Mientras mejor el contrato, menos corriges a mano. Esta página lo mira desde el lado del contrato: qué campo del contrato se vuelve qué parte del paso.
+
+## Ejemplo: agregar getPokemonSpecies después de getPokemon
+
+En **Pokemon card**, `getPokemon` ya se ejecuta. Arrastras `GET /pokemon-species/{idOrName}` debajo de él.
+
+<Tabs>
+<TabItem label="En el contrato">
+
+```yaml title="pokeapi.openapi.yaml"
+/pokemon-species/{idOrName}:
+  get:
+    operationId: getPokemonSpecies
+    summary: Consulta la especie de un Pokémon
+    parameters:
+      - $ref: '#/components/parameters/IdOrName'   # in: path, required: true, type: string
+    responses:
+      '200':
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PokemonSpecies' }
+      '404':
+        $ref: '#/components/responses/NotFound'
+```
+
+</TabItem>
+<TabItem label="El paso que escribe Luvin">
+
+```yaml title="pokemon.arazzo.yaml"
+- stepId: getPokemonSpecies
+  description: Consulta la especie de un Pokémon
+  operationId: $sourceDescriptions.pokeapi.getPokemonSpecies
+  parameters:
+    - name: idOrName
+      in: path
+      value: $steps.getPokemon.outputs.id
+  successCriteria:
+    - condition: $statusCode == 200
+```
+
+</TabItem>
+</Tabs>
+
+- El nombre y la descripción salen de `operationId` y `summary`.
+- `idOrName` es obligatorio, así que recibe un valor. La respuesta de `getPokemon` tiene un `id` en el primer nivel, e `idOrName` es un parámetro de ruta que suena a identificador, así que Luvin lo toma de ahí. También agrega el output `id` a `getPokemon`. La conexión muestra un **?**, porque Luvin está menos seguro de ella.
+- El 2xx documentado más bajo es `200`, así que ese es el criterio de éxito.
+- El `404` se ofrece en el panel como un error que puedes manejar.
+
+![El panel de getPokemonSpecies recién agregado: idOrName sale de id, el éxito es 200 y el 404 todavía no tiene acción](/media/es/design-new-step-panel.webp)
+
+## Del contrato al paso
+
+| En el contrato | En el paso |
+|---|---|
+| `operationId` | El id del paso, y `operationId: $sourceDescriptions.<source>.<operationId>`. Si el id ya está tomado en el workflow, se agrega un número: `getPokemon2`. |
+| Sin `operationId` | Un id de paso armado con el método y la ruta, como `getPokemonColorByIdOrName`, y un puntero `operationPath` a la ruta. El editor muestra *GET /x no tiene operationId: el Arazzo tendrá que usar operationPath.* |
+| `summary`, o si no la primera línea de `description` | La `description` del paso. Sin ninguno de los dos, el método y la ruta. |
+| Parámetros obligatorios (`required: true`, y todo `in: path`) | Una entrada en `parameters`, con un valor de un paso anterior, de un input o de un input nuevo. |
+| Parámetros opcionales | Quedan fuera. Los agregas desde el panel del paso. Mira [Parámetros y body](/es/design/parameters-and-body/). |
+| `requestBody` | Un `requestBody` con el content type que ofrece el contrato: primero JSON, luego `application/x-www-form-urlencoded`, luego el primero de la lista. |
+| Campos obligatorios del body | Cada uno recibe un valor, como un parámetro obligatorio. Luvin entra en objetos y listas anidados hasta tres niveles. |
+| Un body sin ningún campo obligatorio | Cada campo simple fuera de listas se vuelve un input opcional, con el ejemplo del contrato. Si hay más de 25 campos así, no se agrega ninguno y los eliges en el panel. |
+| El status 2xx documentado más bajo | `successCriteria: $statusCode == …`. Sin un 2xx, `200`. |
+| Códigos 4xx y 5xx documentados | Se ofrecen en el panel como errores para manejar, cada uno con la primera línea de su `description`. Mira [Éxito y errores](/es/design/success-and-errors/). |
+| El schema de la respuesta de éxito | Los campos que puedes elegir como outputs, y los campos de los que los pasos siguientes pueden tomar datos. |
+| `security` | El paso está protegido: envía las credenciales del ambiente, y el workflow recibe un caso **Sin credenciales**. Mira [Servidores y credenciales](/es/contracts/servers-and-credentials/). |
+| `servers` en la operación o en su ruta | La dirección propia de esa operación, que se usa en lugar de la URL base del ambiente. |
+
+Cuando agregas un paso, los ejemplos del contrato no se escriben en él. Se vuelven los valores iniciales de los inputs nuevos. Después, en el body del panel del paso, **Rellenar con el ejemplo** pone el ejemplo del contrato en los campos vacíos, y **Crear inputs** convierte cada campo vacío en un input con ese ejemplo. Mira [Schemas, inputs y casos](/es/contracts/schemas-and-cases/) y [Parámetros y body](/es/design/parameters-and-body/).
+
+## La paleta Operaciones
+
+La paleta a la izquierda de la pestaña **Diseño** tiene un grupo por contrato, con el nombre de su fuente y la cantidad de operaciones. Cada fila muestra el método, la ruta y el `summary`.
+
+![La paleta Operaciones de la Pokédex: la búsqueda, los workflows de otros archivos Arazzo y las operaciones del contrato pokeapi](/media/es/design-palette.webp)
+
+| Se muestra | No se muestra |
+|---|---|
+| Las operaciones de los contratos OpenAPI que lista un archivo de workflow de la colección y que cargaron (✓). | Las operaciones AsyncAPI. Los pasos de mensajería se agregan en la pestaña YAML. Mira [Pasos de mensajería](/es/design/messaging/). |
+| | Los contratos que no cargaron, y los contratos ○ que ningún archivo de workflow lista todavía. Un contrato que cargó pero al que le faltan archivos de `$ref` sí se muestra, sin las partes de esos archivos. |
+| | Los contratos que Luvin arma a partir de tus requests. Sus operaciones están en **Requests de la colección**. |
+
+La búsqueda **Buscar operación…** filtra por `operationId`, ruta, `summary` y `tags`. Buscar `pokemon` encuentra cada operación que tenga esa palabra en su ruta o en su tag. Si no hay ningún grupo que mostrar, la paleta dice *La colección no tiene contratos OpenAPI. Agrega uno para ver sus operaciones aquí.*
+
+## Cómo se conectan los datos
+
+Para cada valor que necesita un paso nuevo, Luvin mira los pasos que están arriba, del más cercano al más lejano, y toma la primera coincidencia:
+
+| Regla | Ejemplo |
+|---|---|
+| Un output con el mismo nombre | `orderId` ← `$steps.createOrder.outputs.orderId` |
+| Un campo de una respuesta con el mismo nombre, primero el menos profundo | `id` ← el `id` de la respuesta |
+| Un nombre compuesto | `customerId` ← `customer/id`, o el `id` de un paso que habla de clientes |
+| Un parámetro de ruta que suena a identificador, desde el `id` del paso justo de arriba | `idOrName` ← `id` de `getPokemon`, marcado con **?** |
+| Un input del workflow con el mismo nombre | `pokemon` ← `$inputs.pokemon` |
+
+Los nombres se comparan sin mayúsculas ni signos: `order_id`, `orderId` y `OrderID` coinciden. Los tipos tienen que encajar: un número y un texto coinciden entre sí, porque los identificadores viajan de las dos formas, pero una lista nunca coincide con un número. Si ninguna regla encuentra un valor, el valor se vuelve un input nuevo del workflow.
+
+Los campos salen del schema de la respuesta de éxito, hasta tres niveles. Una lista se lee a través de su primer elemento, así que `types/0/type/name` es un campo. Por eso una respuesta con schema se conecta mejor que una que solo tiene un ejemplo. Mira [Conectar datos entre pasos](/es/design/wire-data/).
+
+## Escribir contratos que diseñen bien
+
+| Haz | Porque |
+|---|---|
+| Dale a cada operación un `operationId` corto y único | Nombra el paso y mantiene estable el puntero cuando cambian las rutas. |
+| Escribe un `summary` | Describe el paso y se ve en la paleta. |
+| Marca `required` con honestidad, en parámetros y campos del body | Los datos obligatorios se conectan; los opcionales quedan fuera. Los inputs obligatorios también producen los casos de "input que falta". |
+| Documenta el status de éxito que de verdad devuelves, como `201` para una creación | Se vuelve el criterio de éxito. |
+| Documenta los errores, cada uno con una `description` | Se vuelven los errores que puedes manejar y los casos por respuesta. |
+| Dales a las respuestas un `schema`, no solo un ejemplo | Los campos para outputs y para conectar datos salen del schema. |
+| Usa nombres coherentes entre operaciones: `orderId` en el request, `orderId` o `id` en la respuesta | La conexión de datos compara por nombre. |
+
+<Aside type="tip">
+Cambiar el contrato después no reescribe los pasos que ya tienes. Puede hacer que muestren problemas, como un parámetro obligatorio que no envían. Mira [Cuando un cambio rompe un workflow](/es/contracts/impact/).
+</Aside>
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Agregar pasos" href="/es/design/add-steps/" />
+  <LinkCard title="Conectar datos entre pasos" href="/es/design/wire-data/" />
+  <LinkCard title="Schemas, inputs y casos" href="/es/contracts/schemas-and-cases/" />
+  <LinkCard title="Éxito y errores" href="/es/design/success-and-errors/" />
+</CardGrid>

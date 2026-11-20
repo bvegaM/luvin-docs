@@ -1,0 +1,164 @@
+---
+title: Schemas, inputs and cases
+description: What a new input takes from the schema of the contract and what it leaves out, how inputs are checked, and which generated cases come from schemas and security.
+sidebar:
+  order: 9
+---
+
+import { Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A schema says what a value looks like: its type, whether it is required, its allowed options, its pattern. Luvin uses the schemas of the contract in three moments: when it creates the inputs of a workflow, when you type their values, and when it generates the test cases.
+
+## Example: the type of the Pokémon
+
+Drag `GET /type/{idOrName}` onto an empty workflow. Nothing gives `idOrName` a value, so Luvin creates an input from the parameter of the contract. Then add the allowed values yourself.
+
+<Tabs>
+<TabItem label="Contract">
+
+```yaml title="pokeapi.openapi.yaml"
+- name: idOrName
+  in: path
+  required: true
+  description: Número o nombre del tipo.
+  schema: { type: string, example: electric }
+```
+
+</TabItem>
+<TabItem label="Input Luvin writes">
+
+```yaml title="new.arazzo.yaml"
+inputs:
+  type: object
+  properties:
+    idOrName:
+      type: string
+      description: Número o nombre del tipo.
+      example: electric
+  required: [idOrName]
+```
+
+The **Cases** tab has the **Happy path** and nothing about `idOrName`: it goes in the path, so there is no "missing" case, and a plain text has no wrong value to try.
+
+</TabItem>
+<TabItem label="After you add enum">
+
+```yaml title="new.arazzo.yaml" {7}
+inputs:
+  type: object
+  properties:
+    idOrName:
+      type: string
+      description: Número o nombre del tipo.
+      enum: [normal, fire, water, grass, electric]
+      example: electric
+  required: [idOrName]
+```
+
+The **Data validation** group now has **"idOrName" with a value outside the enum**. It sends `"VALOR_NO_PERMITIDO"`, and expects: *Step "getType" must reject the value with 404.*
+
+</TabItem>
+</Tabs>
+
+Why 404? The contract of `getType` documents only `200` and `404`, and the value goes in the path, where a wrong value means a resource that does not exist.
+
+## What a new input takes from the contract
+
+When a required value has no source, Luvin creates an input. From the parameter or body field of the contract it copies:
+
+| Copied | Where it comes from |
+|---|---|
+| `type` | The type of the schema, for example `string` or `integer`. `string` if the schema has none. |
+| `description` | The first line of the description of the parameter or field. |
+| `example` | The `example` of the parameter, else the `example`, the first of `examples`, the `default` or the first `enum` option of its schema. For an object, one built from its fields. |
+| `required` | The input is required when the parameter or field is. |
+
+It does **not** copy `enum`, `pattern`, `format`, `minimum`, `maximum`, `minLength`, `maxLength` or other rules. The input of the workflow is yours: add the rules you want to test in the [YAML tab](/design/arazzo-editor/), as in the example above. Those rules give you checks in the **Inputs** tab and cases in the **Cases** tab.
+
+The same applies when **Complete**, in the bar **This workflow is missing data**, declares inputs for you. See [Complete missing data](/design/complete-gaps/).
+
+## How input values are checked
+
+The **Inputs** tab shows each input with a control that fits its schema, and a type in plain words:
+
+| Schema | Shown as |
+|---|---|
+| `enum` | **options**, a list to pick from |
+| `string` | **text** |
+| `number` / `integer` | **number** / **whole number** |
+| `boolean` | **yes / no** |
+| `object` with fields | **group**, with a field for each property |
+| `array` | **list** |
+| `object` without fields | **free JSON** |
+
+As you type, Luvin checks the value against the schema of the input and writes the first problem below the field. The header counts them as *N to review*.
+
+| Rule in the schema | Message |
+|---|---|
+| `enum` | *Not one of the allowed values* |
+| `type: number` / `integer` | *Must be a number* / *Must be a whole number* |
+| `minimum` / `maximum` | *Must be greater than or equal to N* / *Must be less than or equal to N* |
+| `exclusiveMinimum` / `exclusiveMaximum` | *Must be greater than N* / *Must be less than N* |
+| `minLength` / `maxLength` | *Must be at least N characters* / *Must be at most N characters* |
+| `pattern` | *Does not match the pattern P* |
+| `format: email` | *Not a valid email* |
+| `format: uuid` | *Not a valid UUID* |
+| `format: date` / `date-time` | *Use the format YYYY-MM-DD* / *Use the format YYYY-MM-DDThh:mm:ssZ* |
+| `format: uri` or `url` | *Not a valid URL* |
+| `minItems` / `maxItems` | *Add at least N item(s)* / *Can have at most N item(s)* |
+
+A value with a generator or a variable, such as `{{$randomEmail}}`, is not checked: it only gets a value when the case runs. A value that does not pass a check does not stop the run, and the **Inputs** tab shows how many need a look. See [Inputs](/test/inputs/).
+
+## Cases that come from schemas
+
+Luvin generates the **Data validation** and **Security** cases from the inputs of the workflow and from the contract:
+
+| Case | Generated when | It sends |
+|---|---|---|
+| **Without the required input "x"** | `x` is a required input and a step sends it in a parameter or the body, but not in the path | The request without `x` |
+| **"x" with a value outside the enum** | The input has `enum` | `"VALOR_NO_PERMITIDO"` |
+| **"x" with text instead of a number** | The input is `number` or `integer` | `"texto-invalido"` |
+| **"x" with text instead of a boolean** | The input is `boolean` | `"no-booleano"` |
+| **"x" with a value that does not match the pattern P** | The input is `string` with `pattern` | `"###"` |
+| **Without credentials** | A step of the workflow is protected by the `security` of its contract | The requests without the credentials of the contract |
+
+A `format` (such as `email`), `minimum`, `maxLength` and the like do not generate cases. An input that a step only uses in its criteria or outputs does not generate one either: the case needs a step that sends the value to the API.
+
+### Which answer the case expects
+
+The expected status comes from the contract of the first step that sends the value:
+
+| Case | Expects |
+|---|---|
+| Missing or wrong value | The `400` and `422` the operation documents. If it documents neither, its other documented 4xx codes, without `401`, `403`, `405`, `407` and `429`, which do not speak about the data. A `404` counts only when the value goes in the path. If nothing is left, *a 4xx*. |
+| **Without credentials** | `401` or `403`. |
+
+So documenting `400` or `422` on your operations makes these cases precise. If the API answers something else, change the expected status in the case. See [Adjust a case](/test/adjust-cases/).
+
+These cases only make sense against the **Real API**: in **Simulation** every step answers with success. When the API accepts a value that the case expected it to reject, the case ends in **Warning**, not **Failed**. See [Cases](/test/cases/).
+
+![The Cases tab with the generated cases in their groups](/media/en/cases.webp)
+
+## Schema details Luvin understands
+
+| Schema feature | How Luvin reads it |
+|---|---|
+| `$ref` to `#/components/schemas/…` | Followed, also into other files once they are loaded. |
+| `allOf` | The parts are merged: their fields and their `required`. |
+| `oneOf` / `anyOf` | For examples, the first option. For the contract check, the rules apply as written. |
+| `nullable: true` (OpenAPI 3.0) | `null` is accepted as a value. |
+| `type: [string, 'null']` | The first type that is not `null` decides the control. |
+| `readOnly`, `writeOnly`, `discriminator`, `xml` | Not used. |
+
+<Aside type="tip">
+Rules in the schema of the **contract** still matter even if the input does not copy them: Luvin checks each real response against the response schema, and the API you test probably validates the request with the same rules. See [Does the response match the contract?](/contracts/response-check/)
+</Aside>
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Inputs" href="/test/inputs/" />
+  <LinkCard title="Cases" href="/test/cases/" />
+  <LinkCard title="Adjust a case" href="/test/adjust-cases/" />
+  <LinkCard title="From operation to step" href="/contracts/operations-and-steps/" />
+</CardGrid>

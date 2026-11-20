@@ -1,0 +1,107 @@
+---
+title: Luvin's generators
+description: The seven generators that come with Luvin, the exact format of each value, their Spanish and English names, and what happens when a variable has the same name.
+sidebar:
+  order: 9
+---
+
+import { Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Besides the Postman-compatible `$` names, Luvin has seven generators of its own. They have no `$`, and they cover values that APIs of Latin America validate, such as a Brazilian CPF or a Chilean RUT, plus a few everyday ones.
+
+## Example: a customer that the API accepts every time
+
+An API rejects a CPF with wrong check digits and an email that already exists. This body passes on every run:
+
+```json title="Request body"
+{
+  "document": "{{cpf}}",
+  "email": "{{email}}",
+  "phone": "{{number:9}}",
+  "createdOn": "{{date}}"
+}
+```
+
+One possible run sends:
+
+```json title="What one run sends"
+{
+  "document": "52998224725",
+  "email": "prueba+m3k9x2qa417@example.com",
+  "phone": "048219376",
+  "createdOn": "2026-11-19"
+}
+```
+
+The next run has another CPF, valid too, and another email.
+
+## The generators
+
+| Name | What it produces | Example |
+|---|---|---|
+| `{{email}}` | A unique email at `example.com`: `prueba+`, a code from the current time, three random digits. | `prueba+m3k9x2qa417@example.com` |
+| `{{cpf}}` | A valid Brazilian CPF: 11 digits with correct check digits, never all the same digit, without dots or dash. | `52998224725` |
+| `{{rut}}` | A valid Chilean RUT: an 8-digit body and its check digit (a digit or `K`), without dots or dash. | `176543213` |
+| `{{uuid}}` | A UUID v4. | `3b241101-e2bb-4255-8caf-4136c566a962` |
+| `{{number}}` | 6 random digits. | `407193` |
+| `{{number:8}}` | Random digits. The number after the colon says how many, from 1 to 32. | `90215538` |
+| `{{date}}` | Today's date, as `YYYY-MM-DD`. | `2026-11-19` |
+| `{{timestamp}}` | The current time, in milliseconds since 1970. | `1795104000000` |
+
+Things to know about the formats:
+
+- `{{number}}` gives digits, not a number: the value can start with `0`. Use it for codes, phones and references.
+- A count above 32 gives 32 digits. A count of `0` gives the default 6.
+- `{{date}}` uses the UTC date. Close to midnight it can be one day ahead or behind your local date.
+- The `example.com` domain never receives mail, so `{{email}}` is safe for sign-ups in test environments.
+
+## Spanish and English names
+
+Two generators have a name in each language. Both spellings work, whatever the language of the interface:
+
+| English | Spanish |
+|---|---|
+| `{{number}}`, `{{number:8}}` | `{{numero}}`, `{{numero:8}}` |
+| `{{date}}` | `{{fecha}}` |
+
+The suggestions show the name of the interface language. A file written by a teammate who uses the other language still works on your computer.
+
+The names of Luvin's generators ignore capitals: `{{EMAIL}}` and `{{Uuid}}` also work. The `$` names do not: write `{{$randomEmail}}` exactly.
+
+## When a variable has the same name
+
+If the active environment has a variable called `email`, `{{email}}` uses the variable, not the generator. The environment warns you below the name: *Shadows the `{{email}}` generator: the variable value is used instead.*
+
+| You write | The environment has a variable `number` = `5` | Luvin sends |
+|---|---|---|
+| `{{number}}` | Yes | `5` |
+| `{{number:8}}` | Yes | 8 random digits: with a colon, it is always the generator |
+| `{{email}}` | No | A new email |
+
+The same happens with a value saved by a request and with a column of a data file in the Runner. In the suggestions, the generator disappears when a variable takes its name. Rename the variable if you want the generator back.
+
+The `$` names cannot be hidden this way, because a variable name cannot start with `$`.
+
+## Compared with the Postman-compatible ones
+
+Some generators have a `$` relative. They are not identical:
+
+| Luvin | Postman-compatible | Difference |
+|---|---|---|
+| `{{timestamp}}` | `{{$timestamp}}` | Milliseconds compared with seconds. |
+| `{{uuid}}` | `{{$guid}}`, `{{$randomUUID}}` | None: all give a UUID v4. |
+| `{{email}}` | `{{$randomEmail}}` | Always at `example.com`, compared with a realistic name and domain. `{{$randomExampleEmail}}` also uses an example domain. |
+| `{{number:8}}` | `{{$randomInt}}` | A fixed count of digits, compared with a number from 0 to 1000. |
+
+<Aside type="caution">
+An API that expects seconds and receives `{{timestamp}}` gets a date far in the future. Check which one your API wants.
+</Aside>
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Dynamic variables" href="/environments/dynamic-variables/" />
+  <LinkCard title="Postman-compatible variables" href="/environments/postman-variables/" />
+  <LinkCard title="Use variables" href="/environments/use-variables/" />
+  <LinkCard title="Send generated data" href="/recipes/generated-data/" />
+</CardGrid>

@@ -1,0 +1,128 @@
+---
+title: Cuando un cambio rompe un workflow
+description: La barra sobre la vista previa del contrato que te dice qué workflows rompe tu cambio, qué cuenta como problema nuevo y qué no puede ver.
+sidebar:
+  order: 6
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Un contrato se comparte. Varios workflows, en varios archivos de workflow, pueden usar la misma operación. Cuando editas el contrato, Luvin vuelve a analizar esos workflows con cada cambio que puede leer, y los compara con cómo estaban cuando abriste el contrato. Una barra sobre la vista previa te dice el resultado antes de que guardes, compartas o ejecutes nada.
+
+## Ejemplo: renombrar getPokemon
+
+Los cuatro workflows de la Pokédex llaman a `getPokemon`. Abre `pokeapi` y renombra la operación:
+
+<Tabs>
+<TabItem label="Antes">
+
+```yaml title="pokeapi.openapi.yaml" {3}
+  /pokemon/{idOrName}:
+    get:
+      operationId: getPokemon
+```
+
+La barra dice *4 workflow(s) usan este contrato · sin problemas nuevos*.
+
+</TabItem>
+<TabItem label="Después">
+
+```yaml title="pokeapi.openapi.yaml" {3}
+  /pokemon/{idOrName}:
+    get:
+      operationId: getPokemonByName
+```
+
+La barra se pone roja y dice *Este cambio rompe 4 workflow(s).* Haz clic en ella:
+
+```text title="Este cambio rompe 4 workflow(s)."
+● Pokemon card        1 problema(s) nuevo(s)
+    ✕ getPokemon       La operación "$sourceDescriptions.pokeapi.getPokemon" no existe en los contratos cargados.
+● Type explorer       1 problema(s) nuevo(s)
+    ✕ getFirstPokemon  La operación "$sourceDescriptions.pokeapi.getPokemon" no existe en los contratos cargados.
+● Battle matchup      1 problema(s) nuevo(s)
+    ✕ getRival         La operación "$sourceDescriptions.pokeapi.getPokemon" no existe en los contratos cargados.
+● Register sighting   1 problema(s) nuevo(s)
+    ✕ getPokemon       La operación "$sourceDescriptions.pokeapi.getPokemon" no existe en los contratos cargados.
+```
+
+</TabItem>
+</Tabs>
+
+Vuelve a poner el nombre anterior y la barra regresa a *sin problemas nuevos*. Si el nombre nuevo es el que quieres, déjalo y actualiza los pasos: abre cada uno desde la lista y cambia su `operationId` en la pestaña YAML.
+
+## Leer la barra
+
+La barra aparece solo cuando al menos un workflow usa el contrato.
+
+| La barra dice | Significado |
+|---|---|
+| *N workflow(s) usan este contrato · sin problemas nuevos* | Tus cambios hasta ahora no rompieron nada que Luvin pueda revisar. |
+| *Este cambio rompe N workflow(s).* | N workflows tienen problemas que no estaban cuando abriste el contrato. La barra está roja. |
+
+Haz clic en la barra, o en **Mostrar**, para abrir la lista. **Ocultar** la pliega.
+
+<Steps>
+
+1. Cada fila es un workflow, con un punto y *sin cambios* (verde) o *N problema(s) nuevo(s)* (rojo).
+2. Bajo una fila roja ves hasta seis de los problemas nuevos, cada uno con su nivel, el paso al que pertenece y el mensaje.
+3. Haz clic en un workflow para abrirlo. Haz clic en un problema para abrir el workflow en ese paso.
+
+</Steps>
+
+## Qué workflows cuentan
+
+Luvin cuenta todos los workflows de los archivos de workflow que listan el contrato en `sourceDescriptions`, lo llame un paso o no. En la Pokédex, tanto `pokeapi` como `pokedexEvents` muestran *4 workflow(s)*, porque los cuatro workflows están en el mismo archivo.
+
+Para un archivo que un contrato referencia con `$ref`, como un archivo de schemas compartidos, la barra cuenta los workflows de los contratos que lo mencionan. Un cambio en un schema compartido puede afectarlos a todos.
+
+## Qué cuenta como problema nuevo
+
+Cuando se abre el editor, Luvin recuerda los problemas que ya tiene cada workflow. Después muestra solo los problemas que aparecen desde ese momento:
+
+- Cuentan los errores y las advertencias. Los mensajes de información, no.
+- Un problema se compara por su mensaje. Uno que ya existía cuando abriste el contrato nunca se lista, así los problemas viejos no esconden los nuevos.
+
+<Aside type="caution" title="La comparación empieza cuando se abre el editor">
+Cuando sales de la pestaña del contrato, por ejemplo para abrir un workflow desde la lista, y vuelves, el editor se abre de nuevo y la comparación empieza desde ese momento. Los problemas que creaste antes ahora cuentan como existentes, y la barra puede decir *sin problemas nuevos*. Los workflows siguen mostrando sus errores: mira el punto de cada workflow en la barra lateral, o la pestaña **Resumen**.
+</Aside>
+
+## Cambios que detecta la barra
+
+Salen del análisis de los workflows. Mira [Mensajes del análisis y del contrato](/es/reference/analysis-messages/) para la lista completa.
+
+| Cambio en el contrato | Problema nuevo en el workflow | Nivel |
+|---|---|---|
+| Renombrar o borrar un `operationId` que usa un paso | *La operación "x" no existe en los contratos cargados.* | Error |
+| Renombrar o borrar una ruta a la que un paso llega con `operationPath` | *No se encontró la operación de operationPath "x".* | Error |
+| Dar el mismo `operationId` a dos operaciones | *"x" existe en varias fuentes; se usa "y". …* El paso usa la primera. | Advertencia |
+| Agregar un parámetro obligatorio, o volver obligatorio uno | *El contrato exige el parámetro query "x" y el paso no lo envía.* | Advertencia |
+| Volver obligatorio el body del request | *El contrato exige un body y el paso no define requestBody.* | Advertencia |
+| Quitar el status que espera un paso, por ejemplo `200` pasa a `201` | *Los successCriteria esperan 200, pero el contrato de … solo documenta 201, 404. Alinea el Arazzo o el contrato.* | Advertencia |
+| Renombrar o borrar un canal AsyncAPI que usa un paso | *No se encontró el canal "x" en ningún AsyncAPI cargado.* | Error |
+
+Un parámetro obligatorio que un paso no envía también muestra la barra **A este workflow le faltan datos** en la pestaña **Diseño**. Su botón **Completar** agrega lo que falta. Mira [Completa los datos que faltan](/es/design/complete-gaps/).
+
+## Lo que la barra no puede ver
+
+El análisis lee los archivos de workflow y el contrato. No ejecuta nada, así que algunos efectos solo aparecen al ejecutar:
+
+| Cambio | Dónde aparece |
+|---|---|
+| Se renombra o mueve un campo de una respuesta, y un output lo lee, como `$response.body#/types/0/type/name` | Al ejecutar: el output no se encuentra, y el paso termina con una advertencia si un paso posterior lo usa. |
+| Cambia un tipo, un `enum` o un `required` de un schema de respuesta | Al ejecutar: la revisión de cada respuesta contra el contrato. Mira [¿La respuesta cumple el contrato?](/es/contracts/response-check/) |
+| Cambia un ejemplo | En **Simulación** y en los mock servers, que responden con el ejemplo nuevo. |
+| Cambia `servers` | No cambia nada en los ambientes que ya tienen una URL base para el contrato. Mira [Servidores y credenciales](/es/contracts/servers-and-credentials/). |
+
+<Aside type="tip">
+Después de cambiar un contrato que usan los workflows, ejecútalos una vez en **Simulación**. Toma un segundo, no llama a ninguna API, y detecta outputs y criterios que ya no coinciden con el contrato. Mira [Simulación](/es/test/simulation/).
+</Aside>
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Editar un contrato" href="/es/contracts/edit/" />
+  <LinkCard title="Errores y advertencias del contrato" href="/es/contracts/lint-errors/" />
+  <LinkCard title="Mensajes del análisis y del contrato" href="/es/reference/analysis-messages/" />
+  <LinkCard title="Completa los datos que faltan" href="/es/design/complete-gaps/" />
+</CardGrid>

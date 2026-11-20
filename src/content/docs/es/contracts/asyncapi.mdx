@@ -1,53 +1,80 @@
 ---
 title: Contratos AsyncAPI
-description: Cómo lee Luvin los contratos AsyncAPI, qué versiones admite, qué muestra la vista previa y cómo los canales y operaciones se convierten en pasos de envío y recepción.
+description: Cómo lee Luvin los contratos AsyncAPI 2.x y 3.x, cómo apunta un paso a un canal o a una operación, cómo se arman y se comprueban los mensajes en una ejecución, qué muestra la vista previa y qué no ofrece AsyncAPI.
 sidebar:
-  order: 4
+  order: 13
 ---
 
-import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+import { Steps, Tabs, TabItem, LinkCard, CardGrid } from '@astrojs/starlight/components';
 
-AsyncAPI es a los mensajes lo que OpenAPI es a las llamadas REST: un archivo que describe los canales de un sistema, los mensajes que viajan por ellos y quién envía o recibe cada uno. Usa un contrato AsyncAPI cuando un workflow mezcla llamadas HTTP con eventos, por ejemplo un pago que termina con un webhook.
+AsyncAPI es a los mensajes lo que OpenAPI es a las llamadas REST: un archivo que describe los canales de un sistema, los mensajes que viajan por ellos y quién envía o recibe cada uno. Usa un contrato AsyncAPI cuando un workflow mezcla llamadas HTTP con eventos, por ejemplo un pago que termina con un webhook, o un registro que espera una confirmación.
 
-## Ejemplo: un paso que espera un evento
+Los pasos de mensajería siempre son **simulados**. Luvin arma cada mensaje a partir de los ejemplos del contrato, o de su schema, y comprueba que el workflow reaccione como se espera. No se conecta a Kafka, AMQP, MQTT ni a ningún otro broker.
 
-Las operaciones AsyncAPI no aparecen en la paleta de operaciones de la pestaña **Diseño**. Se convierten en pasos en el archivo del workflow, el archivo Arazzo, en la versión 1.1 del formato. Un paso de mensajería nombra el canal del contrato y dice si el workflow envía o recibe.
+## Ejemplo: Register sighting
 
-Este es un paso del ejemplo de PayPal que espera un webhook:
+El archivo incluido `pokedex-events.asyncapi.yaml` describe dos eventos ficticios de una Pokédex. El workflow **Register sighting** llama a la PokéAPI real, después publica un avistamiento y espera su confirmación.
 
-```yaml title="paypal.arazzo.yaml"
-- stepId: awaitCaptureEvent
-  channelPath: '{$sourceDescriptions.paypalEvents.url}#/channels/captureCompleted'
-  action: receive
-  correlationId: $inputs.orderId
-  timeout: 5000
-  successCriteria:
-    - condition: $message.payload#/resource/status == 'COMPLETED'
-  outputs:
-    eventId: $message.payload#/id
+<Tabs>
+<TabItem label="Contrato">
+
+```yaml title="pokedex-events.asyncapi.yaml"
+asyncapi: 3.0.0
+channels:
+  sightingRegistered:
+    address: pokedex.sighting.registered
+    messages:
+      sightingRegistered: { $ref: '#/components/messages/SightingRegistered' }
+  sightingConfirmed:
+    address: pokedex.sighting.confirmed
+    messages:
+      sightingConfirmed: { $ref: '#/components/messages/SightingConfirmed' }
+operations:
+  registerSighting:
+    action: send
+    channel: { $ref: '#/channels/sightingRegistered' }
+  onSightingConfirmed:
+    action: receive
+    channel: { $ref: '#/channels/sightingConfirmed' }
 ```
 
-| Campo | Qué hace |
-|---|---|
-| `channelPath` | Apunta al canal del contrato, mediante el nombre de la fuente (`paypalEvents`). |
-| `action` | `send` para publicar un mensaje, `receive` para esperar uno. |
-| `correlationId` | Un valor que une el mensaje con el caso correcto, por ejemplo un número de orden. |
-| `timeout` | Cuántos milisegundos espera el paso un mensaje. |
-| `$message` | Permite que los criterios y los outputs lean el payload y los headers del mensaje. |
+</TabItem>
+<TabItem label="Pasos">
 
-El paso necesita que el contrato AsyncAPI esté cargado (✓ en la lista **Contratos**) y que figure como fuente del Arazzo.
+```yaml title="pokemon.arazzo.yaml"
+- stepId: publishSighting
+  operationId: $sourceDescriptions.pokedexEvents.registerSighting
+  action: send
+  parameters:
+    - name: correlationId
+      in: header
+      value: $inputs.correlationId
+  requestBody:
+    payload:
+      trainer: $inputs.trainer
+      pokemonId: $steps.getPokemon.outputs.id
+      pokemon: $steps.getPokemon.outputs.name
+- stepId: awaitConfirmation
+  channelPath: '{$sourceDescriptions.pokedexEvents.url}#/channels/sightingConfirmed'
+  action: receive
+  correlationId: $inputs.correlationId
+  timeout: 5000
+  successCriteria:
+    - condition: $message.payload#/status == 'CONFIRMED'
+  outputs:
+    entryNumber: $message.payload#/entryNumber
+```
 
-Los pasos de mensajería siempre son **simulados**: Luvin arma el mensaje a partir de los ejemplos del contrato, o de su schema, y comprueba que el workflow reaccione como se espera. No se conecta a Kafka, AMQP, MQTT ni a ningún otro broker. La app lo avisa antes de ejecutar.
+</TabItem>
+</Tabs>
 
-Para saber cómo agregar, leer y probar estos pasos, mira [Pasos de mensajería](/es/design/messaging/).
+`publishSighting` apunta a la operación por su id. `awaitConfirmation` apunta al canal y dice que recibe. En una ejecución, el primero termina como **Enviado**, y el segundo recibe el ejemplo `confirmed` del contrato, con el identificador de correlación del caso escrito en su header.
 
 ## Versiones admitidas
 
-Luvin lee AsyncAPI **2.x** y **3.x**. Si el archivo declara otra versión, el editor te avisa: *Versión de AsyncAPI «x»: se espera 2.x o 3.x.*
+Luvin lee AsyncAPI **2.x** y **3.x**. Con otra versión, el editor avisa: *Versión de AsyncAPI «x»: se espera 2.x o 3.x.* En la lista **Contratos** la fila muestra `asyncapi` junto al nombre.
 
-Luvin reconoce el tipo por un campo al inicio del archivo: `asyncapi:` para AsyncAPI, `openapi:` para OpenAPI. En la lista **Contratos** la fila muestra `asyncapi` junto al nombre.
-
-Para empezar uno, haz clic en el **+** de la sección **Contratos** y elige **Nuevo contrato AsyncAPI**. Mira [Contratos](/es/contracts/overview/).
+Para empezar uno, haz clic en el **+** de la sección **Contratos** y elige **Nuevo contrato AsyncAPI**. Mira [Agregar un contrato](/es/contracts/add/).
 
 ## Enviar y recibir
 
@@ -59,7 +86,58 @@ Luvin llama **send** o **receive** a cada operación AsyncAPI, desde el punto de
 | 2.x | `publish` en un canal | **send**: el workflow envía el mensaje al canal |
 | 2.x | `subscribe` en un canal | **receive**: el workflow espera un mensaje del canal |
 
-En un contrato 3.x, cada operación necesita un `action` y un `channel` con un `$ref`. Si falta alguno, el editor muestra un error en esa operación.
+En un contrato 3.x, cada operación necesita un `action` y un `channel` con un `$ref`. Si falta alguno, el editor muestra un error en esa operación. Mira [Errores y advertencias del contrato](/es/contracts/lint-errors/#asyncapi).
+
+## Cómo apunta un paso al contrato
+
+| En el paso | Apunta a |
+|---|---|
+| `operationId: $sourceDescriptions.pokedexEvents.registerSighting` | La operación con esa clave bajo `operations` (3.x), o con ese `operationId` (2.x). |
+| `channelPath: '{$sourceDescriptions.pokedexEvents.url}#/channels/sightingConfirmed'` | El canal con esa clave bajo `channels`. En 3.x es la clave, como `sightingConfirmed`, no el `address`. En 2.x la clave es la dirección misma. |
+| `action: send` o `action: receive` | Cuál operación del canal, cuando tiene las dos. |
+
+Cuando un canal tiene una operación send y una receive y el paso no tiene `action`, el análisis avisa: *El canal "x" tiene más de una operación; se usa la de tipo "send". Indica "action: send" o "action: receive" en el paso.* Cuando el paso dice una acción y la operación es la otra, el análisis anota que se usa la del paso.
+
+En la pestaña YAML, después de `channelPath:` y de `operationId:` el editor ofrece los canales y las operaciones de los contratos cargados. Las operaciones AsyncAPI no están en la paleta **Operaciones**. Mira [Pasos de mensajería](/es/design/messaging/).
+
+## Mensajes
+
+Luvin busca los mensajes que puede llevar una operación:
+
+- En 3.x, los `messages` de la operación, o si no tiene, todos los mensajes de su canal.
+- En 2.x, el `message` de `publish` o de `subscribe`. Un `oneOf` da varios mensajes posibles.
+
+De cada mensaje lee el schema del `payload`, el schema de los `headers`, los `examples` (cada uno con `payload` y `headers`) y `correlationId.location`. Un payload escrito como `{ schemaFormat, schema }` se lee a través de su `schema`.
+
+### Cuando un paso envía
+
+Un paso send toma el payload que escribes en `requestBody.payload` y los parámetros `in: header` como headers. Siempre termina como **Enviado**. El análisis avisa de lo que un send ignora:
+
+| Mensaje | Significado |
+|---|---|
+| *"correlationId" solo aplica a pasos receive; en un send se ignora.* | Pon el id en un parámetro de header o en el payload. |
+| *En un mensaje solo se envían parámetros "in: header"; se ignoran: nombres.* | Los parámetros de ruta, query y cookie no tienen sentido en un mensaje. |
+
+### Cuando un paso recibe
+
+Un paso receive recibe un mensaje que Luvin arma a partir del contrato:
+
+| Parte | Regla |
+|---|---|
+| El ejemplo | El primer ejemplo cuyo payload ya tiene los valores que exigen los criterios de éxito, como `status == 'CONFIRMED'`. Si no hay, el primer ejemplo. Sin ejemplos, uno armado desde el schema del payload. |
+| Valores exigidos | Los valores de los criterios se escriben encima del payload. |
+| Identificador de correlación | El `correlationId` del paso se escribe donde dice el `correlationId.location` del mensaje, por ejemplo `$message.header#/correlationId`. |
+| Comprobación | El payload se compara con el schema del payload. Una diferencia termina el paso con *El mensaje no cumple el contrato:* y la primera de ellas. Mira [¿La respuesta cumple el contrato?](/es/contracts/response-check/#mensajes) |
+
+El análisis también anota un paso receive sin `timeout` (*con un broker real esperaría el mensaje indefinidamente*) y un paso receive con `requestBody`, que se ignora.
+
+### Casos para mensajes
+
+Cada acción de un paso receive cuyos criterios revisan el mensaje se vuelve un caso: `awaitConfirmation: llega un mensaje REJECTED → sightingRejected` recibe el ejemplo `rejected`. Una acción `onFailure` sin criterios recibe un caso en el que no llega ningún mensaje antes del `timeout`. Mira [Casos](/es/test/cases/).
+
+### Contra la API real
+
+Los pasos HTTP del mismo workflow llaman a la API real, y los pasos de mensajería siguen simulados. Antes de ejecutar, la app dice *Luvin todavía no se conecta a brokers: estos N paso(s) de mensajería se simularán con los ejemplos del AsyncAPI, aunque el resto corra contra la API real.* Después, cada paso de mensajería termina con la advertencia *Simulado: Luvin todavía no se conecta a brokers, así que este paso usa los ejemplos del AsyncAPI.* En **Simulación** terminan como exitosos.
 
 ## La vista previa
 
@@ -67,25 +145,30 @@ La vista previa de un contrato AsyncAPI es propia de Luvin. No es Swagger UI, qu
 
 <Steps>
 
-1. Arriba ves el título, la descripción y la versión, por ejemplo *AsyncAPI 3.0.0*.
+1. Arriba ves el título, la versión del contrato y la versión de AsyncAPI, como *AsyncAPI 3.0.0*, y la descripción.
 2. **Servidores** lista cada servidor como `nombre: host (protocolo)`.
 3. **Operaciones** lista las operaciones. Cada fila empieza con **SEND** o **RECEIVE**, luego el canal y el resumen.
-4. Haz clic en una fila para abrirla. Ves la descripción y, por cada **Mensaje**, su payload como un árbol de schema y sus ejemplos.
+4. Haz clic en una fila para abrirla. Ves el id de la operación, su descripción y, por cada **Mensaje**, su payload como un árbol de schema y sus ejemplos.
 5. Haz clic en **Ver en el YAML** para saltar a esa operación en el editor.
 
 </Steps>
 
 Los errores y advertencias aparecen sobre la vista previa, como en cualquier contrato. Mira [Editar un contrato](/es/contracts/edit/).
 
-<Aside type="note">
-Dos cosas que tienen los contratos OpenAPI no están disponibles para AsyncAPI: **Try it out** y **Generar requests**. Luvin no se conecta a un broker de mensajes.
-</Aside>
+## Lo que AsyncAPI no ofrece
+
+| Función | Por qué |
+|---|---|
+| **Try it out**, **Probar sola** | Luvin no se conecta a un broker. |
+| **Generar requests** y mock servers | Son para operaciones HTTP. |
+| La paleta **Operaciones** | Los pasos de mensajería se escriben en la pestaña YAML. |
+| URLs base desde `servers` | Los servidores AsyncAPI son brokers. Solo se muestran en la vista previa. |
 
 ## Relacionado
 
 <CardGrid>
-  <LinkCard title="Contratos" href="/es/contracts/overview/" />
   <LinkCard title="Pasos de mensajería" href="/es/design/messaging/" />
+  <LinkCard title="Ejemplos, simulación y mocks" href="/es/contracts/examples/" />
   <LinkCard title="Simulación" href="/es/test/simulation/" />
-  <LinkCard title="Ejemplos" href="/es/reference/examples/" />
+  <LinkCard title="Los ejemplos incluidos" href="/es/reference/examples/" />
 </CardGrid>

@@ -1,85 +1,115 @@
 ---
 title: Contratos remotos y referencias
-description: Cómo carga Luvin un contrato desde una URL, cómo un contrato puede referenciar otros archivos con $ref, qué significan las referencias que faltan y cómo corregirlas.
+description: Cómo carga Luvin un contrato que un archivo de workflow nombra por URL, cómo descarga los archivos que ese contrato referencia, por qué un contrato descargado es de solo lectura, y cómo conservarlo u obtener una versión más nueva.
 sidebar:
-  order: 5
+  order: 15
 ---
 
-import { Steps, LinkCard, CardGrid } from '@astrojs/starlight/components';
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
 
-Un contrato no siempre vive en un solo archivo de tu colección. Un workflow puede apuntar a un contrato publicado en una URL, y un contrato puede dividir sus schemas en otros archivos. Esta página explica los dos casos y qué hacer cuando falta una pieza.
+Un archivo de workflow puede nombrar un contrato por su dirección web en lugar de un archivo a su lado. Es común cuando un equipo publica sus contratos en un servidor. Luvin puede descargar ese contrato, junto con los archivos que referencia, y usarlo como cualquier otro. Esta página explica cómo, y qué tener en cuenta.
 
-## Ejemplo: referencias entre archivos
+Para las referencias entre archivos de tu colección, mira [Referencias entre archivos](/es/contracts/references/).
 
-Los contratos grandes suelen guardar sus schemas en otros archivos. Una **referencia** es un `$ref` que apunta a otro archivo en lugar de a un lugar del mismo:
+## Ejemplo: el contrato de la PokéAPI desde una URL
 
-```yaml
-components:
-  schemas:
-    Member:
-      $ref: 'schemas.yaml#/Member'
+Un archivo de workflow apunta a una copia publicada del contrato de la PokéAPI:
+
+<Tabs>
+<TabItem label="Archivo de workflow">
+
+```yaml title="pokemon.arazzo.yaml" {3}
+sourceDescriptions:
+  - name: pokeapi
+    url: https://example.com/specs/pokeapi.openapi.yaml
+    type: openapi
 ```
 
-La parte antes del `#` es el archivo. La parte después es la ruta dentro de ese archivo.
+</TabItem>
+<TabItem label="Antes">
 
-Luvin une las piezas por ti, si todos los archivos están en la colección:
+```text title="Contratos"
+✕ pokeapi   openapi   Adjuntar  Descargar  ⋯
+```
 
-- Encuentra los archivos por su nombre. `./common/errors.yaml` y `errors.yaml` son el mismo archivo para Luvin.
-- Lee una referencia a otro archivo como si el contenido estuviera escrito donde está el `$ref`.
-- El editor muestra un botón **$ref: archivo** por cada archivo referenciado. Haz clic para abrir ese archivo.
-- Un archivo de schemas que ningún workflow usa todavía aparece en la lista **Contratos** como `schemas`, con la marca ○.
+Los workflows que lo usan muestran errores, empezando por *Falta el contrato de la fuente "pokeapi" (https://example.com/specs/pokeapi.openapi.yaml).*
 
-Para agregar los archivos, arrástralos juntos a Luvin, o usa **Importar contrato…**. Mira [Contratos](/es/contracts/overview/).
+</TabItem>
+<TabItem label="Después de Descargar">
 
-Una referencia que se queda dentro del mismo documento, como `#/components/schemas/Member`, es un `$ref` normal. Si no apunta a nada, el editor muestra *El $ref «…» no apunta a nada dentro del contrato.*
+```text title="Contratos"
+✓ pokeapi   openapi   +  ⋯
+```
 
-## Contratos en una URL
+El contrato se abre como **Solo lectura**, y los pasos encuentran sus operaciones.
 
-Un archivo de workflow lista los contratos que usa, cada uno con una dirección. Esa dirección puede ser un archivo a su lado (`./pokeapi.openapi.yaml`) o una URL (`https://example.com/openapi.yaml`). Cuando es una URL y el archivo no está en la colección, la fila de la lista **Contratos** muestra ✕ y un botón **Descargar**.
+</TabItem>
+</Tabs>
+
+Si la colección ya tiene un archivo llamado `pokeapi.openapi.yaml`, Luvin lo usa y no descarga nada: solo cuenta el nombre de archivo de la dirección. Mira [Cómo encuentra su archivo un workflow](/es/contracts/add/#cómo-encuentra-su-archivo-un-workflow).
+
+## Descargar un contrato
+
+El botón **Descargar** aparece en una fila que no cargó, cuando su dirección empieza con `http://` o `https://`.
 
 <Steps>
 
 1. Haz clic en **Descargar** en la fila.
-2. Luvin descarga el archivo desde la URL y lo carga. La marca cambia a ✓.
+2. Luvin descarga el archivo desde la dirección y lo carga. La marca cambia a ✓.
+3. Ábrelo desde la lista. Muestra **Solo lectura**.
 
 </Steps>
 
-El contrato descargado se abre como **Solo lectura**, porque pertenece a la URL y no a tu colección. Para editarlo, haz clic en **Hacer copia local**. Mira [Editar un contrato](/es/contracts/edit/).
+Si la descarga falla, la fila queda en ✕ y su tooltip dice por qué:
 
-Si la descarga falla, la fila queda en ✕ y el mensaje dice por qué:
+| Mensaje | Qué significa | Qué hacer |
+|---|---|---|
+| *No se pudo descargar: el servidor no permite CORS o no es accesible. Descárgalo y súbelo manualmente.* | El servidor no respondió, o no le permite a Luvin leer el archivo (CORS). | Descarga el archivo con tu navegador y usa **Adjuntar**, o impórtalo a la colección. |
+| *No se pudo descargar: HTTP 404* (u otro código) | El servidor respondió con un error. | Revisa la dirección en el archivo de workflow. Un `401` o `403` significa que el servidor pide credenciales: descarga el archivo tú mismo. |
+| *No se pudo leer como YAML o JSON:* y un motivo, o *"pokeapi.openapi.yaml" no parece un OpenAPI.* | La dirección respondió algo que no es un contrato de ese tipo, como una página web. | Usa la dirección del archivo crudo. |
 
-| Mensaje | Qué significa |
+### Referencias de un contrato descargado
+
+Un contrato descargado puede referenciar otros archivos, como `./schemas/pokemon.yaml`. Luvin busca cada archivo que falta junto al contrato, en el mismo servidor, y carga los que encuentra. Lo repite hasta tres veces, por si los archivos que encontró referencian más archivos.
+
+Los archivos que no encuentra quedan en el mensaje *Faltan archivos referenciados con $ref: …* de la fila. Agrégalos a mano: arrástralos a Luvin o usa **Importar contrato…**.
+
+Un servidor del contrato escrito como una ruta, como `/api/v2`, se completa con la dirección de la que vino el contrato: `https://example.com/api/v2`. Mira [Servidores y credenciales](/es/contracts/servers-and-credentials/).
+
+## Adjuntar un archivo en su lugar
+
+**Adjuntar** funciona en cualquier fila que no cargó, con o sin dirección. Abre un selector de archivos: elige el contrato desde tu computador y Luvin lo vincula a esa fila, sea cual sea su nombre de archivo.
+
+El archivo tiene que ser del tipo que pide el archivo de workflow. Si no, la fila dice *"nombre" no parece un OpenAPI.* (o AsyncAPI).
+
+## Solo lectura, y cómo editarlo
+
+Un contrato descargado o adjuntado pertenece a su dirección o a tu computador, no a la colección, así que se abre como **Solo lectura**:
+
+- El texto de un contrato descargado es la lectura que Luvin hace del archivo. Puede que no estén los comentarios ni el formato original.
+- Un archivo adjuntado muestra su texto tal como era.
+
+Para cambiarlo, haz clic en **Hacer copia local**. Luvin lo agrega a la colección como un archivo con el mismo nombre, y desde ese momento es un contrato normal que puedes editar. Mira [Editar un contrato](/es/contracts/edit/#hacer-una-copia-local).
+
+## Conservarlo, u obtener una versión más nueva
+
+<Aside type="caution" title="Las descargas y los adjuntos no se guardan en la colección">
+Un contrato descargado o adjuntado no se escribe en la carpeta de la colección. Cuando vuelves a abrir la colección, su fila vuelve a mostrar ✕, y haces clic en **Descargar** o **Adjuntar** otra vez. Fuera de un workspace, al continuar una sesión guardada se vuelve a descargar por ti.
+</Aside>
+
+| Quieres | Haz esto |
 |---|---|
-| *No se pudo descargar: el servidor no permite CORS o no es accesible. Descárgalo y súbelo manualmente.* | En la versión de navegador, el servidor que publica el archivo debe permitir CORS. Si no, descarga el archivo tú mismo y usa **Adjuntar**. |
-| *No se pudo descargar: HTTP 404* (u otro código) | El servidor respondió con un error. Revisa la dirección. |
+| Que el contrato se quede con la colección, también para tu equipo | **Hacer copia local**. El archivo va a la carpeta de la colección, y a git si lo usas. |
+| Siempre la versión publicada en la dirección | Déjalo remoto, y haz clic en **Descargar** cada vez que abras la colección. |
+| Una versión más nueva después de una copia local | Descarga el archivo e impórtalo: un archivo con el mismo nombre reemplaza la copia. |
 
-**Adjuntar** es la alternativa para cualquier contrato que no cargó: abre un selector de archivos para que elijas el archivo de tu computador.
-
-## Referencias que faltan
-
-Un contrato puede estar cargado y aun así faltarle algunos de sus archivos. La fila muestra entonces ✕ y, al pasar el mouse, el mensaje:
-
-*Faltan archivos referenciados con $ref: nombres. Arrástralos a la zona de carga.*
-
-Significa que el contrato apunta a archivos que no están en la colección. Las partes que vienen de esos archivos no se validan ni se usan en la simulación. Puedes seguir trabajando, pero esas partes no están disponibles.
-
-Para corregirlo:
-
-<Steps>
-
-1. Lee los nombres del mensaje.
-2. Busca esos archivos. Suelen estar junto al contrato.
-3. Agrégalos: arrástralos a Luvin, o elige **Importar contrato…**. No tienes que hacer nada más: Luvin los carga y la marca cambia a ✓.
-4. Si el mensaje nombra un archivo *y* una ruta, como `schemas.yaml#/Member`, el archivo está, pero esa ruta no. Abre el archivo y revisa el nombre.
-
-</Steps>
-
-Para un contrato que descargaste de una URL, Luvin busca los archivos referenciados a su lado, en el mismo servidor, y carga los que encuentra. Lo repite hasta tres veces, por si los archivos que encuentra referencian más archivos. Los que no encuentra quedan en el mensaje, y los agregas a mano.
+Mientras un contrato remoto está cargado, la fila no tiene botón **Descargar**. Volver a abrir la colección es la forma de tomar la versión que está publicada ahora.
 
 ## Relacionado
 
 <CardGrid>
-  <LinkCard title="Contratos" href="/es/contracts/overview/" />
+  <LinkCard title="Referencias entre archivos" href="/es/contracts/references/" />
   <LinkCard title="Editar un contrato" href="/es/contracts/edit/" />
-  <LinkCard title="Solución de problemas" href="/es/get-started/troubleshooting/" />
+  <LinkCard title="La lista Contratos" href="/es/contracts/list/" />
+  <LinkCard title="Solución de problemas de contratos" href="/es/contracts/troubleshooting/" />
 </CardGrid>

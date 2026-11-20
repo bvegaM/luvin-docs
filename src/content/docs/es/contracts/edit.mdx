@@ -1,113 +1,147 @@
 ---
 title: Editar un contrato
-description: Cómo editar el YAML de un contrato junto a su vista previa, leer los errores en vivo, ver qué workflows afecta un cambio y hacer una copia local de un contrato que no puedes editar.
+description: El editor de contratos, su barra superior, la vista previa en vivo, cómo se guardan los cambios y cómo hacer una copia local de un contrato que no puedes editar.
 sidebar:
-  order: 2
+  order: 4
 ---
 
-import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
 
-Haz clic en un contrato en la barra lateral y Luvin lo abre en un editor. A la izquierda editas el YAML. A la derecha ves el contrato como una página legible, que se actualiza mientras escribes.
+Haz clic en un contrato en la barra lateral y Luvin lo abre en un editor. A la izquierda editas el YAML. A la derecha ves el contrato como una página legible, que se actualiza mientras escribes. Los workflows que usan el contrato se analizan de nuevo con cada cambio, así que ves el efecto de una edición antes de ejecutar nada.
 
 ![Un contrato abierto: el editor de YAML a la izquierda y la vista previa de Swagger UI a la derecha](/media/es/contract.webp)
 
-## Ejemplo: un cambio de nombre que rompe un workflow
+## Ejemplo: agregar una operación al contrato de la PokéAPI
 
-En el contrato de la PokéAPI, el workflow **Pokemon card** usa la operación `getPokemon`. La renombras en el YAML:
+Quieres un paso que consulte el color de un Pokémon. Abre `pokeapi` desde la lista **Contratos** y agrega una operación dentro de `paths`:
 
-```yaml title="pokeapi.openapi.yaml" {3-4}
-  /pokemon/{idOrName}:
+<Tabs>
+<TabItem label="Antes">
+
+```yaml title="pokeapi.openapi.yaml" {6}
+  /pokemon-color/{idOrName}:
     get:
-      # operationId: getPokemon
-      operationId: getPokemonByName
+      operationId: getPokemonColor
+      summary: Consulta un color
+      parameters:
+        - { name: idOrName, in: path, schema: { type: string } }
+      responses:
+        '200':
+          description: El color
 ```
 
-La barra sobre la vista previa ahora dice *Este cambio rompe N workflow(s).* Haz clic en **Mostrar**, luego en el paso que se quedó sin operación: el workflow se abre en ese paso. Vuelve a poner el nombre y la barra vuelve a *sin problemas nuevos*.
+Sobre la vista previa aparece **Errores (1)**: **Error** · **Línea 6** · *El parámetro de ruta «idOrName» debe tener required: true.*
 
-## La pantalla
+</TabItem>
+<TabItem label="Después">
 
-La barra superior muestra:
+```yaml title="pokeapi.openapi.yaml" {6}
+  /pokemon-color/{idOrName}:
+    get:
+      operationId: getPokemonColor
+      summary: Consulta un color
+      parameters:
+        - { name: idOrName, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: El color
+```
 
-- El nombre del archivo y una insignia con el tipo y la versión, por ejemplo **OpenAPI 3.0.3** o **AsyncAPI 3.0.0**.
-- Una insignia **Solo lectura** cuando no puedes editar el archivo. Mira más abajo.
-- Un botón **$ref: archivo** por cada archivo que este contrato referencia. Haz clic para abrir ese archivo.
-- El estado del guardado. En un workspace el estado es **Guardado automáticamente**. Fuera de un workspace ves **Cambios sin guardar en un archivo** y el botón **Guardar archivo**, más **Descartar cambios** para volver al texto con el que abriste.
-- **Generar requests** (solo OpenAPI). Mira [Generar requests desde un contrato](/es/requests/generate-from-contract/).
+El panel desaparece. Swagger UI muestra `GET /pokemon-color/{idOrName}`, y la paleta **Operaciones** de la pestaña **Diseño** la lista en el grupo `pokeapi`.
 
-La vista previa depende del contrato:
+</TabItem>
+</Tabs>
 
-| Contrato | Vista previa |
+El número de línea apunta al parámetro. Haz clic en el mensaje y el editor salta a él.
+
+## La barra superior
+
+| Elemento | Qué muestra o hace |
 |---|---|
-| OpenAPI | La **Swagger UI** oficial. Puedes probar una operación desde ella: mira [Probar una operación](/es/contracts/try-it-out/). |
-| AsyncAPI | La vista previa propia de Luvin. Mira [Contratos AsyncAPI](/es/contracts/asyncapi/). |
-| Un archivo de schemas que otros referencian | Una lista de sus schemas. |
+| Nombre del archivo | El archivo del contrato, por ejemplo `pokeapi.openapi.yaml`. |
+| Tipo y versión | Una insignia como **OpenAPI 3.0.3**, **Swagger 2.0** o **AsyncAPI 3.0.0**. Un archivo de schemas no tiene insignia. |
+| **Solo lectura** | El archivo no es parte de tu colección, así que no puedes cambiarlo. Mira [Hacer una copia local](#hacer-una-copia-local). |
+| **$ref: archivo** | Un botón por cada archivo de la colección que este contrato menciona, como un archivo de schemas. Haz clic para abrir ese archivo. |
+| Estado del guardado | En un workspace, **Guardado automáticamente**. Fuera de un workspace, **Cambios sin guardar en un archivo** mientras tienes cambios sin guardar. |
+| **Generar requests** | Solo OpenAPI. Abre **Generar requests de «nombre»**. Mira [Generar requests desde un contrato](/es/requests/generate-from-contract/). |
+| **Hacer copia local** | Solo en un contrato de **Solo lectura**. |
+| **Descartar cambios** y **Guardar archivo** | Solo fuera de un workspace. Mira [Guardar los cambios](#guardar-los-cambios). |
 
-En la parte de arriba de Swagger UI, **Servers** lista primero la dirección del ambiente activo, con el nombre *Ambiente «nombre» (Luvin)*.
+## El editor
 
-## Errores en vivo
+El editor colorea el YAML, numera las líneas y marca cada problema en el margen. Luvin lee el texto como un tercio de segundo después de que dejas de escribir. Entonces:
 
-Luvin revisa el contrato cada vez que dejas de escribir. Los problemas aparecen en dos lugares: marcados en el YAML, y en un panel sobre la vista previa. El panel se llama **Errores (n)**, o **Advertencias (n)** cuando solo hay advertencias.
+1. revisa el YAML y el contrato, y lista los problemas sobre la vista previa,
+2. actualiza la vista previa,
+3. carga la nueva versión para los workflows que usan el contrato, y los analiza de nuevo.
 
-<Steps>
+Un problema aparece en dos lugares: subrayado en el YAML, con una marca en el margen, y en el panel sobre la vista previa. El panel se llama **Errores (n)** cuando hay al menos un error, y **Advertencias (n)** cuando solo hay advertencias o información. Cada línea muestra el nivel (**Error**, **Advertencia** o **Info**), la línea (**Línea 12**) y el mensaje. Haz clic en una línea para saltar a ella. **Ocultar** y **Mostrar** pliegan el panel.
 
-1. Lee la lista. Cada línea muestra el nivel (**Error**, **Advertencia** o **Info**), la línea (**Línea 12**) y el mensaje.
-2. Haz clic en una línea. El editor salta a ella.
-3. Corrige el YAML. La línea desaparece cuando el problema se resuelve.
-4. Usa **Ocultar** y **Mostrar** para plegar el panel.
+Cada mensaje, qué significa y cómo corregirlo está en [Errores y advertencias del contrato](/es/contracts/lint-errors/).
 
-</Steps>
-
-Mientras el YAML no se puede leer, la vista previa sigue mostrando la última versión que se pudo leer.
-
-Esto es parte de lo que revisa Luvin:
-
-| Revisión | Por qué importa |
-|---|---|
-| Dos operaciones con el mismo `operationId` | Un workflow no sabría cuál usar. |
-| Una operación sin `operationId` | El workflow tiene que apuntar a ella por su ruta. |
-| Un parámetro de ruta que no es `required: true`, o que no está en la ruta | No se puede armar la URL. |
-| Un `$ref` que no apunta a nada | Una parte del contrato no se puede leer. |
-| Una operación sin respuestas documentadas | Luvin no puede comprobar la respuesta. |
-| Sin `servers` | La URL base sale del ambiente. Es solo información. |
-| Una versión distinta de OpenAPI 3.x o AsyncAPI 2.x o 3.x, o Swagger 2.0 | Luvin trabaja con OpenAPI 3.x. |
-| Una operación AsyncAPI sin `action: send` o `receive`, o sin canal | La operación no se puede usar como paso. |
-
-## Cuando un cambio rompe un workflow
-
-Un workflow que usa el contrato se analiza de nuevo mientras editas. Sobre la vista previa, una barra te dice el efecto:
-
-- *N workflow(s) usan este contrato · sin problemas nuevos* cuando el cambio es seguro.
-- *Este cambio rompe N workflow(s).* cuando tu edición creó problemas nuevos en algún workflow. Por ejemplo, renombraste un `operationId` que usa un paso.
-
-Haz clic en la barra (**Mostrar**) para ver la lista de workflows que usan el contrato. Cada fila tiene el nombre del workflow y *sin cambios* o *N problema(s) nuevo(s)*. Debajo de un workflow con problemas ves los mensajes y el paso al que pertenecen. Haz clic en uno para abrir ese workflow en ese paso.
-
-La lista muestra solo los problemas que aparecieron después de abrir el contrato, para que los que ya existían no tapen los nuevos. Si ningún workflow usa el contrato, la barra no aparece.
-
-<Aside type="tip">
-Un paso que muestra un error después de editar un contrato es la forma más rápida de encontrar qué rompió tu cambio. Corrige el contrato, o abre el workflow y ajusta el paso.
+<Aside type="note" title="Mientras el YAML no se puede leer">
+Un error de sintaxis del YAML, como una sangría equivocada, aparece como error con su línea. Hasta que lo corrijas, la vista previa sigue mostrando la última versión que se pudo leer, y los workflows también la siguen usando. Nada se rompe mientras escribes.
 </Aside>
+
+## La vista previa
+
+| Archivo | Vista previa |
+|---|---|
+| OpenAPI | La **Swagger UI** oficial. Puedes probar una operación desde ella. Mira [Probar una operación](/es/contracts/try-it-out/). |
+| AsyncAPI | La vista previa propia de Luvin, con operaciones **SEND** y **RECEIVE**. Mira [Contratos AsyncAPI](/es/contracts/asyncapi/). |
+| Un archivo de schemas que otros archivos referencian | Una sección **Schemas**, con cada schema como un árbol que puedes desplegar. |
+| Un archivo que no se puede mostrar | *No se puede mostrar la documentación de este archivo.* |
+
+Cuando un archivo de workflows nombra el contrato, la vista previa lo muestra completo: las partes que vienen de otros archivos con `$ref` ya están unidas. Si Swagger UI no logra iniciar, ves *No se pudo cargar Swagger UI:* y el motivo.
+
+### Los servidores en Swagger UI
+
+En la parte de arriba de Swagger UI, **Servers** lista primero la URL base del ambiente activo, con el nombre *Ambiente «nombre» (Luvin)*, y después los servidores del contrato. Las llamadas de **Try it out** van al servidor que elijas ahí.
+
+Esto solo pasa cuando un archivo de workflows nombra el contrato (✓ en la lista). Para un contrato ○, **Servers** lista solo los servidores del contrato, y las credenciales del ambiente no se completan. Mira [Servidores y credenciales](/es/contracts/servers-and-credentials/).
+
+## Cuando un cambio afecta a un workflow
+
+Sobre la vista previa, una barra muestra el efecto de tu edición en los workflows que usan el contrato:
+
+- *N workflow(s) usan este contrato · sin problemas nuevos*
+- *Este cambio rompe N workflow(s).*
+
+Haz clic en ella para ver cada workflow y los problemas nuevos, y haz clic en un problema para abrir el paso. La barra no aparece cuando ningún workflow usa el contrato. Mira [Cuando un cambio rompe un workflow](/es/contracts/impact/).
+
+## Guardar los cambios
+
+| Dónde trabajas | Cómo se guarda |
+|---|---|
+| Un workspace | Cada cambio se escribe solo en el archivo de la carpeta de la colección. La barra dice **Guardado automáticamente**. |
+| Fuera de un workspace (archivos abiertos en el navegador) | Luvin guarda tu texto en la sesión. Pulsa **Guardar archivo** para escribirlo. Cuando el navegador no puede escribir el archivo, lo descarga, y la barra dice **Descargado**. **Descartar cambios** vuelve al texto con el que abriste. |
+
+Guardar no ejecuta nada y no cambia los archivos de workflows. Si tu cambio rompe un workflow, corrige el contrato o ajusta el workflow después.
 
 ## Hacer una copia local
 
-No todos los contratos se pueden editar. Un contrato que se descargó de una URL, o que adjuntaste a una fila, viene como **Solo lectura**. El archivo no es parte de tu colección, así que un cambio no se guardaría.
+Un contrato que se descargó de una URL, o que adjuntaste a una fila con **Adjuntar**, se abre como **Solo lectura**. El archivo no es parte de tu colección, así que un cambio no tendría dónde guardarse.
 
 <Steps>
 
 1. Abre el contrato.
-2. Haz clic en **Hacer copia local**.
+2. Haz clic en **Hacer copia local**. El tooltip dice *Este contrato viene de una URL o se adjuntó: crea una copia en la colección para poder editarla.*
 
 </Steps>
 
-Luvin agrega el contrato como un archivo de la colección. La insignia **Solo lectura** desaparece y puedes editarlo. Los workflows siguen usándolo, ahora desde la copia.
+Luvin agrega el contrato como un archivo de la colección, con el mismo nombre. La insignia **Solo lectura** desaparece y puedes editarlo. Los workflows siguen usándolo, ahora desde la copia.
 
 <Aside type="note">
-Desde ese momento la copia y el original remoto son independientes. Las ediciones de la copia no cambian el original, y los cambios publicados en la URL no llegan a tu copia.
+Desde ese momento, la copia y el original son independientes. Las ediciones de la copia no cambian el original, y los cambios publicados en la URL no llegan a tu copia. Para tomar una versión más nueva, importa el archivo nuevo: un archivo con el mismo nombre reemplaza la copia.
 </Aside>
+
+El texto de un contrato descargado es la lectura que hace Luvin del archivo, así que puede no tener los comentarios ni el formato original. Un archivo adjuntado conserva su texto tal como era.
 
 ## Relacionado
 
 <CardGrid>
-  <LinkCard title="Contratos" href="/es/contracts/overview/" />
-  <LinkCard title="Contratos remotos y referencias" href="/es/contracts/remote-and-refs/" />
-  <LinkCard title="Editar el archivo Arazzo" href="/es/design/arazzo-editor/" />
+  <LinkCard title="Errores y advertencias del contrato" href="/es/contracts/lint-errors/" />
+  <LinkCard title="Cuando un cambio rompe un workflow" href="/es/contracts/impact/" />
+  <LinkCard title="Probar una operación" href="/es/contracts/try-it-out/" />
+  <LinkCard title="La pestaña YAML de un workflow" href="/es/design/arazzo-editor/" />
 </CardGrid>

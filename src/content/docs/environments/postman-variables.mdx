@@ -1,0 +1,141 @@
+---
+title: Postman-compatible variables
+description: The complete list of the 47 dynamic variables that start with a dollar sign, as Postman and Bruno name them, grouped by kind, with what each one produces.
+sidebar:
+  order: 10
+---
+
+import { Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+The dynamic variables that start with `$` use the names Postman documents, which Bruno uses too. A request you import keeps its `{{$guid}}` or `{{$randomEmail}}` and works in Luvin without changes. This page lists all 47.
+
+## Example: an imported sign-up request
+
+A Postman collection has a sign-up request with this body:
+
+```json title="Request body"
+{
+  "firstName": "{{$randomFirstName}}",
+  "lastName": "{{$randomLastName}}",
+  "email": "{{$randomExampleEmail}}",
+  "password": "{{$randomPassword}}",
+  "birthDate": "{{$randomDatePast}}"
+}
+```
+
+After you [import the collection](/environments/import/), the request is the same. In a field, each name shows in purple. In Spanish, one send could be:
+
+```json title="What one send can carry"
+{
+  "firstName": "Valentina",
+  "lastName": "Gutiérrez",
+  "email": "Valentina_Gutierrez@example.com",
+  "password": "pX3kq9TzL1mWvAe",
+  "birthDate": "2026-03-14T09:27:41.512Z"
+}
+```
+
+## How to read the list
+
+- The name is case-sensitive: `{{$randomEmail}}` works, `{{$randomemail}}` is left as written.
+- People, places, companies and words come out in the language of the interface: English, or Latin American Spanish.
+- Dates are full ISO 8601 date-times in UTC, like `2026-03-14T09:27:41.512Z`.
+- Every occurrence gives a new value. See [Dynamic variables](/environments/dynamic-variables/) to share one value across steps.
+- Type `{{$` in a field to see them all with an example of each.
+
+## Identifiers, time and basic values
+
+| Name | What it produces |
+|---|---|
+| `{{$guid}}` | UUID v4 |
+| `{{$randomUUID}}` | UUID v4 |
+| `{{$timestamp}}` | Seconds since 1970 (Unix) |
+| `{{$isoTimestamp}}` | Current date and time (ISO 8601) |
+| `{{$randomAlphaNumeric}}` | One alphanumeric character |
+| `{{$randomBoolean}}` | `true` or `false` |
+| `{{$randomInt}}` | Number between 0 and 1000 |
+| `{{$randomColor}}` | A color name |
+| `{{$randomHexColor}}` | Hex color |
+| `{{$randomAbbreviation}}` | Abbreviation (API, JSON…) |
+
+<Aside type="caution">
+`{{$timestamp}}` is in seconds. `{{timestamp}}`, without `$`, is in milliseconds. See [Luvin's generators](/environments/generators/).
+</Aside>
+
+## Internet and systems
+
+| Name | What it produces |
+|---|---|
+| `{{$randomIP}}` | IPv4 address |
+| `{{$randomIPV6}}` | IPv6 address |
+| `{{$randomMACAddress}}` | MAC address |
+| `{{$randomPassword}}` | 15-character password |
+| `{{$randomLocale}}` | Language code (en, es…) |
+| `{{$randomUserAgent}}` | Browser User-Agent |
+| `{{$randomProtocol}}` | `http` or `https` |
+| `{{$randomSemver}}` | Semantic version (1.4.2) |
+| `{{$randomDomainName}}` | Domain name |
+| `{{$randomEmail}}` | Email |
+| `{{$randomExampleEmail}}` | `@example.com` email |
+| `{{$randomUserName}}` | Username |
+| `{{$randomUrl}}` | URL |
+
+## People
+
+| Name | What it produces |
+|---|---|
+| `{{$randomFirstName}}` | First name |
+| `{{$randomLastName}}` | Last name |
+| `{{$randomFullName}}` | Full name |
+| `{{$randomNamePrefix}}` | Name prefix (Mr., Dr.…) |
+| `{{$randomJobTitle}}` | Job title |
+| `{{$randomPhoneNumber}}` | Phone number |
+
+## Places
+
+| Name | What it produces |
+|---|---|
+| `{{$randomCity}}` | City |
+| `{{$randomStreetName}}` | Street name |
+| `{{$randomStreetAddress}}` | Street address |
+| `{{$randomCountry}}` | Country |
+| `{{$randomCountryCode}}` | Country code (ISO) |
+| `{{$randomLatitude}}` | Latitude |
+| `{{$randomLongitude}}` | Longitude |
+
+## Business and money
+
+| Name | What it produces |
+|---|---|
+| `{{$randomBankAccount}}` | Bank account number |
+| `{{$randomCurrencyCode}}` | Currency code (USD, EUR…) |
+| `{{$randomPrice}}` | Price with two decimals |
+| `{{$randomCreditCardMask}}` | Last 4 digits of a card |
+| `{{$randomCompanyName}}` | Company name |
+
+## Text
+
+| Name | What it produces |
+|---|---|
+| `{{$randomWord}}` | One word |
+| `{{$randomWords}}` | A few words |
+| `{{$randomLoremSentence}}` | A sentence |
+
+## Dates
+
+| Name | What it produces |
+|---|---|
+| `{{$randomDatePast}}` | Date within the past year (ISO 8601) |
+| `{{$randomDateFuture}}` | Date within the next year (ISO 8601) |
+| `{{$randomDateRecent}}` | Date within the last few days (ISO 8601) |
+
+These 47 names are all the `$` variables Luvin has. Postman has more. Any other `{{$name}}` is left as written, shows in red in a field, and goes out literally. Replace it with one of this list, with one of [Luvin's generators](/environments/generators/), or with a variable of the environment.
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Dynamic variables" href="/environments/dynamic-variables/" />
+  <LinkCard title="Luvin's generators" href="/environments/generators/" />
+  <LinkCard title="Import environments" href="/environments/import/" />
+  <LinkCard title="Suggestions and colors" href="/environments/suggestions/" />
+</CardGrid>

@@ -1,0 +1,131 @@
+---
+title: Environment files and teams
+description: Where environments live in the workspace folder, the format of each file, what is safe to commit to git, how to share environments with a team without sharing secrets, and how to edit a file by hand.
+sidebar:
+  order: 11
+---
+
+import { Steps, Aside, FileTree, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+In a workspace, each environment is a small YAML file inside its collection. The file holds what the team can share: base URLs, variables, the color and the names of the secrets. The values of secrets and credentials stay encrypted on each computer. So you can commit environments to git and nobody's keys end up in the repository.
+
+## Example: the shop in a team repository
+
+The shop collection has two environments. In the workspace folder:
+
+<FileTree>
+
+- my-workspace/
+  - luvin.yaml
+  - shop/
+    - collection.yaml
+    - shop.openapi.yaml
+    - orders.arazzo.yaml
+    - environments/
+      - local.yaml
+      - staging.yaml
+    - scenarios/
+      - orders.arazzo.yaml
+
+</FileTree>
+
+And `staging.yaml`, after Ana filled it in:
+
+```yaml title="my-workspace/shop/environments/staging.yaml"
+# Luvin environment. Secret and credential values are not stored here: they live encrypted on each computer.
+name: staging
+color: yellow
+servers:
+  shop: https://staging.api.shop.test
+variables:
+  clientId: shop-staging-client
+  testCustomer: "42"
+secrets:
+  - clientSecret
+id: 2b7d4e1f-9c3a-4f58-8e06-1a5c7b9d3e24
+```
+
+Ana commits it. Bruno pulls, opens the workspace, clicks `staging`, and types his own `clientSecret` and credentials. He never sees Ana's.
+
+## Where environments live
+
+Each collection has an `environments/` folder with one file per environment. The file name comes from the environment name:
+
+| Environment name | File |
+|---|---|
+| `local` | `environments/local.yaml` |
+| `Prod (LatAm)` | `environments/prod-latam.yaml` |
+| `Staging` and `staging` in the same collection | `environments/staging.yaml` and `environments/staging-2.yaml` |
+
+Capitals become lowercase, accents are removed and anything that is not a letter or a digit becomes `-`. When two names give the same file name, the second one gets a number. The visible name stays the one in `name:`.
+
+If a file has a name that does not match, such as `prod.yaml` for the environment `production`, Luvin keeps writing to `prod.yaml`. When you rename the environment in the app, it moves to the file of its new name.
+
+## The format of the file
+
+| Key | What it holds |
+|---|---|
+| The comment on the first line | Written in English, whatever the language of the app, so files do not change between teammates. |
+| `name` | The visible name. |
+| `color` | `gray`, `green`, `blue`, `purple`, `yellow`, `orange` or `red`. Missing means no color. Any other value is ignored. |
+| `servers` | The base URLs, by name: those of the contracts and your own. Empty ones are not written. |
+| `variables` | Each variable with its value, as text. |
+| `secrets` | A list with the names of the secrets. Never their values. |
+| `id` | A fixed identity. The values stored on each computer are tied to it. |
+
+Credentials do not appear at all: neither names nor values. Luvin lists them from the contracts.
+
+## What the id is for
+
+Each computer stores the secret values and credentials of an environment under its `id`, not under its name. That is why they survive a rename, also a rename that arrives through git.
+
+- Do not edit the `id`. The secrets on each computer would no longer be found, and everyone would have to type them again.
+- If you copy a file by hand to make a new environment, delete its `id` line. Luvin gives it a new one when it opens the collection. Two files with the same `id` would mix their secrets.
+
+## What is safe to commit
+
+| What | Commit it? |
+|---|---|
+| `environments/*.yaml` | Yes. They hold no secret values. |
+| A value under `variables` | Only if anyone in the repository may read it. Otherwise make it a secret. |
+| Values in **Inputs** and cases (`scenarios/`) | They are written as typed. Use `{{clientSecret}}` there, never the value. |
+| Secret values and credentials | They are never in the folder, so there is nothing to commit. |
+| The active environment | It is remembered per computer, not in the files. |
+
+## Share environments with your team
+
+<Steps>
+
+1. Create the environments in the app and fill in base URLs and variables.
+2. Add every secret the team needs under **Secrets**, even if you leave the value empty. The name goes to the file and tells others what to fill.
+3. Commit the `environments/` folder with the rest of the workspace.
+4. Each teammate pulls, opens the workspace, clicks each environment in the **Environments** panel, and types the value of each secret and credential.
+
+</Steps>
+
+If someone runs against the real API with a credential missing, a notice above the workflow says *Credentials are missing in “staging”: calls that need them will answer 401.* and **Fill in** opens the environment. An empty secret shows in amber wherever `{{clientSecret}}` is used.
+
+<Aside type="tip" title="Tell the next person where to get them">
+In the README of the workspace or the collection, list the secrets each environment needs and who can give them. See [Keep a workspace in git](/workspaces/git/).
+</Aside>
+
+### Values are per computer, and per copy
+
+Secret values belong to this computer and to this copy of the workspace. Two clones of the same repository on the same computer, or a clone and a git worktree, do not share them: type them in each copy. Deleting a collection from the workspace with its files also deletes its secrets from this computer.
+
+## Edit a file by hand
+
+You can edit an environment file in any editor: change a URL, add a variable, change the color. Never write a secret value in it.
+
+Luvin reads the files when you open a collection and does not watch the folder. If the collection is open while you edit, close the workspace and open it again to see the change. Otherwise the app may write its own version over yours the next time you change that environment.
+
+If a file cannot be read, for example because of an unresolved git conflict, Luvin says: *The environment shop/environments/staging.yaml couldn’t be read (an unresolved git conflict?). It isn’t listed and Luvin won’t change it: fix it and reopen the collection.* The file is left untouched and no other environment is written over it.
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Keep a workspace in git" href="/workspaces/git/" />
+  <LinkCard title="What is on disk" href="/workspaces/files/" />
+  <LinkCard title="Share a workspace with your team using git" href="/tutorials/team-git/" />
+  <LinkCard title="Variables and secrets" href="/environments/variables-and-secrets/" />
+</CardGrid>

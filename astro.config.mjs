@@ -82,8 +82,20 @@ const sidebar = [
     ['Routes and responses', 'Rutas y respuestas', ['routes', 'responses', 'templates', 'auth-and-errors']],
     ['Use and inspect', 'Usar y revisar', ['with-workflows', 'log', 'security']],
   ]),
-  section('Contracts', 'Contratos', 'contracts', ['overview', 'edit', 'try-it-out', 'asyncapi', 'remote-and-refs']),
-  section('Environments', 'Ambientes', 'environments', ['overview', 'variables-and-secrets', 'dynamic-variables']),
+  section('Contracts', 'Contratos', 'contracts', [
+    ['Start here', 'Empieza aquí', ['overview', 'add', 'list']],
+    ['Edit and validate', 'Editar y validar', ['edit', 'lint-errors', 'impact', 'try-it-out']],
+    ['How Luvin uses a contract', 'Cómo usa Luvin un contrato', ['operations-and-steps', 'schemas-and-cases', 'servers-and-credentials', 'examples', 'response-check']],
+    ['Events, references and URLs', 'Eventos, referencias y URLs', ['asyncapi', 'references', 'remote-and-refs']],
+    'troubleshooting',
+  ]),
+  section('Environments', 'Ambientes', 'environments', [
+    ['Start here', 'Empieza aquí', ['overview', 'manage']],
+    ['What an environment holds', 'Qué guarda un ambiente', ['base-urls', 'variables-and-secrets', 'credentials']],
+    ['Use variables', 'Usar variables', ['use-variables', 'suggestions']],
+    ['Dynamic variables', 'Variables dinámicas', ['dynamic-variables', 'generators', 'postman-variables']],
+    ['Files, teams and problems', 'Archivos, equipos y problemas', ['files-and-teams', 'import', 'mock-environments', 'troubleshooting']],
+  ]),
   section('Authorization', 'Autorización', 'authorization', [
     ['Start here', 'Empieza aquí', ['overview', 'where-it-applies', 'inherit-and-none']],
     ['Types', 'Tipos', ['api-key', 'basic', 'bearer', 'oauth2', 'oauth1', 'digest', 'ntlm', 'aws-sigv4', 'akamai', 'wsse']],

@@ -1,15 +1,17 @@
 ---
 title: Environments
-description: What an environment is, how to create, rename, color and delete one, and how to choose the active environment.
+description: What an environment is and holds, where you see the active one, how to switch it, and what changes in requests, workflows and the Runner when you do.
 sidebar:
   order: 1
 ---
 
 import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
 
-An environment holds what changes between the places where your API runs, such as local and production. You need one as soon as you run a workflow or send a request against a real API.
+An environment holds what changes between the places where your API runs, such as local and production: the base URLs, the credentials, the variables and the secrets. You need one as soon as you run a workflow or send a request against a real API.
 
-Each environment is one small file. The same request, `{{baseUrl}}/customers`, goes to a different place in each:
+## Example: the same request in two environments
+
+The shop collection has two environments. The same request, `{{baseUrl}}/customers`, goes to a different place in each:
 
 <Tabs>
 <TabItem label="local">
@@ -38,115 +40,127 @@ servers:
 </TabItem>
 </Tabs>
 
+You do not change the request. You change the active environment at the top right of the window, and the next send goes to the other server.
+
 <video controls muted playsinline preload="metadata" poster="/media/en/environments.webp" src="/media/en/environments.mp4"></video>
 
 ## What an environment holds
 
-| Part | What it is |
-|---|---|
-| **Base URLs** | The address of each API in this environment, for example `https://api.shop.test`. |
-| **Credentials** | The values the contracts ask for: a token, a user and password, an API key. |
-| **Variables** | Values you reuse as `{{name}}`, such as a client ID. |
-| **Secrets** | Variables for keys and tokens. Their values never go into the workspace files. |
-| **Label color** | A color to tell environments apart at a glance. |
-
-Environments belong to the open [collection](/reference/glossary/). Each collection has its own list and always has at least one.
+| Part | What it is | More |
+|---|---|---|
+| **Base URLs** | The address of each API in this environment, for example `https://pokeapi.co/api/v2`. One per contract, plus your own. | [Base URLs](/environments/base-urls/) |
+| **Credentials** | The values the contracts ask for: a token, a user and password, an API key. | [Credentials](/environments/credentials/) |
+| **Variables** | Values you reuse as `{{name}}`, such as a client ID. | [Variables and secrets](/environments/variables-and-secrets/) |
+| **Secrets** | Variables for keys and tokens. Their values never go into the workspace files. | [Variables and secrets](/environments/variables-and-secrets/) |
+| **Label color** | A color to tell environments apart at a glance. | [Create, rename, color and delete](/environments/manage/) |
 
 ![The Environments panel of the sidebar and an environment open, with its base URLs, credentials, variables and secrets](/media/en/environment.webp)
+
+## One active environment per collection
+
+Environments belong to the open [collection](/reference/glossary/). Each collection has its own list, and one of them is always the active one. A collection never has zero environments:
+
+| Situation | The environment you get |
+|---|---|
+| You create a collection in a workspace | One environment called `local`, with the base URLs of the contracts you add. |
+| You open the Pokédex example | `local`, pointing at `https://pokeapi.co/api/v2`. |
+| You open the PayPal example | `Sandbox`, pointing at `https://api-m.sandbox.paypal.com`, with the variable `clientId` and the secret `clientSecret` still empty. |
+| A collection folder has no environment files | One called **My environment**. |
+| You delete the only environment | A new, empty **My environment**, with the base URLs of the contracts. |
+
+Luvin remembers the active environment of each collection on this computer. It is not written to the files, so each teammate can have a different one active.
 
 ## Where environments are
 
 | Place | What you find |
 |---|---|
-| Top bar | The active environment, at the top right of the window: a pill in its color, or in Luvin green without one. It is always visible while a collection is open, and it is the only place outside the sidebar that shows it |
-| Sidebar | The **Environments** panel: click the **Environments** icon at the top of the sidebar. Its title shows the open collection's name. The active one has its dot filled in |
-| Runner | The **Environment** list, at the top left while you set up a run |
+| Top bar | The active environment, at the top right of the window: a pill in its color, or in Luvin green without one. It is always visible while a collection is open. |
+| Sidebar | The **Environments** panel: click the **Environments** icon at the top of the sidebar. Its title shows the open collection's name. The active one has its dot filled in. A row with variables shows how many, such as **3 vars**. |
+| The environment tab | Titled **Environment “name”**. It shows the active environment: its base URLs, credentials, variables and secrets, with a row of every environment at the top. |
+| Runner | The **Environment** list, at the top left while you set up a run. |
+| Search | Press ⌘K (Ctrl+K) and type a name. The group **Environments** lists them, and the one in use says **active**. |
+| Try it out | The pill next to **Send** names the environment the call uses. Click it to configure that environment. |
 
 ## Choose the active environment
 
-The active environment is the one Luvin uses for every run, every request and **Try it out** in a contract.
+The active environment is the one Luvin uses for every run, every request and **Try it out** in a contract. Choose it in any of these places. They all change the same thing.
+
+<Tabs>
+<TabItem label="Top right">
+
+<Steps>
+
+1. Click the pill at the top right of the window.
+2. Choose an environment. The active one has a check mark.
+
+</Steps>
+
+Its last option, **Configure environment…**, opens the active environment in its tab. Use the pill to switch without leaving what you are doing.
+
+</TabItem>
+<TabItem label="Sidebar">
 
 <Steps>
 
 1. At the top of the sidebar, click the **Environments** icon.
-2. Click an environment.
+2. Click an environment. Its tooltip says **Use and open this environment**.
 3. It becomes active and opens in a tab titled **Environment “name”**.
 
 </Steps>
 
-To switch without leaving what you are doing, use the environment at the top right of the window. Open it and choose another one. Its last option, **Configure environment…**, opens the active environment. Luvin remembers the active environment of each collection on this computer.
+Next to the active one, **Configure** opens it again.
 
-## Create an environment
-
-<Steps>
-
-1. In the **Environments** panel of the sidebar, click **+** (**New environment**). Inside an open environment you can also click **+ New**.
-2. A new environment called **New environment** is added and becomes active.
-3. Type its name and press **Enter**.
-
-</Steps>
-
-The new environment is a copy of the active one: same base URLs and variables. For secrets it copies only the names. Credentials are not copied. You only change what differs.
-
-## Rename an environment
+</TabItem>
+<TabItem label="Search">
 
 <Steps>
 
-1. Open the environment.
-2. Double-click its name in the row of environments at the top, or click **Rename**.
-3. Type the new name and press **Enter**. Press **Esc** to cancel.
-
-</Steps>
-
-## Give it a color
-
-<Steps>
-
-1. Open the environment.
-2. Next to **Label color**, click a color: gray, green, blue, purple, yellow, orange or red. The first option removes the color.
-
-</Steps>
-
-The color shows in the sidebar and in the pill of the environment at the top right. An environment without a color shows there in Luvin green, so **No color (Luvin green at the top)** is the first option. A common choice: local in green, integration in yellow, production in red.
-
-## Delete an environment
-
-<Tabs>
-<TabItem label="From the sidebar">
-
-<Steps>
-
-1. In the **Environments** panel, hover the environment and open its **⋯** menu.
-2. Choose **Delete environment…**.
-3. Confirm with **Delete**.
+1. Press ⌘K (Ctrl+K).
+2. Type part of the name.
+3. Choose it under **Environments**. It becomes active and opens.
 
 </Steps>
 
 </TabItem>
-<TabItem label="From the environment">
+<TabItem label="Runner">
 
-<Steps>
-
-1. Open the environment.
-2. Click **Delete**, on the right of the row of environments.
-3. Confirm with **Delete**.
-
-</Steps>
+While you set up a run, open the **Environment** list at the top left and choose one. See [Open the Runner and choose the environment](/runner/open-and-environment/).
 
 </TabItem>
 </Tabs>
 
-Deleting an environment also deletes its credentials and secrets from this computer.
+The environment tab always shows the active environment. Clicking another name in the row at the top of the tab makes that one active too.
 
-<Aside type="note" title="There is always one environment">
-If you delete the only environment, Luvin leaves a new, empty one in its place, with the base URLs of the contracts. The confirmation says so before you delete.
+## What changes when you switch
+
+| Where | What uses the new environment |
+|---|---|
+| Single requests | Every `{{name}}` in the URL, params, headers, body and authorization: base URLs, variables and secrets. |
+| Workflows | The base URL of each contract, the credentials, and every `{{name}}` in inputs, cases and steps. |
+| Try it out and the contract documentation | The server and the credentials of the contract. |
+| Runner | The same active environment. Its name shows in the results. |
+| Run confirmation | When a workflow has steps that create, change or delete data, Luvin shows *These steps modify data in the “name” environment:* before a real run. After you switch, it asks again. |
+
+![Before running PayPal's Create order: the notice that a POST modifies data in the Sandbox environment](/media/en/test-run-confirm.webp)
+
+Some things stay as they were:
+
+| What | Why |
+|---|---|
+| The results of the last run | They keep the environment they ran with. A report exported later still names that one. |
+| History | Each entry keeps the name of the environment it used. |
+| Values saved by requests (**Saved now**) | They belong to the collection, not to an environment, and they win over environment variables. A token saved while `local` was active is still used after you switch. Click **Clear all** in the **Variables** tab of a request to drop them. |
+| OAuth 2.0 tokens | Luvin keeps them in memory while the collection is open. Press **Clear token** if the new environment needs another one. |
+
+<Aside type="caution" title="Check the pill before a real run">
+The pill at the top right is the only place outside the sidebar that names the active environment. A red label for production makes it hard to miss.
 </Aside>
 
 ## Next
 
 <CardGrid>
-  <LinkCard title="Base URLs, variables and secrets" href="/environments/variables-and-secrets/" />
-  <LinkCard title="Dynamic variables" href="/environments/dynamic-variables/" />
-  <LinkCard title="Authorization of a workflow" href="/authorization/workflow/" />
-  <LinkCard title="Run a workflow" href="/test/run/" />
+  <LinkCard title="Create, rename, color and delete" href="/environments/manage/" />
+  <LinkCard title="Base URLs" href="/environments/base-urls/" />
+  <LinkCard title="Variables and secrets" href="/environments/variables-and-secrets/" />
+  <LinkCard title="Use variables" href="/environments/use-variables/" />
 </CardGrid>

@@ -1,0 +1,141 @@
+---
+title: Usar variables
+description: Cómo escribir una variable, todos los lugares donde Luvin la reemplaza, variables dentro de variables, qué valor manda cuando dos se llaman igual y cómo funcionan en los inputs, los casos y el YAML del Arazzo.
+sidebar:
+  order: 6
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Una variable se escribe con su nombre entre llaves dobles, `{{nombre}}`. Cuando sale un request o un paso, Luvin la reemplaza por el valor del ambiente activo. Así el mismo request funciona en todos los ambientes.
+
+## Ejemplo: un request, tres tipos de valores
+
+Un request suelto de la tienda, con el ambiente `staging` activo:
+
+<Tabs>
+<TabItem label="Lo que escribes">
+
+```text title="Request GET"
+URL      {{baseUrl}}/customers/{{customerId}}
+Headers  X-Shop-Key: {{apiKey}}
+         X-Request-Id: {{$guid}}
+```
+
+</TabItem>
+<TabItem label="Lo que tiene staging">
+
+| Nombre | Tipo | Valor |
+|---|---|---|
+| `baseUrl` | URL base | `https://staging.api.shop.test` |
+| `customerId` | Variable | `42` |
+| `apiKey` | Secreto | `k-7Hq2…` |
+
+</TabItem>
+<TabItem label="Lo que sale">
+
+```text title="Request enviado"
+GET https://staging.api.shop.test/customers/42
+X-Shop-Key: ••••
+X-Request-Id: 1f0e9c3a-5b2d-4c7e-9a81-6d3f2b7e4c10
+```
+
+El secreto se envía completo, pero se ve como `••••`. `{{$guid}}` es una [variable dinámica](/es/environments/dynamic-variables/): un UUID nuevo en cada envío.
+
+</TabItem>
+</Tabs>
+
+Cambia a `local` y el mismo request va a tu equipo, con el `customerId` y la clave de `local`.
+
+## Escribe una variable
+
+| Regla | Ejemplo |
+|---|---|
+| Dos llaves a cada lado | `{{clientId}}` |
+| Se permiten espacios adentro | `{{ clientId }}` funciona igual |
+| Puede ir dentro de cualquier texto | `Bearer {{token}}`, `{{baseUrl}}/v1/orders`, `user-{{customerId}}@example.com` |
+| Los nombres de tus variables distinguen mayúsculas | `{{ClientId}}` no es `{{clientId}}` |
+| Un nombre que no es nada conocido | Queda tal como lo escribiste. Un request envía `{{clientid}}` literal |
+
+Cuando escribes `{{` en un campo, Luvin sugiere los nombres que conoce y pinta cada uno. Mira [Sugerencias y colores](/es/environments/suggestions/).
+
+## Dónde la reemplaza Luvin
+
+| Dónde | Qué |
+|---|---|
+| Requests sueltos | URL, variables de ruta, params, headers, body (también en el editor del body), campos de formulario, y todos los campos de la pestaña **Autorización**. También los valores esperados de la pestaña **Comprobaciones**. |
+| Pasos de un workflow | El valor de un parámetro o de un campo del body, en la pestaña **Diseño** o escrito en el YAML. |
+| **Inputs** y los datos de cada caso | Se reemplazan una vez por caso, antes del primer paso. |
+| El propio ambiente | URLs base y credenciales. |
+| La pestaña **Autorización** de un workflow | Client ID, Client Secret, URL del token, usuario, contraseña y los demás campos. |
+| **Try it out** | Los campos de la operación. |
+
+Los mock servers son la excepción: sus rutas responden con sus propias plantillas, como `{{request.path.id}}`, y no leen el ambiente. Mira [Valores del request](/es/mocks/templates/).
+
+## Una variable que usa otra
+
+El valor de una variable puede contener otras variables. Luvin también las reemplaza, como Postman.
+
+| Variable | Valor | `{{nombre}}` se convierte en |
+|---|---|---|
+| `host` | `https://api.shop.test` | |
+| `apiRoot` | `{{host}}/v1` | `https://api.shop.test/v1` |
+| `authHeader` | `Bearer {{token}}` | `Bearer` y el valor de `token` |
+| `orderRef` | `ORD-{{$randomInt}}` | `ORD-` y un número nuevo cada vez |
+
+Luvin sigue hasta cinco niveles. Dos variables que se nombran entre sí se detienen ahí en vez de dar vueltas sin fin.
+
+## Qué valor manda
+
+El mismo nombre puede existir en varios lugares. Cuando pasa, manda el que está más abajo en esta tabla:
+
+| Origen | Ejemplo | Dura |
+|---|---|---|
+| Los generadores de Luvin | `{{email}}`, `{{uuid}}` | Siempre disponibles |
+| URLs base del ambiente activo | `{{baseUrl}}`, `{{pokeapi}}` | Mientras el ambiente está activo |
+| Variables y secretos del ambiente activo | `{{clientId}}` | Mientras el ambiente está activo |
+| Valores guardados por los requests (**Guardadas ahora**) | `{{token}}` guardado de la respuesta de un login | Mientras la colección está abierta, o hasta **Borrar todas** |
+| Columnas de un archivo de datos en el runner | `{{customerId}}` de un CSV | Durante esa ejecución |
+
+Algunas consecuencias:
+
+- Una variable llamada `email` tapa al generador `{{email}}`. El ambiente te avisa. Mira [Los generadores de Luvin](/es/environments/generators/).
+- `{{numero:8}}`, con dos puntos, siempre es el generador: una variable no recibe argumentos.
+- Los nombres que empiezan con `$`, como `{{$guid}}`, nunca quedan tapados por una variable del ambiente, porque el nombre de una variable no puede empezar con `$`.
+- Un valor guardado por un request manda sobre el ambiente incluso después de cambiar de ambiente. Mira [Guarda valores de una respuesta](/es/requests/save-variables/).
+
+## Inputs y casos
+
+Un input de un workflow puede tener una variable. Luvin la reemplaza al comienzo de cada caso, así cada paso que lee `$inputs.customerId` recibe el mismo valor.
+
+En la pestaña **Inputs**, pon `customerId` en `{{testCustomer}}`. Con `testCustomer` en `42` en `staging` y en `7` en `local`, los casos usan el cliente de prueba de cada ambiente.
+
+- Una variable dinámica en un input, como `{{$guid}}`, se genera una vez por caso, y todos los pasos de ese caso la comparten. El ejemplo de la Pokédex lo hace con su input `correlationId`.
+- Lo que va a los archivos de `scenarios/` es `{{testCustomer}}` tal como lo escribiste, no su valor. Un secreto escrito como `{{clientSecret}}` queda fuera de git.
+- Cuando editas los datos de un caso en la pestaña **Casos**, una nota debajo lista *Generadores (un valor nuevo en cada corrida):* y, en *Variables del ambiente:*, los nombres del ambiente activo.
+
+Mira [Inputs](/es/test/inputs/) y [Casos con datos propios](/es/test/custom-cases/).
+
+## En el YAML del Arazzo
+
+En YAML, una `{` sin comillas abre un mapa. Pon el valor entre comillas. Un fragmento real del ejemplo de PayPal, que envía una clave de idempotencia nueva en cada ejecución:
+
+```yaml title="paypal.arazzo.yaml"
+requestId:
+  name: PayPal-Request-Id
+  in: header
+  value: '{{$randomUUID}}'
+```
+
+<Aside type="note" title="Variables y expresiones">
+`{{nombre}}` viene del ambiente, o de un generador. `$inputs.nombre`, `$steps.getPokemon.outputs.id` y las demás expresiones de Arazzo vienen del workflow mientras corre. Usa expresiones para pasar datos entre pasos. Mira [Conectar datos entre pasos](/es/design/wire-data/).
+</Aside>
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Sugerencias y colores" href="/es/environments/suggestions/" />
+  <LinkCard title="Variables dinámicas" href="/es/environments/dynamic-variables/" />
+  <LinkCard title="Guarda valores de una respuesta" href="/es/requests/save-variables/" />
+  <LinkCard title="Archivos de datos" href="/es/runner/data-files/" />
+</CardGrid>

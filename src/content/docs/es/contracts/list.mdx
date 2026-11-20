@@ -1,0 +1,121 @@
+---
+title: La lista Contratos
+description: La sección Contratos de la barra lateral, qué significan ✓, ✕ y ○, el contador, los botones de cada fila, los contratos que Luvin arma desde requests y cómo eliminar un contrato.
+sidebar:
+  order: 3
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+La sección **Contratos** de la barra lateral muestra cada contrato de la colección abierta y si está listo para usar. Es el primer lugar donde mirar cuando un paso no encuentra su operación.
+
+## Ejemplo: la colección Pokédex
+
+Abre el ejemplo Pokédex y mira el panel **Colecciones** de la barra lateral, debajo de las colecciones:
+
+```text title="Contratos · Pokédex"
+Contratos  Pokédex  2
+✓ pokeapi        openapi   +  ⋯
+✓ pokedexEvents  asyncapi     ⋯
+```
+
+Los dos contratos están cargados, así que el contador dice `2`. Ahora imagina que el archivo de workflows también nombra un contrato publicado en una URL que todavía no descargaste:
+
+```text title="Contratos · Pokédex"
+Contratos  Pokédex  2/3
+✓ pokeapi        openapi   +  ⋯
+✓ pokedexEvents  asyncapi     ⋯
+✕ partnerApi     openapi   Adjuntar  Descargar  ⋯
+```
+
+El contador pasa a `2/3`, en color de advertencia. Su tooltip dice *2 de 3 contratos cargados*. La fila con ✕ ofrece **Adjuntar** y **Descargar**.
+
+![La barra lateral de una colección cuyos contratos no cargaron: cada uno muestra ✕ y un enlace Adjuntar](/media/es/contract-missing.webp)
+
+## Dónde está
+
+La sección está en el panel **Colecciones** de la barra lateral, debajo de las colecciones. Su título es **Contratos**, seguido del nombre de la colección abierta. Sin una colección abierta, la sección no se muestra. Haz clic en el título para plegar o desplegar la lista.
+
+El contador solo cuenta los contratos que nombran los archivos de workflows. Los archivos que ningún workflow usa todavía (las filas ○) aparecen en la lista, pero no se cuentan.
+
+## Las marcas
+
+| Marca | Significado | Tooltip |
+|---|---|---|
+| ✓ | Cargado, con todos los archivos que referencia. Listo para usar. | El nombre del archivo. |
+| ✕ | No está listo: falta el archivo, no se puede leer, es del tipo equivocado, o faltan archivos que referencia con `$ref`. | El motivo, por ejemplo *Faltan archivos referenciados con $ref: schemas.yaml. Arrástralos a la zona de carga.* |
+| ○ | El archivo está en la colección, pero ningún archivo de workflows lo nombra todavía. | *Ningún Arazzo de la colección usa este archivo todavía*, o el error de lectura si el archivo no se puede leer. |
+
+Un contrato con ✕ no siempre está vacío. Cuando solo faltan archivos de `$ref`, el contrato carga, pero las partes que vienen de esos archivos no se validan y no se usan en la simulación. Mira [Referencias entre archivos](/es/contracts/references/).
+
+## El nombre de cada fila
+
+| Fila | Nombre que muestra | Tipo que muestra |
+|---|---|---|
+| Un contrato que nombra un archivo de workflows | El nombre de la fuente, por ejemplo `pokeapi`. Es el nombre que usan los pasos, las URLs base y las credenciales. | `openapi` o `asyncapi`, según dice el archivo de workflows. |
+| Un archivo ○ | El nombre del archivo, por ejemplo `pokeapi.openapi.yaml`. | `openapi`, `asyncapi`, o `schemas` para un archivo que no es ninguno de los dos, como un archivo de schemas compartidos. |
+
+Haz clic en el nombre para abrir el contrato en el editor. Su tooltip dice *Abrir pokeapi.openapi.yaml en el editor*, con el nombre del archivo. Un contrato que nunca cargó no tiene archivo, así que su nombre es texto simple.
+
+## Los botones de una fila
+
+| Botón | Aparece en | Qué hace |
+|---|---|---|
+| **+** | Contratos OpenAPI cargados, incluidos los ○ | Abre **Generar requests de «nombre»**. Mira [Generar requests desde un contrato](/es/requests/generate-from-contract/). |
+| **Adjuntar** | Contratos que no cargaron | Abre un selector de archivos. Elige el archivo del contrato y Luvin lo vincula a esa fila. |
+| **Descargar** | Contratos que no cargaron y cuya dirección empieza con `http://` o `https://` | Descarga el contrato desde su dirección. Mira [Contratos remotos y referencias](/es/contracts/remote-and-refs/). |
+| **⋯** | Todas las filas, salvo los contratos armados desde requests | Abre el menú de la fila. |
+
+El menú **⋯** tiene:
+
+- **Mostrar en Finder** (macOS) o **Mostrar en el explorador** (Windows y Linux), en la app de escritorio, para un archivo de la colección.
+- **Eliminar contrato…** para un contrato con archivo, o **Quitar contrato…** para un contrato que nunca cargó.
+
+![El menú ⋯ de la fila de un contrato, con su acción de eliminar](/media/es/sidebar-menu.webp)
+
+## Contratos armados desde requests
+
+Cuando arrastras requests guardados a un workflow, Luvin arma con ellos un contrato OpenAPI pequeño, para que el archivo de workflows siga siendo estándar. Estos contratos viven en `requests/_contracts/` dentro de la colección, uno por URL base, y también aparecen en la lista.
+
+- No tienen menú **⋯**. Luvin los vuelve a armar cuando cambian tus requests, así que nunca los eliminas a mano.
+- Sus operaciones no se repiten en la paleta: las encuentras en **Requests de la colección**.
+
+Mira [Armar desde requests guardados](/es/design/from-requests/).
+
+## Eliminar un contrato
+
+<Steps>
+
+1. Abre el menú **⋯** de la fila.
+2. Elige **Eliminar contrato…**, o **Quitar contrato…** para un contrato que nunca cargó.
+3. Lee la pregunta en la fila y confirma con **Eliminar** o **Quitar**, o pulsa **Cancelar**.
+
+</Steps>
+
+Lo que Luvin pregunta y hace depende del contrato:
+
+| Caso | Qué dice y qué hace Luvin |
+|---|---|
+| Ningún workflow lo usa | *¿Eliminar el contrato «nombre»? Se borra su archivo. No se puede deshacer.* Se borra el archivo. Si un archivo de workflows solo lo declaraba, sin que ningún paso lo usara, esa declaración también se quita. |
+| Un workflow lo usa | *«nombre» se usa en: nombres de workflows. Esos pasos quedarán sin contrato hasta que adjuntes otro. ¿Eliminar su archivo? No se puede deshacer.* Si confirmas, se borra el archivo. Los pasos se quedan en los workflows y muestran un error, y la fila sigue en la lista con ✕ y **Adjuntar**. |
+| Nunca cargó y ningún paso lo usa | *«nombre» no tiene archivo y ningún paso lo usa. ¿Quitarlo de los workflows?* **Quitar** lo saca de los archivos de workflows. |
+| Nunca cargó y un paso lo usa | *«nombre» se usa en: nombres de workflows. Adjunta su archivo, o elimina los pasos que lo usan para poder quitarlo.* No hay nada que borrar: usa **Adjuntar**, o elimina los pasos. La fila solo ofrece **Cerrar**. |
+
+<Aside type="caution">
+En un workspace, eliminar un contrato borra su archivo de la carpeta de la colección. Si la carpeta está en git, puedes recuperar el archivo desde ahí.
+</Aside>
+
+## Otros lugares que listan contratos
+
+- El **Resumen de la colección** tiene una tarjeta **Contratos**: *N de M cargado(s)*, con un enlace a cada contrato que tiene archivo.
+- La pantalla de inicio cuenta los **Contratos** que nombran los archivos de workflows de la colección abierta.
+- ⌘K (Ctrl+K) encuentra esos contratos por su nombre, en el grupo **Contratos**, y los abre.
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Agregar un contrato" href="/es/contracts/add/" />
+  <LinkCard title="Editar un contrato" href="/es/contracts/edit/" />
+  <LinkCard title="Contratos remotos y referencias" href="/es/contracts/remote-and-refs/" />
+  <LinkCard title="Solución de problemas de contratos" href="/es/contracts/troubleshooting/" />
+</CardGrid>

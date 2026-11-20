@@ -1,0 +1,131 @@
+---
+title: Archivos de ambiente y equipos
+description: Dónde viven los ambientes en la carpeta del workspace, el formato de cada archivo, qué es seguro subir a git, cómo compartir ambientes con tu equipo sin compartir secretos y cómo editar un archivo a mano.
+sidebar:
+  order: 11
+---
+
+import { Steps, Aside, FileTree, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+En un workspace, cada ambiente es un archivo YAML pequeño dentro de su colección. El archivo guarda lo que el equipo puede compartir: URLs base, variables, el color y los nombres de los secretos. Los valores de los secretos y de las credenciales quedan cifrados en cada equipo. Así puedes subir los ambientes a git y las claves de nadie terminan en el repositorio.
+
+## Ejemplo: la tienda en el repositorio del equipo
+
+La colección de la tienda tiene dos ambientes. En la carpeta del workspace:
+
+<FileTree>
+
+- my-workspace/
+  - luvin.yaml
+  - shop/
+    - collection.yaml
+    - shop.openapi.yaml
+    - orders.arazzo.yaml
+    - environments/
+      - local.yaml
+      - staging.yaml
+    - scenarios/
+      - orders.arazzo.yaml
+
+</FileTree>
+
+Y `staging.yaml`, después de que Ana lo completó:
+
+```yaml title="my-workspace/shop/environments/staging.yaml"
+# Luvin environment. Secret and credential values are not stored here: they live encrypted on each computer.
+name: staging
+color: yellow
+servers:
+  shop: https://staging.api.shop.test
+variables:
+  clientId: shop-staging-client
+  testCustomer: "42"
+secrets:
+  - clientSecret
+id: 2b7d4e1f-9c3a-4f58-8e06-1a5c7b9d3e24
+```
+
+Ana lo sube a git. Bruno hace pull, abre el workspace, hace clic en `staging` y escribe su propio `clientSecret` y sus credenciales. Nunca ve los de Ana.
+
+## Dónde viven los ambientes
+
+Cada colección tiene una carpeta `environments/` con un archivo por ambiente. El nombre del archivo sale del nombre del ambiente:
+
+| Nombre del ambiente | Archivo |
+|---|---|
+| `local` | `environments/local.yaml` |
+| `Prod (LatAm)` | `environments/prod-latam.yaml` |
+| `Staging` y `staging` en la misma colección | `environments/staging.yaml` y `environments/staging-2.yaml` |
+
+Las mayúsculas pasan a minúsculas, se quitan los acentos y todo lo que no es letra ni número pasa a ser `-`. Cuando dos nombres dan el mismo archivo, el segundo lleva un número. El nombre visible sigue siendo el de `name:`.
+
+Si un archivo tiene un nombre que no coincide, como `prod.yaml` para el ambiente `production`, Luvin sigue escribiendo en `prod.yaml`. Cuando renombras el ambiente en la app, pasa al archivo de su nombre nuevo.
+
+## El formato del archivo
+
+| Clave | Qué guarda |
+|---|---|
+| El comentario de la primera línea | Va en inglés, sea cual sea el idioma de la app, para que los archivos no cambien entre personas del equipo. |
+| `name` | El nombre visible. |
+| `color` | `gray`, `green`, `blue`, `purple`, `yellow`, `orange` o `red`. Si falta, el ambiente no tiene color. Cualquier otro valor se ignora. |
+| `servers` | Las URLs base, por nombre: las de los contratos y las tuyas. Las vacías no se escriben. |
+| `variables` | Cada variable con su valor, como texto. |
+| `secrets` | Una lista con los nombres de los secretos. Nunca sus valores. |
+| `id` | Una identidad fija. Los valores guardados en cada equipo dependen de ella. |
+
+Las credenciales no aparecen en absoluto: ni nombres ni valores. Luvin las lista a partir de los contratos.
+
+## Para qué sirve el id
+
+Cada equipo guarda los valores de los secretos y las credenciales de un ambiente con su `id`, no con su nombre. Por eso sobreviven a un renombre, también a uno que llega por git.
+
+- No edites el `id`. Los secretos de cada equipo dejarían de encontrarse, y todos tendrían que volver a escribirlos.
+- Si copias un archivo a mano para crear un ambiente nuevo, borra su línea `id`. Luvin le da uno nuevo cuando abre la colección. Dos archivos con el mismo `id` mezclarían sus secretos.
+
+## Qué es seguro subir a git
+
+| Qué | ¿Subirlo? |
+|---|---|
+| `environments/*.yaml` | Sí. No guardan valores de secretos. |
+| Un valor en `variables` | Solo si cualquiera con acceso al repositorio puede leerlo. Si no, conviértelo en secreto. |
+| Los valores de **Inputs** y de los casos (`scenarios/`) | Se escriben tal como los tecleaste. Ahí usa `{{clientSecret}}`, nunca el valor. |
+| Los valores de secretos y credenciales | Nunca están en la carpeta, así que no hay nada que subir. |
+| El ambiente activo | Se recuerda en cada equipo, no en los archivos. |
+
+## Comparte los ambientes con tu equipo
+
+<Steps>
+
+1. Crea los ambientes en la app y completa las URLs base y las variables.
+2. Agrega en **Secretos** cada secreto que necesita el equipo, aunque dejes el valor vacío. El nombre va al archivo y les dice a los demás qué completar.
+3. Sube la carpeta `environments/` a git con el resto del workspace.
+4. Cada persona del equipo hace pull, abre el workspace, hace clic en cada ambiente del panel **Ambientes** y escribe el valor de cada secreto y cada credencial.
+
+</Steps>
+
+Si alguien ejecuta contra la API real con una credencial vacía, un aviso sobre el workflow dice *Faltan credenciales en «staging»: las llamadas que las necesitan responderán 401.* y **Completar** abre el ambiente. Un secreto vacío se pinta de ámbar en cada lugar donde se usa `{{clientSecret}}`.
+
+<Aside type="tip" title="Dile a la próxima persona dónde conseguirlos">
+En el README del workspace o de la colección, lista los secretos que necesita cada ambiente y quién puede dártelos. Mira [Llevar un workspace en git](/es/workspaces/git/).
+</Aside>
+
+### Los valores son por equipo, y por copia
+
+Los valores de los secretos son de este equipo y de esta copia del workspace. Dos clones del mismo repositorio en el mismo equipo, o un clon y un worktree de git, no los comparten: escríbelos en cada copia. Si quitas una colección del workspace junto con sus archivos, también se borran sus secretos de este equipo.
+
+## Edita un archivo a mano
+
+Puedes editar un archivo de ambiente en cualquier editor: cambiar una URL, agregar una variable, cambiar el color. Nunca escribas ahí el valor de un secreto.
+
+Luvin lee los archivos cuando abres una colección y no vigila la carpeta. Si la colección está abierta mientras editas, cierra el workspace y vuelve a abrirlo para ver el cambio. Si no, la próxima vez que cambies ese ambiente la app puede escribir su versión encima de la tuya.
+
+Si un archivo no se puede leer, por ejemplo por un conflicto de git sin resolver, Luvin dice: *No se pudo leer el ambiente shop/environments/staging.yaml (¿un conflicto de git sin resolver?). No aparece en la lista y Luvin no lo va a modificar: arréglalo y vuelve a abrir la colección.* El archivo queda intacto y ningún otro ambiente se escribe encima.
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Llevar un workspace en git" href="/es/workspaces/git/" />
+  <LinkCard title="Qué hay en el disco" href="/es/workspaces/files/" />
+  <LinkCard title="Comparte un workspace con tu equipo usando git" href="/es/tutorials/team-git/" />
+  <LinkCard title="Variables y secretos" href="/es/environments/variables-and-secrets/" />
+</CardGrid>

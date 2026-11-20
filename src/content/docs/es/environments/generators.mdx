@@ -1,0 +1,107 @@
+---
+title: Los generadores de Luvin
+description: Los siete generadores que trae Luvin, el formato exacto de cada valor, sus nombres en español y en inglés, y qué pasa cuando una variable tiene el mismo nombre.
+sidebar:
+  order: 9
+---
+
+import { Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Además de los nombres con `$` compatibles con Postman, Luvin tiene siete generadores propios. No llevan `$` y cubren valores que validan las APIs de América Latina, como un CPF brasileño o un RUT chileno, y algunos de uso diario.
+
+## Ejemplo: un cliente que la API acepta siempre
+
+Una API rechaza un CPF con dígitos verificadores incorrectos y un email que ya existe. Este body pasa en cada ejecución:
+
+```json title="Body del request"
+{
+  "document": "{{cpf}}",
+  "email": "{{email}}",
+  "phone": "{{numero:9}}",
+  "createdOn": "{{fecha}}"
+}
+```
+
+Una ejecución posible envía:
+
+```json title="Lo que envía una ejecución"
+{
+  "document": "52998224725",
+  "email": "prueba+m3k9x2qa417@example.com",
+  "phone": "048219376",
+  "createdOn": "2026-11-19"
+}
+```
+
+La siguiente ejecución lleva otro CPF, también válido, y otro email.
+
+## Los generadores
+
+| Nombre | Qué produce | Ejemplo |
+|---|---|---|
+| `{{email}}` | Un email único en `example.com`: `prueba+`, un código según la hora actual y tres dígitos al azar. | `prueba+m3k9x2qa417@example.com` |
+| `{{cpf}}` | Un CPF brasileño válido: 11 dígitos con sus dígitos verificadores, nunca todos iguales, sin puntos ni guion. | `52998224725` |
+| `{{rut}}` | Un RUT chileno válido: un cuerpo de 8 dígitos y su dígito verificador (un dígito o `K`), sin puntos ni guion. | `176543213` |
+| `{{uuid}}` | Un UUID v4. | `3b241101-e2bb-4255-8caf-4136c566a962` |
+| `{{numero}}` | 6 dígitos al azar. | `407193` |
+| `{{numero:8}}` | Dígitos al azar. El número después de los dos puntos dice cuántos, de 1 a 32. | `90215538` |
+| `{{fecha}}` | La fecha de hoy, como `YYYY-MM-DD`. | `2026-11-19` |
+| `{{timestamp}}` | La hora actual, en milisegundos desde 1970. | `1795104000000` |
+
+Lo que conviene saber de los formatos:
+
+- `{{numero}}` da dígitos, no un número: el valor puede empezar con `0`. Úsalo para códigos, teléfonos y referencias.
+- Una cantidad mayor que 32 da 32 dígitos. Una cantidad de `0` da los 6 por defecto.
+- `{{fecha}}` usa la fecha UTC. Cerca de la medianoche puede ser un día más o un día menos que tu fecha local.
+- El dominio `example.com` nunca recibe correo, así que `{{email}}` es seguro para registros en ambientes de prueba.
+
+## Nombres en español y en inglés
+
+Dos generadores tienen un nombre en cada idioma. Las dos formas funcionan, sea cual sea el idioma de la interfaz:
+
+| Español | Inglés |
+|---|---|
+| `{{numero}}`, `{{numero:8}}` | `{{number}}`, `{{number:8}}` |
+| `{{fecha}}` | `{{date}}` |
+
+Las sugerencias muestran el nombre del idioma de la interfaz. Un archivo que escribió alguien de tu equipo que usa el otro idioma igual funciona en tu equipo.
+
+Los nombres de los generadores de Luvin no distinguen mayúsculas: `{{EMAIL}}` y `{{Uuid}}` también funcionan. Los nombres con `$`, sí: escribe `{{$randomEmail}}` exactamente así.
+
+## Cuando una variable tiene el mismo nombre
+
+Si el ambiente activo tiene una variable llamada `email`, `{{email}}` usa la variable y no el generador. El ambiente te avisa debajo del nombre: *Tapa al generador `{{email}}`: se usará el valor de la variable.*
+
+| Escribes | El ambiente tiene una variable `numero` = `5` | Luvin envía |
+|---|---|---|
+| `{{numero}}` | Sí | `5` |
+| `{{numero:8}}` | Sí | 8 dígitos al azar: con dos puntos, siempre es el generador |
+| `{{email}}` | No | Un email nuevo |
+
+Lo mismo pasa con un valor que guardó un request y con una columna de un archivo de datos en el runner. En las sugerencias, el generador desaparece cuando una variable toma su nombre. Renombra la variable si quieres recuperar el generador.
+
+Los nombres con `$` no se pueden tapar así, porque el nombre de una variable no puede empezar con `$`.
+
+## Comparados con los compatibles con Postman
+
+Algunos generadores tienen un pariente con `$`. No son idénticos:
+
+| Luvin | Compatible con Postman | Diferencia |
+|---|---|---|
+| `{{timestamp}}` | `{{$timestamp}}` | Milisegundos frente a segundos. |
+| `{{uuid}}` | `{{$guid}}`, `{{$randomUUID}}` | Ninguna: todos dan un UUID v4. |
+| `{{email}}` | `{{$randomEmail}}` | Siempre en `example.com`, frente a un nombre y un dominio realistas. `{{$randomExampleEmail}}` también usa un dominio de ejemplo. |
+| `{{numero:8}}` | `{{$randomInt}}` | Una cantidad fija de dígitos, frente a un número de 0 a 1000. |
+
+<Aside type="caution">
+Una API que espera segundos y recibe `{{timestamp}}` recibe una fecha muy en el futuro. Revisa cuál quiere tu API.
+</Aside>
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Variables dinámicas" href="/es/environments/dynamic-variables/" />
+  <LinkCard title="Variables compatibles con Postman" href="/es/environments/postman-variables/" />
+  <LinkCard title="Usar variables" href="/es/environments/use-variables/" />
+  <LinkCard title="Envía datos generados" href="/es/recipes/generated-data/" />
+</CardGrid>

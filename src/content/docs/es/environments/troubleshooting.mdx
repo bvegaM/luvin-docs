@@ -1,0 +1,95 @@
+---
+title: Solución de problemas de ambientes
+description: Síntomas, causas y soluciones para llamadas que van al servidor equivocado, variables en rojo o vacías, respuestas 401, secretos que faltan en otro equipo y archivos de ambiente que no cargan.
+sidebar:
+  order: 14
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Casi todos los problemas de ambientes se reducen a dos preguntas: qué ambiente está activo, y qué valor tuvo de verdad cada `{{nombre}}`. Empieza por ahí.
+
+## Ejemplo: un 401 después de cambiar a staging
+
+El workflow `placeOrder` de la tienda pasó contra `local`. Cambias a `staging`, lo ejecutas de nuevo y cada paso protegido responde `401`.
+
+<Steps>
+
+1. Mira arriba del workflow. Un aviso dice *Faltan credenciales en «staging»: las llamadas que las necesitan responderán 401.*
+2. Haz clic en **Completar**. Se abre el ambiente `staging`.
+3. En **Credenciales**, la etiqueta dice **0/1 completas**. Las credenciales no se copian a un ambiente nuevo.
+4. Pega el token de staging, o escribe el secreto que lo guarda, como `{{shopToken}}`.
+5. Ejecuta de nuevo.
+
+</Steps>
+
+Si no hay aviso y aun así recibes `401`, abre el paso que falló y lee lo que se envió: el header `Authorization` aparece tapado, pero puedes ver si estaba o no.
+
+## Lo primero que revisar
+
+| Qué revisar | Dónde |
+|---|---|
+| Qué ambiente está activo | La pastilla de arriba a la derecha de la ventana. |
+| Cuánto vale un `{{nombre}}` ahí | Pasa el mouse por él en el campo: la tarjeta muestra su valor, o dice que no existe. |
+| Qué salió | **Request enviado** en un request; el paso en los resultados en un workflow; **Network** en Dev Tools. |
+| Qué ambiente usó una ejecución pasada | Los resultados, la entrada del historial y el reporte exportado lo nombran. |
+
+## Las llamadas van al lugar equivocado
+
+| Síntoma | Causa | Solución |
+|---|---|---|
+| Las llamadas van a producción, o a tu equipo, cuando querías lo otro | Hay otro ambiente activo. | Elige el correcto en la pastilla de arriba a la derecha. |
+| Los pasos siguen llamando al servidor viejo después de cambiar los `servers` del contrato | El ambiente conserva la URL base que ya tenía. | Escribe la dirección nueva en **URLs base**. |
+| Un paso llama al mismo servidor en todos los ambientes | Su operación, o su path, declara sus propios `servers` completos en el contrato. | Quita o cambia esos `servers` en el [contrato](/es/contracts/edit/). |
+| Un request sigue llegando a la API real con un ambiente de mock | Su URL está escrita completa, sin variable. | Usa `{{baseUrl}}` o la URL base del contrato en la URL. |
+| *No hay URL de servidor para la fuente "shop". Defínela en la pantalla de parámetros.* | La URL base de ese contrato está vacía en este ambiente. | Complétala en **URLs base**. |
+| **Try it out** dice *El ambiente no tiene URL para «shop» ni el contrato define servers* | La misma causa. | Complétala, o usa **Simulado**. |
+| *No se pudo conectar con la API (…). Verifica la URL del ambiente y que el servidor sea accesible desde este equipo.* | La dirección está mal, el servidor está caído o el mock está apagado. | Abre la URL base en un navegador. En la versión de navegador, **Revisar ambiente** en la [Ayuda de conexión](/es/dev-tools/connection-help/) abre el ambiente. |
+
+## Variables
+
+| Síntoma | Causa | Solución |
+|---|---|---|
+| Un `{{nombre}}` está en rojo | Ninguna variable, URL base ni generador tiene ese nombre en el ambiente activo. Puede existir solo en otro ambiente, diferir en mayúsculas o tener un nombre no válido. | Pasa el mouse por él y haz clic en **Crear variable** o **Crear secreto**, o corrige cómo está escrito. Revisa si el nombre tiene un error en rojo en el ambiente. |
+| Un `{{nombre}}` está en ámbar | Existe pero está vacío. Pasa con los secretos después de clonar o en un ambiente nuevo. | Escribe su valor en la tarjeta o en el ambiente. |
+| El request envía `{{nombre}}` literal | El nombre estaba en rojo cuando salió. | Igual que arriba. |
+| Se ignora el valor del ambiente | Gana un valor guardado por un request con el mismo nombre, también después de cambiar de ambiente. En el runner, también gana una columna del archivo de datos. | Haz clic en **Borrar todas** en **Guardadas ahora**, en la pestaña **Variables** de un request, o renombra uno de los dos. Mira [Guarda valores de una respuesta](/es/requests/save-variables/). |
+| `{{email}}` siempre envía el mismo valor | Una variable llamada `email` tapa al generador. El ambiente muestra *Tapa al generador `{{email}}`*. | Renombra la variable. |
+| Dos pasos reciben dos `{{$guid}}` distintos | Cada aparición es un valor nuevo. | Pon el generador en un input y lee `$inputs.nombre` en los dos pasos. Mira [Variables dinámicas](/es/environments/dynamic-variables/). |
+| El archivo Arazzo no se puede leer después de escribir `{{nombre}}` en él | En YAML, una `{` sin comillas empieza un mapa. | Pon el valor entre comillas: `value: '{{$randomUUID}}'`. |
+| Un `{{$nombre}}` de Postman sigue en rojo | Luvin tiene 47 de los nombres con `$`, no todos los de Postman. | Usa uno de la [lista](/es/environments/postman-variables/) o un [generador de Luvin](/es/environments/generators/). |
+
+## Credenciales y secretos
+
+| Síntoma | Causa | Solución |
+|---|---|---|
+| *Faltan credenciales en «nombre»: las llamadas que las necesitan responderán 401.* | Un paso necesita un esquema sin valor en este ambiente. | Haz clic en **Completar**. Mira [Credenciales](/es/environments/credentials/). |
+| `401` después de cambiar de ambiente, sin aviso | La credencial apunta a un secreto que aquí está vacío, o se sigue usando un token de OAuth 2.0 del ambiente anterior. | Completa el secreto. Pulsa **Borrar token** en la pestaña **Autorización** y ejecuta de nuevo. |
+| La etiqueta de **Credenciales** sigue en ámbar en el ejemplo de PayPal | Los workflows sacan su token de su pestaña **Autorización**, no de la credencial del contrato. | No hay nada que hacer. Completa `clientId` y `clientSecret`. |
+| Los secretos están vacíos en otro equipo, o en otro clon | Los valores se guardan por equipo y por copia del workspace, nunca en los archivos. | Escríbelos en **Secretos**. Mira [Archivos de ambiente y equipos](/es/environments/files-and-teams/). |
+| Los secretos quedan vacíos cada vez que vuelves a abrir, en la app de escritorio | El llavero del sistema operativo no está disponible, así que Luvin no puede guardarlos. | Haz que el llavero esté disponible, o escríbelos cada vez. |
+| Los secretos quedan vacíos cada vez, en el navegador | No hay un workspace abierto: un ejemplo o archivos sueltos guardan solo los nombres. | Abre o crea un workspace. |
+| Un secreto aparece en claro en los resultados | Tiene menos de cuatro caracteres, o el valor se escribió en un body o un input en vez de como `{{nombre}}`. | Usa un secreto más largo, y escribe `{{nombre}}` donde va. Mira [Variables y secretos](/es/environments/variables-and-secrets/). |
+
+## Los ambientes mismos
+
+| Síntoma | Causa | Solución |
+|---|---|---|
+| Falta un ambiente después de un git pull, con *No se pudo leer el ambiente … (¿un conflicto de git sin resolver?)* | Su archivo no es YAML válido, muchas veces por marcas de conflicto. | Arregla el archivo, luego cierra y abre el workspace. Luvin no lo modificó. |
+| Editaste un archivo a mano y no cambió nada | Luvin lee los archivos cuando abre una colección. | Cierra el workspace y vuelve a abrirlo. |
+| Luvin vuelve a preguntar *Estos pasos modifican datos en el ambiente «nombre»:* | Cambiaste de ambiente o cambiaste una URL base. La confirmación es por ambiente. | Revisa el ambiente y pulsa **Ejecutar igual**, o **Usar simulación**. |
+| Un renombre dio `staging 2` | Otro ambiente ya tiene ese nombre. | Renombra o elimina primero el otro. |
+| El ambiente que eliminaste volvió como **Mi ambiente** | Era el único. Una colección siempre conserva uno. | Completa el nuevo, o crea el que necesitas y elimina este. |
+
+<Aside type="tip" title="Cuando la duda es la API misma">
+Copia el request como cURL (los secretos aparecen como `<secret>`, así que complétalos) y ejecútalo en una terminal. Si también falla ahí, el problema está en los valores o en la API, no en el ambiente. Mira [Importar y copiar cURL](/es/requests/curl/).
+</Aside>
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Solución de problemas de autorización" href="/es/authorization/troubleshooting/" />
+  <LinkCard title="Ayuda de conexión" href="/es/dev-tools/connection-help/" />
+  <LinkCard title="Credenciales" href="/es/environments/credentials/" />
+  <LinkCard title="Sugerencias y colores" href="/es/environments/suggestions/" />
+</CardGrid>

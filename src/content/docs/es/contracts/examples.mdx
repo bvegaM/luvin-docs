@@ -1,0 +1,147 @@
+---
+title: Ejemplos, simulación y mocks
+description: Dónde usa Luvin los ejemplos de un contrato, cómo elige uno cuando hay varios, cómo arma datos desde un schema cuando no hay ninguno, y cómo escribir ejemplos que hagan útil la simulación.
+sidebar:
+  order: 11
+---
+
+import { Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Un ejemplo es una muestra de datos escrita en el contrato: una respuesta, un body de request, el valor de un parámetro. Luvin los usa cada vez que necesita datos sin llamar a la API: en **Simulación**, en los mock servers y como valores de partida. Un contrato con buenos ejemplos te da datos realistas que pasan de paso en paso antes de que la API exista.
+
+## Ejemplo: Pokemon card en simulación
+
+La respuesta `200` de `getPokemon` tiene este ejemplo:
+
+<Tabs>
+<TabItem label="Contrato">
+
+```yaml title="pokeapi.openapi.yaml"
+'200':
+  content:
+    application/json:
+      schema: { $ref: '#/components/schemas/Pokemon' }
+      example:
+        id: 25
+        name: pikachu
+        base_experience: 112
+        types:
+          - slot: 1
+            type: { name: electric, url: 'https://pokeapi.co/api/v2/type/13/' }
+        abilities:
+          - is_hidden: false
+            slot: 1
+            ability: { name: static, url: 'https://pokeapi.co/api/v2/ability/9/' }
+```
+
+</TabItem>
+<TabItem label="Paso simulado">
+
+```text title="getPokemon · Simulado"
+Status   200 OK · 0 ms
+Body     el ejemplo de arriba
+Outputs  id = 25
+         name = pikachu
+         mainType = electric
+         firstAbility = static
+         baseExperience = 112
+```
+
+El paso siguiente, `getSpecies`, lee `id` y llama a `/pokemon-species/25`, que responde con su propio ejemplo. Cada paso recibe datos que tienen sentido para el siguiente.
+
+</TabItem>
+</Tabs>
+
+![El camino feliz de Pokemon card en simulación: cada paso con la etiqueta Simulado, 0 ms, y los outputs armados con los ejemplos del contrato](/media/es/test-simulation-results.webp)
+
+## Dónde se usan los ejemplos
+
+| Lugar | Qué toma Luvin |
+|---|---|
+| **Simulación** de un workflow | El ejemplo de la respuesta que espera el paso. Mira [Cómo se arma una respuesta simulada](#cómo-se-arma-una-respuesta-simulada). |
+| Casos por respuesta, como `getPokemon responde 404 → pokemonNotFound` | El ejemplo del `404`, para que la acción vea un body de error realista. |
+| Pasos de mensajería (AsyncAPI) | Los ejemplos del mensaje. Mira [Contratos AsyncAPI](/es/contracts/asyncapi/). |
+| Mock servers creados desde un contrato | Una ruta por cada status documentado de cada operación, cada una con su ejemplo. Mira [Crea un mock server](/es/mocks/create/). |
+| **Probar sola**, en **Simulado** | La misma respuesta que en simulación. |
+| El formulario de **Probar sola** | Los ejemplos de los parámetros y del body del request, como valores de partida. **Ejemplo del contrato** vuelve a poner el body. |
+| **Generar requests** | Los ejemplos de los parámetros y del body, escritos en cada request. |
+| Inputs nuevos de un workflow | El ejemplo del parámetro o del campo, como valor de partida. |
+| **Rellenar con el ejemplo**, en el body de un paso | Los ejemplos de los campos vacíos del body. |
+
+## Dónde se puede escribir un ejemplo
+
+Luvin lee los ejemplos de todos los lugares habituales de OpenAPI 3. Para una respuesta o un body de request, en este orden:
+
+1. `example` bajo el media type, como `application/json`.
+2. Cada `value` bajo `examples`, en orden.
+3. Si no hay, un valor armado desde el `schema`, que usa el `example`, el `default` o el `enum` escritos en él.
+
+Para un parámetro: su propio `example`, después el primero de sus `examples`, después el `example` o el `default` de su schema.
+
+## Cómo se arma una respuesta simulada
+
+Para cada paso, Luvin busca su operación en el contrato y arma la respuesta:
+
+| Parte | Regla |
+|---|---|
+| Status | El status que piden los criterios de éxito del paso. Si no piden ninguno, el 2xx documentado más bajo. Sin un 2xx, `200`. |
+| Respuesta | La respuesta documentada para ese status, después el rango (`2XX`), después `default`. Si el paso pide un 2xx que el contrato no documenta, como `201` cuando solo existe `200`, se usa el 2xx documentado. |
+| Body | Un ejemplo de esa respuesta, elegido como se explica abajo. Sin ejemplos, uno armado desde el schema. |
+| Valores que exigen los criterios | Se escriben encima del body, para que el paso cumpla sus propios criterios. Un criterio como `$response.body#/status == 'CREATED'` pone `status` en `CREATED`. |
+| Headers | Solo `content-type: application/json`. |
+
+### Varios ejemplos
+
+Cuando una respuesta o un mensaje tiene varios ejemplos, Luvin elige el primero que ya tiene los valores que necesita el paso. El contrato de eventos de la Pokédex tiene dos ejemplos del mensaje de confirmación:
+
+```yaml title="pokedex-events.asyncapi.yaml"
+examples:
+  - name: confirmed
+    payload: { status: CONFIRMED, entryNumber: 151 }
+  - name: rejected
+    payload: { status: REJECTED, reason: ALREADY_REGISTERED }
+```
+
+El paso `awaitConfirmation` espera `status == 'CONFIRMED'`, así que el camino feliz recibe `confirmed`. El caso armado para su acción `REJECTED` recibe `rejected`. Con un solo ejemplo, los valores se escriben encima de él.
+
+### Datos armados desde un schema
+
+Sin ningún ejemplo, Luvin arma uno desde el schema, campo por campo:
+
+| En el schema | Valor |
+|---|---|
+| `example`, `default` o `enum` | El ejemplo; si no hay, el default; si no, la primera opción. |
+| `object` | Un objeto con un valor por cada propiedad que puede armar. |
+| `array` | Una lista con un elemento. |
+| `allOf` / `oneOf` / `anyOf` | Las partes unidas / la primera opción. |
+| `integer` o `number` | El `minimum`, o `1`. |
+| `boolean` | `true` |
+| `string` con `format: date-time` / `date` | `2026-01-01T00:00:00Z` / `2026-01-01` |
+| `string` con `format: email` / `uri` / `uuid` | `demo@example.com` / `https://example.com/` / `00000000-0000-4000-8000-000000000000` |
+| Cualquier otro `string` | Un texto de relleno, `ejemplo`. |
+
+Funciona, pero los datos son planos: cada id es `1` y cada nombre es el mismo texto. Dos pasos que deberían pasarse un id entre sí verán `1` los dos.
+
+## Escribir ejemplos que ayuden
+
+| Haz esto | Porque |
+|---|---|
+| Dale un ejemplo a la respuesta de éxito de cada operación | La simulación y los mocks responden con datos que parecen reales. |
+| Haz que coincidan los ejemplos de operaciones relacionadas, como el mismo `id` en la lista y en el detalle | Los datos pasan de paso en paso como lo harían con la API real. |
+| Dale un ejemplo a cada error documentado | Los casos por respuesta y las rutas de error de los mocks reciben un body realista. |
+| Pon al menos un elemento en las listas de un ejemplo | Los outputs que leen `items/0/...` encuentran un valor, y la ejecución no se detiene a pedir un elemento de la lista. |
+| Mantén cada ejemplo válido frente a su schema | Luvin también compara las respuestas simuladas con el contrato: un ejemplo que rompe su schema termina el paso con un aviso del contrato. |
+| Agrega ejemplos a los parámetros y a los campos del body | Los inputs nuevos, **Probar sola**, los requests generados y los mocks empiezan con valores útiles. |
+
+<Aside type="caution" title="Que pase en simulación no es que pase contra la API">
+La simulación prueba que el workflow está conectado y que sus criterios y acciones funcionan con datos con la forma del contrato. No prueba que la API se comporte como sus ejemplos. Los resultados lo dicen: *Simulación: Luvin respondió con los ejemplos del contrato y no llamó a tu API. Que pase aquí no prueba la API real.* Mira [Simulación](/es/test/simulation/).
+</Aside>
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Simulación" href="/es/test/simulation/" />
+  <LinkCard title="Crea un mock server" href="/es/mocks/create/" />
+  <LinkCard title="¿La respuesta cumple el contrato?" href="/es/contracts/response-check/" />
+  <LinkCard title="Generar requests desde un contrato" href="/es/requests/generate-from-contract/" />
+</CardGrid>

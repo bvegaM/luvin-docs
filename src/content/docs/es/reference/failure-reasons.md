@@ -46,7 +46,7 @@ El orden de las revisiones importa. Un 401 o 403 siempre se informa como **Auten
 
 | Mensaje | Qué significa | Qué hacer |
 |---|---|---|
-| **No hay URL de servidor para la fuente "pokeapi". Defínela en la pantalla de parámetros.** | El ambiente no tiene URL base para ese contrato. | Agrega la URL base en el ambiente. Mira [URLs base, variables y secretos](/es/environments/variables-and-secrets/). |
+| **No hay URL de servidor para la fuente "pokeapi". Defínela en la pantalla de parámetros.** | El ambiente no tiene URL base para ese contrato. | Agrega la URL base en el ambiente. Mira [URLs base](/es/environments/base-urls/). |
 | **No se pudo conectar: la API no permite CORS desde este origen o no es accesible.** | En el navegador, la API bloqueó el request, o está caída. | Abre la **Ayuda de conexión**. En la app de escritorio CORS no aplica. |
 | **No se pudo conectar con la API (...). Verifica la URL del ambiente y que el servidor sea accesible desde este equipo.** | La app de escritorio no llegó al servidor. | Revisa la URL y tu red o VPN. |
 | **La API no respondió en 3000 ms (timeout del paso).** | El paso tiene un `timeout` y la API fue más lenta. | Sube el `timeout` o revisa la API. |

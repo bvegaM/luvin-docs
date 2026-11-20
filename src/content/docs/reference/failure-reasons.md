@@ -46,7 +46,7 @@ The order of the checks matters. A 401 or 403 is always reported as **Authentica
 
 | Message | What it means | What to do |
 |---|---|---|
-| **There is no server URL for source "pokeapi". Set it on the parameters screen.** | The environment has no base URL for that contract. | Add the base URL in the environment. See [Base URLs, variables and secrets](/environments/variables-and-secrets/). |
+| **There is no server URL for source "pokeapi". Set it on the parameters screen.** | The environment has no base URL for that contract. | Add the base URL in the environment. See [Base URLs](/environments/base-urls/). |
 | **Could not connect: the API does not allow CORS from this origin or is unreachable.** | In the browser, the API blocked the request, or it is down. | Open **Connection help**. In the desktop app CORS does not apply. |
 | **Could not connect to the API (...). Check the environment URL and that the server is reachable from this computer.** | The desktop app could not reach the server. | Check the URL and your network or VPN. |
 | **The API did not answer within 3000 ms (step timeout).** | The step has a `timeout` and the API was slower. | Raise the `timeout` or check the API. |

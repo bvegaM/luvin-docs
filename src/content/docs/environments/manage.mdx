@@ -1,0 +1,171 @@
+---
+title: Create, rename, color and delete
+description: Add an environment that starts as a copy of the active one, rename it, give it a label color, and delete it, with what each action changes on disk and on this computer.
+sidebar:
+  order: 2
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+You usually need more than one environment: your machine, a shared test server, production. A new environment starts as a copy of the active one, so you only change what differs.
+
+## Example: add staging to the shop
+
+The shop collection has `local`, with the base URL `shop` set to `http://localhost:8080`, the variable `clientId` and the secret `clientSecret`.
+
+<Steps>
+
+1. Make `local` the active environment and open it: click it in the **Environments** panel.
+2. In the row of environments at the top of the tab, click **+ New**.
+3. A new environment called **New environment** appears and becomes active. Its name is ready to edit. Type `staging` and press **Enter**.
+4. In **Base URLs**, change `shop` to `https://staging.api.shop.test`.
+5. In **Secrets**, type the value of `clientSecret` for staging. The name is already there.
+6. Next to **Label color**, click **Yellow**.
+
+</Steps>
+
+`staging` now has the same variables as `local` and its own server and secret. Luvin writes it to `environments/staging.yaml`.
+
+## Create an environment
+
+<Tabs>
+<TabItem label="From the environment tab">
+
+<Steps>
+
+1. Open the active environment: click the pill at the top right and choose **Configure environment…**.
+2. Click **+ New**, at the end of the row of environments.
+3. Type the name and press **Enter**.
+
+</Steps>
+
+</TabItem>
+<TabItem label="From the sidebar">
+
+<Steps>
+
+1. Open the **Environments** panel of the sidebar.
+2. Click **+** in its header (**New environment**).
+3. The new environment is added to the list and becomes active. Click it to open it, and rename it there.
+
+</Steps>
+
+</TabItem>
+</Tabs>
+
+If **New environment** is taken, the new one is called **New environment 2**, and so on.
+
+### What the new environment copies
+
+It always copies the environment that was active when you created it.
+
+| Part | In the new environment |
+|---|---|
+| Base URLs of the contracts | Copied with their values. |
+| Your own base URLs, such as `baseUrl` | Copied with their values. |
+| Variables | Copied with their values. |
+| Secrets | Only the names. The values are empty, because a secret is usually different in each environment. |
+| Credentials | Not copied. Fill them in again. |
+| Label color | Not copied. The new environment has no color. |
+
+<Aside type="tip" title="Start from the right one">
+Make active the environment closest to the one you need before you click **+ New**. A copy of `staging` is a better start for `production` than a copy of `local`.
+</Aside>
+
+## Rename an environment
+
+<Steps>
+
+1. Open the environment.
+2. Double-click its name in the row of environments at the top, or click **Rename** on the right of that row. The tooltip of each name says **Double-click to rename**.
+3. Type the new name and press **Enter**. Clicking elsewhere also keeps it. Press **Esc** to cancel.
+
+</Steps>
+
+| Detail | What happens |
+|---|---|
+| An empty name | It is ignored. The old name stays. |
+| A name another environment has | Luvin adds a number: `staging 2`. Two environments never share a name. |
+| The file | It follows the new name: `staging` is saved in `environments/staging.yaml`, and the old file is removed. |
+| Secrets and credentials | They stay with the environment. Luvin stores them by a fixed `id`, not by name. |
+
+## Give it a color
+
+<Steps>
+
+1. Open the environment.
+2. Next to **Label color**, click a color: **Gray**, **Green**, **Blue**, **Purple**, **Yellow**, **Orange** or **Red**.
+3. To remove it, click the first option, **No color (Luvin green at the top)**.
+
+</Steps>
+
+Next to the colors, the tab suggests: *For example: local in green, intg in yellow, prod in red.*
+
+The color shows wherever the environment does:
+
+| Place | How |
+|---|---|
+| The pill at the top right | The whole pill takes the color. Without one, it is Luvin green. |
+| The **Environments** panel | The dot of the row. |
+| The environment tab | The dot in the title and in the row of environments. |
+| The **Environment** list of the Runner | The list takes the color of the active one. |
+| Search (⌘K) and **Try it out** | A dot with the color. |
+
+A mock environment is purple when Luvin creates it. You can change it like any other. See [Mock environments](/environments/mock-environments/).
+
+## Delete an environment
+
+<Tabs>
+<TabItem label="From the sidebar">
+
+<Steps>
+
+1. In the **Environments** panel, hover the environment and open its **⋯** menu.
+2. Choose **Delete environment…**.
+3. Confirm with **Delete**.
+
+</Steps>
+
+</TabItem>
+<TabItem label="From the environment">
+
+<Steps>
+
+1. Open the environment.
+2. Click **Delete**, on the right of the row of environments.
+3. Confirm with **Delete**, or click **Cancel**.
+
+</Steps>
+
+</TabItem>
+</Tabs>
+
+The confirmation says *Delete “staging” and its credentials?*
+
+| What is deleted | Where |
+|---|---|
+| The environment file, such as `environments/staging.yaml` | In the workspace folder. |
+| The values of its secrets and its credentials | Encrypted storage on this computer. |
+
+If you delete the active environment, the first one of the list becomes active. There is no undo. If the workspace is in git you can restore the file, but the secret values are gone from this computer: type them again.
+
+<Aside type="note" title="There is always one environment">
+If you delete the only environment, the confirmation says *“local” is the only environment: deleting it leaves a new, empty one. Delete its variables and credentials?* Luvin then creates **My environment**, with the base URLs of the contracts and nothing else.
+</Aside>
+
+## Troubleshooting
+
+**The new environment has empty secrets.** That is on purpose: only secret names are copied. Type each value in **Secrets**.
+
+**Calls that worked now answer 401.** Credentials are not copied to a new environment. Fill them in under **Credentials**. See [Credentials](/environments/credentials/).
+
+**My new name became `qa 2`.** Another environment already uses `qa`. Rename or delete that one first.
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Environments" href="/environments/overview/" />
+  <LinkCard title="Variables and secrets" href="/environments/variables-and-secrets/" />
+  <LinkCard title="Environment files and teams" href="/environments/files-and-teams/" />
+  <LinkCard title="Mock environments" href="/environments/mock-environments/" />
+</CardGrid>

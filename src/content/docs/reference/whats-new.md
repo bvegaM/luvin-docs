@@ -29,6 +29,7 @@ This page lists what Luvin can do and when each capability arrived. The newest i
 
 **More than 70 fixes from testers.**
 
+- **Variables inside variables.** A variable whose value names another one, such as `Bearer {{token}}` or `{{host}}/v1`, is resolved too, as in Postman, instead of going out literally. See [Use variables](/environments/use-variables/).
 - **Path variables with their own value** in requests, and suggestions to create them.
 - **More faithful runs:** `goto` and `retry` loops across workflows stop, a request is never sent with an empty path parameter, the servers an operation declares are used, JSONPath filters follow the specification (RFC 9535) and a value the response doesn't have no longer passes a check.
 - **Authorization:** AWS SigV4, OAuth 2.0 (client credentials and refresh), Digest and NTLM fixed.

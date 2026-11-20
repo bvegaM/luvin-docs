@@ -1,0 +1,128 @@
+---
+title: When a change breaks a workflow
+description: The bar above the contract preview that tells you which workflows your edit breaks, what counts as a new problem, and what it cannot see.
+sidebar:
+  order: 6
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A contract is shared. Several workflows, in several workflow files, may use the same operation. When you edit the contract, Luvin analyses those workflows again with every change it can read, and compares them with how they were when you opened the contract. A bar above the preview tells you the result before you save, share or run anything.
+
+## Example: rename getPokemon
+
+All four workflows of the Pokédex call `getPokemon`. Open `pokeapi` and rename the operation:
+
+<Tabs>
+<TabItem label="Before">
+
+```yaml title="pokeapi.openapi.yaml" {3}
+  /pokemon/{idOrName}:
+    get:
+      operationId: getPokemon
+```
+
+The bar says *4 workflow(s) use this contract · no new problems*.
+
+</TabItem>
+<TabItem label="After">
+
+```yaml title="pokeapi.openapi.yaml" {3}
+  /pokemon/{idOrName}:
+    get:
+      operationId: getPokemonByName
+```
+
+The bar turns red and says *This change breaks 4 workflow(s).* Click it:
+
+```text title="This change breaks 4 workflow(s)."
+● Pokemon card        1 new problem(s)
+    ✕ getPokemon       Operation "$sourceDescriptions.pokeapi.getPokemon" does not exist in the loaded contracts.
+● Type explorer       1 new problem(s)
+    ✕ getFirstPokemon  Operation "$sourceDescriptions.pokeapi.getPokemon" does not exist in the loaded contracts.
+● Battle matchup      1 new problem(s)
+    ✕ getRival         Operation "$sourceDescriptions.pokeapi.getPokemon" does not exist in the loaded contracts.
+● Register sighting   1 new problem(s)
+    ✕ getPokemon       Operation "$sourceDescriptions.pokeapi.getPokemon" does not exist in the loaded contracts.
+```
+
+</TabItem>
+</Tabs>
+
+Rename it back and the bar returns to *no new problems*. If the new name is the one you want, keep it and update the steps instead: open each one from the list and change its `operationId` in the YAML tab.
+
+## Read the bar
+
+The bar appears only when at least one workflow uses the contract.
+
+| The bar says | Meaning |
+|---|---|
+| *N workflow(s) use this contract · no new problems* | Your edits so far broke nothing that Luvin can check. |
+| *This change breaks N workflow(s).* | N workflows have problems that were not there when you opened the contract. The bar is red. |
+
+Click the bar, or **Show**, to open the list. **Hide** folds it.
+
+<Steps>
+
+1. Each row is a workflow, with a dot and either *no change* (green) or *N new problem(s)* (red).
+2. Under a red row you see up to six of the new problems, each with its level, the step it belongs to and the message.
+3. Click a workflow to open it. Click a problem to open the workflow at that step.
+
+</Steps>
+
+## Which workflows count
+
+Luvin counts every workflow of the workflow files that list the contract in `sourceDescriptions`, whether or not a step calls it. In the Pokédex, both `pokeapi` and `pokedexEvents` show *4 workflow(s)*, because the four workflows live in the same file.
+
+For a file that a contract references with `$ref`, such as a file of shared schemas, the bar counts the workflows of the contracts that mention it. A change in a shared schema can affect them all.
+
+## What counts as a new problem
+
+When the editor opens, Luvin remembers the problems each workflow already has. Then it shows only the problems that appear after that moment:
+
+- Errors and warnings count. Information messages do not.
+- A problem is compared by its message. One that already existed when you opened the contract is never listed, so old problems do not hide the new ones.
+
+<Aside type="caution" title="The comparison starts when the editor opens">
+When you leave the contract tab, for example to open a workflow from the list, and come back, the editor opens again and the comparison starts from that moment. Problems you created before now count as existing, and the bar may say *no new problems*. The workflows still show their errors: look at the dot of each workflow in the sidebar, or at the **Overview** tab.
+</Aside>
+
+## Changes the bar catches
+
+These come from the analysis of the workflows. See [Analysis and contract messages](/reference/analysis-messages/) for the full list.
+
+| Change in the contract | New problem in the workflow | Level |
+|---|---|---|
+| Rename or delete an `operationId` that a step uses | *Operation "x" does not exist in the loaded contracts.* | Error |
+| Rename or delete a path that a step reaches with `operationPath` | *The operation for operationPath "x" was not found.* | Error |
+| Give two operations the same `operationId` | *"x" exists in several sources; "y" is used. …* The step uses the first one. | Warning |
+| Add a required parameter, or make one required | *The contract requires the query parameter "x" and the step does not send it.* | Warning |
+| Make the request body required | *The contract requires a body and the step does not define requestBody.* | Warning |
+| Remove the status a step expects, for example `200` becomes `201` | *The successCriteria expect 200, but the contract of … only documents 201, 404. Align the Arazzo or the contract.* | Warning |
+| Rename or delete an AsyncAPI channel that a step uses | *Channel "x" was not found in any loaded AsyncAPI.* | Error |
+
+A required parameter that a step does not send also shows the bar **This workflow is missing data** in the **Design** tab. Its **Complete** button adds what is missing. See [Complete missing data](/design/complete-gaps/).
+
+## What the bar cannot see
+
+The analysis reads the workflow files and the contract. It does not run anything, so some effects only show up when you run:
+
+| Change | Where it shows up |
+|---|---|
+| A field of a response is renamed or moved, and an output reads it, such as `$response.body#/types/0/type/name` | At run time: the output is not found, and the step ends with a warning if a later step uses it. |
+| A type, an `enum` or a `required` of a response schema changes | At run time: the contract check of each response. See [Does the response match the contract?](/contracts/response-check/) |
+| An example changes | In **Simulation** and in mock servers, which answer with the new example. |
+| `servers` changes | Nothing changes in environments that already have a base URL for the contract. See [Servers and credentials](/contracts/servers-and-credentials/). |
+
+<Aside type="tip">
+After a change to a contract that workflows use, run them once in **Simulation**. It takes a second, calls no API, and catches outputs and criteria that no longer match the contract. See [Simulation](/test/simulation/).
+</Aside>
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Edit a contract" href="/contracts/edit/" />
+  <LinkCard title="Contract errors and warnings" href="/contracts/lint-errors/" />
+  <LinkCard title="Analysis and contract messages" href="/reference/analysis-messages/" />
+  <LinkCard title="Complete missing data" href="/design/complete-gaps/" />
+</CardGrid>

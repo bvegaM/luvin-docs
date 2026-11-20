@@ -1,0 +1,178 @@
+---
+title: Contract errors and warnings
+description: Every message the contract editor shows, for OpenAPI and AsyncAPI, what each one means for your workflows and how to fix it.
+sidebar:
+  order: 5
+---
+
+import { Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+The contract editor checks your contract as you type. It does not check everything the OpenAPI or AsyncAPI specifications say. It checks what matters for a workflow: that each operation can be found, that its URL can be built, and that its answers can be checked. This page lists every message, grouped by topic.
+
+Each message has a level:
+
+| Level | Meaning |
+|---|---|
+| **Error** | Something a workflow cannot use: an operation it cannot find, a URL it cannot build, a reference to nothing. Fix it. |
+| **Warning** | The contract works, but something is missing or unusual, and some feature will do less. |
+| **Info** | Worth knowing. Nothing to fix if it is what you want. |
+
+The messages follow the language of the app. Change the language and they change too.
+
+## Example: four problems in one fragment
+
+<Tabs>
+<TabItem label="Before">
+
+```yaml title="pokeapi.openapi.yaml" {8,12-14,20,23}
+openapi: 3.0.3
+info:
+  title: PokéAPI (subconjunto)
+  version: 2.0.0
+servers:
+  - url: https://pokeapi.co/api/v2
+paths:
+  pokemon/{idOrName}:
+    get:
+      operationId: getPokemon
+      parameters:
+        - name: idOrName
+          in: path
+          schema: { type: string }
+      responses:
+        '200':
+          description: El Pokémon
+  /pokemon-species/{idOrName}:
+    get:
+      operationId: getPokemon
+      parameters:
+        - { name: idOrName, in: path, required: true, schema: { type: string } }
+      responses: {}
+```
+
+The panel above the preview says:
+
+```text title="Errors (4)"
+Error    Line 8   The path “pokemon/{idOrName}” must start with /.
+Error    Line 12  The path parameter “idOrName” must have required: true.
+Warning  Line 19  GET /pokemon-species/{idOrName} doesn’t document any response.
+Error    Line 20  The operationId “getPokemon” is repeated: an Arazzo won’t know which one to use.
+```
+
+</TabItem>
+<TabItem label="After">
+
+```yaml title="pokeapi.openapi.yaml" {8,15,21,24-28}
+openapi: 3.0.3
+info:
+  title: PokéAPI (subconjunto)
+  version: 2.0.0
+servers:
+  - url: https://pokeapi.co/api/v2
+paths:
+  /pokemon/{idOrName}:
+    get:
+      operationId: getPokemon
+      parameters:
+        - name: idOrName
+          in: path
+          schema: { type: string }
+          required: true
+      responses:
+        '200':
+          description: El Pokémon
+  /pokemon-species/{idOrName}:
+    get:
+      operationId: getPokemonSpecies
+      parameters:
+        - { name: idOrName, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: La especie
+        '404':
+          description: No existe
+```
+
+The panel disappears.
+
+</TabItem>
+</Tabs>
+
+## The document
+
+| Message | Level | What it means | Fix |
+|---|---|---|---|
+| *This is Swagger 2.0: Luvin works with OpenAPI 3.x; consider migrating it.* | Warning | The file starts with `swagger: '2.0'`. Luvin opens it, but bodies, schemas and servers are written differently in 2.0, so parts of it may not work. | Convert it to OpenAPI 3. Many editors and command-line tools do this. |
+| *OpenAPI version “x”: 3.x is expected.* | Warning | `openapi:` has a value that is not 3.something. | Write `openapi: 3.0.3` or the 3.x version your contract follows. |
+| *AsyncAPI version “x”: 2.x or 3.x is expected.* | Warning | `asyncapi:` has another version. | Write `asyncapi: 3.0.0` or a 2.x version. |
+| *The info section is missing (contract title and version).* | Warning | There is no `info`. | Add `info` with `title` and `version`. |
+| *info.title is missing.* | Warning | The contract has no title. The title names the folder when you generate requests. | Add `title` under `info`. |
+| *info.version is missing.* | Warning | The contract has no version. | Add `version` under `info`. |
+| *No servers defined: the base URL comes from the environment.* | Info | There is no `servers`. Luvin cannot fill the base URL of the environments for you. | Nothing, if you set the base URL in each environment. Otherwise add `servers`. See [Servers and credentials](/contracts/servers-and-credentials/). |
+| *The paths section is missing: the contract has no operations.* | Error | An OpenAPI without `paths` has nothing to call. The palette shows no operations for it. | Add `paths` with at least one operation. |
+
+## Operations and responses
+
+| Message | Level | What it means | Fix |
+|---|---|---|---|
+| *The path “x” must start with /.* | Error | A key under `paths` does not start with `/`. The URL of the call would be wrong. | Write `/pokemon/{idOrName}`, not `pokemon/{idOrName}`. |
+| *The operationId “x” is repeated: an Arazzo won’t know which one to use.* | Error | Two operations share an `operationId`. A step that names it may call the wrong one. | Give each operation its own `operationId`. |
+| *GET /x has no operationId: the Arazzo will have to use operationPath.* | Info | The operation has no `operationId`. Steps then point to it by its path, a longer pointer that breaks if the path changes. | Add an `operationId`, such as `getPokemonColor`. |
+| *GET /x doesn’t document any response.* | Warning | The operation has no `responses`. Luvin cannot check the answers, simulate it with an example, or offer errors to handle. | Document at least the success response, with its schema and an example. |
+| *“x” isn’t a valid response code (use 200, 4XX or default).* | Warning | A key under `responses` is not a three-digit code, a range such as `4XX`, or `default`. Luvin may never match that response with a real answer. | Use `200`, `404`, `4XX` or `default`. |
+
+## Parameters
+
+| Message | Level | What it means | Fix |
+|---|---|---|---|
+| *Incomplete parameter: it needs name and in (query, header, path or cookie).* | Error | A parameter has no `name`, or its `in` is not `query`, `header`, `path` or `cookie`. | Fill in both. |
+| *The path parameter “x” must have required: true.* | Error | A parameter `in: path` is not marked as required. A path parameter is always required: without it, the URL points somewhere else. | Add `required: true`. |
+| *The path parameter “x” doesn’t appear in “/y”.* | Error | A parameter `in: path` has a name that is not between braces in the path. | Rename the parameter or the placeholder in the path, so they match. |
+| `GET /y uses {x} in the path but doesn’t declare it as a parameter.` | Error | The path has a placeholder, such as `{idOrName}`, that no parameter declares. | Add a parameter with that `name` and `in: path`, `required: true`. It can be in the operation or shared at the level of the path. |
+
+Parameters shared by all the operations of a path, written next to `get` or `post`, count for every operation of that path.
+
+## References
+
+| Message | Level | What it means | Fix |
+|---|---|---|---|
+| *The $ref “x” doesn’t point to anything in the contract.* | Error | A `$ref` that starts with `#`, such as `#/components/schemas/Pokemon`, points to a place that does not exist. Often a typo, or a schema that was renamed. | Fix the path after `#`, or add what it points to. |
+
+The editor only checks references inside the same file. A `$ref` to another file is checked when the contract loads: if that file is missing, the row of the **Contracts** list shows ✕ and names it. See [References between files](/contracts/references/).
+
+## AsyncAPI
+
+| Message | Level | What it means | Fix |
+|---|---|---|---|
+| *The channels section is missing.* | Error | An AsyncAPI without `channels` has nowhere to send or receive messages. | Add `channels`. |
+| *The operation “x” needs action: send or receive.* | Error | An operation of an AsyncAPI 3 contract has no `action`, or another value. | Write `action: send` or `action: receive`. |
+| *The operation “x” needs a channel with a $ref to a channel.* | Error | An operation of an AsyncAPI 3 contract does not point to a channel. | Add `channel: { $ref: '#/channels/name' }`. |
+| *The operationId “x” is repeated: an Arazzo won’t know which one to use.* | Error | In AsyncAPI 2, two `publish` or `subscribe` share an `operationId`. | Give each one its own id. |
+
+See [AsyncAPI contracts](/contracts/asyncapi/).
+
+## YAML that cannot be read
+
+Before checking the contract, Luvin reads the YAML. A syntax error, such as a bad indentation, a missing space after `:` or a tab, is listed as an **Error** with its line and the reader's message, in English. Fix it first: the other checks wait until the YAML can be read.
+
+<Aside type="tip">
+A message can come from a line above the one you are looking at. A key with the wrong indentation, for example, moves everything below it. When the line number seems wrong, look one or two lines up.
+</Aside>
+
+## What the editor does not check
+
+These are checked elsewhere, or not at all:
+
+- **Files of `$ref`**: when the contract loads, in the **Contracts** list. See [References between files](/contracts/references/).
+- **Your workflows**: the bar above the preview shows what your change breaks in them. See [When a change breaks a workflow](/contracts/impact/).
+- **Examples against their schema**: an example that does not match its own schema is not flagged. In **Simulation** it is the answer anyway, and the step then ends with a contract warning. See [Examples, simulation and mocks](/contracts/examples/).
+- **Real responses**: each response of a run is checked against the contract. See [Does the response match the contract?](/contracts/response-check/).
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Edit a contract" href="/contracts/edit/" />
+  <LinkCard title="When a change breaks a workflow" href="/contracts/impact/" />
+  <LinkCard title="Analysis and contract messages" href="/reference/analysis-messages/" />
+  <LinkCard title="Troubleshooting contracts" href="/contracts/troubleshooting/" />
+</CardGrid>

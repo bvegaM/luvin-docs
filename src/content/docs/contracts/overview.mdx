@@ -1,13 +1,15 @@
 ---
 title: Contracts
-description: What a contract is, why Luvin needs it, and how to add, attach, download and delete contracts in the sidebar.
+description: What a contract is, which parts of it Luvin reads, where each part shows up in the app, and a map of this section.
 sidebar:
   order: 1
 ---
 
-import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+import { Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
 
 A contract is a file that describes an API: which calls it has, what each one receives and what it answers. Luvin reads two kinds, **OpenAPI** (REST APIs) and **AsyncAPI** (messages and events). Without a contract, Luvin does not know which operations exist, so you cannot design a workflow from them.
+
+Luvin never changes a contract on its own. You design, run and simulate workflows, and the contract stays as you wrote it. It changes only when you edit it.
 
 ## Example: one operation of the PokéAPI contract
 
@@ -27,6 +29,7 @@ paths:
         '200':
           content:
             application/json:
+              schema: { $ref: '#/components/schemas/Pokemon' }
               example:
                 id: 25
                 name: pikachu
@@ -41,116 +44,66 @@ This one operation is what Luvin needs to design, run and simulate a call:
 
 | In the contract | What Luvin does with it |
 |---|---|
-| `operationId: getPokemon` | Shows it in the **Design** tab, ready to drag onto the canvas |
-| `parameters` | Asks for `idOrName` in the step and generates cases from its type |
-| `example` of the `200` response | Is the answer in **Simulation** |
-| `404` response | Lets you build a case that expects that error |
+| `operationId: getPokemon` | Lists it in the **Design** tab, ready to drag onto the canvas. The new step is called `getPokemon`. |
+| `summary` | Becomes the description of the step. |
+| `parameters` | Asks for `idOrName` in the step. Because it is required and nothing gives it a value, it becomes an input of the workflow. |
+| `servers` | Fills the base URL `pokeapi` of each environment with `https://pokeapi.co/api/v2`. |
+| `200` with its `schema` | Sets the success criterion `$statusCode == 200`, offers the fields of the response as outputs, and checks every real response against the schema. |
+| `example` of the `200` | Is the answer in **Simulation** and in a mock server. |
+| `404` | Is offered as an error the step can handle, for example to end the workflow. |
 
-## Why Luvin uses contracts
+## What Luvin reads from a contract
 
-- The **Design** tab lists the operations of your contracts. You drag them onto the canvas to build a workflow.
-- Luvin wires the data between steps from the fields the contract declares.
-- It generates test cases from the required fields and the types.
-- In **Simulation**, it answers with the examples of the contract.
-- After each run, it checks that the real response matches the contract.
+| Part of the contract | Where you see it | Read more |
+|---|---|---|
+| `paths` and their operations | The **Operations** palette of the **Design** tab. Each operation becomes a step. | [From operation to step](/contracts/operations-and-steps/) |
+| `parameters` and `requestBody` | The parameters and body of each step, the inputs of the workflow and the generated cases. | [Schemas, inputs and cases](/contracts/schemas-and-cases/) |
+| `responses` and their schemas | Success criteria, error branches, outputs and the check of each response. | [Does the response match the contract?](/contracts/response-check/) |
+| `example` and `examples` | **Simulation**, mock servers, **Try it out**, generated requests and the starting values of inputs. | [Examples, simulation and mocks](/contracts/examples/) |
+| `servers` | The **Base URLs** of every environment. | [Servers and credentials](/contracts/servers-and-credentials/) |
+| `security` and `securitySchemes` | The **Credentials** of every environment, and the **Without credentials** case. | [Servers and credentials](/contracts/servers-and-credentials/) |
+| `tags` | The search of the palette, and one folder per tag when you generate requests. | [Generate requests from a contract](/requests/generate-from-contract/) |
+| AsyncAPI `channels`, `operations` and messages | Send and receive steps, always simulated. | [AsyncAPI contracts](/contracts/asyncapi/) |
+| `$ref` to other files | The parts that live in other files, joined into one contract. | [References between files](/contracts/references/) |
 
-## The Contracts list
+## How a workflow finds its contract
 
-In the **Collections** panel of the sidebar, below the collections, the **Contracts** section lists the contracts of the open collection. Next to its name you see how many there are. When some did not load, you see *loaded/total* instead, for example `2/3`.
+A workflow file (the Arazzo file) lists the contracts it uses in `sourceDescriptions`. Each one has a name, an address and a type:
 
-![A contract open in the editor, next to the Swagger UI preview](/media/en/contract.webp)
+```yaml title="pokemon.arazzo.yaml"
+sourceDescriptions:
+  - name: pokeapi
+    url: ./pokeapi.openapi.yaml
+    type: openapi
+  - name: pokedexEvents
+    url: ./pokedex-events.asyncapi.yaml
+    type: asyncapi
+```
 
-Each row starts with a mark:
+The steps use that name: `operationId: $sourceDescriptions.pokeapi.getPokemon`. The base URL of the environment and the credentials are also stored under that name, so `pokeapi` is the name you see in the **Contracts** list, in the palette and in the environment.
 
-| Mark | Meaning |
-|---|---|
-| ✓ | The contract is loaded and ready to use. |
-| ✕ | It is not loaded: the file is missing, it cannot be read, or it points to other files that are missing. Move the mouse over the row to read the reason. |
-| ○ | The file is in the collection, but no workflow uses it yet. |
+Luvin matches each address with a file of the collection by its file name. You do not write these lines by hand: a new workflow file lists every contract of the collection for you. See [How a workflow finds its file](/contracts/add/#how-a-workflow-finds-its-file).
 
-Next to the name you see the type: `openapi` or `asyncapi`. Click the name to open the contract in the editor. See [Edit a contract](/contracts/edit/).
+## Supported versions
 
-The rows of loaded OpenAPI contracts have a **+** button that generates requests. See [Generate requests from a contract](/requests/generate-from-contract/).
+| Kind | Versions | With another version |
+|---|---|---|
+| OpenAPI | 3.x, for example `openapi: 3.0.3` | Swagger 2.0 opens and is listed, with the warning *This is Swagger 2.0: Luvin works with OpenAPI 3.x; consider migrating it.* Parts of it may not work as expected. |
+| AsyncAPI | 2.x and 3.x | The editor warns *AsyncAPI version “x”: 2.x or 3.x is expected.* |
 
-## Add a contract
+Luvin tells the kind of a file from its first fields: `openapi:` or `swagger:` for OpenAPI, `asyncapi:` for AsyncAPI. A YAML or JSON file with neither, such as a file of shared schemas, is listed as `schemas`. The file name does not decide the kind, but names such as `pokeapi.openapi.yaml` make the list easier to read.
 
-There are four ways. In all of them you need an open collection.
-
-### Create a new one
-
-<Steps>
-
-1. In the **Contracts** section, click the **+** (**Add contract**).
-2. Choose **New OpenAPI contract** or **New AsyncAPI contract**.
-
-</Steps>
-
-The contract opens in the editor with a small valid example: an OpenAPI with a `/health` operation, or an AsyncAPI with one event. The file is called `nuevo-contrato.openapi.yaml` or `nuevos-eventos.asyncapi.yaml`. Edit it to describe your API.
-
-### Import files
-
-<Steps>
-
-1. Click the **+** and choose **Import contract…**.
-2. Pick one or more `.yaml`, `.yml` or `.json` files.
-
-</Steps>
-
-The first file opens in the editor. You can also use **Import Arazzo or contracts** on the home screen.
-
-### Drag and drop
-
-Drag the files from your computer onto the Luvin window. The window says *Drop to add to «collection»*. Release them and you see *Added N file(s) to the collection*. Only `.yaml`, `.yml` and `.json` files are added.
-
-You can drop a contract together with the files its `$ref` points to. See [Remote contracts and references](/contracts/remote-and-refs/).
-
-### Open a folder
-
-Opening a workspace or folder loads the YAML and JSON files it contains, including its contracts.
-
-## A contract that did not load
-
-A workflow can ask for a contract that is not in the collection, for example because it points to a URL. That row shows ✕ and one or two buttons:
-
-| Button | What it does |
-|---|---|
-| **Attach** | Opens a file picker. Choose the contract file and Luvin links it to that row. |
-| **Download** | Downloads the contract from its URL. It appears only when the address starts with `http://` or `https://`. |
-
-If you choose a file of the wrong type, the row shows *“name” does not look like an OpenAPI document.* (or AsyncAPI). See [Remote contracts and references](/contracts/remote-and-refs/) for downloads.
-
-![The sidebar of a collection whose contracts did not load: each one shows ✕ and an Attach link](/media/en/contract-missing.webp)
-
-## Delete a contract
-
-<Steps>
-
-1. Open the **⋯** menu of the row.
-2. Choose **Delete contract…**. For a contract that never loaded, the option is **Remove contract…**.
-
-</Steps>
-
-![The ⋯ menu of a contract row, with its delete action](/media/en/sidebar-menu.webp)
-
-What happens next depends on the contract:
-
-| Case | What Luvin says and does |
-|---|---|
-| No workflow uses it | *Delete the contract “name”? Its file is deleted. This can’t be undone.* The file is deleted. If a workflow file only declared it without using it, that declaration is removed. |
-| A workflow uses it | *“name” is used in: workflow names. Those steps will have no contract until you attach another one. Delete its file? This can’t be undone.* If you confirm, the file is deleted. The steps stay in the workflows and show an error until you attach another contract. |
-| It never loaded and no step uses it | *“name” has no file and no step uses it. Remove it from the workflows?* **Remove** takes it out of the workflows. |
-| It never loaded and a step uses it | *“name” is used in: workflow names. Attach its file, or delete the steps that use it to remove it.* There is nothing to delete: use **Attach**, or delete the steps. |
-
-Luvin asks before each deletion, with a **Delete** or **Remove** button and **Cancel**.
-
-<Aside type="note">
-Contracts that Luvin builds by itself from your requests have no **⋯** menu. They are updated automatically and cannot be deleted by hand. See [Workflows from requests](/design/from-requests/).
+<Aside type="tip">
+You can test an API without a contract: send single requests and drag them into a workflow. Luvin then builds a small contract from your requests by itself. See [Workflows from requests](/design/from-requests/).
 </Aside>
 
-## Next
+## Where to go next
 
 <CardGrid>
-  <LinkCard title="Edit a contract" href="/contracts/edit/" />
-  <LinkCard title="Try one operation" href="/contracts/try-it-out/" />
-  <LinkCard title="AsyncAPI contracts" href="/contracts/asyncapi/" />
+  <LinkCard title="Add a contract" href="/contracts/add/" description="Create, import, drop or attach a contract." />
+  <LinkCard title="The Contracts list" href="/contracts/list/" description="Marks, counts, menus and deleting." />
+  <LinkCard title="Edit a contract" href="/contracts/edit/" description="The YAML editor, the preview and saving." />
+  <LinkCard title="Contract errors and warnings" href="/contracts/lint-errors/" description="Every message of the editor and how to fix it." />
+  <LinkCard title="From operation to step" href="/contracts/operations-and-steps/" description="How a contract shapes the steps you design." />
+  <LinkCard title="Troubleshooting contracts" href="/contracts/troubleshooting/" description="Symptoms, causes and fixes." />
 </CardGrid>

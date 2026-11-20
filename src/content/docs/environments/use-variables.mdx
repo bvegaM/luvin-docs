@@ -1,0 +1,141 @@
+---
+title: Use variables
+description: How to write a variable, every place where Luvin replaces it, variables inside variables, which value wins when two have the same name, and how they work in inputs, cases and the Arazzo YAML.
+sidebar:
+  order: 6
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+You write a variable as its name between double braces, `{{name}}`. When a request or a step goes out, Luvin replaces it with the value from the active environment. The same request then works in every environment.
+
+## Example: one request, three kinds of values
+
+A single request of the shop, with the environment `staging` active:
+
+<Tabs>
+<TabItem label="What you write">
+
+```text title="GET request"
+URL      {{baseUrl}}/customers/{{customerId}}
+Headers  X-Shop-Key: {{apiKey}}
+         X-Request-Id: {{$guid}}
+```
+
+</TabItem>
+<TabItem label="What staging has">
+
+| Name | Kind | Value |
+|---|---|---|
+| `baseUrl` | Base URL | `https://staging.api.shop.test` |
+| `customerId` | Variable | `42` |
+| `apiKey` | Secret | `k-7Hq2…` |
+
+</TabItem>
+<TabItem label="What goes out">
+
+```text title="Sent request"
+GET https://staging.api.shop.test/customers/42
+X-Shop-Key: ••••
+X-Request-Id: 1f0e9c3a-5b2d-4c7e-9a81-6d3f2b7e4c10
+```
+
+The secret is sent in full, but shows as `••••`. `{{$guid}}` is a [dynamic variable](/environments/dynamic-variables/): a new UUID on every send.
+
+</TabItem>
+</Tabs>
+
+Switch to `local` and the same request goes to your machine, with the `customerId` and key of `local`.
+
+## Write a variable
+
+| Rule | Example |
+|---|---|
+| Two braces on each side | `{{clientId}}` |
+| Spaces inside are allowed | `{{ clientId }}` works the same |
+| It can sit inside any text | `Bearer {{token}}`, `{{baseUrl}}/v1/orders`, `user-{{customerId}}@example.com` |
+| Your variable names are case-sensitive | `{{ClientId}}` is not `{{clientId}}` |
+| A name that is nothing known | It is left as written. A request sends `{{clientid}}` literally |
+
+When you type `{{` in a field, Luvin suggests the names it knows and colors each one. See [Suggestions and colors](/environments/suggestions/).
+
+## Where Luvin replaces it
+
+| Where | What |
+|---|---|
+| Single requests | URL, path variables, params, headers, body (also in the body editor), form fields, and every field of the **Authorization** tab. Also the expected values in the **Checks** tab. |
+| Steps of a workflow | The value of a parameter or of a body field, in the **Design** tab or written in the YAML. |
+| **Inputs** and the data of each case | Replaced once per case, before the first step. |
+| The environment itself | Base URLs and credentials. |
+| The **Authorization** tab of a workflow | Client ID, Client Secret, token URL, user, password and the other fields. |
+| **Try it out** | The fields of the operation. |
+
+Mock servers are the exception: their routes answer with their own templates, such as `{{request.path.id}}`, and do not read the environment. See [Values from the request](/mocks/templates/).
+
+## A variable that uses another
+
+The value of a variable can contain other variables. Luvin replaces them too, as Postman does.
+
+| Variable | Value | `{{name}}` becomes |
+|---|---|---|
+| `host` | `https://api.shop.test` | |
+| `apiRoot` | `{{host}}/v1` | `https://api.shop.test/v1` |
+| `authHeader` | `Bearer {{token}}` | `Bearer` and the value of `token` |
+| `orderRef` | `ORD-{{$randomInt}}` | `ORD-` and a new number each time |
+
+Luvin follows up to five levels. Two variables that name each other stop there instead of looping.
+
+## Which value wins
+
+The same name can exist in several places. When it does, the one lower in this table wins:
+
+| Source | Example | Lasts |
+|---|---|---|
+| Luvin's generators | `{{email}}`, `{{uuid}}` | Always available |
+| Base URLs of the active environment | `{{baseUrl}}`, `{{pokeapi}}` | While the environment is active |
+| Variables and secrets of the active environment | `{{clientId}}` | While the environment is active |
+| Values saved by requests (**Saved now**) | `{{token}}` saved from a login response | While the collection is open, or until **Clear all** |
+| Columns of a data file in the Runner | `{{customerId}}` from a CSV | During that run |
+
+Some consequences:
+
+- A variable called `email` hides the `{{email}}` generator. The environment warns you. See [Luvin's generators](/environments/generators/).
+- `{{number:8}}`, with a colon, is always the generator: a variable cannot take an argument.
+- Names that start with `$`, such as `{{$guid}}`, can never be hidden by an environment variable, because a variable name cannot start with `$`.
+- A value saved by a request wins over the environment even after you switch environments. See [Save values from a response](/requests/save-variables/).
+
+## Inputs and cases
+
+An input of a workflow can hold a variable. Luvin replaces it at the start of each case, so every step that reads `$inputs.customerId` gets the same value.
+
+In the **Inputs** tab, set `customerId` to `{{testCustomer}}`. With `testCustomer` set to `42` in `staging` and to `7` in `local`, the cases use the test customer of each environment.
+
+- A dynamic variable in an input, such as `{{$guid}}`, is generated once per case, and every step of that case shares it. The Pokédex example does this with its `correlationId` input.
+- What goes to the `scenarios/` files is `{{testCustomer}}` as you wrote it, not its value. A secret written as `{{clientSecret}}` stays out of git.
+- When you edit the data of a case in the **Cases** tab, a note below lists *Generators (a new value on every run):* and, under *Environment variables:*, the names of the active environment.
+
+See [Inputs](/test/inputs/) and [Custom data cases](/test/custom-cases/).
+
+## In the Arazzo YAML
+
+In YAML, an unquoted `{` starts a mapping. Put the value in quotes. A real fragment from the PayPal example, which sends a new idempotency key on every run:
+
+```yaml title="paypal.arazzo.yaml"
+requestId:
+  name: PayPal-Request-Id
+  in: header
+  value: '{{$randomUUID}}'
+```
+
+<Aside type="note" title="Variables and runtime expressions">
+`{{name}}` comes from the environment, or from a generator. `$inputs.name`, `$steps.getPokemon.outputs.id` and the other runtime expressions of Arazzo come from the workflow while it runs. Use expressions to pass data between steps. See [Connect data between steps](/design/wire-data/).
+</Aside>
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Suggestions and colors" href="/environments/suggestions/" />
+  <LinkCard title="Dynamic variables" href="/environments/dynamic-variables/" />
+  <LinkCard title="Save values from a response" href="/requests/save-variables/" />
+  <LinkCard title="Data files" href="/runner/data-files/" />
+</CardGrid>

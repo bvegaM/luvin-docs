@@ -1,0 +1,129 @@
+---
+title: Referencias entre archivos
+description: Cómo un contrato puede guardar partes en otros archivos con $ref, cómo encuentra y une Luvin esos archivos, qué ves en la lista y en el editor, y cómo corregir una referencia que falta.
+sidebar:
+  order: 14
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Los contratos grandes suelen guardar sus schemas, parámetros o respuestas en otros archivos, para que varios contratos los compartan. Una **referencia** es un `$ref` que apunta a otro archivo en lugar de a un lugar del mismo. Luvin une las piezas por ti cuando todos los archivos están en la colección.
+
+## Ejemplo: los schemas de Pokémon en su propio archivo
+
+Imagina que mueves los schemas del contrato de la PokéAPI a un archivo propio:
+
+<Tabs>
+<TabItem label="pokeapi.openapi.yaml">
+
+```yaml title="pokeapi.openapi.yaml" {9}
+paths:
+  /pokemon/{idOrName}:
+    get:
+      operationId: getPokemon
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: 'pokemon-schemas.yaml#/Pokemon' }
+```
+
+</TabItem>
+<TabItem label="pokemon-schemas.yaml">
+
+```yaml title="pokemon-schemas.yaml" {7}
+Pokemon:
+  type: object
+  required: [id, name]
+  properties:
+    id: { type: integer }
+    name: { type: string }
+    species: { $ref: '#/NamedResource' }
+NamedResource:
+  type: object
+  properties:
+    name: { type: string }
+    url: { type: string, format: uri }
+```
+
+</TabItem>
+<TabItem label="Lista Contratos">
+
+```text title="Contratos"
+✓ pokeapi                 openapi
+○ pokemon-schemas.yaml    schemas
+```
+
+</TabItem>
+</Tabs>
+
+La parte antes del `#` es el archivo. La parte después es la ruta dentro de ese archivo. `#/NamedResource`, escrito dentro de `pokemon-schemas.yaml`, apunta a ese mismo archivo. Suelta los dos archivos juntos en Luvin y el contrato carga con ✓.
+
+## Cómo encuentra Luvin el archivo
+
+| Regla | Ejemplo |
+|---|---|
+| Solo cuenta el nombre del archivo, no sus carpetas | `./common/errors.yaml`, `../errors.yaml` y `errors.yaml` encuentran todos `errors.yaml`. |
+| La dirección puede ser una URL | `https://example.com/specs/errors.yaml#/NotFound` encuentra `errors.yaml` en la colección. No se descarga nada. |
+| Una referencia sin `#` toma el archivo completo | `$ref: 'pokemon.yaml'` usa todo lo que hay en `pokemon.yaml`. |
+| Una referencia que empieza con `#` se queda en su propio archivo | En el contrato principal es una referencia normal. En un archivo referenciado, apunta a ese archivo. |
+| Los campos junto a un `$ref` se conservan | `{ $ref: 'schemas.yaml#/Pokemon', description: … }` conserva la descripción. |
+| Un ciclo se corta | Un schema que se refiere a sí mismo, directamente o a través de otros, se detiene en la segunda visita. |
+
+<Aside type="caution" title="Dos archivos con el mismo nombre">
+Como las carpetas no cuentan, dos archivos llamados `errors.yaml` en carpetas distintas no se pueden distinguir, y uno de ellos gana. Dale nombres distintos a los archivos compartidos, como `orders-errors.yaml` y `users-errors.yaml`.
+</Aside>
+
+## Qué ves
+
+| Dónde | Qué muestra |
+|---|---|
+| La lista **Contratos** | El contrato principal con ✓ cuando están todos los archivos. Un archivo que solo tiene schemas, sin `openapi:` ni `asyncapi:`, aparece con ○ y el tipo `schemas`, porque ningún archivo de workflow lo nombra. |
+| El editor del contrato principal | Un botón **$ref: archivo** por cada archivo de la colección que el contrato menciona. Haz clic para abrir ese archivo. |
+| La vista previa del contrato principal | El contrato unido: los schemas del otro archivo aparecen en Swagger UI como si estuvieran escritos ahí. |
+| El editor de un archivo de schemas | Una sección **Schemas** con cada entrada de primer nivel como un árbol. |
+| La paleta, la simulación, los casos y la comprobación del contrato | Todos usan el contrato unido. |
+
+Edita el archivo de schemas y cada contrato que lo referencia se vuelve a unir. La barra sobre la vista previa de ese archivo cuenta los workflows de esos contratos. Mira [Cuando un cambio rompe un workflow](/es/contracts/impact/).
+
+El editor solo revisa las referencias dentro del mismo archivo: un `#/...` que no apunta a nada es un error ahí. Las referencias a otros archivos se revisan cuando el contrato carga.
+
+## Referencias que faltan
+
+Un contrato puede cargar y aun así faltarle algunos de sus archivos. Su fila muestra ✕ y, al pasar el mouse sobre ella:
+
+*Faltan archivos referenciados con $ref: pokemon-schemas.yaml. Arrástralos a la zona de carga.*
+
+El archivo de workflow también recibe un error en su análisis: *"pokeapi.openapi.yaml" referencia archivos que no se cargaron: pokemon-schemas.yaml. Súbelos junto con el contrato para resolver esos $ref.*
+
+Qué sigue funcionando y qué no:
+
+| Funciona | No funciona |
+|---|---|
+| Las operaciones, sus parámetros y todo lo que está escrito en el archivo principal. | Las partes que vienen de los archivos que faltan. La simulación no puede armar datos con ellas, y la comprobación de una respuesta que las usa informa *No se pudo validar contra el schema del contrato:* en lugar de las diferencias reales. |
+
+Para corregirlo:
+
+<Steps>
+
+1. Lee los nombres del mensaje.
+2. Busca esos archivos. Suelen estar junto al contrato.
+3. Agrégalos: arrástralos a Luvin, o elige **Importar contrato…**. Luvin los une solo y la marca cambia a ✓.
+4. Si el mensaje nombra un archivo *y* una ruta, como `pokemon-schemas.yaml#/Pokemon`, el archivo está pero esa ruta no. Abre el archivo y revisa el nombre: distingue mayúsculas de minúsculas.
+
+</Steps>
+
+Para un contrato descargado de una URL, Luvin también intenta descargar los archivos referenciados desde el mismo servidor. Mira [Contratos remotos y referencias](/es/contracts/remote-and-refs/#referencias-de-un-contrato-descargado).
+
+## Los archivos de workflow también usan referencias
+
+Un archivo Arazzo también puede guardar partes en otros archivos con `$ref`. Luvin las une de la misma forma. Si falta uno, el análisis dice que el archivo de workflow *referencia archivos que no se cargaron* y los nombra. Agrégalos como cualquier otro archivo.
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Contratos remotos y referencias" href="/es/contracts/remote-and-refs/" />
+  <LinkCard title="Agregar un contrato" href="/es/contracts/add/" />
+  <LinkCard title="Errores y advertencias del contrato" href="/es/contracts/lint-errors/" />
+  <LinkCard title="Solución de problemas de contratos" href="/es/contracts/troubleshooting/" />
+</CardGrid>

@@ -29,6 +29,7 @@ Esta página lista qué puede hacer Luvin y cuándo llegó cada capacidad. Lo m�
 
 **Más de 70 correcciones de los testers.**
 
+- **Variables dentro de variables.** Una variable cuyo valor nombra otra, como `Bearer {{token}}` o `{{host}}/v1`, también se resuelve, como en Postman, en vez de salir tal cual. Mira [Usar variables](/es/environments/use-variables/).
 - **Variables de ruta con su propio valor** en los requests, y sugerencias para crearlas.
 - **Ejecución más fiel:** los bucles de `goto` y `retry` entre workflows se detienen, nunca se envía un request con un parámetro de ruta vacío, se usan los servidores que declara una operación, los filtros JSONPath siguen la especificación (RFC 9535) y un valor que la respuesta no trae ya no pasa una comprobación.
 - **Autorización:** AWS SigV4, OAuth 2.0 (credenciales de cliente y refresh), Digest y NTLM corregidos.

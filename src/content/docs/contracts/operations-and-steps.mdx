@@ -1,0 +1,133 @@
+---
+title: From operation to step
+description: Which parts of an OpenAPI operation decide the step Luvin writes, how the palette lists operations, how data is wired from the response schemas, and how to write contracts that design well.
+sidebar:
+  order: 8
+---
+
+import { Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+When you drag an operation onto the canvas, Luvin writes a step from the contract, by fixed rules. Nothing is guessed by AI. The better the contract, the less you fix by hand. This page looks at it from the contract side: which field of the contract becomes which part of the step.
+
+## Example: add getPokemonSpecies after getPokemon
+
+In **Pokemon card**, `getPokemon` already runs. You drag `GET /pokemon-species/{idOrName}` below it.
+
+<Tabs>
+<TabItem label="In the contract">
+
+```yaml title="pokeapi.openapi.yaml"
+/pokemon-species/{idOrName}:
+  get:
+    operationId: getPokemonSpecies
+    summary: Consulta la especie de un Pokémon
+    parameters:
+      - $ref: '#/components/parameters/IdOrName'   # in: path, required: true, type: string
+    responses:
+      '200':
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PokemonSpecies' }
+      '404':
+        $ref: '#/components/responses/NotFound'
+```
+
+</TabItem>
+<TabItem label="The step Luvin writes">
+
+```yaml title="pokemon.arazzo.yaml"
+- stepId: getPokemonSpecies
+  description: Consulta la especie de un Pokémon
+  operationId: $sourceDescriptions.pokeapi.getPokemonSpecies
+  parameters:
+    - name: idOrName
+      in: path
+      value: $steps.getPokemon.outputs.id
+  successCriteria:
+    - condition: $statusCode == 200
+```
+
+</TabItem>
+</Tabs>
+
+- The name and the description come from `operationId` and `summary`.
+- `idOrName` is required, so it gets a value. The response of `getPokemon` has a top-level `id`, and `idOrName` is a path parameter that sounds like an identifier, so Luvin takes it from there. It also adds the output `id` to `getPokemon`. The connection shows a **?**, because Luvin is less sure about it.
+- The lowest documented 2xx is `200`, so that is the success criterion.
+- The `404` is offered in the panel as an error you can handle.
+
+![The panel of getPokemonSpecies right after adding it: idOrName comes from id, success is 200 and the 404 has no action yet](/media/en/design-new-step-panel.webp)
+
+## From the contract to the step
+
+| In the contract | In the step |
+|---|---|
+| `operationId` | The step id, and `operationId: $sourceDescriptions.<source>.<operationId>`. If the id is taken in the workflow, a number is added: `getPokemon2`. |
+| No `operationId` | A step id built from the method and the path, such as `getPokemonColorByIdOrName`, and an `operationPath` pointer to the path. The editor shows *GET /x has no operationId: the Arazzo will have to use operationPath.* |
+| `summary`, or else the first line of `description` | The `description` of the step. Without both, the method and the path. |
+| Required parameters (`required: true`, and every `in: path`) | One entry in `parameters`, with a value from an earlier step, an input, or a new input. |
+| Optional parameters | Left out. You add them from the step panel. See [Parameters and body](/design/parameters-and-body/). |
+| `requestBody` | A `requestBody` with the content type the contract offers: JSON first, then `application/x-www-form-urlencoded`, then the first one listed. |
+| Required fields of the body | Each one gets a value, like a required parameter. Luvin looks into nested objects and lists up to three levels deep. |
+| A body with no required field | Every simple field outside lists becomes an optional input, with the example of the contract. Above 25 such fields, none is added and you pick them in the panel. |
+| The lowest documented 2xx status | `successCriteria: $statusCode == …`. Without a 2xx, `200`. |
+| Documented 4xx and 5xx codes | Offered in the panel as errors to handle, each with the first line of its `description`. See [Success and errors](/design/success-and-errors/). |
+| The schema of the success response | The fields you can pick as outputs, and the fields later steps can take data from. |
+| `security` | The step is protected: it sends the credentials of the environment, and the workflow gets a **Without credentials** case. See [Servers and credentials](/contracts/servers-and-credentials/). |
+| `servers` on the operation or its path | That operation's own address, used instead of the base URL of the environment. |
+
+When you add a step, the examples of the contract are not written into it. They become the starting values of the new inputs. Later, in the body of the step panel, **Fill with the example** puts the contract's example in the empty fields, and **Create inputs** turns each empty field into an input with that example. See [Schemas, inputs and cases](/contracts/schemas-and-cases/) and [Parameters and body](/design/parameters-and-body/).
+
+## The Operations palette
+
+The palette on the left of the **Design** tab has one group per contract, named after its source, with the number of operations. Each row shows the method, the path and the `summary`.
+
+![The Operations palette of the Pokédex: the search box, the workflows of other Arazzo files and the operations of the pokeapi contract](/media/en/design-palette.webp)
+
+| Shown | Not shown |
+|---|---|
+| The operations of OpenAPI contracts that a workflow file of the collection lists and that loaded (✓). | AsyncAPI operations. Add messaging steps in the YAML tab. See [Messaging steps](/design/messaging/). |
+| | Contracts that did not load, and ○ contracts that no workflow file lists yet. A contract that loaded but misses some `$ref` files is shown, without the parts of those files. |
+| | The contracts Luvin builds from your requests. Their operations are under **Collection requests**. |
+
+The search box filters by `operationId`, path, `summary` and `tags`. Searching `pokemon` finds every operation with that word in its path or its tag. With no group to show, the palette says *The collection has no OpenAPI contracts. Add one to see its operations here.*
+
+## How data is wired
+
+For each value a new step needs, Luvin looks at the steps above it, from the nearest to the farthest, and takes the first match:
+
+| Rule | Example |
+|---|---|
+| An output with the same name | `orderId` ← `$steps.createOrder.outputs.orderId` |
+| A field of a response with the same name, the shallowest first | `id` ← the `id` of the response |
+| A composed name | `customerId` ← `customer/id`, or the `id` of a step that talks about customers |
+| A path parameter that sounds like an identifier, from the `id` of the step just above | `idOrName` ← `id` of `getPokemon`, marked **?** |
+| An input of the workflow with the same name | `pokemon` ← `$inputs.pokemon` |
+
+Names are compared without case and signs: `order_id`, `orderId` and `OrderID` match. Types must fit: a number and a text match each other, as identifiers travel both ways, but a list never matches a number. If no rule finds a value, the value becomes a new input of the workflow.
+
+The fields come from the schema of the success response, up to three levels deep. A list is read through its first item, so `types/0/type/name` is a field. That is why a response with a schema wires better than one with only an example. See [Connect data between steps](/design/wire-data/).
+
+## Write contracts that design well
+
+| Do | Because |
+|---|---|
+| Give every operation a short, unique `operationId` | It names the step and keeps the pointer stable when paths change. |
+| Write a `summary` | It describes the step and shows in the palette. |
+| Mark `required` honestly, on parameters and body fields | Required data is wired; optional data is left out. Required inputs also produce the "missing input" cases. |
+| Document the success status you really return, such as `201` for a create | It becomes the success criterion. |
+| Document the errors, each with a `description` | They become the errors you can handle and the response cases. |
+| Give responses a `schema`, not only an example | Fields for outputs and wiring come from the schema. |
+| Use consistent names across operations: `orderId` in the request, `orderId` or `id` in the response | Wiring matches by name. |
+
+<Aside type="tip">
+Changing the contract later does not rewrite steps you already have. It may make them show problems, such as a required parameter they do not send. See [When a change breaks a workflow](/contracts/impact/).
+</Aside>
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Add steps" href="/design/add-steps/" />
+  <LinkCard title="Connect data between steps" href="/design/wire-data/" />
+  <LinkCard title="Schemas, inputs and cases" href="/contracts/schemas-and-cases/" />
+  <LinkCard title="Success and errors" href="/design/success-and-errors/" />
+</CardGrid>

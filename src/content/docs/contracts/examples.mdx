@@ -1,0 +1,147 @@
+---
+title: Examples, simulation and mocks
+description: Where Luvin uses the examples of a contract, how it picks one when there are several, how it builds data from a schema when there is none, and how to write examples that make simulation useful.
+sidebar:
+  order: 11
+---
+
+import { Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+An example is a sample of data written in the contract: a response, a request body, a parameter value. Luvin uses them whenever it needs data without calling the API: in **Simulation**, in mock servers, and as starting values. A contract with good examples gives you realistic data flowing from step to step before the API even exists.
+
+## Example: Pokemon card in simulation
+
+The `200` of `getPokemon` has this example:
+
+<Tabs>
+<TabItem label="Contract">
+
+```yaml title="pokeapi.openapi.yaml"
+'200':
+  content:
+    application/json:
+      schema: { $ref: '#/components/schemas/Pokemon' }
+      example:
+        id: 25
+        name: pikachu
+        base_experience: 112
+        types:
+          - slot: 1
+            type: { name: electric, url: 'https://pokeapi.co/api/v2/type/13/' }
+        abilities:
+          - is_hidden: false
+            slot: 1
+            ability: { name: static, url: 'https://pokeapi.co/api/v2/ability/9/' }
+```
+
+</TabItem>
+<TabItem label="Simulated step">
+
+```text title="getPokemon · Simulated"
+Status   200 OK · 0 ms
+Body     the example above
+Outputs  id = 25
+         name = pikachu
+         mainType = electric
+         firstAbility = static
+         baseExperience = 112
+```
+
+The next step, `getSpecies`, reads `id` and calls `/pokemon-species/25`, which answers with its own example. Each step gets data that makes sense for the next one.
+
+</TabItem>
+</Tabs>
+
+![The happy path of Pokemon card in simulation: each step Succeeded with the Simulated badge, 0 ms, and the outputs built from the contract examples](/media/en/test-simulation-results.webp)
+
+## Where examples are used
+
+| Place | What Luvin takes |
+|---|---|
+| **Simulation** of a workflow | The example of the response the step expects. See [How a simulated answer is built](#how-a-simulated-answer-is-built). |
+| Response cases, such as `getPokemon responds 404 → pokemonNotFound` | The example of the `404`, so the action sees a realistic error body. |
+| Messaging steps (AsyncAPI) | The examples of the message. See [AsyncAPI contracts](/contracts/asyncapi/). |
+| Mock servers created from a contract | One route per documented status of each operation, each with its example. See [Create a mock server](/mocks/create/). |
+| **Try alone**, in **Simulated** | The same answer as in simulation. |
+| The form of **Try alone** | The examples of the parameters and the request body, as starting values. **Contract example** puts the body back. |
+| **Generate requests** | The examples of the parameters and the body, written into each request. |
+| New inputs of a workflow | The example of the parameter or field, as the starting value. |
+| **Fill with the example**, in the body of a step | The examples of the empty body fields. |
+
+## Where an example can be written
+
+Luvin reads examples from all the usual places of OpenAPI 3. For a response or a request body, in this order:
+
+1. `example` under the media type, such as `application/json`.
+2. Each `value` under `examples`, in order.
+3. Otherwise, a value built from the `schema`, which uses the `example`, `default` or `enum` written in it.
+
+For a parameter: its own `example`, then the first of its `examples`, then the `example` or `default` of its schema.
+
+## How a simulated answer is built
+
+For each step, Luvin finds its operation in the contract and builds the answer:
+
+| Part | Rule |
+|---|---|
+| Status | The status the success criteria of the step ask for. Without one, the lowest documented 2xx. Without a 2xx, `200`. |
+| Response | The documented response for that status, then the range (`2XX`), then `default`. If the step asks for a 2xx the contract does not document, such as `201` when only `200` exists, the documented 2xx is used. |
+| Body | An example of that response, picked as described below. Without examples, one built from the schema. |
+| Values the criteria require | Written on top of the body, so the step meets its own criteria. A criterion such as `$response.body#/status == 'CREATED'` sets `status` to `CREATED`. |
+| Headers | Only `content-type: application/json`. |
+
+### Several examples
+
+When a response or a message has several examples, Luvin picks the first one that already has the values the step needs. The Pokédex events contract has two examples of the confirmation message:
+
+```yaml title="pokedex-events.asyncapi.yaml"
+examples:
+  - name: confirmed
+    payload: { status: CONFIRMED, entryNumber: 151 }
+  - name: rejected
+    payload: { status: REJECTED, reason: ALREADY_REGISTERED }
+```
+
+The step `awaitConfirmation` expects `status == 'CONFIRMED'`, so the happy path receives `confirmed`. The case built for its `REJECTED` action receives `rejected`. With only one example, the values are written on top of it.
+
+### Data built from a schema
+
+Without any example, Luvin builds one from the schema, field by field:
+
+| In the schema | Value |
+|---|---|
+| `example`, `default` or `enum` | The example, else the default, else the first option. |
+| `object` | An object with a value for each property it can build. |
+| `array` | A list with one item. |
+| `allOf` / `oneOf` / `anyOf` | The parts merged / the first option. |
+| `integer` or `number` | The `minimum`, or `1`. |
+| `boolean` | `true` |
+| `string` with `format: date-time` / `date` | `2026-01-01T00:00:00Z` / `2026-01-01` |
+| `string` with `format: email` / `uri` / `uuid` | `demo@example.com` / `https://example.com/` / `00000000-0000-4000-8000-000000000000` |
+| Any other `string` | A placeholder text, `ejemplo`. |
+
+It works, but the data is flat: every id is `1` and every name is the same text. Two steps that should pass an id between them will both see `1`.
+
+## Write examples that help
+
+| Do | Because |
+|---|---|
+| Give the success response of each operation an example | Simulation and mocks answer with real-looking data. |
+| Make the examples of related operations agree, such as the same `id` in the list and in the detail | Data flows from step to step as it would with the real API. |
+| Give each documented error an example | Response cases and mock routes for errors get a realistic body. |
+| Put at least one item in the lists of an example | Outputs that read `items/0/...` find a value, and the run does not stop to ask for a list item. |
+| Keep each example valid against its schema | Luvin checks simulated answers against the contract too: an example that breaks its schema ends the step with a contract warning. |
+| Add examples to parameters and body fields | New inputs, **Try alone**, generated requests and mocks start with useful values. |
+
+<Aside type="caution" title="A pass in simulation is not a pass against the API">
+Simulation proves that the workflow is wired and that its criteria and actions work with data shaped like the contract. It does not prove that the API behaves like its examples. The results say so: *Simulation: Luvin answered from the contract's examples and did not call your API. A pass here does not prove the real API.* See [Simulation](/test/simulation/).
+</Aside>
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Simulation" href="/test/simulation/" />
+  <LinkCard title="Create a mock server" href="/mocks/create/" />
+  <LinkCard title="Does the response match the contract?" href="/contracts/response-check/" />
+  <LinkCard title="Generate requests from a contract" href="/requests/generate-from-contract/" />
+</CardGrid>

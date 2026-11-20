@@ -1,0 +1,132 @@
+---
+title: ¿La respuesta cumple el contrato?
+description: Cómo compara Luvin cada respuesta y cada mensaje recibido con el contrato, con qué respuesta lo compara, cada diferencia que informa y qué le hace una diferencia a un paso y a un caso.
+sidebar:
+  order: 12
+---
+
+import { Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Tus criterios dicen qué debe hacer un paso. El contrato dice cómo debe verse cada respuesta. Después de cada llamada, Luvin compara la respuesta con la que el contrato documenta para ese status: sus campos, sus tipos, los valores permitidos. Una diferencia no hace fallar el paso. Es una advertencia, así que la ves sin perder el resto de la ejecución.
+
+## Ejemplo: un id que llega como texto
+
+El schema de `Pokemon` dice que `id` es un número entero. Imagina una versión de la API que lo envía como texto:
+
+<Tabs>
+<TabItem label="Contrato">
+
+```yaml title="pokeapi.openapi.yaml"
+Pokemon:
+  type: object
+  required: [id, name, types, abilities, species]
+  properties:
+    id: { type: integer, example: 25 }
+    name: { type: string, example: pikachu }
+```
+
+</TabItem>
+<TabItem label="Respuesta">
+
+```json title="GET /pokemon/pikachu · 200"
+{
+  "id": "25",
+  "name": "pikachu",
+  "types": [],
+  "abilities": [],
+  "species": { "name": "pikachu" }
+}
+```
+
+</TabItem>
+<TabItem label="Lo que muestra Luvin">
+
+```text title="getPokemon · Exitoso con advertencias"
+Respuesta fuera de contrato
+La API respondió 200 y se cumplieron los criterios, pero la respuesta
+no cumple el contrato: "/id": se esperaba tipo integer y llegó "25".
+```
+
+La pestaña **Contrato** del paso lista la diferencia. **Ver en el body** abre la pestaña **Respuesta** con el campo `id` marcado en amarillo.
+
+</TabItem>
+</Tabs>
+
+El paso igual cuenta como exitoso: `getSpecies` se ejecuta después, con el id `"25"`. El caso pasa y su resumen dice *El workflow terminó bien, con advertencias en: "getPokemon".*
+
+## Con qué respuesta compara Luvin
+
+Para una respuesta con status `404`, Luvin busca en las `responses` de la operación:
+
+1. el código exacto, `404`;
+2. si no está, el rango, `4XX` (o `4xx`);
+3. si no está, `default`.
+
+Después toma el schema JSON de esa respuesta: el que está bajo `application/json`, o bajo otro media type que tenga `json` en su nombre, como `application/problem+json`.
+
+| Situación | Resultado |
+|---|---|
+| No hay respuesta documentada para el status | Una diferencia: `El código 404 no está documentado en el contrato de GET /pokemon/{idOrName}.` |
+| La respuesta está documentada sin contenido, o sin media type JSON | No se compara. Cumple. |
+| El contrato tiene un schema JSON y la respuesta no trae body | *El contrato define un body JSON para 200 y la respuesta llegó vacía.* |
+| El contrato tiene un schema JSON y la respuesta no es JSON | *El contrato define JSON para 200 y la respuesta llegó como "text/html".* |
+| En cualquier otro caso | El body se compara con el schema. |
+
+XML y otros formatos no se comparan con el contrato.
+
+## Las diferencias
+
+Luvin lista hasta ocho diferencias por respuesta. Cada una dice en qué parte del body está, como una ruta del tipo `"/types/0/type"`, o *la raíz de la respuesta* para el body completo.
+
+| Diferencia | Mensaje | Viene de |
+|---|---|---|
+| Falta un campo obligatorio | *Falta la propiedad obligatoria "species" en la raíz de la respuesta.* | `required` |
+| Tipo equivocado | *"/id": se esperaba tipo integer y llegó "25".* | `type` |
+| Un valor fuera de las opciones | *"/status": el valor "DONE" no está entre los permitidos (CREATED, APPROVED, COMPLETED).* | `enum` |
+| Un campo que el contrato no define | *la raíz de la respuesta: la propiedad "nickname" no está definida en el contrato.* Solo cuando el schema dice `additionalProperties: false`. | `additionalProperties` |
+| Formato equivocado | *"/email": "pikachu" no tiene el formato "email".* | `format` |
+| Un texto que no cumple su patrón | `"/code": "A1" no cumple el patrón ^[0-9]+$.` | `pattern` |
+| Cualquier otra regla | La ruta y un mensaje técnico corto, como *must be >= 1*. | `minimum`, `maxLength`, `minItems`… |
+| El schema no se puede usar | *No se pudo validar contra el schema del contrato:* y el motivo. | Un schema que Luvin no puede compilar |
+
+Se comprueban formatos como `date`, `date-time`, `email`, `uri` y `uuid`. `nullable: true` permite que un campo sea `null`.
+
+## Qué hace una diferencia
+
+| Dónde | Qué ves |
+|---|---|
+| Un paso de un workflow, cuando se cumplen sus criterios | El paso termina como **Exitoso con advertencias**, con el motivo **Respuesta fuera de contrato** y la primera diferencia. |
+| Un paso cuyos criterios no se cumplen | El paso falla por sus criterios. Las diferencias igual aparecen en su pestaña **Contrato**. |
+| El caso | Mantiene su veredicto. Un camino feliz con advertencias pasa, y dice en qué pasos. |
+| La tarjeta del paso | Un recuadro amarillo, *N aviso(s) del contrato*, y la pestaña **Contrato**. En la pestaña **Respuesta**, los campos que difieren se marcan en amarillo, y ‹ › te mueven entre ellos. Mira [Lee el resultado de un paso](/es/test/step-results/). |
+| **Probar sola** | *N diferencia(s) con el contrato* en lugar de **Cumple el contrato**. |
+| Reportes | La sección **Contrato** de cada paso lista las diferencias, o dice *La respuesta cumple el contrato*. Mira [Reportes](/es/test/reports/). |
+
+Las respuestas simuladas también se comparan. Como salen de los ejemplos del contrato, una diferencia ahí significa un ejemplo que rompe su propio schema. Mira [Ejemplos, simulación y mocks](/es/contracts/examples/).
+
+## Mensajes
+
+Un paso **receive** de un contrato AsyncAPI compara el mensaje que recibe con el schema del payload de los mensajes de la operación. Cuando la operación tiene varios mensajes posibles, se informa el que tiene menos diferencias. Una diferencia aparece como *El mensaje no cumple el contrato:* y la primera de ellas. Un paso **send** no se compara: su payload lo escribes tú.
+
+## Cuando el que está mal es el contrato, no la API
+
+Una diferencia solo dice que la API y el contrato no coinciden. Pregúntate cuál tiene razón:
+
+| Si | Haz esto |
+|---|---|
+| La API tiene razón, por ejemplo el campo de verdad puede ser nulo | Corrige el contrato y vuelve a ejecutar. |
+| El contrato tiene razón | Avísale a quien construye la API. El workflow sigue funcionando, así que puede esperar. |
+| El status no está documentado, pero es una respuesta normal de la API | Documéntalo en el contrato, con su schema y un ejemplo. Además se vuelve un error que puedes manejar en el paso. |
+
+<Aside type="tip">
+Un status no documentado suele ser la primera señal de un error que el workflow no maneja. Documéntalo y después decide en el paso qué debe hacer el workflow con él. Mira [Éxito y errores](/es/design/success-and-errors/).
+</Aside>
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Lee el resultado de un paso" href="/es/test/step-results/" />
+  <LinkCard title="Por qué falló un paso o un caso" href="/es/reference/failure-reasons/" />
+  <LinkCard title="Schemas, inputs y casos" href="/es/contracts/schemas-and-cases/" />
+  <LinkCard title="Ejemplos, simulación y mocks" href="/es/contracts/examples/" />
+</CardGrid>

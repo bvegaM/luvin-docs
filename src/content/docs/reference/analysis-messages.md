@@ -36,9 +36,9 @@ Every message has a level.
 | **The Arazzo is version 1.2; Luvin supports up to 1.1, so some new fields may be ignored.** | Warning | Expect that some fields do nothing. |
 | **info.title is missing in the Arazzo document.** | Warning | Add a `title` under `info`. |
 | **The Arazzo does not declare sourceDescriptions.** | Error | Add the contracts the workflows use. |
-| **The contract for source "x" (url) is missing.** | Error | Add the contract file to the collection. See [Contracts](/contracts/overview/). |
+| **The contract for source "x" (url) is missing.** | Error | Add the contract file to the collection. See [Add a contract](/contracts/add/). |
 | **Source "x" is of type "arazzo"; only OpenAPI and AsyncAPI contracts are executed.** | Warning | Use an OpenAPI or AsyncAPI contract. |
-| **"x" references files that were not loaded: ... Upload them with the contract to resolve those $refs.** | Error | Add the missing files. See [Remote contracts and references](/contracts/remote-and-refs/). |
+| **"x" references files that were not loaded: ... Upload them with the contract to resolve those $refs.** | Error | Add the missing files. See [References between files](/contracts/references/#missing-references). |
 | **The Arazzo has no workflows.** | Error | Create a workflow. |
 | **Duplicate workflowId: "x".** | Error | Give each workflow its own id. |
 | **There are AsyncAPI steps. Luvin does not connect to brokers ... yet, so those steps are always simulated ...** | Info | Nothing. See [Messaging steps](/design/messaging/). |
@@ -131,7 +131,7 @@ These come from the editor of an OpenAPI or AsyncAPI contract. They tell you wha
 | **The operation "x" needs action: send or receive.** | Error | Add `action`. |
 | **The operation "x" needs a channel with a $ref to a channel.** | Error | Add the reference. |
 
-When you change a contract that workflows use, the editor also lists the new problems that your change causes in those workflows, under **Impact on workflows**. See [Edit a contract](/contracts/edit/).
+When you change a contract that workflows use, the bar above the preview of the editor lists the new problems that your change causes in those workflows. See [When a change breaks a workflow](/contracts/impact/).
 
 ## Related
 

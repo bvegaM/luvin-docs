@@ -1,0 +1,108 @@
+---
+title: Troubleshooting contracts
+description: Symptoms, causes and fixes for contracts that do not load, operations that do not show up, calls that go to the wrong server, contract warnings and simulated data that does not help.
+sidebar:
+  order: 16
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Most problems with contracts come from four places: a file that is not where the workflow file expects it, a contract that changed under a workflow, an environment that keeps an old value, and a contract with too little detail. Find your symptom in the tables below. Each row says why it happens and what to do.
+
+## Example: a step that cannot find getPokemon
+
+After you update the PokéAPI contract, **Pokemon card** shows a red dot in the sidebar and its step `getPokemon` says *Operation "$sourceDescriptions.pokeapi.getPokemon" does not exist in the loaded contracts.*
+
+<Steps>
+
+1. Look at the **Contracts** list. `pokeapi` shows ✓, so the contract loaded. The problem is inside it.
+2. Open `pokeapi` and search for `getPokemon` with ⌘F (Ctrl+F). The new version calls the operation `getPokemonByName`.
+3. Decide which name is right. To keep the contract as it is, open the step, go to the YAML tab and change `operationId` to `$sourceDescriptions.pokeapi.getPokemonByName`. To keep the workflows as they are, rename the operation back in the contract.
+4. The red dot goes away. Run the workflow once in **Simulation** to check that its outputs still find their fields.
+
+</Steps>
+
+If `pokeapi` had shown ✕, the problem would have been the file, not the operation: see the first table.
+
+## The contract does not load
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| The row shows ✕ and **Attach**, and the workflows say *The contract for source "x" (url) is missing.* | No file of the collection has the name at the end of `url` in the workflow file. | Import the file with that name, use **Attach**, or fix `url`. See [How a workflow finds its file](/contracts/add/#how-a-workflow-finds-its-file). |
+| ✕ with *Files referenced with $ref are missing: …* | The contract uses `$ref` to files that are not in the collection. | Add those files. See [References between files](/contracts/references/#missing-references). |
+| ✕ on the contract, and its file listed apart with ○ and the type `schemas`. The tooltip of that file says *Could not read as YAML or JSON:* | The file has a syntax error, so Luvin cannot tell it is a contract. | Click the ○ row, fix the line the editor points to, then open the collection again so the workflow file finds it. |
+| ✕ with *"name" does not look like an OpenAPI document.* | The file you attached is an AsyncAPI, or not a contract, or the workflow file says the wrong `type`. | Attach the right file, or fix `type` in `sourceDescriptions`. |
+| ✕ with *Could not download: …* | The contract lives at a URL that could not be downloaded. | See [Remote contracts and references](/contracts/remote-and-refs/#download-a-contract). |
+| The counter shows `2/3` in a warning color | One of the contracts that workflow files name did not load. | Hover over the rows with ✕ to read why. |
+| A contract that loaded yesterday shows ✕ today | It was downloaded or attached, and those are not saved in the collection. | Click **Download** or **Attach** again, or **Make a local copy** to keep it. |
+| A contract you imported replaced another one | Both files had the same name. A file with the same name replaces the one in the collection. | Rename one of them, and import it again. |
+
+## The contract loads, but is not used
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| The row shows ○ | No workflow file lists the contract in `sourceDescriptions`. | Create a new workflow file with **New Arazzo**, or add the contract to `sourceDescriptions` in the YAML tab. See [A contract added after the workflow file](/contracts/add/#a-contract-added-after-the-workflow-file). |
+| The row shows the type `schemas` | The file starts with neither `openapi:` nor `asyncapi:`. Often a file of shared schemas, which is fine. Sometimes a typo such as `openApi:`. | If it is a contract, fix the first key. |
+| Its operations are not in the **Operations** palette | The contract is ○ or did not load, it is an AsyncAPI, or the search box filters them out. | Check the mark in the list and clear the search. AsyncAPI steps go in the YAML tab. See [The Operations palette](/contracts/operations-and-steps/#the-operations-palette). |
+| The palette says *The collection has no OpenAPI contracts. Add one to see its operations here.* | No OpenAPI contract that a workflow file lists has loaded. | Add one, or list it in the workflow file. |
+| The **Credentials** of the environment do not list a scheme of the contract | Credentials are listed only for schemes that a step of a workflow uses. | Add a step that calls a protected operation. See [Servers and credentials](/contracts/servers-and-credentials/#from-security-to-credentials). |
+
+## Editing the contract
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| You cannot type, and the bar shows **Read-only** | The contract was downloaded or attached. | **Make a local copy**. See [Edit a contract](/contracts/edit/#make-a-local-copy). |
+| The preview stops changing while you type | The YAML cannot be read. The preview keeps the last readable version. | Fix the error that the panel lists with its line. |
+| *Couldn’t load Swagger UI:* | The preview could not start. | Close the contract tab and open it again. The editor and its errors keep working meanwhile. |
+| **Servers** in Swagger UI does not list the environment | The contract is ○, or the environment has no base URL for it. | List the contract in a workflow file, and check **Base URLs** in the environment. |
+| The bar says *no new problems*, but a workflow shows errors | You left the contract tab and came back: the comparison started again, and older problems count as existing. | Look at the workflow itself. See [When a change breaks a workflow](/contracts/impact/#what-counts-as-a-new-problem). |
+| A message points to a line that looks fine | A wrong indentation above moves everything below it. | Look one or two lines up. See [Contract errors and warnings](/contracts/lint-errors/). |
+
+## Designing workflows
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| *Operation "x" does not exist in the loaded contracts.* | The `operationId` changed in the contract, or the contract did not load. | Align the step and the contract, or load the contract. |
+| *"x" exists in several sources; "y" is used. …* | Two operations, in one contract or in two, share the `operationId`. | Give them different ids, or write the full form `$sourceDescriptions.<source>.<operationId>`. |
+| *The contract requires the query parameter "x" and the step does not send it.* | The parameter is required in the contract, and the step was made before, or by hand. | Use **Complete** in the bar **This workflow is missing data**, or add the parameter. See [Complete missing data](/design/complete-gaps/). |
+| A new step asks for an input that an earlier step returns | The names differ too much to match, or the earlier response has no schema. | Choose the source in the step panel. Add a schema to the response, and use the same names across operations. See [How data is wired](/contracts/operations-and-steps/#how-data-is-wired). |
+| The success criterion is `200`, but the API answers `201` | The contract does not document `201`. | Document the real success status, then change the criterion. |
+| No **Without the required input** case for an input | The input goes in the path of the URL, or no step sends it. | That is on purpose: without it the URL points to another resource. See [Schemas, inputs and cases](/contracts/schemas-and-cases/#cases-that-come-from-schemas). |
+| No **with a value outside the enum** case, although the contract has `enum` | New inputs do not copy `enum`, `pattern` or other rules from the contract. | Add the rule to the input in the YAML tab. |
+
+## Running against the API
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Calls still go to the old server after you changed `servers` | Environments keep the base URL they already have. | Change the base URL in each environment. See [Servers and credentials](/contracts/servers-and-credentials/#from-servers-to-base-urls). |
+| *There is no server URL for source "x". Set it on the parameters screen.* | The environment has no base URL and the contract has no `servers`. | Set the base URL in the environment. |
+| One operation ignores the environment | The operation, or its path, declares its own full `servers`. | Remove it from the operation, or make it relative. |
+| The API answers `401` | The credentials of the environment are empty, or the API expects another scheme. | Fill **Credentials** in the environment. See [Credentials of the contract](/authorization/contract-credentials/). |
+| A step ends **Succeeded with warnings**, *Response out of contract* | The response differs from the schema. | Read the **Contract** tab of the step. See [Does the response match the contract?](/contracts/response-check/) |
+| *Status N is not documented in the contract of …* | The API answered a status the operation does not list. | Document it, with its schema and an example. |
+| *Could not validate against the contract schema:* | Files the schema references are missing, or the schema has something Luvin cannot compile. | Add the missing `$ref` files, then check the schema. |
+| **Try it out** fails in the browser version | The API does not allow CORS. | Use the desktop app, or allow the origin of Luvin in the API. See [Troubleshooting](/get-started/troubleshooting/). |
+
+## Simulation and mocks
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Simulated data is flat: every id is `1`, every text is `ejemplo` | The responses have no examples, so Luvin builds them from the schema. | Add realistic examples. See [Examples, simulation and mocks](/contracts/examples/#write-examples-that-help). |
+| A simulated step ends with a contract warning | An example of the contract does not match its own schema. | Fix the example or the schema. |
+| A simulated step answers a status you did not expect | The criteria ask for a status, or the contract documents another 2xx first. | Check the success criteria and the documented 2xx. See [How a simulated answer is built](/contracts/examples/#how-a-simulated-answer-is-built). |
+| A response case has an empty body | The documented error response has no example and no schema. | Add an example to that response. |
+| A messaging step cannot find its channel: *Channel "x" was not found in any loaded AsyncAPI.* | In AsyncAPI 3, `channelPath` must use the key of the channel, not its `address`. | Write `#/channels/sightingConfirmed`, not `#/channels/pokedex.sighting.confirmed`. See [AsyncAPI contracts](/contracts/asyncapi/#how-a-step-points-to-the-contract). |
+| **Try alone** is missing on a step | It is a messaging step, or its operation was not found. | Messaging steps are always simulated. Fix the operation first. |
+
+<Aside type="tip">
+When nothing here fits, open **Dev Tools**: the **Console** tab logs what Luvin did, and **Network** shows each call with its request and response. See [Dev Tools](/dev-tools/overview/).
+</Aside>
+
+## Related
+
+<CardGrid>
+  <LinkCard title="The Contracts list" href="/contracts/list/" />
+  <LinkCard title="Contract errors and warnings" href="/contracts/lint-errors/" />
+  <LinkCard title="Analysis and contract messages" href="/reference/analysis-messages/" />
+  <LinkCard title="Troubleshooting" href="/get-started/troubleshooting/" />
+</CardGrid>

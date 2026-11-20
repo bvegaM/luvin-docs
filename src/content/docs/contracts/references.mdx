@@ -1,0 +1,129 @@
+---
+title: References between files
+description: How a contract can keep parts in other files with $ref, how Luvin finds and joins those files, what you see in the list and the editor, and how to fix a missing reference.
+sidebar:
+  order: 14
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Large contracts often keep their schemas, parameters or responses in other files, so several contracts can share them. A **reference** is a `$ref` that points to another file instead of to a place in the same one. Luvin joins the pieces for you when every file is in the collection.
+
+## Example: the Pokémon schemas in their own file
+
+Imagine you move the schemas of the PokéAPI contract to a file of their own:
+
+<Tabs>
+<TabItem label="pokeapi.openapi.yaml">
+
+```yaml title="pokeapi.openapi.yaml" {9}
+paths:
+  /pokemon/{idOrName}:
+    get:
+      operationId: getPokemon
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: 'pokemon-schemas.yaml#/Pokemon' }
+```
+
+</TabItem>
+<TabItem label="pokemon-schemas.yaml">
+
+```yaml title="pokemon-schemas.yaml" {7}
+Pokemon:
+  type: object
+  required: [id, name]
+  properties:
+    id: { type: integer }
+    name: { type: string }
+    species: { $ref: '#/NamedResource' }
+NamedResource:
+  type: object
+  properties:
+    name: { type: string }
+    url: { type: string, format: uri }
+```
+
+</TabItem>
+<TabItem label="Contracts list">
+
+```text title="Contracts"
+✓ pokeapi                 openapi
+○ pokemon-schemas.yaml    schemas
+```
+
+</TabItem>
+</Tabs>
+
+The part before `#` is the file. The part after it is the path inside that file. `#/NamedResource`, written inside `pokemon-schemas.yaml`, points to that same file. Drop both files on Luvin together and the contract loads with ✓.
+
+## How Luvin finds the file
+
+| Rule | Example |
+|---|---|
+| Only the file name counts, not its folders | `./common/errors.yaml`, `../errors.yaml` and `errors.yaml` all find `errors.yaml`. |
+| The address may be a URL | `https://example.com/specs/errors.yaml#/NotFound` finds `errors.yaml` in the collection. Nothing is downloaded. |
+| A reference without `#` takes the whole file | `$ref: 'pokemon.yaml'` uses everything in `pokemon.yaml`. |
+| A reference starting with `#` stays in its own file | In the main contract it is a normal reference. In a referenced file, it points to that file. |
+| Fields next to a `$ref` are kept | `{ $ref: 'schemas.yaml#/Pokemon', description: … }` keeps the description. |
+| A loop is cut | A schema that refers to itself, directly or through others, stops at the second visit. |
+
+<Aside type="caution" title="Two files with the same name">
+Because folders do not count, two files called `errors.yaml` in different folders cannot be told apart, and one of them wins. Give shared files different names, such as `orders-errors.yaml` and `users-errors.yaml`.
+</Aside>
+
+## What you see
+
+| Where | What it shows |
+|---|---|
+| The **Contracts** list | The main contract with ✓ when every file is there. A file that only holds schemas, with neither `openapi:` nor `asyncapi:`, is listed with ○ and the type `schemas`, because no workflow file names it. |
+| The editor of the main contract | A **$ref: file** button for each file of the collection that the contract mentions. Click it to open that file. |
+| The preview of the main contract | The joined contract: the schemas of the other file appear in Swagger UI as if they were written there. |
+| The editor of a file of schemas | A **Schemas** section with each top-level entry as a tree. |
+| The palette, simulation, cases and the contract check | They all use the joined contract. |
+
+Edit the file of schemas and every contract that references it is joined again. The bar above the preview of that file counts the workflows of those contracts. See [When a change breaks a workflow](/contracts/impact/).
+
+The editor checks only the references inside the same file: a `#/...` that points to nothing is an error there. References to other files are checked when the contract loads.
+
+## Missing references
+
+A contract can load and still miss some of its files. Its row shows ✕ and, when you move the mouse over it:
+
+*Files referenced with $ref are missing: pokemon-schemas.yaml. Drop them into the upload area.*
+
+The workflow file also gets an error in its analysis: *"pokeapi.openapi.yaml" references files that were not loaded: pokemon-schemas.yaml. Upload them with the contract to resolve those $refs.*
+
+What still works and what does not:
+
+| Works | Does not work |
+|---|---|
+| The operations, their parameters and everything written in the main file. | The parts that come from the missing files. Simulation cannot build data from them, and the check of a response that uses them reports *Could not validate against the contract schema:* instead of real differences. |
+
+To fix it:
+
+<Steps>
+
+1. Read the names in the message.
+2. Find those files. They are usually next to the contract.
+3. Add them: drag them onto Luvin, or choose **Import contract…**. Luvin joins them by itself and the mark changes to ✓.
+4. If the message names a file *and* a path, as in `pokemon-schemas.yaml#/Pokemon`, the file is there but that path is not. Open the file and check the name: it is case-sensitive.
+
+</Steps>
+
+For a contract downloaded from a URL, Luvin also tries to download the referenced files from the same server. See [Remote contracts and references](/contracts/remote-and-refs/#references-of-a-downloaded-contract).
+
+## Workflow files use references too
+
+An Arazzo file can also keep parts in other files with `$ref`. Luvin joins them the same way. If one is missing, the analysis says the workflow file *references files that were not loaded* and names them. Add them like any other file.
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Remote contracts and references" href="/contracts/remote-and-refs/" />
+  <LinkCard title="Add a contract" href="/contracts/add/" />
+  <LinkCard title="Contract errors and warnings" href="/contracts/lint-errors/" />
+  <LinkCard title="Troubleshooting contracts" href="/contracts/troubleshooting/" />
+</CardGrid>

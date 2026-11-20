@@ -1,0 +1,197 @@
+---
+title: Add a contract
+description: Create a new contract, import files, drop them on the window or open a folder, and how a workflow file finds the contract it names.
+sidebar:
+  order: 2
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A contract lives in a collection, next to the workflow files that use it. You can write a new one in Luvin or bring the files you already have. In every case you need an open collection: without one, dropping files says *Open or create a collection to add files to it*.
+
+## Example: add the PokéAPI contract to a new collection
+
+You have an empty collection and the file `pokeapi.openapi.yaml`.
+
+<Steps>
+
+1. Drag `pokeapi.openapi.yaml` from your computer onto the Luvin window. The window says *Drop to add to «collection»*.
+2. Release it. You see *Added 1 file(s) to the collection*.
+3. In the **Contracts** section of the sidebar, the row `pokeapi.openapi.yaml` appears with the mark ○ and the type `openapi`. No workflow uses it yet.
+4. Click **+** (**Create or import**) to the right of the tabs and choose **New Arazzo**.
+
+</Steps>
+
+Luvin creates `new.arazzo.yaml` and lists the contract in it:
+
+<Tabs>
+<TabItem label="Before">
+
+```text title="Contracts"
+○ pokeapi.openapi.yaml   openapi
+```
+
+</TabItem>
+<TabItem label="After">
+
+```yaml title="new.arazzo.yaml"
+sourceDescriptions:
+  - name: pokeapi
+    url: ./pokeapi.openapi.yaml
+    type: openapi
+```
+
+```text title="Contracts"
+✓ pokeapi   openapi
+```
+
+</TabItem>
+</Tabs>
+
+The row now shows ✓ and the name of the source, `pokeapi`. Its operations are in the **Operations** palette of the **Design** tab.
+
+## Create a new contract
+
+<Steps>
+
+1. In the **Contracts** section, click the **+** (**Add contract**).
+2. Choose **New OpenAPI contract** or **New AsyncAPI contract**.
+
+</Steps>
+
+The **+** (**Create or import**) to the right of the tabs has the same two options. The contract opens in the editor with a small valid example. Edit it to describe your API.
+
+<Tabs>
+<TabItem label="New OpenAPI contract">
+
+```yaml title="nuevo-contrato.openapi.yaml"
+openapi: 3.0.3
+info:
+  title: New API
+  version: 1.0.0
+servers:
+  - url: https://api.example.com
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: Service health
+      responses:
+        '200':
+          description: The service is up
+          content:
+            application/json:
+              example: { status: UP }
+```
+
+</TabItem>
+<TabItem label="New AsyncAPI contract">
+
+```yaml title="nuevos-eventos.asyncapi.yaml"
+asyncapi: 3.0.0
+info:
+  title: New events
+  version: 1.0.0
+channels:
+  events:
+    address: mi.evento
+    messages:
+      evento:
+        payload:
+          type: object
+          properties:
+            id: { type: string }
+operations:
+  publishEvent:
+    action: send
+    channel: { $ref: '#/channels/events' }
+```
+
+</TabItem>
+</Tabs>
+
+The texts of `title`, `summary` and `description` follow the language of the app. The file names are always `nuevo-contrato.openapi.yaml` and `nuevos-eventos.asyncapi.yaml`. When the name is taken, Luvin adds a number: `nuevo-contrato.openapi-2.yaml`.
+
+Replace `https://api.example.com` with the address of your API before you run anything against it. See [Servers and credentials](/contracts/servers-and-credentials/).
+
+## Import files
+
+<Steps>
+
+1. Click the **+** of the **Contracts** section and choose **Import contract…**.
+2. Pick one or more `.yaml`, `.yml` or `.json` files.
+
+</Steps>
+
+The first file you picked opens in the editor. Pick the contract together with the files its `$ref` points to, so it loads complete. See [References between files](/contracts/references/).
+
+On the home screen, **Import Arazzo or contracts** does the same, and also takes workflow files. It needs an open collection: until you have one it says *Create or open a collection first*.
+
+## Drag and drop
+
+Drag the files from your computer onto the Luvin window. The window says *Drop to add to «collection»*, with the name of the open collection, and the hint *OpenAPI or AsyncAPI contracts and Arazzo files (.yaml, .yml or .json)*.
+
+| You drop | Luvin says |
+|---|---|
+| Only YAML or JSON files | *Added N file(s) to the collection* |
+| YAML or JSON files and other files | *Added N file(s); M were not .yaml, .yml or .json* |
+| No YAML or JSON file | *Only .yaml, .yml or .json files can be added* |
+
+You can drop a contract, its `$ref` files and the workflow files that use it in one go.
+
+## Open a folder
+
+When you open a workspace, or a folder as a collection, Luvin loads every YAML and JSON file in it, contracts included. The contracts of a workspace are plain files in the collection folder: you can also copy them there with your file manager or with git.
+
+<Aside type="caution" title="Same name, same file">
+A file you add with the same name as a file of the collection replaces it. That is how you update a contract with a newer version. If you want to keep both, rename one first.
+</Aside>
+
+## How a workflow finds its file
+
+A workflow file names its contracts in `sourceDescriptions`, each with an address in `url`. Luvin looks for that file in the collection:
+
+| Situation | What Luvin does |
+|---|---|
+| A file of the collection has the same name as the end of the address | Uses it. `./pokeapi.openapi.yaml`, `pokeapi.openapi.yaml` and `https://example.com/specs/pokeapi.openapi.yaml` all find `pokeapi.openapi.yaml`. |
+| Several files have that name, in different folders | Uses the one at the exact path, relative to the workflow file. Without an exact match, the one whose folders match the end of the address best. |
+| The address is a URL and no file has its name | The row shows ✕ and a **Download** button. See [Remote contracts and references](/contracts/remote-and-refs/). |
+| No file has its name, but the collection has exactly one contract of that kind that no workflow file names | Uses that contract. This saves you from renaming a file that has a slightly different name. |
+| The only file with that name is of the other kind, for example an AsyncAPI for `type: openapi` | Does not use it, and the row shows ✕. If you pick that file with **Attach**, the row says *"name" does not look like an OpenAPI document.* (or AsyncAPI). |
+
+`type` can be `openapi` or `asyncapi`. Without `type`, Luvin reads the source as OpenAPI. A source of another type shows the warning *Source "x" is of type "y"; only OpenAPI and AsyncAPI contracts are executed.*
+
+### Contracts in a new workflow file
+
+**New Arazzo** lists every contract of the collection in the new file: the OpenAPI contracts that have `paths`, and the AsyncAPI contracts. Each one gets a name:
+
+- If another workflow file already names that contract, the same name. Base URLs and credentials are stored under that name, so the new file shares them.
+- Otherwise, the file name without its extensions and without signs: `pokeapi.openapi.yaml` becomes `pokeapi`, and `pokedex-events.asyncapi.yaml` becomes `pokedexevents`.
+
+### A contract added after the workflow file
+
+An existing workflow file does not pick up contracts you add later. The new contract shows ○, and its operations are not in the palette of that file's workflows. Do one of these:
+
+- Create a new workflow file with **New Arazzo**: it lists every contract.
+- Or add the contract to `sourceDescriptions` of the existing file, in the [YAML tab](/design/arazzo-editor/):
+
+```yaml title="pokemon.arazzo.yaml" {5-7}
+sourceDescriptions:
+  - name: pokeapi
+    url: ./pokeapi.openapi.yaml
+    type: openapi
+  - name: pokedexEvents
+    url: ./pokedex-events.asyncapi.yaml
+    type: asyncapi
+```
+
+The row of the contract changes from ○ to ✓ and shows the name you gave it.
+
+## Related
+
+<CardGrid>
+  <LinkCard title="The Contracts list" href="/contracts/list/" />
+  <LinkCard title="Edit a contract" href="/contracts/edit/" />
+  <LinkCard title="References between files" href="/contracts/references/" />
+  <LinkCard title="Bring your own files and requests" href="/get-started/import/" />
+</CardGrid>

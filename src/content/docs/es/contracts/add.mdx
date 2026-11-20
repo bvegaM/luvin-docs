@@ -1,0 +1,197 @@
+---
+title: Agregar un contrato
+description: Crea un contrato nuevo, importa archivos, suéltalos en la ventana o abre una carpeta, y cómo encuentra un archivo de workflows el contrato que nombra.
+sidebar:
+  order: 2
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Un contrato vive en una colección, junto a los archivos de workflows que lo usan. Puedes escribir uno nuevo en Luvin o traer los archivos que ya tienes. En todos los casos necesitas una colección abierta: sin una, al soltar archivos ves *Abre o crea una colección para agregarle archivos*.
+
+## Ejemplo: agregar el contrato de la PokéAPI a una colección nueva
+
+Tienes una colección vacía y el archivo `pokeapi.openapi.yaml`.
+
+<Steps>
+
+1. Arrastra `pokeapi.openapi.yaml` desde tu computador a la ventana de Luvin. La ventana dice *Suelta para agregar a «colección»*.
+2. Suéltalo. Ves *Se agregaron 1 archivo(s) a la colección*.
+3. En la sección **Contratos** de la barra lateral aparece la fila `pokeapi.openapi.yaml` con la marca ○ y el tipo `openapi`. Ningún workflow lo usa todavía.
+4. Haz clic en **+** (**Crear o importar**) a la derecha de las pestañas y elige **Nuevo Arazzo**.
+
+</Steps>
+
+Luvin crea `nuevo.arazzo.yaml` y lista el contrato en él:
+
+<Tabs>
+<TabItem label="Antes">
+
+```text title="Contratos"
+○ pokeapi.openapi.yaml   openapi
+```
+
+</TabItem>
+<TabItem label="Después">
+
+```yaml title="nuevo.arazzo.yaml"
+sourceDescriptions:
+  - name: pokeapi
+    url: ./pokeapi.openapi.yaml
+    type: openapi
+```
+
+```text title="Contratos"
+✓ pokeapi   openapi
+```
+
+</TabItem>
+</Tabs>
+
+La fila ahora muestra ✓ y el nombre de la fuente, `pokeapi`. Sus operaciones están en la paleta **Operaciones** de la pestaña **Diseño**.
+
+## Crear un contrato nuevo
+
+<Steps>
+
+1. En la sección **Contratos**, haz clic en el **+** (**Agregar contrato**).
+2. Elige **Nuevo contrato OpenAPI** o **Nuevo contrato AsyncAPI**.
+
+</Steps>
+
+El **+** (**Crear o importar**) a la derecha de las pestañas tiene las mismas dos opciones. El contrato se abre en el editor con un pequeño ejemplo válido. Edítalo para describir tu API.
+
+<Tabs>
+<TabItem label="Nuevo contrato OpenAPI">
+
+```yaml title="nuevo-contrato.openapi.yaml"
+openapi: 3.0.3
+info:
+  title: Nueva API
+  version: 1.0.0
+servers:
+  - url: https://api.example.com
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: Estado del servicio
+      responses:
+        '200':
+          description: El servicio responde
+          content:
+            application/json:
+              example: { status: UP }
+```
+
+</TabItem>
+<TabItem label="Nuevo contrato AsyncAPI">
+
+```yaml title="nuevos-eventos.asyncapi.yaml"
+asyncapi: 3.0.0
+info:
+  title: Nuevos eventos
+  version: 1.0.0
+channels:
+  events:
+    address: mi.evento
+    messages:
+      evento:
+        payload:
+          type: object
+          properties:
+            id: { type: string }
+operations:
+  publishEvent:
+    action: send
+    channel: { $ref: '#/channels/events' }
+```
+
+</TabItem>
+</Tabs>
+
+Los textos de `title`, `summary` y `description` siguen el idioma de la app. Los nombres de archivo son siempre `nuevo-contrato.openapi.yaml` y `nuevos-eventos.asyncapi.yaml`. Cuando el nombre ya existe, Luvin agrega un número: `nuevo-contrato.openapi-2.yaml`.
+
+Reemplaza `https://api.example.com` por la dirección de tu API antes de ejecutar algo contra ella. Mira [Servidores y credenciales](/es/contracts/servers-and-credentials/).
+
+## Importar archivos
+
+<Steps>
+
+1. Haz clic en el **+** de la sección **Contratos** y elige **Importar contrato…**.
+2. Elige uno o más archivos `.yaml`, `.yml` o `.json`.
+
+</Steps>
+
+El primer archivo que elegiste se abre en el editor. Elige el contrato junto con los archivos a los que apuntan sus `$ref`, para que cargue completo. Mira [Referencias entre archivos](/es/contracts/references/).
+
+En la pantalla de inicio, **Importar Arazzo o contratos** hace lo mismo, y además acepta archivos de workflows. Necesita una colección abierta: mientras no tengas una, dice *Crea o abre una colección primero*.
+
+## Arrastrar y soltar
+
+Arrastra los archivos desde tu computador a la ventana de Luvin. La ventana dice *Suelta para agregar a «colección»*, con el nombre de la colección abierta, y la ayuda *Contratos OpenAPI o AsyncAPI y archivos Arazzo (.yaml, .yml o .json)*.
+
+| Sueltas | Luvin dice |
+|---|---|
+| Solo archivos YAML o JSON | *Se agregaron N archivo(s) a la colección* |
+| Archivos YAML o JSON y otros archivos | *Se agregaron N archivo(s); M no eran .yaml, .yml ni .json* |
+| Ningún archivo YAML o JSON | *Solo se pueden agregar archivos .yaml, .yml o .json* |
+
+Puedes soltar de una vez un contrato, sus archivos de `$ref` y los archivos de workflows que lo usan.
+
+## Abrir una carpeta
+
+Cuando abres un workspace, o una carpeta como colección, Luvin carga todos los archivos YAML y JSON que contiene, incluidos los contratos. Los contratos de un workspace son archivos comunes en la carpeta de la colección: también puedes copiarlos ahí con tu explorador de archivos o con git.
+
+<Aside type="caution" title="Mismo nombre, mismo archivo">
+Un archivo que agregas con el mismo nombre que un archivo de la colección lo reemplaza. Así actualizas un contrato con una versión más nueva. Si quieres conservar los dos, renombra uno antes.
+</Aside>
+
+## Cómo encuentra su archivo un workflow
+
+Un archivo de workflows nombra sus contratos en `sourceDescriptions`, cada uno con una dirección en `url`. Luvin busca ese archivo en la colección:
+
+| Situación | Qué hace Luvin |
+|---|---|
+| Un archivo de la colección tiene el mismo nombre que el final de la dirección | Lo usa. `./pokeapi.openapi.yaml`, `pokeapi.openapi.yaml` y `https://example.com/specs/pokeapi.openapi.yaml` encuentran todos `pokeapi.openapi.yaml`. |
+| Varios archivos tienen ese nombre, en carpetas distintas | Usa el que está en la ruta exacta, relativa al archivo de workflows. Si ninguno coincide exactamente, el que tiene las carpetas que mejor coinciden con el final de la dirección. |
+| La dirección es una URL y ningún archivo tiene su nombre | La fila muestra ✕ y un botón **Descargar**. Mira [Contratos remotos y referencias](/es/contracts/remote-and-refs/). |
+| Ningún archivo tiene su nombre, pero la colección tiene exactamente un contrato de ese tipo que ningún archivo de workflows nombra | Usa ese contrato. Así no tienes que renombrar un archivo que tiene un nombre un poco distinto. |
+| El único archivo con ese nombre es del otro tipo, por ejemplo un AsyncAPI para `type: openapi` | No lo usa, y la fila muestra ✕. Si eliges ese archivo con **Adjuntar**, la fila dice *"nombre" no parece un OpenAPI.* (o AsyncAPI). |
+
+`type` puede ser `openapi` o `asyncapi`. Sin `type`, Luvin lee la fuente como OpenAPI. Una fuente de otro tipo muestra la advertencia *La fuente "x" es de tipo "y"; solo se ejecutan contratos OpenAPI y AsyncAPI.*
+
+### Los contratos de un archivo de workflows nuevo
+
+**Nuevo Arazzo** lista en el archivo nuevo todos los contratos de la colección: los contratos OpenAPI que tienen `paths`, y los contratos AsyncAPI. Cada uno recibe un nombre:
+
+- Si otro archivo de workflows ya nombra ese contrato, el mismo nombre. Las URLs base y las credenciales se guardan con ese nombre, así que el archivo nuevo las comparte.
+- Si no, el nombre del archivo sin sus extensiones y sin signos: `pokeapi.openapi.yaml` pasa a `pokeapi`, y `pokedex-events.asyncapi.yaml` pasa a `pokedexevents`.
+
+### Un contrato agregado después del archivo de workflow
+
+Un archivo de workflows que ya existe no toma los contratos que agregas después. El contrato nuevo muestra ○, y sus operaciones no están en la paleta de los workflows de ese archivo. Haz una de estas cosas:
+
+- Crea un archivo de workflows nuevo con **Nuevo Arazzo**: lista todos los contratos.
+- O agrega el contrato a `sourceDescriptions` del archivo existente, en la [pestaña YAML](/es/design/arazzo-editor/):
+
+```yaml title="pokemon.arazzo.yaml" {5-7}
+sourceDescriptions:
+  - name: pokeapi
+    url: ./pokeapi.openapi.yaml
+    type: openapi
+  - name: pokedexEvents
+    url: ./pokedex-events.asyncapi.yaml
+    type: asyncapi
+```
+
+La fila del contrato pasa de ○ a ✓ y muestra el nombre que le diste.
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="La lista Contratos" href="/es/contracts/list/" />
+  <LinkCard title="Editar un contrato" href="/es/contracts/edit/" />
+  <LinkCard title="Referencias entre archivos" href="/es/contracts/references/" />
+  <LinkCard title="Trae tus propios archivos y requests" href="/es/get-started/import/" />
+</CardGrid>

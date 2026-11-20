@@ -1,0 +1,132 @@
+---
+title: Does the response match the contract?
+description: How Luvin checks every response and every received message against the contract, which response it compares with, every difference it reports and what a difference does to a step and a case.
+sidebar:
+  order: 12
+---
+
+import { Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Your criteria say what a step must do. The contract says what every answer must look like. After each call, Luvin compares the response with the response the contract documents for that status: its fields, their types, the allowed values. A difference does not fail the step. It is a warning, so you see it without losing the rest of the run.
+
+## Example: an id that arrives as text
+
+The schema of `Pokemon` says `id` is a whole number. Imagine an API version that sends it as text:
+
+<Tabs>
+<TabItem label="Contract">
+
+```yaml title="pokeapi.openapi.yaml"
+Pokemon:
+  type: object
+  required: [id, name, types, abilities, species]
+  properties:
+    id: { type: integer, example: 25 }
+    name: { type: string, example: pikachu }
+```
+
+</TabItem>
+<TabItem label="Response">
+
+```json title="GET /pokemon/pikachu · 200"
+{
+  "id": "25",
+  "name": "pikachu",
+  "types": [],
+  "abilities": [],
+  "species": { "name": "pikachu" }
+}
+```
+
+</TabItem>
+<TabItem label="What Luvin shows">
+
+```text title="getPokemon · Succeeded with warnings"
+Response out of contract
+The API responded 200 and the criteria were met, but the response does
+not match the contract: "/id": expected type integer and got "25".
+```
+
+The **Contract** tab of the step lists the difference. **Show in the body** opens the **Response** tab with the field `id` marked in yellow.
+
+</TabItem>
+</Tabs>
+
+The step still counts as a success: `getSpecies` runs next, with the id `"25"`. The case passes and its summary says *The workflow finished successfully, with warnings in: "getPokemon".*
+
+## Which response Luvin compares with
+
+For a response with status `404`, Luvin looks in the `responses` of the operation for:
+
+1. the exact code, `404`;
+2. else the range, `4XX` (or `4xx`);
+3. else `default`.
+
+Then it takes the JSON schema of that response: the one under `application/json`, or under another media type with `json` in its name, such as `application/problem+json`.
+
+| Situation | Result |
+|---|---|
+| No response documented for the status | A difference: `Status 404 is not documented in the contract of GET /pokemon/{idOrName}.` |
+| The response is documented without content, or with no JSON media type | No check. It matches. |
+| The contract has a JSON schema and the response has no body | *The contract defines a JSON body for 200 and the response was empty.* |
+| The contract has a JSON schema and the response is not JSON | *The contract defines JSON for 200 and the response arrived as "text/html".* |
+| Otherwise | The body is checked against the schema. |
+
+XML and other formats are not checked against the contract.
+
+## The differences
+
+Luvin lists up to eight differences per response. Each one says where in the body it is, as a path such as `"/types/0/type"`, or *the response root* for the whole body.
+
+| Difference | Message | Comes from |
+|---|---|---|
+| A required field is missing | *Required property "species" is missing in the response root.* | `required` |
+| Wrong type | *"/id": expected type integer and got "25".* | `type` |
+| A value outside the options | *"/status": value "DONE" is not among the allowed ones (CREATED, APPROVED, COMPLETED).* | `enum` |
+| A field the contract does not define | *the response root: property "nickname" is not defined in the contract.* Only when the schema says `additionalProperties: false`. | `additionalProperties` |
+| Wrong format | *"/email": "pikachu" does not have the format "email".* | `format` |
+| A text that does not match its pattern | `"/code": "A1" does not match the pattern ^[0-9]+$.` | `pattern` |
+| Any other rule | The path and a short technical message, such as *must be >= 1*. | `minimum`, `maxLength`, `minItems`… |
+| The schema cannot be used | *Could not validate against the contract schema:* and the reason. | A schema Luvin cannot compile |
+
+Formats such as `date`, `date-time`, `email`, `uri` and `uuid` are checked. `nullable: true` lets a field be `null`.
+
+## What a difference does
+
+| Where | What you see |
+|---|---|
+| A step of a workflow, when its criteria are met | The step ends as **Succeeded with warnings**, with the reason **Response out of contract** and the first difference. |
+| A step whose criteria are not met | The step fails for its criteria. The differences are still listed in its **Contract** tab. |
+| The case | It keeps its verdict. A happy path with warnings passes, and says in which steps. |
+| The step card | A yellow box, *N contract warning(s)*, and the **Contract** tab. In the **Response** tab, the fields that differ are marked in yellow, and ‹ › move between them. See [Read a step result](/test/step-results/). |
+| **Try alone** | *N difference(s) from the contract* instead of **Matches the contract**. |
+| Reports | The **Contract** section of each step lists the differences, or says *The response matches the contract*. See [Reports](/test/reports/). |
+
+Simulated answers are checked too. Since they come from the examples of the contract, a difference there means an example that breaks its own schema. See [Examples, simulation and mocks](/contracts/examples/).
+
+## Messages
+
+A **receive** step of an AsyncAPI contract checks the message it receives against the payload schema of the operation's messages. When the operation has several possible messages, the one with the fewest differences is reported. A difference shows as *The message does not match the contract:* and the first one. A **send** step is not checked: you write its payload.
+
+## When the contract is wrong, not the API
+
+A difference only says that the API and the contract disagree. Ask which one is right:
+
+| If | Do |
+|---|---|
+| The API is right, for example the field really is nullable | Fix the contract and run again. |
+| The contract is right | Report it to whoever builds the API. The workflow still works, so it can wait. |
+| The status is not documented, but it is a normal answer of the API | Document it in the contract, with its schema and an example. It also becomes an error you can handle in the step. |
+
+<Aside type="tip">
+An undocumented status is often the first sign of an error the workflow does not handle. Document it, then decide in the step what the workflow should do with it. See [Success and errors](/design/success-and-errors/).
+</Aside>
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Read a step result" href="/test/step-results/" />
+  <LinkCard title="Why a step or a case failed" href="/reference/failure-reasons/" />
+  <LinkCard title="Schemas, inputs and cases" href="/contracts/schemas-and-cases/" />
+  <LinkCard title="Examples, simulation and mocks" href="/contracts/examples/" />
+</CardGrid>

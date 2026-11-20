@@ -1,0 +1,171 @@
+---
+title: Crear, renombrar, colorear y eliminar
+description: Agrega un ambiente que empieza como copia del activo, renómbralo, ponle un color de etiqueta y elimínalo, con lo que cambia cada acción en el disco y en este equipo.
+sidebar:
+  order: 2
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Casi siempre necesitas más de un ambiente: tu equipo, un servidor de pruebas compartido, producción. Un ambiente nuevo empieza como copia del activo, así que solo cambias lo que difiere.
+
+## Ejemplo: agrega staging a la tienda
+
+La colección de la tienda tiene `local`, con la URL base `shop` en `http://localhost:8080`, la variable `clientId` y el secreto `clientSecret`.
+
+<Steps>
+
+1. Deja `local` como ambiente activo y ábrelo: haz clic en él en el panel **Ambientes**.
+2. En la fila de ambientes de arriba de la pestaña, haz clic en **+ Nuevo**.
+3. Aparece un ambiente nuevo llamado **Nuevo ambiente**, que queda activo. Su nombre está listo para editar. Escribe `staging` y pulsa **Enter**.
+4. En **URLs base**, cambia `shop` a `https://staging.api.shop.test`.
+5. En **Secretos**, escribe el valor de `clientSecret` para staging. El nombre ya está.
+6. Junto a **Color de la etiqueta**, haz clic en **Amarillo**.
+
+</Steps>
+
+`staging` tiene ahora las mismas variables que `local`, y su propio servidor y su propio secreto. Luvin lo escribe en `environments/staging.yaml`.
+
+## Crea un ambiente
+
+<Tabs>
+<TabItem label="Desde la pestaña del ambiente">
+
+<Steps>
+
+1. Abre el ambiente activo: haz clic en la pastilla de arriba a la derecha y elige **Configurar ambiente…**.
+2. Haz clic en **+ Nuevo**, al final de la fila de ambientes.
+3. Escribe el nombre y pulsa **Enter**.
+
+</Steps>
+
+</TabItem>
+<TabItem label="Desde la barra lateral">
+
+<Steps>
+
+1. Abre el panel **Ambientes** de la barra lateral.
+2. Haz clic en **+** en su encabezado (**Nuevo ambiente**).
+3. El ambiente nuevo se agrega a la lista y queda activo. Haz clic en él para abrirlo, y renómbralo ahí.
+
+</Steps>
+
+</TabItem>
+</Tabs>
+
+Si **Nuevo ambiente** ya existe, el nuevo se llama **Nuevo ambiente 2**, y así sucesivamente.
+
+### Qué copia el ambiente nuevo
+
+Siempre copia el ambiente que estaba activo cuando lo creaste.
+
+| Parte | En el ambiente nuevo |
+|---|---|
+| URLs base de los contratos | Se copian con sus valores. |
+| Tus propias URLs base, como `baseUrl` | Se copian con sus valores. |
+| Variables | Se copian con sus valores. |
+| Secretos | Solo los nombres. Los valores quedan vacíos, porque un secreto suele ser distinto en cada ambiente. |
+| Credenciales | No se copian. Complétalas de nuevo. |
+| Color de la etiqueta | No se copia. El ambiente nuevo no tiene color. |
+
+<Aside type="tip" title="Parte del correcto">
+Antes de hacer clic en **+ Nuevo**, deja activo el ambiente más parecido al que necesitas. Una copia de `staging` es mejor punto de partida para `production` que una copia de `local`.
+</Aside>
+
+## Renombra un ambiente
+
+<Steps>
+
+1. Abre el ambiente.
+2. Haz doble clic en su nombre, en la fila de ambientes de arriba, o haz clic en **Renombrar** a la derecha de esa fila. El texto de ayuda de cada nombre dice **Doble clic para renombrar**.
+3. Escribe el nombre nuevo y pulsa **Enter**. Hacer clic en otro lugar también lo guarda. Pulsa **Esc** para cancelar.
+
+</Steps>
+
+| Detalle | Qué pasa |
+|---|---|
+| Un nombre vacío | Se ignora. Queda el nombre anterior. |
+| Un nombre que ya tiene otro ambiente | Luvin le agrega un número: `staging 2`. Dos ambientes nunca comparten nombre. |
+| El archivo | Sigue al nombre nuevo: `staging` se guarda en `environments/staging.yaml`, y el archivo anterior se borra. |
+| Secretos y credenciales | Siguen con el ambiente. Luvin los guarda por un `id` fijo, no por el nombre. |
+
+## Ponle un color
+
+<Steps>
+
+1. Abre el ambiente.
+2. Junto a **Color de la etiqueta**, haz clic en un color: **Gris**, **Verde**, **Azul**, **Morado**, **Amarillo**, **Naranja** o **Rojo**.
+3. Para quitarlo, haz clic en la primera opción, **Sin color (verde de Luvin arriba)**.
+
+</Steps>
+
+Junto a los colores, la pestaña sugiere: *Por ejemplo: local en verde, intg en amarillo, prod en rojo.*
+
+El color se ve en todos los lugares donde aparece el ambiente:
+
+| Lugar | Cómo |
+|---|---|
+| La pastilla de arriba a la derecha | Toda la pastilla toma el color. Sin color, es verde de Luvin. |
+| El panel **Ambientes** | El punto de la fila. |
+| La pestaña del ambiente | El punto del título y el de la fila de ambientes. |
+| La lista **Ambiente** del runner | La lista toma el color del activo. |
+| Búsqueda (⌘K) y **Try it out** | Un punto con el color. |
+
+Un ambiente de mock es morado cuando Luvin lo crea. Puedes cambiarlo como cualquier otro. Mira [Ambientes de mock](/es/environments/mock-environments/).
+
+## Elimina un ambiente
+
+<Tabs>
+<TabItem label="Desde la barra lateral">
+
+<Steps>
+
+1. En el panel **Ambientes**, pasa el mouse sobre el ambiente y abre su menú **⋯**.
+2. Elige **Eliminar ambiente…**.
+3. Confirma con **Eliminar**.
+
+</Steps>
+
+</TabItem>
+<TabItem label="Desde el ambiente">
+
+<Steps>
+
+1. Abre el ambiente.
+2. Haz clic en **Eliminar**, a la derecha de la fila de ambientes.
+3. Confirma con **Eliminar**, o haz clic en **Cancelar**.
+
+</Steps>
+
+</TabItem>
+</Tabs>
+
+La confirmación dice *¿Eliminar «staging» y sus credenciales?*
+
+| Qué se borra | Dónde |
+|---|---|
+| El archivo del ambiente, como `environments/staging.yaml` | En la carpeta del workspace. |
+| Los valores de sus secretos y sus credenciales | El almacenamiento cifrado de este equipo. |
+
+Si eliminas el ambiente activo, queda activo el primero de la lista. No se puede deshacer. Si el workspace está en git puedes recuperar el archivo, pero los valores de los secretos ya no están en este equipo: escríbelos otra vez.
+
+<Aside type="note" title="Siempre hay un ambiente">
+Si eliminas el único ambiente, la confirmación dice *«local» es el único ambiente: al eliminarlo queda uno nuevo, vacío. ¿Eliminar sus variables y credenciales?* Luvin crea entonces **Mi ambiente**, con las URLs base de los contratos y nada más.
+</Aside>
+
+## Solución de problemas
+
+**El ambiente nuevo tiene los secretos vacíos.** Es a propósito: solo se copian los nombres de los secretos. Escribe cada valor en **Secretos**.
+
+**Llamadas que funcionaban ahora responden 401.** Las credenciales no se copian a un ambiente nuevo. Complétalas en **Credenciales**. Mira [Credenciales](/es/environments/credentials/).
+
+**Mi nombre nuevo quedó como `qa 2`.** Otro ambiente ya usa `qa`. Renombra o elimina ese primero.
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Ambientes" href="/es/environments/overview/" />
+  <LinkCard title="Variables y secretos" href="/es/environments/variables-and-secrets/" />
+  <LinkCard title="Archivos de ambiente y equipos" href="/es/environments/files-and-teams/" />
+  <LinkCard title="Ambientes de mock" href="/es/environments/mock-environments/" />
+</CardGrid>

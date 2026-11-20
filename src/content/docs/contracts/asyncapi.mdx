@@ -1,53 +1,80 @@
 ---
 title: AsyncAPI contracts
-description: How Luvin reads AsyncAPI contracts, which versions it supports, what the preview shows and how channels and operations become send and receive steps.
+description: How Luvin reads AsyncAPI 2.x and 3.x contracts, how a step points to a channel or an operation, how messages are built and checked in a run, what the preview shows and what AsyncAPI does not offer.
 sidebar:
-  order: 4
+  order: 13
 ---
 
-import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+import { Steps, Tabs, TabItem, LinkCard, CardGrid } from '@astrojs/starlight/components';
 
-AsyncAPI is to messages what OpenAPI is to REST calls: a file that describes the channels of a system, the messages that travel through them and who sends or receives each one. Use an AsyncAPI contract when a workflow mixes HTTP calls with events, for example a payment that ends with a webhook.
+AsyncAPI is to messages what OpenAPI is to REST calls: a file that describes the channels of a system, the messages that travel through them and who sends or receives each one. Use an AsyncAPI contract when a workflow mixes HTTP calls with events, for example a payment that ends with a webhook, or a registration that waits for a confirmation.
 
-## Example: a step that waits for an event
+Messaging steps are always **simulated**. Luvin builds each message from the examples of the contract, or from its schema, and checks that the workflow reacts as expected. It does not connect to Kafka, AMQP, MQTT or any other broker.
 
-AsyncAPI operations do not appear in the operations palette of the **Design** tab. They become steps in the workflow file, the Arazzo file, in the version 1.1 of the format. A messaging step names the channel of the contract and says whether the workflow sends or receives.
+## Example: Register sighting
 
-This is a step of the PayPal example that waits for a webhook:
+The bundled `pokedex-events.asyncapi.yaml` describes two fictional events of a Pokédex. The workflow **Register sighting** calls the real PokéAPI, then publishes a sighting and waits for its confirmation.
 
-```yaml title="paypal.arazzo.yaml"
-- stepId: awaitCaptureEvent
-  channelPath: '{$sourceDescriptions.paypalEvents.url}#/channels/captureCompleted'
-  action: receive
-  correlationId: $inputs.orderId
-  timeout: 5000
-  successCriteria:
-    - condition: $message.payload#/resource/status == 'COMPLETED'
-  outputs:
-    eventId: $message.payload#/id
+<Tabs>
+<TabItem label="Contract">
+
+```yaml title="pokedex-events.asyncapi.yaml"
+asyncapi: 3.0.0
+channels:
+  sightingRegistered:
+    address: pokedex.sighting.registered
+    messages:
+      sightingRegistered: { $ref: '#/components/messages/SightingRegistered' }
+  sightingConfirmed:
+    address: pokedex.sighting.confirmed
+    messages:
+      sightingConfirmed: { $ref: '#/components/messages/SightingConfirmed' }
+operations:
+  registerSighting:
+    action: send
+    channel: { $ref: '#/channels/sightingRegistered' }
+  onSightingConfirmed:
+    action: receive
+    channel: { $ref: '#/channels/sightingConfirmed' }
 ```
 
-| Field | What it does |
-|---|---|
-| `channelPath` | Points to the channel of the contract, through the name of the source (`paypalEvents`). |
-| `action` | `send` to publish a message, `receive` to wait for one. |
-| `correlationId` | A value that links the message to the right case, for example an order number. |
-| `timeout` | How many milliseconds the step waits for a message. |
-| `$message` | Lets criteria and outputs read the payload and the headers of the message. |
+</TabItem>
+<TabItem label="Steps">
 
-The step needs the AsyncAPI contract to be loaded (✓ in the **Contracts** list) and to be listed as a source of the Arazzo.
+```yaml title="pokemon.arazzo.yaml"
+- stepId: publishSighting
+  operationId: $sourceDescriptions.pokedexEvents.registerSighting
+  action: send
+  parameters:
+    - name: correlationId
+      in: header
+      value: $inputs.correlationId
+  requestBody:
+    payload:
+      trainer: $inputs.trainer
+      pokemonId: $steps.getPokemon.outputs.id
+      pokemon: $steps.getPokemon.outputs.name
+- stepId: awaitConfirmation
+  channelPath: '{$sourceDescriptions.pokedexEvents.url}#/channels/sightingConfirmed'
+  action: receive
+  correlationId: $inputs.correlationId
+  timeout: 5000
+  successCriteria:
+    - condition: $message.payload#/status == 'CONFIRMED'
+  outputs:
+    entryNumber: $message.payload#/entryNumber
+```
 
-Messaging steps are always **simulated**: Luvin builds the message from the examples of the contract, or from its schema, and checks that the workflow reacts as expected. It does not connect to Kafka, AMQP, MQTT or any other broker. The app says so before you run.
+</TabItem>
+</Tabs>
 
-For how to add, read and test these steps, see [Messaging steps](/design/messaging/).
+`publishSighting` points to the operation by its id. `awaitConfirmation` points to the channel and says it receives. In a run, the first one ends as **Sent**, and the second one receives the `confirmed` example of the contract, with the correlation id of the case written in its header.
 
 ## Supported versions
 
-Luvin reads AsyncAPI **2.x** and **3.x**. If the file declares another version, the editor warns you: *AsyncAPI version “x”: 2.x or 3.x is expected.*
+Luvin reads AsyncAPI **2.x** and **3.x**. With another version the editor warns: *AsyncAPI version “x”: 2.x or 3.x is expected.* In the **Contracts** list the row shows `asyncapi` next to the name.
 
-Luvin tells the type from a field at the top of the file: `asyncapi:` for AsyncAPI, `openapi:` for OpenAPI. In the **Contracts** list the row shows `asyncapi` next to the name.
-
-To start one, click the **+** of the **Contracts** section and choose **New AsyncAPI contract**. See [Contracts](/contracts/overview/).
+To start one, click the **+** of the **Contracts** section and choose **New AsyncAPI contract**. See [Add a contract](/contracts/add/).
 
 ## Send and receive
 
@@ -59,7 +86,58 @@ Luvin calls every AsyncAPI operation **send** or **receive**, from the point of 
 | 2.x | `publish` in a channel | **send**: the workflow sends the message to the channel |
 | 2.x | `subscribe` in a channel | **receive**: the workflow waits for a message from the channel |
 
-In a 3.x contract, every operation needs an `action` and a `channel` with a `$ref`. If one is missing, the editor shows an error on that operation.
+In a 3.x contract, every operation needs an `action` and a `channel` with a `$ref`. If one is missing, the editor shows an error on that operation. See [Contract errors and warnings](/contracts/lint-errors/#asyncapi).
+
+## How a step points to the contract
+
+| In the step | Points to |
+|---|---|
+| `operationId: $sourceDescriptions.pokedexEvents.registerSighting` | The operation with that key under `operations` (3.x), or with that `operationId` (2.x). |
+| `channelPath: '{$sourceDescriptions.pokedexEvents.url}#/channels/sightingConfirmed'` | The channel with that key under `channels`. In 3.x it is the key, such as `sightingConfirmed`, not the `address`. In 2.x the key is the address itself. |
+| `action: send` or `action: receive` | Which operation of the channel, when it has both. |
+
+When a channel has a send and a receive operation and the step has no `action`, the analysis warns: *Channel "x" has more than one operation; the "send" one is used. Set "action: send" or "action: receive" on the step.* When the step says one action and the operation is the other, it notes that the step's value is used.
+
+In the YAML tab, after `channelPath:` and `operationId:` the editor offers the channels and operations of the loaded contracts. AsyncAPI operations are not in the **Operations** palette. See [Messaging steps](/design/messaging/).
+
+## Messages
+
+Luvin finds the messages an operation can carry:
+
+- In 3.x, the `messages` of the operation, or else every message of its channel.
+- In 2.x, the `message` of `publish` or `subscribe`. A `oneOf` gives several possible messages.
+
+From each message it reads the `payload` schema, the `headers` schema, the `examples` (each with `payload` and `headers`), and `correlationId.location`. A payload written as `{ schemaFormat, schema }` is read through its `schema`.
+
+### When a step sends
+
+A send step takes the payload you write in `requestBody.payload` and the `in: header` parameters as headers. It always ends as **Sent**. The analysis warns about things a send ignores:
+
+| Message | Meaning |
+|---|---|
+| *"correlationId" only applies to receive steps; it is ignored on a send.* | Put the id in a header parameter or in the payload instead. |
+| *Only "in: header" parameters are sent with a message; these are ignored: names.* | Path, query and cookie parameters have no meaning for a message. |
+
+### When a step receives
+
+A receive step gets a message that Luvin builds from the contract:
+
+| Part | Rule |
+|---|---|
+| The example | The first example whose payload already has the values the success criteria require, such as `status == 'CONFIRMED'`. Else the first example. Without examples, one built from the payload schema. |
+| Required values | The values of the criteria are written on top of the payload. |
+| Correlation id | The `correlationId` of the step is written where the message's `correlationId.location` says, for example `$message.header#/correlationId`. |
+| Check | The payload is checked against the payload schema. A difference ends the step with *The message does not match the contract:* and the first one. See [Does the response match the contract?](/contracts/response-check/#messages) |
+
+The analysis also notes a receive step without `timeout` (*with a real broker it would wait for the message forever*) and a receive step with a `requestBody`, which is ignored.
+
+### Cases for messages
+
+Each action of a receive step whose criteria check the message becomes a case: `awaitConfirmation: a message arrives REJECTED → sightingRejected` receives the `rejected` example. An `onFailure` action without criteria gets a case where no message arrives before the `timeout`. See [Cases](/test/cases/).
+
+### Against the Real API
+
+HTTP steps of the same workflow call the real API, and messaging steps stay simulated. Before you run, the app says *Luvin does not connect to brokers yet: these N messaging step(s) will be simulated from the AsyncAPI examples, even though the rest runs against the real API.* Each messaging step then ends with the warning *Simulated: Luvin does not connect to brokers yet, so this step uses the AsyncAPI examples.* In **Simulation** they end as a success.
 
 ## The preview
 
@@ -67,25 +145,30 @@ The preview of an AsyncAPI contract is Luvin's own. It is not Swagger UI, which 
 
 <Steps>
 
-1. At the top you see the title, the description and the version, for example *AsyncAPI 3.0.0*.
+1. At the top you see the title, the version of the contract and the AsyncAPI version, such as *AsyncAPI 3.0.0*, and the description.
 2. **Servers** lists each server as `name: host (protocol)`.
 3. **Operations** lists the operations. Each row starts with **SEND** or **RECEIVE**, then the channel and the summary.
-4. Click a row to open it. You see the description and, for each **Message**, its payload as a schema tree and its examples.
+4. Click a row to open it. You see the id of the operation, its description and, for each **Message**, its payload as a schema tree and its examples.
 5. Click **Show in YAML** to jump to that operation in the editor.
 
 </Steps>
 
 Errors and warnings appear above the preview, as in any contract. See [Edit a contract](/contracts/edit/).
 
-<Aside type="note">
-Two things that OpenAPI contracts have are not available for AsyncAPI: **Try it out** and **Generate requests**. Luvin does not connect to a message broker.
-</Aside>
+## What AsyncAPI does not offer
+
+| Feature | Why |
+|---|---|
+| **Try it out**, **Try alone** | Luvin does not connect to a broker. |
+| **Generate requests** and mock servers | They are for HTTP operations. |
+| The **Operations** palette | Messaging steps are written in the YAML tab. |
+| Base URLs from `servers` | AsyncAPI servers are brokers. They are shown in the preview only. |
 
 ## Related
 
 <CardGrid>
-  <LinkCard title="Contracts" href="/contracts/overview/" />
   <LinkCard title="Messaging steps" href="/design/messaging/" />
+  <LinkCard title="Examples, simulation and mocks" href="/contracts/examples/" />
   <LinkCard title="Simulation" href="/test/simulation/" />
-  <LinkCard title="Examples" href="/reference/examples/" />
+  <LinkCard title="The bundled examples" href="/reference/examples/" />
 </CardGrid>

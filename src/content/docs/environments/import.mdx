@@ -1,0 +1,94 @@
+---
+title: Import environments
+description: Bring the environments of a Postman or Bruno collection into Luvin, what each variable becomes, how secrets arrive, and what to check after the import.
+sidebar:
+  order: 12
+---
+
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+When you import a collection from Postman or Bruno, its environments come with it. Each one becomes a Luvin environment of the new collection, with its variables and secrets. Your requests keep their `{{baseUrl}}` and work as they did.
+
+## Example: the shop from Postman
+
+You exported from Postman the collection **Shop API** and two environments, **Shop local** and **Shop staging**. Each environment has `baseUrl`, `clientId` and a secret `apiKey`.
+
+<Steps>
+
+1. Click **+** in the tabs (**Create or import**), then **Import from Postman or Bruno**.
+2. Under Postman, click **Choose .json files** and select the three files together: the collection and the two environments.
+3. Read the summary. It says **2** environments and lists them with how many variables each has: *Environments: Shop local (3) · Shop staging (3)*.
+4. Click **Import (N requests)**.
+
+</Steps>
+
+The new collection has the environments `Shop local` and `Shop staging`, in `environments/shop-local.yaml` and `environments/shop-staging.yaml`. Open **Get customer**, which sends `GET {{baseUrl}}/customers/42`, and send it: `baseUrl` comes from the active environment, as in Postman.
+
+![The Import from Postman or Bruno dialog with a card for Postman and a card for Bruno](/media/en/import-postman.webp)
+
+## What to choose
+
+<Tabs>
+<TabItem label="Postman">
+
+Click **Choose .json files** and pick the exported collection (v2.0 or v2.1) together with its environment files. You can also drop them all on the dialog. A globals file exported from Postman is read like one more environment.
+
+If you choose several collections at once, each of them gets every environment you chose.
+
+</TabItem>
+<TabItem label="Bruno">
+
+Click **Choose folder** and pick the collection folder, as Bruno keeps it in git. Each file of its `environments/` folder, such as `environments/staging.bru`, becomes an environment named like the file: `staging`.
+
+Or click **Choose .json** and pick the file Bruno exports. Its environments come inside it.
+
+</TabItem>
+</Tabs>
+
+## What each variable becomes
+
+| In Postman or Bruno | In Luvin |
+|---|---|
+| An enabled variable | A variable with its value. |
+| A Postman variable of type secret | A secret, with its value. The value is stored encrypted on this computer, not in the file. |
+| A Bruno secret (`vars:secret`) | A secret with an empty value. Bruno does not save secret values, so type them again. |
+| A disabled variable | Not imported. |
+| A variable with a name Luvin does not accept, such as `my var` | Not imported. The summary says *The variable “my var” has an invalid name and was skipped.* |
+| The same name twice in one environment | The first one is kept. |
+| A collection variable | Added to every environment that does not define it. |
+
+If no environment came with the collection, Luvin creates one called `local` with the collection variables.
+
+A variable named `baseUrl` stays a variable, not a [base URL](/environments/base-urls/). It works the same in `{{baseUrl}}/customers`. Imported environments have no color: give them one if you want. See [Create, rename, color and delete](/environments/manage/).
+
+<Aside type="note" title="Dynamic variables come along">
+Requests that use `{{$guid}}`, `{{$randomEmail}}` or another Postman dynamic variable keep working, because Luvin uses the same names. A `$` name Luvin does not have shows in red. See [Postman-compatible variables](/environments/postman-variables/).
+</Aside>
+
+## After the import
+
+<Steps>
+
+1. Open the **Environments** panel. The first imported environment is active.
+2. Open each environment and check **Secrets**. Fill in any empty value, as Bruno secrets always are.
+3. Open a request and check that no `{{name}}` is red. A red one was skipped or never existed in that environment.
+4. If you add a contract and workflows later, fill in the **Credentials** their security schemes ask for. See [Credentials](/environments/credentials/).
+
+</Steps>
+
+Postman scripts that set variables, such as `pm.environment.set("token", …)`, become saved values of the request, not environment variables. They are kept in memory while the collection is open. See [Bring your own files and requests](/get-started/import/).
+
+## Things to know
+
+- An import always creates a new collection. To add a Postman environment to a collection you already have, create the environment in Luvin and copy the values.
+- If you choose only environment files, Luvin says **Those are only environments: choose the collection too.**
+- You need a workspace open to import. See [Create and open a workspace](/workspaces/create-and-open/).
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Bring your own files and requests" href="/get-started/import/" />
+  <LinkCard title="From a Postman or Bruno collection to a tested workflow" href="/tutorials/from-postman/" />
+  <LinkCard title="Variables and secrets" href="/environments/variables-and-secrets/" />
+  <LinkCard title="Postman-compatible variables" href="/environments/postman-variables/" />
+</CardGrid>

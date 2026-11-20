@@ -1,0 +1,85 @@
+---
+title: Mock environments
+description: The environment Luvin creates from a mock server so that requests and workflows call the mock, what it copies, how to update it, and how to go back to your usual environment.
+sidebar:
+  order: 13
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A [mock server](/mocks/overview/) answers on your computer, at an address like `http://127.0.0.1:4010`. To make your requests and workflows call it, you do not edit them: you switch to an environment whose URLs point to the mock. Luvin builds that environment for you.
+
+## Example: the Pokédex against its mock
+
+<Steps>
+
+1. Create a mock of the Pokédex with **Responses from** set to **An OpenAPI contract**, and press **Start**. See [Create a mock server](/mocks/create/).
+2. In the mock tab, press **Create mock environment**.
+3. The environment **Mock · Pokédex mock** is created, in purple, and becomes active. The pill at the top right shows it.
+4. Open **Pokemon card**, choose **Real API** and press **Run**. Every step calls the mock instead of the PokéAPI.
+5. When you are done, click the pill at the top right and choose `local`. The next run goes to the PokéAPI again.
+
+</Steps>
+
+Your environment `local` did not change at any moment. The mock environment is a separate one.
+
+![The environment Mock · Shop mock, active and in purple, with the base URL shop from the contract pointing to the mock plus /v1 (127.0.0.1:4010/v1); the same environment shows in the pill at the top right and in the Environments panel of the sidebar](/media/en/mocks-env.webp)
+
+## Create it
+
+Press **Create mock environment** in the mock tab, below the port and the source. It is also in the **⋯** menu at the top of the tab. Next to the button, the tab explains: *An environment that points to the mock: requests with `{{baseUrl}}` and workflows use it as is.*
+
+Luvin starts from the environment that is active when you press it:
+
+| Part | In the mock environment |
+|---|---|
+| Name | **Mock ·** and the name of the mock. |
+| Color | Purple. |
+| Base URLs of the contracts | The URL of the mock plus the path of each contract's server, such as `http://127.0.0.1:4010/api/v2`. With a mock from a contract, only that contract's base URL changes. |
+| Variables whose value is a URL | The URL of the mock. Not only `baseUrl`: every variable that starts with `http://` or `https://`. |
+| Other variables | Copied as they are. |
+| Secrets | Only their names, with empty values. |
+| Credentials | Empty. |
+
+The details, such as the server path of a contract, are in [Use a mock with requests and workflows](/mocks/with-workflows/).
+
+<Aside type="caution" title="Every URL changes">
+If a variable holds the URL of another service, such as a token endpoint, it also points to the mock. Edit it in the mock environment if that call must still reach the real service.
+</Aside>
+
+## Update it
+
+Once it exists, the mock tab says *Environment “Mock · Pokédex mock”* and the button reads **Update environment**. Press it after you change the port, so the URLs follow the mock.
+
+- If the mock environment is active, it starts from itself: the variables you changed by hand stay, except those whose value is a URL.
+- If another environment is active, it starts again from that one.
+- The secrets and credentials you filled in the mock environment stay.
+- The mock environment becomes active.
+
+## Go back to your usual environment
+
+Choose your usual environment in the pill at the top right, or click it in the **Environments** panel. Nothing else is needed.
+
+| What | After you go back |
+|---|---|
+| Your usual environment | Exactly as it was. The mock environment never wrote to it. |
+| The mock environment | It stays in the list for the next time. |
+| The mock server | It keeps running until you press **Stop**. |
+| Values saved by requests and OAuth 2.0 tokens | They stay, as with any switch. A token from the mock may not work on the real API: press **Clear token** or **Clear all** if it gets in the way. |
+
+## It is an ordinary environment
+
+- It has its own file, such as `environments/mock-pokedex-mock.yaml`, and goes to git like the others.
+- You can rename it, change its color and add variables.
+- Luvin finds it by its name. If you rename the mock or the environment, **Create mock environment** creates a new one.
+- Deleting the mock does not delete it. Delete it from the **Environments** panel: **⋯**, then **Delete environment…**.
+- Mock servers run in the desktop app. In the browser version you can define routes, but nothing answers at the mock's address.
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Use a mock with requests and workflows" href="/mocks/with-workflows/" />
+  <LinkCard title="Mock servers" href="/mocks/overview/" />
+  <LinkCard title="Base URLs" href="/environments/base-urls/" />
+  <LinkCard title="Environments" href="/environments/overview/" />
+</CardGrid>

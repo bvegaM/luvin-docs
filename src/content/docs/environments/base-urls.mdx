@@ -1,0 +1,120 @@
+---
+title: Base URLs
+description: The base URL of each contract and your own base URLs for single requests, how to use them as variables, put variables inside them, and when a step ignores them.
+sidebar:
+  order: 3
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+A base URL is the address every call to one API starts with. It is the part that changes most between environments: `http://localhost:8080` on your machine, `https://api.shop.test` in production. Workflows take it from the environment, and single requests use it as `{{name}}`.
+
+## Example: the Pokédex against another server
+
+Open the Pokédex example and click `local` in the **Environments** panel. Under **Base URLs** there is one field:
+
+| Field | Badge | Value |
+|---|---|---|
+| `pokeapi` | **From the contract** | `https://pokeapi.co/api/v2` |
+
+Every step of **Pokemon card** calls `pokeapi`, so `getPokemon` goes to `https://pokeapi.co/api/v2/pokemon/pikachu`. Change the field to `http://localhost:3000/api/v2` and run again: every step now calls your local copy. You did not touch the workflow.
+
+The same value works in a single request. Write `{{pokeapi}}/pokemon/pikachu` in its URL and it goes to the same server as the workflow.
+
+## Two kinds of base URL
+
+| Kind | Where it comes from | Used by |
+|---|---|---|
+| **From the contract** | One per OpenAPI contract of the collection, named like the source in the Arazzo file (`pokeapi`, `paypal`). | The steps of every workflow that call that contract, **Try it out** and the contract documentation. Also single requests, as `{{pokeapi}}`. |
+| Your own | You add it with **+ Add base URL**. | Single requests, as `{{baseUrl}}`. Also any field that accepts variables. |
+
+The section title shows how many there are. AsyncAPI contracts have no base URL here, because messaging steps are [simulated](/test/simulation/).
+
+## Base URLs from the contract
+
+Luvin fills each one the first time it sees the contract, with the first server the contract declares. If that server has variables, such as `https://{region}.api.shop.test`, each one takes its default value. A relative server, such as `/v1`, is joined to the address of a contract opened from a URL. For a contract file, the field shows `/v1` as it is: complete it with the host.
+
+<Steps>
+
+1. Open the environment.
+2. In **Base URLs**, find the field with the name of the source and the badge **From the contract**.
+3. Type the address for this environment. Each environment keeps its own.
+
+</Steps>
+
+Below the field, a hint shows how to call it from a request, for example *In a request: `{{pokeapi}}/…`*. It only shows when the name is a valid variable name.
+
+| Good to know | Detail |
+|---|---|
+| The contract changes later | An environment that already has a value keeps it. Type the new address yourself. |
+| You leave the field empty | Nothing is saved for it. The next time the collection opens, Luvin fills it again from the contract. |
+| Two Arazzo files use the same source name | They share one base URL in each environment. |
+| A contract without servers | The field starts empty. Fill it in, or **Try it out** says *The environment has no URL for “name” and the contract defines no servers: set it in the environment or use simulation.* |
+
+## Your own base URLs
+
+Use your own base URL for single requests that do not belong to a contract.
+
+<Steps>
+
+1. In **Base URLs**, click **+ Add base URL**.
+2. A new row appears, named `baseUrl` (or `baseUrl2` if that is taken). Type another name if you want, and press **Enter**.
+3. Type its value, for example `https://api.shop.test`.
+4. In a request, write `{{baseUrl}}/customers`.
+
+</Steps>
+
+Your own base URLs belong to every environment of the collection:
+
+| Action | Effect |
+|---|---|
+| Add one | It is added to every environment. The others start with an empty value. |
+| Rename it | It is renamed in every environment, so `{{name}}` keeps working everywhere. |
+| Remove it (trash icon, **Remove base URL**) | It is removed from every environment. |
+
+A name follows the rules of variables: letters, digits, `_`, `.` or `-`, starting with a letter or `_`. A name that breaks them, or that another base URL or variable already has, shows an error and goes back to the old name when you leave the field.
+
+## Variables inside a base URL
+
+A base URL is a field like any other: it accepts `{{name}}`, with suggestions and colors.
+
+| You write | With the variable | Luvin calls |
+|---|---|---|
+| `https://{{region}}.api.shop.test` | `region` = `eu` | `https://eu.api.shop.test` |
+| `{{host}}/v1` | `host` = `https://api.shop.test` | `https://api.shop.test/v1` |
+
+This is useful when only part of the address changes, or when several base URLs share a host. A secret also works, and stays masked in results.
+
+If a variable and a base URL have the same name, `{{name}}` takes the variable.
+
+## When a step does not use the environment
+
+A contract can declare `servers` on one operation or one path, not only at the top. Those win, as OpenAPI says:
+
+| The operation declares | The step calls |
+|---|---|
+| Nothing | The base URL of the environment. |
+| A full address, such as `https://uploads.shop.test` | That address, whatever the environment says. |
+| A relative path, such as `/v2` | The base URL of the environment plus `/v2`. |
+
+If one step keeps going to the same server in every environment, look for `servers` in its operation. Edit it in the [contract](/contracts/edit/).
+
+<Aside type="note" title="Browser version">
+To run against a real API from the browser, the API must allow CORS from the address of the app. The **Base URLs** section reminds you: *To run against the real API, it must allow CORS from …*. See [Connection help](/dev-tools/connection-help/).
+</Aside>
+
+## Where you see the base URL that was used
+
+- In the results of a step, the full URL that was called.
+- In an exported report, under **Base URL**, with the environment name.
+- In **Try it out**, the URL before you send.
+- In the sidebar, a step shows its method and the full URL built with the active environment.
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Variables and secrets" href="/environments/variables-and-secrets/" />
+  <LinkCard title="Mock environments" href="/environments/mock-environments/" />
+  <LinkCard title="Try one operation" href="/contracts/try-it-out/" />
+  <LinkCard title="Contracts" href="/contracts/overview/" />
+</CardGrid>

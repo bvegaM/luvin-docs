@@ -1,0 +1,85 @@
+---
+title: Ambientes de mock
+description: El ambiente que Luvin crea a partir de un mock server para que los requests y los workflows llamen al mock, qué copia, cómo actualizarlo y cómo volver a tu ambiente de siempre.
+sidebar:
+  order: 13
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Un [mock server](/es/mocks/overview/) responde en tu equipo, en una dirección como `http://127.0.0.1:4010`. Para que tus requests y tus workflows lo llamen, no los editas: cambias a un ambiente cuyas URLs apuntan al mock. Luvin arma ese ambiente por ti.
+
+## Ejemplo: la Pokédex contra su mock
+
+<Steps>
+
+1. Crea un mock de la Pokédex con **Respuestas desde** en **Un contrato OpenAPI** y pulsa **Encender**. Mira [Crea un mock server](/es/mocks/create/).
+2. En la pestaña del mock, pulsa **Crear ambiente del mock**.
+3. Se crea el ambiente **Mock · Mock de Pokédex**, en morado, y queda activo. La pastilla de arriba a la derecha lo muestra.
+4. Abre **Pokemon card**, elige **API real** y pulsa **Ejecutar**. Cada paso llama al mock en vez de a la PokéAPI.
+5. Cuando termines, haz clic en la pastilla de arriba a la derecha y elige `local`. La siguiente ejecución vuelve a ir a la PokéAPI.
+
+</Steps>
+
+Tu ambiente `local` no cambió en ningún momento. El ambiente del mock es otro.
+
+![El ambiente Mock · Mock de Shop, activo y en morado, con la URL base shop del contrato apuntando al mock más /v1 (127.0.0.1:4010/v1); el mismo ambiente se ve en la pastilla de arriba a la derecha y en el panel Ambientes de la barra lateral](/media/es/mocks-env.webp)
+
+## Créalo
+
+Pulsa **Crear ambiente del mock** en la pestaña del mock, debajo del puerto y la fuente. También está en el menú **⋯** de arriba de la pestaña. Al lado del botón, la pestaña explica: *Un ambiente que apunta al mock: los requests con `{{baseUrl}}` y los workflows lo usan sin cambios.*
+
+Luvin parte del ambiente que está activo cuando lo pulsas:
+
+| Parte | En el ambiente del mock |
+|---|---|
+| Nombre | **Mock ·** y el nombre del mock. |
+| Color | Morado. |
+| URLs base de los contratos | La URL del mock más la ruta del servidor de cada contrato, como `http://127.0.0.1:4010/api/v2`. Con un mock desde un contrato, solo cambia la URL base de ese contrato. |
+| Variables cuyo valor es una URL | La URL del mock. No solo `baseUrl`: cada variable que empieza con `http://` o `https://`. |
+| Otras variables | Se copian tal cual. |
+| Secretos | Solo sus nombres, con los valores vacíos. |
+| Credenciales | Vacías. |
+
+Los detalles, como la ruta del servidor de un contrato, están en [Usa un mock con requests y workflows](/es/mocks/with-workflows/).
+
+<Aside type="caution" title="Cambian todas las URLs">
+Si una variable guarda la URL de otro servicio, como la del token, también apunta al mock. Edítala en el ambiente del mock si esa llamada tiene que seguir llegando al servicio real.
+</Aside>
+
+## Actualízalo
+
+Cuando ya existe, la pestaña del mock dice *Ambiente «Mock · Mock de Pokédex»* y el botón dice **Actualizar ambiente**. Púlsalo después de cambiar el puerto, para que las URLs sigan al mock.
+
+- Si el ambiente del mock está activo, parte de sí mismo: las variables que cambiaste a mano se quedan, salvo las que tienen una URL como valor.
+- Si hay otro ambiente activo, vuelve a partir de ese.
+- Los secretos y las credenciales que completaste en el ambiente del mock se quedan.
+- El ambiente del mock queda activo.
+
+## Vuelve a tu ambiente de siempre
+
+Elige tu ambiente de siempre en la pastilla de arriba a la derecha, o haz clic en él en el panel **Ambientes**. No hace falta nada más.
+
+| Qué | Después de volver |
+|---|---|
+| Tu ambiente de siempre | Exactamente como estaba. El ambiente del mock nunca escribió en él. |
+| El ambiente del mock | Queda en la lista para la próxima vez. |
+| El mock server | Sigue encendido hasta que pulses **Apagar**. |
+| Valores guardados por los requests y tokens de OAuth 2.0 | Se quedan, como en cualquier cambio de ambiente. Un token del mock puede no servir en la API real: pulsa **Borrar token** o **Borrar todas** si molesta. |
+
+## Es un ambiente como cualquier otro
+
+- Tiene su propio archivo, como `environments/mock-mock-de-pokedex.yaml`, y va a git como los demás.
+- Puedes renombrarlo, cambiarle el color y agregarle variables.
+- Luvin lo encuentra por su nombre. Si renombras el mock o el ambiente, **Crear ambiente del mock** crea uno nuevo.
+- Eliminar el mock no lo elimina. Elimínalo desde el panel **Ambientes**: **⋯** y luego **Eliminar ambiente…**.
+- Los mock servers corren en la app de escritorio. En la versión de navegador puedes definir rutas, pero nada responde en la dirección del mock.
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Usa un mock con requests y workflows" href="/es/mocks/with-workflows/" />
+  <LinkCard title="Mock servers" href="/es/mocks/overview/" />
+  <LinkCard title="URLs base" href="/es/environments/base-urls/" />
+  <LinkCard title="Ambientes" href="/es/environments/overview/" />
+</CardGrid>

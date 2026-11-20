@@ -1,0 +1,95 @@
+---
+title: Environment troubleshooting
+description: Symptoms, causes and fixes for calls that go to the wrong server, red or empty variables, 401 answers, secrets missing on another computer and environment files that do not load.
+sidebar:
+  order: 14
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Most environment problems come down to two questions: which environment is active, and what value each `{{name}}` really had. Start there.
+
+## Example: a 401 after switching to staging
+
+The shop workflow `placeOrder` passed against `local`. You switch to `staging`, run again, and every protected step answers `401`.
+
+<Steps>
+
+1. Look above the workflow. A notice says *Credentials are missing in “staging”: calls that need them will answer 401.*
+2. Click **Fill in**. The environment `staging` opens.
+3. Under **Credentials**, the badge says **0/1 filled**. Credentials are not copied to a new environment.
+4. Paste the token of staging, or write the secret that holds it, such as `{{shopToken}}`.
+5. Run again.
+
+</Steps>
+
+If there is no notice and you still get `401`, open the failed step and read what was sent: the `Authorization` header shows masked, but you can tell whether it was there at all.
+
+## First checks
+
+| Check | Where |
+|---|---|
+| Which environment is active | The pill at the top right of the window. |
+| What a `{{name}}` is worth there | Point at it in the field: the card shows its value, or says it does not exist. |
+| What went out | **Sent request** for a request; the step in the results for a workflow; **Network** in Dev Tools. |
+| Which environment a past run used | The results, the history entry and the exported report all name it. |
+
+## Calls go to the wrong place
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Calls go to production, or to your machine, when you meant the other | Another environment is active. | Choose the right one in the pill at the top right. |
+| Steps still call the old server after you changed the contract's `servers` | The environment keeps the base URL it already had. | Type the new address in **Base URLs**. |
+| One step calls the same server in every environment | Its operation, or its path, declares its own full `servers` in the contract. | Remove or change those `servers` in the [contract](/contracts/edit/). |
+| A request still reaches the real API with a mock environment | Its URL is written in full, without a variable. | Use `{{baseUrl}}` or the contract's base URL in the URL. |
+| *There is no server URL for source "shop". Set it on the parameters screen.* | The base URL of that contract is empty in this environment. | Fill it in **Base URLs**. |
+| **Try it out** says *The environment has no URL for “shop” and the contract defines no servers* | Same cause. | Fill it in, or use **Simulated**. |
+| *Could not connect to the API (…). Check the environment URL and that the server is reachable from this computer.* | The address is wrong, the server is down, or the mock is stopped. | Open the base URL in a browser. In the browser version, **Review environment** in [Connection help](/dev-tools/connection-help/) opens the environment. |
+
+## Variables
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| A `{{name}}` is red | No variable, base URL or generator has that name in the active environment. It may exist only in another one, differ in capitals, or have an invalid name. | Point at it and click **Create variable** or **Create secret**, or fix the spelling. Check the name in the environment for a red error. |
+| A `{{name}}` is amber | It exists but is empty. Typical for secrets after a clone or in a new environment. | Type its value in the card or in the environment. |
+| The request sends `{{name}}` literally | The name was red when it went out. | As above. |
+| The environment value is ignored | A value saved by a request with the same name wins, also after you switch environments. In the Runner, a column of the data file wins too. | Click **Clear all** under **Saved now** in the **Variables** tab of a request, or rename one of them. See [Save values from a response](/requests/save-variables/). |
+| `{{email}}` always sends the same value | A variable called `email` hides the generator. The environment shows *Shadows the `{{email}}` generator*. | Rename the variable. |
+| Two steps get two different `{{$guid}}` | Every occurrence is a new value. | Put the generator in an input and read `$inputs.name` in both steps. See [Dynamic variables](/environments/dynamic-variables/). |
+| The Arazzo file can't be read after you wrote `{{name}}` in it | In YAML, an unquoted `{` starts a mapping. | Put the value in quotes: `value: '{{$randomUUID}}'`. |
+| A Postman `{{$name}}` stays red | Luvin has 47 of the `$` names, not all of Postman's. | Use one from the [list](/environments/postman-variables/) or a [Luvin generator](/environments/generators/). |
+
+## Credentials and secrets
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| *Credentials are missing in “name”: calls that need them will answer 401.* | A step needs a scheme with no value in this environment. | Click **Fill in**. See [Credentials](/environments/credentials/). |
+| `401` after switching environments, without a notice | The credential points to a secret that is empty here, or an OAuth 2.0 token from the previous environment is still in use. | Fill in the secret. Press **Clear token** in the **Authorization** tab, then run again. |
+| The badge of **Credentials** stays amber in the PayPal example | The workflows get their token from their **Authorization** tab, not from the contract's credential. | Nothing to do. Fill `clientId` and `clientSecret` instead. |
+| Secrets are empty on another computer, or in another clone | Values are stored per computer and per copy of the workspace, never in the files. | Type them in **Secrets**. See [Environment files and teams](/environments/files-and-teams/). |
+| Secrets are empty every time you reopen, in the desktop app | The keychain of the operating system is not available, so Luvin cannot store them. | Make the keychain available, or type them each time. |
+| Secrets are empty every time, in the browser | No workspace is open: an example or loose files keep only the names. | Open or create a workspace. |
+| A secret shows in clear in results | It has fewer than four characters, or the value was typed in a body or input instead of as `{{name}}`. | Use a longer secret, and write `{{name}}` where it goes. See [Variables and secrets](/environments/variables-and-secrets/). |
+
+## The environments themselves
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| An environment is missing after a git pull, with *The environment … couldn’t be read (an unresolved git conflict?)* | Its file is not valid YAML, often because of conflict markers. | Fix the file, then close and open the workspace. Luvin did not change it. |
+| You edited a file by hand and nothing changed | Luvin reads files when it opens a collection. | Close the workspace and open it again. |
+| Luvin asks again *These steps modify data in the “name” environment:* | You switched environments or changed a base URL. The confirmation is per environment. | Check the environment and press **Run anyway**, or **Use simulation**. |
+| A rename gave `staging 2` | Another environment already has that name. | Rename or delete the other one first. |
+| The environment you deleted is back as **My environment** | It was the only one. A collection always keeps one. | Fill in the new one, or create the one you need and delete it. |
+
+<Aside type="tip" title="When the API itself is the question">
+Copy the request as cURL (secrets show as `<secret>`, so fill them in) and run it in a terminal. If it fails there too, the problem is in the values or in the API, not in the environment. See [Copy as cURL](/requests/curl/).
+</Aside>
+
+## Related
+
+<CardGrid>
+  <LinkCard title="Authorization troubleshooting" href="/authorization/troubleshooting/" />
+  <LinkCard title="Connection help" href="/dev-tools/connection-help/" />
+  <LinkCard title="Credentials" href="/environments/credentials/" />
+  <LinkCard title="Suggestions and colors" href="/environments/suggestions/" />
+</CardGrid>

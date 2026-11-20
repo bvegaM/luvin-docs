@@ -1,15 +1,17 @@
 ---
 title: Ambientes
-description: Qué es un ambiente, cómo crear, renombrar, colorear y eliminar uno, y cómo elegir el ambiente activo.
+description: Qué es un ambiente y qué guarda, dónde ves el activo, cómo cambiarlo y qué cambia en los requests, los workflows y el runner cuando lo haces.
 sidebar:
   order: 1
 ---
 
 import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
 
-Un ambiente guarda lo que cambia entre los lugares donde corre tu API, como local y producción. Lo necesitas en cuanto ejecutas un workflow o envías un request contra una API real.
+Un ambiente guarda lo que cambia entre los lugares donde corre tu API, como local y producción: las URLs base, las credenciales, las variables y los secretos. Lo necesitas en cuanto ejecutas un workflow o envías un request contra una API real.
 
-Cada ambiente es un archivo pequeño. El mismo request, `{{baseUrl}}/customers`, va a un lugar distinto en cada uno:
+## Ejemplo: el mismo request en dos ambientes
+
+La colección de la tienda tiene dos ambientes. El mismo request, `{{baseUrl}}/customers`, va a un lugar distinto en cada uno:
 
 <Tabs>
 <TabItem label="local">
@@ -38,115 +40,127 @@ servers:
 </TabItem>
 </Tabs>
 
+No cambias el request. Cambias el ambiente activo arriba a la derecha de la ventana, y el próximo envío va al otro servidor.
+
 <video controls muted playsinline preload="metadata" poster="/media/es/environments.webp" src="/media/es/environments.mp4"></video>
 
 ## Qué guarda un ambiente
 
-| Parte | Qué es |
-|---|---|
-| **URLs base** | La dirección de cada API en este ambiente, por ejemplo `https://api.tienda.test`. |
-| **Credenciales** | Los valores que piden los contratos: un token, un usuario y contraseña, una API key. |
-| **Variables** | Valores que reutilizas como `{{nombre}}`, por ejemplo un ID de cliente. |
-| **Secretos** | Variables para claves y tokens. Sus valores nunca van a los archivos del workspace. |
-| **Color de la etiqueta** | Un color para distinguir los ambientes de un vistazo. |
-
-Los ambientes son de la [colección](/es/reference/glossary/) abierta. Cada colección tiene su propia lista y siempre tiene al menos un ambiente.
+| Parte | Qué es | Más |
+|---|---|---|
+| **URLs base** | La dirección de cada API en este ambiente, por ejemplo `https://pokeapi.co/api/v2`. Una por contrato, más las tuyas. | [URLs base](/es/environments/base-urls/) |
+| **Credenciales** | Los valores que piden los contratos: un token, un usuario y contraseña, una API key. | [Credenciales](/es/environments/credentials/) |
+| **Variables** | Valores que reutilizas como `{{nombre}}`, por ejemplo un ID de cliente. | [Variables y secretos](/es/environments/variables-and-secrets/) |
+| **Secretos** | Variables para claves y tokens. Sus valores nunca van a los archivos del workspace. | [Variables y secretos](/es/environments/variables-and-secrets/) |
+| **Color de la etiqueta** | Un color para distinguir los ambientes de un vistazo. | [Crear, renombrar, colorear y eliminar](/es/environments/manage/) |
 
 ![El panel Ambientes de la barra lateral y un ambiente abierto, con sus URLs base, credenciales, variables y secretos](/media/es/environment.webp)
+
+## Un ambiente activo por colección
+
+Los ambientes son de la [colección](/es/reference/glossary/) abierta. Cada colección tiene su propia lista, y uno de ellos siempre es el activo. Una colección nunca se queda sin ambientes:
+
+| Situación | El ambiente que tienes |
+|---|---|
+| Creas una colección en un workspace | Uno llamado `local`, con las URLs base de los contratos que agregues. |
+| Abres el ejemplo de la Pokédex | `local`, que apunta a `https://pokeapi.co/api/v2`. |
+| Abres el ejemplo de PayPal | `Sandbox`, que apunta a `https://api-m.sandbox.paypal.com`, con la variable `clientId` y el secreto `clientSecret` todavía vacíos. |
+| La carpeta de una colección no tiene archivos de ambiente | Uno llamado **Mi ambiente**. |
+| Eliminas el único ambiente | Un **Mi ambiente** nuevo y vacío, con las URLs base de los contratos. |
+
+Luvin recuerda en este equipo el ambiente activo de cada colección. No se escribe en los archivos, así que cada persona del equipo puede tener uno distinto activo.
 
 ## Dónde están los ambientes
 
 | Lugar | Qué encuentras |
 |---|---|
-| Barra superior | El ambiente activo, arriba a la derecha de la ventana: una pastilla de su color, o en el verde de Luvin si no tiene. Siempre se ve mientras hay una colección abierta, y es el único lugar fuera de la barra lateral que lo muestra |
-| Barra lateral | El panel **Ambientes**: haz clic en el ícono **Ambientes** arriba de la barra lateral. Su título muestra el nombre de la colección abierta. El activo tiene su punto relleno |
-| Runner | La lista **Ambiente**, arriba a la izquierda mientras configuras una ejecución |
+| Barra superior | El ambiente activo, arriba a la derecha de la ventana: una pastilla de su color, o en el verde de Luvin si no tiene. Siempre se ve mientras hay una colección abierta. |
+| Barra lateral | El panel **Ambientes**: haz clic en el ícono **Ambientes** arriba de la barra lateral. Su título muestra el nombre de la colección abierta. El activo tiene su punto relleno. Una fila con variables dice cuántas tiene, por ejemplo **3 var.** |
+| La pestaña del ambiente | Con el título **Ambiente «nombre»**. Muestra el ambiente activo: sus URLs base, credenciales, variables y secretos, con una fila de todos los ambientes arriba. |
+| Runner | La lista **Ambiente**, arriba a la izquierda mientras configuras una ejecución. |
+| Búsqueda | Pulsa ⌘K (Ctrl+K) y escribe un nombre. El grupo **Ambientes** los lista, y el que está en uso dice **activo**. |
+| Try it out | La pastilla junto a **Enviar** nombra el ambiente que usa la llamada. Haz clic en ella para configurar ese ambiente. |
 
 ## Elige el ambiente activo
 
-El ambiente activo es el que Luvin usa en cada ejecución, en cada request y en **Try it out** de un contrato.
+El ambiente activo es el que Luvin usa en cada ejecución, en cada request y en **Try it out** de un contrato. Elígelo en cualquiera de estos lugares. Todos cambian lo mismo.
+
+<Tabs>
+<TabItem label="Arriba a la derecha">
+
+<Steps>
+
+1. Haz clic en la pastilla de arriba a la derecha de la ventana.
+2. Elige un ambiente. El activo tiene una marca.
+
+</Steps>
+
+Su última opción, **Configurar ambiente…**, abre el ambiente activo en su pestaña. Usa la pastilla para cambiar sin dejar lo que estás haciendo.
+
+</TabItem>
+<TabItem label="Barra lateral">
 
 <Steps>
 
 1. Arriba de la barra lateral, haz clic en el ícono **Ambientes**.
-2. Haz clic en un ambiente.
+2. Haz clic en un ambiente. Su texto de ayuda dice **Usar y abrir este ambiente**.
 3. Queda activo y se abre en una pestaña con el título **Ambiente «nombre»**.
 
 </Steps>
 
-Para cambiar sin dejar lo que estás haciendo, usa el ambiente que se ve arriba a la derecha de la ventana. Ábrelo y elige otro. Su última opción, **Configurar ambiente…**, abre el ambiente activo. Luvin recuerda en este equipo el ambiente activo de cada colección.
+Junto al activo, **Configurar** lo vuelve a abrir.
 
-## Crea un ambiente
-
-<Steps>
-
-1. En el panel **Ambientes** de la barra lateral, haz clic en **+** (**Nuevo ambiente**). Dentro de un ambiente abierto también puedes hacer clic en **+ Nuevo**.
-2. Se agrega un ambiente llamado **Nuevo ambiente**, que queda activo.
-3. Escribe su nombre y pulsa **Enter**.
-
-</Steps>
-
-El ambiente nuevo es una copia del activo: las mismas URLs base y variables. De los secretos copia solo los nombres. Las credenciales no se copian. Solo cambias lo que difiere.
-
-## Renombra un ambiente
+</TabItem>
+<TabItem label="Búsqueda">
 
 <Steps>
 
-1. Abre el ambiente.
-2. Haz doble clic en su nombre, en la fila de ambientes de arriba, o haz clic en **Renombrar**.
-3. Escribe el nombre nuevo y pulsa **Enter**. Pulsa **Esc** para cancelar.
-
-</Steps>
-
-## Ponle un color
-
-<Steps>
-
-1. Abre el ambiente.
-2. Junto a **Color de la etiqueta**, haz clic en un color: gris, verde, azul, morado, amarillo, naranja o rojo. La primera opción quita el color.
-
-</Steps>
-
-El color se ve en la barra lateral y en la pastilla del ambiente de arriba a la derecha. Un ambiente sin color se ve ahí en el verde de Luvin, por eso la primera opción es **Sin color (verde de Luvin arriba)**. Una elección común: local en verde, integración en amarillo, producción en rojo.
-
-## Elimina un ambiente
-
-<Tabs>
-<TabItem label="Desde la barra lateral">
-
-<Steps>
-
-1. En el panel **Ambientes**, pasa el mouse sobre el ambiente y abre su menú **⋯**.
-2. Elige **Eliminar ambiente…**.
-3. Confirma con **Eliminar**.
+1. Pulsa ⌘K (Ctrl+K).
+2. Escribe parte del nombre.
+3. Elígelo en **Ambientes**. Queda activo y se abre.
 
 </Steps>
 
 </TabItem>
-<TabItem label="Desde el ambiente">
+<TabItem label="Runner">
 
-<Steps>
-
-1. Abre el ambiente.
-2. Haz clic en **Eliminar**, a la derecha de la fila de ambientes.
-3. Confirma con **Eliminar**.
-
-</Steps>
+Mientras configuras una ejecución, abre la lista **Ambiente** arriba a la izquierda y elige uno. Mira [Abre el runner y elige el ambiente](/es/runner/open-and-environment/).
 
 </TabItem>
 </Tabs>
 
-Al eliminar un ambiente también se borran de este equipo sus credenciales y sus secretos.
+La pestaña del ambiente siempre muestra el ambiente activo. Hacer clic en otro nombre de la fila de arriba de la pestaña también lo deja activo.
 
-<Aside type="note" title="Siempre hay un ambiente">
-Si eliminas el único ambiente, Luvin deja uno nuevo y vacío en su lugar, con las URLs base de los contratos. La confirmación lo dice antes de eliminar.
+## Qué cambia cuando cambias de ambiente
+
+| Dónde | Qué usa el ambiente nuevo |
+|---|---|
+| Requests sueltos | Cada `{{nombre}}` de la URL, los params, los headers, el body y la autorización: URLs base, variables y secretos. |
+| Workflows | La URL base de cada contrato, las credenciales, y cada `{{nombre}}` de los inputs, los casos y los pasos. |
+| Try it out y la documentación del contrato | El servidor y las credenciales del contrato. |
+| Runner | El mismo ambiente activo. Su nombre aparece en los resultados. |
+| Confirmación al ejecutar | Cuando un workflow tiene pasos que crean, cambian o borran datos, Luvin muestra *Estos pasos modifican datos en el ambiente «nombre»:* antes de una ejecución real. Después de cambiar de ambiente, vuelve a preguntar. |
+
+![Antes de ejecutar Create order de PayPal: el aviso de que un POST modifica datos en el ambiente Sandbox](/media/es/test-run-confirm.webp)
+
+Algunas cosas quedan como estaban:
+
+| Qué | Por qué |
+|---|---|
+| Los resultados de la última ejecución | Conservan el ambiente con el que corrieron. Un reporte exportado después sigue nombrando ese. |
+| Historial | Cada entrada conserva el nombre del ambiente que usó. |
+| Valores guardados por los requests (**Guardadas ahora**) | Son de la colección, no de un ambiente, y mandan sobre las variables del ambiente. Un token guardado mientras `local` estaba activo se sigue usando después de cambiar. Haz clic en **Borrar todas** en la pestaña **Variables** de un request para olvidarlos. |
+| Tokens de OAuth 2.0 | Luvin los guarda en memoria mientras la colección está abierta. Pulsa **Borrar token** si el ambiente nuevo necesita otro. |
+
+<Aside type="caution" title="Mira la pastilla antes de una ejecución real">
+La pastilla de arriba a la derecha es el único lugar fuera de la barra lateral que nombra el ambiente activo. Una etiqueta roja para producción hace difícil pasarlo por alto.
 </Aside>
 
 ## Sigue con
 
 <CardGrid>
-  <LinkCard title="URLs base, variables y secretos" href="/es/environments/variables-and-secrets/" />
-  <LinkCard title="Variables dinámicas" href="/es/environments/dynamic-variables/" />
-  <LinkCard title="Autorización de un workflow" href="/es/authorization/workflow/" />
-  <LinkCard title="Ejecutar un workflow" href="/es/test/run/" />
+  <LinkCard title="Crear, renombrar, colorear y eliminar" href="/es/environments/manage/" />
+  <LinkCard title="URLs base" href="/es/environments/base-urls/" />
+  <LinkCard title="Variables y secretos" href="/es/environments/variables-and-secrets/" />
+  <LinkCard title="Usar variables" href="/es/environments/use-variables/" />
 </CardGrid>

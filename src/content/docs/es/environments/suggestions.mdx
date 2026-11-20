@@ -1,0 +1,106 @@
+---
+title: Sugerencias y colores
+description: La lista que abre Luvin cuando escribes dos llaves, qué significa cada tipo de sugerencia, los colores de cada variable en un campo y la tarjeta que muestra, edita o crea su valor.
+sidebar:
+  order: 7
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Los campos que aceptan variables te ayudan a escribirlas. Escribe `{{` y Luvin sugiere todos los nombres que conoce. Una vez que un nombre está en el campo, su color te dice si se va a reemplazar, y una tarjeta muestra su valor.
+
+## Ejemplo: la autorización de PayPal
+
+Abre el ejemplo de PayPal, después un workflow, y su pestaña **Autorización**. Los campos **Client ID** y **Client Secret** ya tienen `{{clientId}}` y `{{clientSecret}}`.
+
+<Steps>
+
+1. Mira los dos campos. Mientras no los completes en el ambiente, los dos nombres están en ámbar: existen en `Sandbox` pero están vacíos.
+2. Pasa el mouse sobre `{{clientId}}`. Se abre una tarjeta con **variable**, el nombre, un campo de valor vacío y *Valor en el ambiente «Sandbox»*.
+3. Pega tu client ID en el campo de la tarjeta. El nombre se pone verde, y el valor queda guardado en `Sandbox`, como si lo hubieras escrito en el ambiente.
+4. Borra **Client ID** y escribe `{{cl`. La lista muestra `clientId` con su valor, y `clientSecret` marcado como **secreto**, con su valor oculto como `••••••`.
+5. Pulsa **Enter**. `{{clientId}}` vuelve a estar en el campo.
+
+</Steps>
+
+## Abre las sugerencias
+
+<Steps>
+
+1. En un campo que acepta variables, escribe `{{`. La lista se abre debajo del campo, o arriba si abajo no cabe.
+2. Sigue escribiendo para acotarla. Un nombre aparece cuando contiene lo que escribiste, sin importar mayúsculas: `{{id` encuentra `clientId` y `{{$guid}}`.
+3. Elige una fila con **↑** y **↓**, y pulsa **Enter** o **Tab**. O haz clic en ella.
+
+</Steps>
+
+Luvin inserta el nombre con sus llaves de cierre. Si las llaves ya estaban, no las agrega dos veces. Pulsa **Esc** para cerrar la lista sin elegir. En la URL de un request, **Enter** elige la sugerencia mientras la lista está abierta, en vez de enviar.
+
+## Qué muestra cada fila
+
+Cada fila tiene un tipo, el nombre y un detalle:
+
+| Tipo | Qué es | Detalle |
+|---|---|---|
+| **variable** | Una variable del ambiente activo, o un valor guardado por un request | Su valor, cortado a 40 caracteres, o *(vacía)* |
+| **secreto** | Un secreto del ambiente activo, o un valor guardado marcado como secreto | `••••••`, o *(vacía)* |
+| **URL base** | Una URL base del ambiente activo, del contrato o tuya | La dirección |
+| **dinámica** | Una variable dinámica compatible con Postman, como `$randomEmail` | Qué produce, y un ejemplo: *Email · ej. Valentina.Gutierrez42@yahoo.com* |
+| **generador** | Uno de los generadores propios de Luvin, como `email` o `numero:8` | Qué produce |
+
+Primero van los nombres del ambiente activo, después las variables dinámicas, después los generadores. Un generador que tiene el mismo nombre que una variable no aparece, porque manda la variable. Se ven hasta 60 filas a la vez: escribe más letras para encontrar el resto. Escribe `{{$` para ver solo las variables dinámicas.
+
+![Escribiendo en el input email: las sugerencias muestran las variables dinámicas con un ejemplo de cada una](/media/es/test-inputs-generators.webp)
+
+## Los colores de una variable
+
+Cada `{{nombre}}` de un campo tiene un color:
+
+| Color | Qué significa | Qué pasa al enviar |
+|---|---|---|
+| Verde | La variable existe en el ambiente activo y tiene valor. | Se reemplaza por el valor. |
+| Ámbar | La variable existe pero está vacía. | Se reemplaza por nada. |
+| Morado | Un generador o una variable dinámica. | Se reemplaza por un valor nuevo. |
+| Rojo | Ninguna variable, URL base ni generador se llama así en el ambiente activo. | Sale tal como está escrito, con `{{nombre}}` incluido. |
+
+El color sigue al ambiente activo. Un nombre que está verde en `staging` puede estar rojo en `local` si `local` no lo tiene. Cambia de ambiente y los colores cambian al instante.
+
+Los campos que ocultan lo que escribes, como una contraseña, no se pintan. Un campo secreto de la pestaña **Autorización** muestra su texto, con colores, en cuanto tiene un `{{nombre}}`.
+
+## La tarjeta de una variable
+
+Pasa el mouse sobre un nombre pintado, o pon el cursor dentro de él, y se abre una tarjeta debajo. Flota sobre la página, así que nada se mueve.
+
+| El nombre es | La tarjeta muestra |
+|---|---|
+| Una variable o una URL base | Su tipo y su valor, en un campo que puedes editar. Abajo: *Valor en el ambiente «staging»* y **Abrir ambiente**. |
+| Un secreto | Lo mismo, con el valor oculto. |
+| Un generador o una variable dinámica | *⚡ se genera al ejecutar*. |
+| Desconocido | *no existe en «staging»*, con **Crear variable** y **Crear secreto**. |
+
+Lo que escribes en la tarjeta va directo al ambiente activo. **Crear variable** y **Crear secreto** agregan uno vacío con ese nombre al ambiente activo. El nombre se pone ámbar; escribe su valor en la tarjeta y se pone verde.
+
+<Aside type="caution" title="Cambia el ambiente, no el campo">
+Editar un valor en la tarjeta lo cambia para todos los requests y workflows que usan ese nombre en este ambiente. Para usar un valor distinto en un solo lugar, escribe el valor en el campo en vez de la variable.
+</Aside>
+
+## Campos con sugerencias
+
+Las sugerencias, los colores y la tarjeta funcionan en:
+
+- La URL de un request, sus params, headers, variables de ruta y campos de formulario.
+- Todos los campos de la pestaña **Autorización**, de un request, de la colección o de un workflow.
+- Los **Inputs** y los datos de cada caso.
+- El valor de un parámetro de un paso, en la pestaña **Diseño**.
+- Los campos de **Try it out**.
+- Las URLs base y las credenciales del ambiente.
+
+El editor del body de un request y el editor YAML de un archivo Arazzo no sugieren ni pintan nombres. Un `{{nombre}}` que escribas ahí igual se reemplaza al salir.
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Usar variables" href="/es/environments/use-variables/" />
+  <LinkCard title="Variables y secretos" href="/es/environments/variables-and-secrets/" />
+  <LinkCard title="Variables dinámicas" href="/es/environments/dynamic-variables/" />
+  <LinkCard title="Solución de problemas de ambientes" href="/es/environments/troubleshooting/" />
+</CardGrid>

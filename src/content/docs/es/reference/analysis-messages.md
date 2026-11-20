@@ -36,9 +36,9 @@ Cada mensaje tiene un nivel.
 | **El Arazzo es de la versión 1.2; Luvin soporta hasta la 1.1, así que algunos campos nuevos pueden ignorarse.** | Advertencia | Ten en cuenta que algunos campos no hacen nada. |
 | **Falta info.title en el documento Arazzo.** | Advertencia | Agrega un `title` en `info`. |
 | **El Arazzo no declara sourceDescriptions.** | Error | Agrega los contratos que usan los workflows. |
-| **Falta el contrato de la fuente "x" (url).** | Error | Agrega el archivo del contrato a la colección. Mira [Contratos](/es/contracts/overview/). |
+| **Falta el contrato de la fuente "x" (url).** | Error | Agrega el archivo del contrato a la colección. Mira [Agregar un contrato](/es/contracts/add/). |
 | **La fuente "x" es de tipo "arazzo"; solo se ejecutan contratos OpenAPI y AsyncAPI.** | Advertencia | Usa un contrato OpenAPI o AsyncAPI. |
-| **"x" referencia archivos que no se cargaron: ... Súbelos junto con el contrato para resolver esos $ref.** | Error | Agrega los archivos que faltan. Mira [Contratos remotos y referencias](/es/contracts/remote-and-refs/). |
+| **"x" referencia archivos que no se cargaron: ... Súbelos junto con el contrato para resolver esos $ref.** | Error | Agrega los archivos que faltan. Mira [Referencias entre archivos](/es/contracts/references/#referencias-que-faltan). |
 | **El Arazzo no tiene workflows.** | Error | Crea un workflow. |
 | **workflowId duplicado: "x".** | Error | Dale a cada workflow su propio id. |
 | **Hay pasos de AsyncAPI. Luvin todavía no se conecta a brokers ..., así que esos pasos siempre se simulan ...** | Info | Nada. Mira [Pasos de mensajería](/es/design/messaging/). |
@@ -131,7 +131,7 @@ Vienen del editor de un contrato OpenAPI o AsyncAPI. Te dicen qué corregir en e
 | **La operación «x» necesita action: send o receive.** | Error | Agrega `action`. |
 | **La operación «x» necesita channel con un $ref a un canal.** | Error | Agrega la referencia. |
 
-Cuando cambias un contrato que usan workflows, el editor también lista, en **Impacto en los workflows**, los problemas nuevos que tu cambio causa en ellos. Mira [Editar un contrato](/es/contracts/edit/).
+Cuando cambias un contrato que usan workflows, la barra sobre la vista previa del editor lista los problemas nuevos que tu cambio causa en ellos. Mira [Cuando un cambio rompe un workflow](/es/contracts/impact/).
 
 ## Relacionado
 

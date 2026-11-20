@@ -1,13 +1,13 @@
 ---
 title: Dynamic variables
-description: The complete list of generators that produce a new value on every run, and where you can use them.
+description: Variables that Luvin fills with a freshly generated value on every use, the two families of names, how they behave, where you can use them and how to share one value across steps.
 sidebar:
-  order: 3
+  order: 8
 ---
 
 import { Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
 
-A dynamic variable is a `{{name}}` that Luvin fills with a freshly generated value: a new email, a new UUID, a valid tax ID. Use one when a case must be repeatable, for example when the API rejects an email that already exists.
+A dynamic variable is a `{{name}}` that Luvin fills with a freshly generated value: a new email, a new UUID, a valid tax ID. Use one when a case must be repeatable, for example when the API rejects an email that already exists. You do not define them in the environment: they are always there.
 
 ## Example
 
@@ -31,148 +31,67 @@ Each run sends new values. This is one possible run:
 }
 ```
 
-The next run sends other values, so the API never sees the same email twice. See the recipe [Build the body with generated data](/recipes/generated-data/).
+The next run sends other values, so the API never sees the same email twice. See the recipe [Send generated data](/recipes/generated-data/).
+
+## Two families
+
+| Family | Looks like | How many | Reference |
+|---|---|---|---|
+| Luvin's own generators | `{{email}}`, `{{cpf}}`, `{{number:8}}` | 7, with Spanish and English names for two of them | [Luvin's generators](/environments/generators/) |
+| Postman-compatible variables | `{{$randomEmail}}`, `{{$guid}}` | 47 | [Postman-compatible variables](/environments/postman-variables/) |
+
+Both are replaced in the same places and the same way. The difference is the name: the `$` ones are the names Postman and Bruno use, so imported requests keep working without changes. Luvin's own ones cover what those lack, such as a valid Brazilian CPF or Chilean RUT.
 
 ## How they work
 
-- Write the name between double braces, like any [variable](/environments/variables-and-secrets/): `{{$randomEmail}}`.
+- Write the name between double braces, like any [variable](/environments/use-variables/): `{{$randomEmail}}`.
 - **Every occurrence produces a new value.** Two `{{$guid}}` in the same body give two different UUIDs.
-- Names that start with `$` are the same ones Postman and Bruno use, so imported requests keep working.
-- Names, cities and other texts come out in the language of the interface: English, or Latin American Spanish.
-- When you type `{{` in a field, Luvin suggests them. Type `{{$` to see all the `$` ones, each with an example value.
-
-<Aside type="tip" title="The same value in several steps">
-To reuse one generated value across steps, put the generator in an input and wire the steps to that input. The input is generated once per case. The Pokédex example does this: the `correlationId` input of **Register sighting** is `{{$guid}}`, and both the step that publishes and the step that waits use `$inputs.correlationId`.
-</Aside>
+- A new value is produced on every send and every run, never stored.
+- Names, cities, companies and other texts of the `$` family come out in the language of the interface: English, or Latin American Spanish. Change the language in **Preferences** and the next values follow it.
+- When you type `{{` in a field, Luvin suggests them. Type `{{$` to see all the `$` ones, each with an example value. See [Suggestions and colors](/environments/suggestions/).
+- In a field, they show in purple. Point at one and the card says *⚡ is generated when running*.
+- A name that is neither a variable nor a generator, such as `{{$randomPet}}`, is left as written.
 
 ## Where you can use them
 
 - In the **Inputs** tab and in the data of each case, in the **Cases** tab.
-- In the value of a parameter or a body field of a step, and in the Arazzo YAML.
-- In single requests: URL, params, headers and body.
-- In the base URLs, credentials and authorization fields.
+- In the value of a parameter or of a body field of a step, and in the Arazzo YAML, in quotes.
+- In single requests: URL, params, headers, body and authorization.
+- In the base URLs and credentials of the environment.
+- Inside the value of an environment variable: a variable `orderRef` with the value `ORD-{{$randomInt}}` gives a new reference every time.
 
 A real fragment from the PayPal example, which sends a new idempotency key on every run:
 
-```yaml
+```yaml title="paypal.arazzo.yaml"
 requestId:
   name: PayPal-Request-Id
   in: header
   value: '{{$randomUUID}}'
 ```
 
-## Luvin's own generators
+## The same value in several steps
 
-| Name | What it produces |
-|---|---|
-| `{{email}}` | A unique email at `example.com`. |
-| `{{cpf}}` | A valid Brazilian CPF: 11 digits with correct check digits. |
-| `{{rut}}` | A valid Chilean RUT, with its check digit and no dots or dash. |
-| `{{uuid}}` | A UUID v4. |
-| `{{number:8}}` | Random digits. The number after the colon is how many, from 1 to 32. `{{number}}` gives 6. |
-| `{{date}}` | Today's date, as `YYYY-MM-DD`. |
-| `{{timestamp}}` | The current time in milliseconds. |
+Each occurrence is new, so two steps that write `{{$guid}}` send two different values. When later steps must see the value an earlier step sent, generate it once:
 
-`{{numero:8}}` and `{{fecha}}` are the Spanish names of `{{number:8}}` and `{{date}}`. Both spellings work in both languages.
+| Where you write the generator | How often it is generated | Who sees the same value |
+|---|---|---|
+| A step's parameter or body | On every send | Only that step |
+| An input of the workflow | Once per case, before the first step | Every step that reads `$inputs.name` |
+| The value of an environment variable | Every time the variable is used | Nobody: each use is new |
 
-<Aside type="note" title="A variable with the same name wins">
-If the active environment has a variable called `email`, `{{email}}` uses the variable, not the generator. The environment warns you: *Shadows the `{{email}}` generator: the variable value is used instead.*
+The Pokédex example uses an input: the `correlationId` input of **Register sighting** is `{{$guid}}`, and both the step that publishes and the step that waits use `$inputs.correlationId`.
+
+To reuse a value an API returned, such as the id of the customer it created, use the step's outputs instead. See [Connect data between steps](/design/wire-data/).
+
+<Aside type="caution" title="Generated data is real data">
+Against the **Real API**, every run creates new records with these values. Use a test environment, or a mock environment, when a workflow creates customers or orders.
 </Aside>
-
-## Postman-compatible variables
-
-### Identifiers, time and basic values
-
-| Name | What it produces |
-|---|---|
-| `{{$guid}}` | UUID v4 |
-| `{{$randomUUID}}` | UUID v4 |
-| `{{$timestamp}}` | Seconds since 1970 (Unix) |
-| `{{$isoTimestamp}}` | Current date and time (ISO 8601) |
-| `{{$randomAlphaNumeric}}` | One alphanumeric character |
-| `{{$randomBoolean}}` | `true` or `false` |
-| `{{$randomInt}}` | Number between 0 and 1000 |
-| `{{$randomColor}}` | A color name |
-| `{{$randomHexColor}}` | Hex color |
-| `{{$randomAbbreviation}}` | Abbreviation (API, JSON…) |
-
-<Aside type="caution">
-`{{$timestamp}}` is in seconds. `{{timestamp}}`, without `$`, is in milliseconds.
-</Aside>
-
-### Internet and systems
-
-| Name | What it produces |
-|---|---|
-| `{{$randomIP}}` | IPv4 address |
-| `{{$randomIPV6}}` | IPv6 address |
-| `{{$randomMACAddress}}` | MAC address |
-| `{{$randomPassword}}` | 15-character password |
-| `{{$randomLocale}}` | Language code (en, es…) |
-| `{{$randomUserAgent}}` | Browser User-Agent |
-| `{{$randomProtocol}}` | `http` or `https` |
-| `{{$randomSemver}}` | Semantic version (1.4.2) |
-| `{{$randomDomainName}}` | Domain name |
-| `{{$randomEmail}}` | Email |
-| `{{$randomExampleEmail}}` | `@example.com` email |
-| `{{$randomUserName}}` | Username |
-| `{{$randomUrl}}` | URL |
-
-### People
-
-| Name | What it produces |
-|---|---|
-| `{{$randomFirstName}}` | First name |
-| `{{$randomLastName}}` | Last name |
-| `{{$randomFullName}}` | Full name |
-| `{{$randomNamePrefix}}` | Name prefix (Mr., Dr.…) |
-| `{{$randomJobTitle}}` | Job title |
-| `{{$randomPhoneNumber}}` | Phone number |
-
-### Places
-
-| Name | What it produces |
-|---|---|
-| `{{$randomCity}}` | City |
-| `{{$randomStreetName}}` | Street name |
-| `{{$randomStreetAddress}}` | Street address |
-| `{{$randomCountry}}` | Country |
-| `{{$randomCountryCode}}` | Country code (ISO) |
-| `{{$randomLatitude}}` | Latitude |
-| `{{$randomLongitude}}` | Longitude |
-
-### Business and money
-
-| Name | What it produces |
-|---|---|
-| `{{$randomBankAccount}}` | Bank account number |
-| `{{$randomCurrencyCode}}` | Currency code (USD, EUR…) |
-| `{{$randomPrice}}` | Price with two decimals |
-| `{{$randomCreditCardMask}}` | Last 4 digits of a card |
-| `{{$randomCompanyName}}` | Company name |
-
-### Text
-
-| Name | What it produces |
-|---|---|
-| `{{$randomWord}}` | One word |
-| `{{$randomWords}}` | A few words |
-| `{{$randomLoremSentence}}` | A sentence |
-
-### Dates
-
-| Name | What it produces |
-|---|---|
-| `{{$randomDatePast}}` | Date within the past year (ISO 8601) |
-| `{{$randomDateFuture}}` | Date within the next year (ISO 8601) |
-| `{{$randomDateRecent}}` | Date within the last few days (ISO 8601) |
-
-These 47 names are all the `$` variables Luvin has. Any other `{{$name}}` is left as written.
 
 ## Related
 
 <CardGrid>
-  <LinkCard title="Base URLs, variables and secrets" href="/environments/variables-and-secrets/" />
-  <LinkCard title="Your own cases" href="/test/custom-cases/" />
+  <LinkCard title="Luvin's generators" href="/environments/generators/" />
+  <LinkCard title="Postman-compatible variables" href="/environments/postman-variables/" />
   <LinkCard title="Inputs" href="/test/inputs/" />
+  <LinkCard title="Custom data cases" href="/test/custom-cases/" />
 </CardGrid>

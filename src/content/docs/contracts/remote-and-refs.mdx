@@ -1,85 +1,115 @@
 ---
 title: Remote contracts and references
-description: How Luvin loads a contract from a URL, how a contract can reference other files with $ref, what missing references mean and how to fix them.
+description: How Luvin loads a contract that a workflow file names by URL, how it downloads the files that contract references, why a downloaded contract is read-only, and how to keep it or get a newer version.
 sidebar:
-  order: 5
+  order: 15
 ---
 
-import { Steps, LinkCard, CardGrid } from '@astrojs/starlight/components';
+import { Steps, Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
 
-A contract does not always live in one file in your collection. A workflow can point to a contract published at a URL, and a contract can split its schemas into other files. This page explains both cases and what to do when a piece is missing.
+A workflow file can name a contract by its web address instead of a file next to it. That is common when a team publishes its contracts on a server. Luvin can download such a contract, together with the files it references, and use it like any other. This page explains how, and what to keep in mind.
 
-## Example: references between files
+For references between files of your collection, see [References between files](/contracts/references/).
 
-Large contracts often keep their schemas in other files. A **reference** is a `$ref` that points to another file instead of to a place in the same one:
+## Example: the PokéAPI contract from a URL
 
-```yaml
-components:
-  schemas:
-    Member:
-      $ref: 'schemas.yaml#/Member'
+A workflow file points to a published copy of the PokéAPI contract:
+
+<Tabs>
+<TabItem label="Workflow file">
+
+```yaml title="pokemon.arazzo.yaml" {3}
+sourceDescriptions:
+  - name: pokeapi
+    url: https://example.com/specs/pokeapi.openapi.yaml
+    type: openapi
 ```
 
-The part before `#` is the file. The part after it is the path inside that file.
+</TabItem>
+<TabItem label="Before">
 
-Luvin joins the pieces for you, if all the files are in the collection:
+```text title="Contracts"
+✕ pokeapi   openapi   Attach  Download  ⋯
+```
 
-- It finds the files by their name. `./common/errors.yaml` and `errors.yaml` are the same file for Luvin.
-- It reads a reference to another file as if the content were written where the `$ref` is.
-- The editor shows a **$ref: file** button for each referenced file. Click it to open that file.
-- A file of schemas that no workflow uses yet shows in the **Contracts** list as `schemas`, with the ○ mark.
+The workflows that use it show errors, starting with *The contract for source "pokeapi" (https://example.com/specs/pokeapi.openapi.yaml) is missing.*
 
-To add the files, drag them together onto Luvin, or use **Import contract…**. See [Contracts](/contracts/overview/).
+</TabItem>
+<TabItem label="After Download">
 
-A reference that stays inside the same document, such as `#/components/schemas/Member`, is a normal `$ref`. If it points to nothing, the editor shows *The $ref “…” doesn’t point to anything in the contract.*
+```text title="Contracts"
+✓ pokeapi   openapi   +  ⋯
+```
 
-## Contracts at a URL
+The contract opens as **Read-only**, and the steps find their operations.
 
-A workflow file lists the contracts it uses, each with an address. That address can be a file next to it (`./pokeapi.openapi.yaml`) or a URL (`https://example.com/openapi.yaml`). When it is a URL and the file is not in the collection, the row in the **Contracts** list shows ✕ and a **Download** button.
+</TabItem>
+</Tabs>
+
+If the collection already has a file called `pokeapi.openapi.yaml`, Luvin uses it and downloads nothing: only the file name of the address counts. See [How a workflow finds its file](/contracts/add/#how-a-workflow-finds-its-file).
+
+## Download a contract
+
+The **Download** button shows on a row that did not load, when its address starts with `http://` or `https://`.
 
 <Steps>
 
 1. Click **Download** on the row.
-2. Luvin downloads the file from the URL and loads it. The mark changes to ✓.
+2. Luvin downloads the file from the address and loads it. The mark changes to ✓.
+3. Open it from the list. It shows **Read-only**.
 
 </Steps>
 
-The downloaded contract opens as **Read-only**, because it belongs to the URL, not to your collection. To edit it, click **Make a local copy**. See [Edit a contract](/contracts/edit/).
+If the download fails, the row stays ✕ and its tooltip tells why:
 
-If the download fails, the row stays ✕ and the message tells why:
+| Message | What it means | What to do |
+|---|---|---|
+| *Could not download: the server does not allow CORS or is unreachable. Download it and upload it manually.* | The server did not answer, or it does not allow Luvin to read the file (CORS). | Download the file with your browser and use **Attach**, or import it into the collection. |
+| *Could not download: HTTP 404* (or another code) | The server answered with an error. | Check the address in the workflow file. A `401` or `403` means the server wants credentials: download the file yourself. |
+| *Could not read as YAML or JSON:* and a reason, or *"pokeapi.openapi.yaml" does not look like an OpenAPI document.* | The address answered something that is not a contract of that kind, such as a web page. | Use the address of the raw file. |
 
-| Message | What it means |
+### References of a downloaded contract
+
+A downloaded contract may reference other files, such as `./schemas/pokemon.yaml`. Luvin looks for each missing file next to the contract, on the same server, and loads the ones it finds. It repeats this up to three times, in case the files it found reference more files.
+
+The files it cannot find stay in the message *Files referenced with $ref are missing: …* on the row. Add them by hand: drag them onto Luvin or use **Import contract…**.
+
+A server in the contract written as a path, such as `/api/v2`, is completed with the address the contract came from: `https://example.com/api/v2`. See [Servers and credentials](/contracts/servers-and-credentials/).
+
+## Attach a file instead
+
+**Attach** works on any row that did not load, with or without an address. It opens a file picker: choose the contract from your computer and Luvin links it to that row, whatever its file name.
+
+The file must be of the kind the workflow file asks for. Otherwise the row says *"name" does not look like an OpenAPI document.* (or AsyncAPI).
+
+## Read-only, and how to edit it
+
+A downloaded or attached contract belongs to its address or to your computer, not to the collection, so it opens as **Read-only**:
+
+- The text of a downloaded contract is Luvin's reading of the file. Comments and the original layout may not be there.
+- An attached file shows its text as it was.
+
+To change it, click **Make a local copy**. Luvin adds it to the collection as a file with the same name, and from then on it is an ordinary contract you can edit. See [Edit a contract](/contracts/edit/#make-a-local-copy).
+
+## Keep it, or get a newer version
+
+<Aside type="caution" title="Downloads and attachments are not saved in the collection">
+A downloaded or attached contract is not written to the collection folder. When you open the collection again, its row shows ✕ again, and you click **Download** or **Attach** once more. Outside a workspace, continuing a saved session downloads it again for you.
+</Aside>
+
+| You want | Do |
 |---|---|
-| *Could not download: the server does not allow CORS or is unreachable. Download it and upload it manually.* | In the browser version, the server that publishes the file must allow CORS. Otherwise, download the file yourself and use **Attach**. |
-| *Could not download: HTTP 404* (or another code) | The server answered with an error. Check the address. |
+| The contract to stay with the collection, also for your team | **Make a local copy**. The file goes into the collection folder, and into git if you use it. |
+| Always the version published at the address | Keep it remote, and click **Download** each time you open the collection. |
+| A newer version after a local copy | Download the file and import it: a file with the same name replaces the copy. |
 
-**Attach** is the fallback for any contract that did not load: it opens a file picker so you choose the file from your computer.
-
-## Missing references
-
-A contract can be loaded and still miss some of its files. The row then shows ✕ and, when you move the mouse over it, the message:
-
-*Files referenced with $ref are missing: names. Drop them into the upload area.*
-
-It means the contract points to files that are not in the collection. The parts that come from those files are not validated and are not used in simulation. You can keep working, but those parts are not available.
-
-To fix it:
-
-<Steps>
-
-1. Read the names in the message.
-2. Find those files. They are usually next to the contract.
-3. Add them: drag them onto Luvin, or choose **Import contract…**. You do not have to do anything else: Luvin loads them and the mark changes to ✓.
-4. If the message names a file *and* a path, as in `schemas.yaml#/Member`, the file is there but that path is not. Open the file and check the name.
-
-</Steps>
-
-For a contract you downloaded from a URL, Luvin looks for the referenced files next to it, on the same server, and loads the ones it finds. It repeats this up to three times, in case the files it finds reference more files. The ones it cannot find stay in the message, and you add them by hand.
+While a remote contract is loaded, the row has no **Download** button. Opening the collection again is how you take the version that is published now.
 
 ## Related
 
 <CardGrid>
-  <LinkCard title="Contracts" href="/contracts/overview/" />
+  <LinkCard title="References between files" href="/contracts/references/" />
   <LinkCard title="Edit a contract" href="/contracts/edit/" />
-  <LinkCard title="Troubleshooting" href="/get-started/troubleshooting/" />
+  <LinkCard title="The Contracts list" href="/contracts/list/" />
+  <LinkCard title="Troubleshooting contracts" href="/contracts/troubleshooting/" />
 </CardGrid>

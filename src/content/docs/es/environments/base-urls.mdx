@@ -1,0 +1,120 @@
+---
+title: URLs base
+description: La URL base de cada contrato y tus propias URLs base para los requests sueltos, cómo usarlas como variables, poner variables dentro de ellas y cuándo un paso no las usa.
+sidebar:
+  order: 3
+---
+
+import { Steps, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Una URL base es la dirección con la que empieza cada llamada a una API. Es lo que más cambia entre ambientes: `http://localhost:8080` en tu equipo, `https://api.shop.test` en producción. Los workflows la toman del ambiente, y los requests sueltos la usan como `{{nombre}}`.
+
+## Ejemplo: la Pokédex contra otro servidor
+
+Abre el ejemplo de la Pokédex y haz clic en `local` en el panel **Ambientes**. En **URLs base** hay un campo:
+
+| Campo | Etiqueta | Valor |
+|---|---|---|
+| `pokeapi` | **Del contrato** | `https://pokeapi.co/api/v2` |
+
+Todos los pasos de **Pokemon card** llaman a `pokeapi`, así que `getPokemon` va a `https://pokeapi.co/api/v2/pokemon/pikachu`. Cambia el campo a `http://localhost:3000/api/v2` y ejecuta otra vez: cada paso llama ahora a tu copia local. No tocaste el workflow.
+
+El mismo valor sirve en un request suelto. Escribe `{{pokeapi}}/pokemon/pikachu` en su URL y va al mismo servidor que el workflow.
+
+## Dos tipos de URL base
+
+| Tipo | De dónde sale | Quién la usa |
+|---|---|---|
+| **Del contrato** | Una por cada contrato OpenAPI de la colección, con el nombre de la fuente en el archivo Arazzo (`pokeapi`, `paypal`). | Los pasos de todos los workflows que llaman a ese contrato, **Try it out** y la documentación del contrato. También los requests sueltos, como `{{pokeapi}}`. |
+| Las tuyas | Las agregas con **+ Agregar URL base**. | Los requests sueltos, como `{{baseUrl}}`. También cualquier campo que acepte variables. |
+
+El título de la sección dice cuántas hay. Los contratos AsyncAPI no tienen URL base aquí, porque los pasos de mensajería se [simulan](/es/test/simulation/).
+
+## URLs base del contrato
+
+Luvin completa cada una la primera vez que ve el contrato, con el primer servidor que declara. Si ese servidor tiene variables, como `https://{region}.api.shop.test`, cada una toma su valor por defecto. Un servidor relativo, como `/v1`, se une a la dirección de un contrato abierto desde una URL. En un contrato que es un archivo, el campo muestra `/v1` tal cual: complétalo con el host.
+
+<Steps>
+
+1. Abre el ambiente.
+2. En **URLs base**, busca el campo con el nombre de la fuente y la etiqueta **Del contrato**.
+3. Escribe la dirección para este ambiente. Cada ambiente guarda la suya.
+
+</Steps>
+
+Debajo del campo, una ayuda muestra cómo llamarla desde un request, por ejemplo *En un request: `{{pokeapi}}/…`*. Solo aparece cuando el nombre es un nombre de variable válido.
+
+| Bueno saber | Detalle |
+|---|---|
+| El contrato cambia después | Un ambiente que ya tiene un valor lo conserva. Escribe tú la dirección nueva. |
+| Dejas el campo vacío | No se guarda nada para él. La próxima vez que se abra la colección, Luvin lo vuelve a completar desde el contrato. |
+| Dos archivos Arazzo usan el mismo nombre de fuente | Comparten una URL base en cada ambiente. |
+| Un contrato sin servers | El campo empieza vacío. Complétalo, o **Try it out** dice *El ambiente no tiene URL para «nombre» ni el contrato define servers: complétala en el ambiente o usa la simulación.* |
+
+## Tus propias URLs base
+
+Usa tu propia URL base para los requests sueltos que no pertenecen a un contrato.
+
+<Steps>
+
+1. En **URLs base**, haz clic en **+ Agregar URL base**.
+2. Aparece una fila nueva llamada `baseUrl` (o `baseUrl2` si ya existe). Escribe otro nombre si quieres y pulsa **Enter**.
+3. Escribe su valor, por ejemplo `https://api.shop.test`.
+4. En un request, escribe `{{baseUrl}}/customers`.
+
+</Steps>
+
+Tus propias URLs base son de todos los ambientes de la colección:
+
+| Acción | Efecto |
+|---|---|
+| Agregar una | Se agrega a todos los ambientes. Los demás empiezan con el valor vacío. |
+| Renombrarla | Se renombra en todos los ambientes, así `{{nombre}}` sigue funcionando en todas partes. |
+| Quitarla (ícono de papelera, **Quitar URL base**) | Se quita de todos los ambientes. |
+
+El nombre sigue las reglas de las variables: letras, números, `_`, `.` o `-`, y empieza con una letra o `_`. Un nombre que no las cumple, o que ya tiene otra URL base o variable, muestra un error y vuelve al nombre anterior al salir del campo.
+
+## Variables dentro de una URL base
+
+Una URL base es un campo como cualquier otro: acepta `{{nombre}}`, con sugerencias y colores.
+
+| Escribes | Con la variable | Luvin llama a |
+|---|---|---|
+| `https://{{region}}.api.shop.test` | `region` = `eu` | `https://eu.api.shop.test` |
+| `{{host}}/v1` | `host` = `https://api.shop.test` | `https://api.shop.test/v1` |
+
+Sirve cuando solo cambia una parte de la dirección, o cuando varias URLs base comparten el host. Un secreto también funciona, y queda tapado en los resultados.
+
+Si una variable y una URL base tienen el mismo nombre, `{{nombre}}` toma la variable.
+
+## Cuándo un paso no usa el ambiente
+
+Un contrato puede declarar `servers` en una operación o en un path, no solo arriba. Esos mandan, como dice OpenAPI:
+
+| La operación declara | El paso llama a |
+|---|---|
+| Nada | La URL base del ambiente. |
+| Una dirección completa, como `https://uploads.shop.test` | Esa dirección, diga lo que diga el ambiente. |
+| Una ruta relativa, como `/v2` | La URL base del ambiente más `/v2`. |
+
+Si un paso sigue yendo al mismo servidor en todos los ambientes, busca `servers` en su operación. Edítalo en el [contrato](/es/contracts/edit/).
+
+<Aside type="note" title="Versión de navegador">
+Para ejecutar contra una API real desde el navegador, la API tiene que permitir CORS desde la dirección de la app. La sección **URLs base** te lo recuerda: *Para ejecutar contra la API real, esta debe permitir CORS desde …*. Mira [Ayuda de conexión](/es/dev-tools/connection-help/).
+</Aside>
+
+## Dónde ves la URL base que se usó
+
+- En los resultados de un paso, la URL completa a la que se llamó.
+- En un reporte exportado, en **URL base**, junto al nombre del ambiente.
+- En **Try it out**, la URL antes de enviar.
+- En la barra lateral, un paso muestra su método y la URL completa armada con el ambiente activo.
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Variables y secretos" href="/es/environments/variables-and-secrets/" />
+  <LinkCard title="Ambientes de mock" href="/es/environments/mock-environments/" />
+  <LinkCard title="Probar una operación" href="/es/contracts/try-it-out/" />
+  <LinkCard title="Contratos" href="/es/contracts/overview/" />
+</CardGrid>

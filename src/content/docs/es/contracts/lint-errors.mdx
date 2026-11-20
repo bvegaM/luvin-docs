@@ -1,0 +1,178 @@
+---
+title: Errores y advertencias del contrato
+description: Cada mensaje que muestra el editor de contratos, para OpenAPI y AsyncAPI, qué significa para tus workflows y cómo corregirlo.
+sidebar:
+  order: 5
+---
+
+import { Tabs, TabItem, Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+El editor de contratos revisa tu contrato mientras escribes. No revisa todo lo que dicen las especificaciones de OpenAPI o AsyncAPI. Revisa lo que importa para un workflow: que cada operación se pueda encontrar, que su URL se pueda armar y que sus respuestas se puedan comprobar. Esta página lista cada mensaje, agrupado por tema.
+
+Cada mensaje tiene un nivel:
+
+| Nivel | Significado |
+|---|---|
+| **Error** | Algo que un workflow no puede usar: una operación que no encuentra, una URL que no puede armar, una referencia a nada. Corrígelo. |
+| **Advertencia** | El contrato funciona, pero falta algo o hay algo poco común, y alguna función hará menos. |
+| **Info** | Vale la pena saberlo. No hay nada que corregir si es lo que quieres. |
+
+Los mensajes siguen el idioma de la app. Cambia el idioma y cambian también.
+
+## Ejemplo: cuatro problemas en un fragmento
+
+<Tabs>
+<TabItem label="Antes">
+
+```yaml title="pokeapi.openapi.yaml" {8,12-14,20,23}
+openapi: 3.0.3
+info:
+  title: PokéAPI (subconjunto)
+  version: 2.0.0
+servers:
+  - url: https://pokeapi.co/api/v2
+paths:
+  pokemon/{idOrName}:
+    get:
+      operationId: getPokemon
+      parameters:
+        - name: idOrName
+          in: path
+          schema: { type: string }
+      responses:
+        '200':
+          description: El Pokémon
+  /pokemon-species/{idOrName}:
+    get:
+      operationId: getPokemon
+      parameters:
+        - { name: idOrName, in: path, required: true, schema: { type: string } }
+      responses: {}
+```
+
+El panel sobre la vista previa dice:
+
+```text title="Errores (4)"
+Error        Línea 8   La ruta «pokemon/{idOrName}» debe empezar con /.
+Error        Línea 12  El parámetro de ruta «idOrName» debe tener required: true.
+Advertencia  Línea 19  GET /pokemon-species/{idOrName} no documenta ninguna respuesta.
+Error        Línea 20  El operationId «getPokemon» está repetido: un Arazzo no sabrá cuál usar.
+```
+
+</TabItem>
+<TabItem label="Después">
+
+```yaml title="pokeapi.openapi.yaml" {8,15,21,24-28}
+openapi: 3.0.3
+info:
+  title: PokéAPI (subconjunto)
+  version: 2.0.0
+servers:
+  - url: https://pokeapi.co/api/v2
+paths:
+  /pokemon/{idOrName}:
+    get:
+      operationId: getPokemon
+      parameters:
+        - name: idOrName
+          in: path
+          schema: { type: string }
+          required: true
+      responses:
+        '200':
+          description: El Pokémon
+  /pokemon-species/{idOrName}:
+    get:
+      operationId: getPokemonSpecies
+      parameters:
+        - { name: idOrName, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: La especie
+        '404':
+          description: No existe
+```
+
+El panel desaparece.
+
+</TabItem>
+</Tabs>
+
+## El documento
+
+| Mensaje | Nivel | Qué significa | Cómo corregirlo |
+|---|---|---|---|
+| *Es Swagger 2.0: Luvin trabaja con OpenAPI 3.x; conviene migrarlo.* | Advertencia | El archivo empieza con `swagger: '2.0'`. Luvin lo abre, pero en 2.0 los bodies, los schemas y los servidores se escriben distinto, así que partes de él pueden no funcionar. | Conviértelo a OpenAPI 3. Muchos editores y herramientas de línea de comandos lo hacen. |
+| *Versión de OpenAPI «x»: se espera 3.x.* | Advertencia | `openapi:` tiene un valor que no es 3.algo. | Escribe `openapi: 3.0.3` o la versión 3.x que sigue tu contrato. |
+| *Versión de AsyncAPI «x»: se espera 2.x o 3.x.* | Advertencia | `asyncapi:` tiene otra versión. | Escribe `asyncapi: 3.0.0` o una versión 2.x. |
+| *Falta la sección info (título y versión del contrato).* | Advertencia | No hay `info`. | Agrega `info` con `title` y `version`. |
+| *Falta info.title.* | Advertencia | El contrato no tiene título. El título da nombre a la carpeta cuando generas requests. | Agrega `title` dentro de `info`. |
+| *Falta info.version.* | Advertencia | El contrato no tiene versión. | Agrega `version` dentro de `info`. |
+| *No define servers: la URL base se toma del ambiente.* | Info | No hay `servers`. Luvin no puede completar por ti la URL base de los ambientes. | Nada, si defines la URL base en cada ambiente. Si no, agrega `servers`. Mira [Servidores y credenciales](/es/contracts/servers-and-credentials/). |
+| *Falta la sección paths: el contrato no tiene operaciones.* | Error | Un OpenAPI sin `paths` no tiene nada que llamar. La paleta no muestra operaciones para él. | Agrega `paths` con al menos una operación. |
+
+## Operaciones y respuestas
+
+| Mensaje | Nivel | Qué significa | Cómo corregirlo |
+|---|---|---|---|
+| *La ruta «x» debe empezar con /.* | Error | Una clave dentro de `paths` no empieza con `/`. La URL de la llamada quedaría mal. | Escribe `/pokemon/{idOrName}`, no `pokemon/{idOrName}`. |
+| *El operationId «x» está repetido: un Arazzo no sabrá cuál usar.* | Error | Dos operaciones comparten un `operationId`. Un paso que lo nombra puede llamar a la equivocada. | Dale a cada operación su propio `operationId`. |
+| *GET /x no tiene operationId: el Arazzo tendrá que usar operationPath.* | Info | La operación no tiene `operationId`. Los pasos apuntan entonces a ella por su ruta, un puntero más largo que se rompe si la ruta cambia. | Agrega un `operationId`, como `getPokemonColor`. |
+| *GET /x no documenta ninguna respuesta.* | Advertencia | La operación no tiene `responses`. Luvin no puede comprobar las respuestas, simularla con un ejemplo ni ofrecer errores para manejar. | Documenta al menos la respuesta de éxito, con su schema y un ejemplo. |
+| *«x» no es un código de respuesta válido (usa 200, 4XX o default).* | Advertencia | Una clave dentro de `responses` no es un código de tres dígitos, un rango como `4XX`, ni `default`. Puede que Luvin nunca empareje esa respuesta con una respuesta real. | Usa `200`, `404`, `4XX` o `default`. |
+
+## Parámetros
+
+| Mensaje | Nivel | Qué significa | Cómo corregirlo |
+|---|---|---|---|
+| *Parámetro incompleto: necesita name e in (query, header, path o cookie).* | Error | Un parámetro no tiene `name`, o su `in` no es `query`, `header`, `path` ni `cookie`. | Completa los dos. |
+| *El parámetro de ruta «x» debe tener required: true.* | Error | Un parámetro `in: path` no está marcado como obligatorio. Un parámetro de ruta siempre es obligatorio: sin él, la URL apunta a otro lugar. | Agrega `required: true`. |
+| *El parámetro de ruta «x» no aparece en «/y».* | Error | Un parámetro `in: path` tiene un nombre que no está entre llaves en la ruta. | Renombra el parámetro o el marcador de la ruta, para que coincidan. |
+| `GET /y usa {x} en la ruta pero no lo declara como parámetro.` | Error | La ruta tiene un marcador, como `{idOrName}`, que ningún parámetro declara. | Agrega un parámetro con ese `name` e `in: path`, `required: true`. Puede estar en la operación o compartido al nivel de la ruta. |
+
+Los parámetros compartidos por todas las operaciones de una ruta, escritos junto a `get` o `post`, cuentan para cada operación de esa ruta.
+
+## Referencias
+
+| Mensaje | Nivel | Qué significa | Cómo corregirlo |
+|---|---|---|---|
+| *El $ref «x» no apunta a nada dentro del contrato.* | Error | Un `$ref` que empieza con `#`, como `#/components/schemas/Pokemon`, apunta a un lugar que no existe. Suele ser un error de tipeo, o un schema que se renombró. | Corrige la ruta después de `#`, o agrega lo que apunta. |
+
+El editor solo revisa las referencias dentro del mismo archivo. Un `$ref` a otro archivo se revisa cuando el contrato carga: si ese archivo falta, la fila de la lista **Contratos** muestra ✕ y lo nombra. Mira [Referencias entre archivos](/es/contracts/references/).
+
+## AsyncAPI
+
+| Mensaje | Nivel | Qué significa | Cómo corregirlo |
+|---|---|---|---|
+| *Falta la sección channels.* | Error | Un AsyncAPI sin `channels` no tiene dónde enviar ni recibir mensajes. | Agrega `channels`. |
+| *La operación «x» necesita action: send o receive.* | Error | Una operación de un contrato AsyncAPI 3 no tiene `action`, o tiene otro valor. | Escribe `action: send` o `action: receive`. |
+| *La operación «x» necesita channel con un $ref a un canal.* | Error | Una operación de un contrato AsyncAPI 3 no apunta a un canal. | Agrega `channel: { $ref: '#/channels/nombre' }`. |
+| *El operationId «x» está repetido: un Arazzo no sabrá cuál usar.* | Error | En AsyncAPI 2, dos `publish` o `subscribe` comparten un `operationId`. | Dale a cada uno su propio id. |
+
+Mira [Contratos AsyncAPI](/es/contracts/asyncapi/).
+
+## YAML que no se puede leer
+
+Antes de revisar el contrato, Luvin lee el YAML. Un error de sintaxis, como una sangría equivocada, un espacio que falta después de `:` o un tabulador, aparece como **Error** con su línea y el mensaje del lector, en inglés. Corrígelo primero: las otras revisiones esperan hasta que el YAML se pueda leer.
+
+<Aside type="tip">
+Un mensaje puede venir de una línea más arriba de la que estás mirando. Una clave con la sangría equivocada, por ejemplo, mueve todo lo que está debajo. Cuando el número de línea parezca incorrecto, mira una o dos líneas más arriba.
+</Aside>
+
+## Lo que el editor no revisa
+
+Estas cosas se revisan en otro lugar, o no se revisan:
+
+- **Los archivos de `$ref`**: cuando el contrato carga, en la lista **Contratos**. Mira [Referencias entre archivos](/es/contracts/references/).
+- **Tus workflows**: la barra sobre la vista previa muestra lo que tu cambio rompe en ellos. Mira [Cuando un cambio rompe un workflow](/es/contracts/impact/).
+- **Los ejemplos contra su schema**: un ejemplo que no cumple su propio schema no se marca. En **Simulación** es la respuesta igual, y entonces el paso termina con un aviso del contrato. Mira [Ejemplos, simulación y mocks](/es/contracts/examples/).
+- **Las respuestas reales**: cada respuesta de una ejecución se compara con el contrato. Mira [¿La respuesta cumple el contrato?](/es/contracts/response-check/).
+
+## Relacionado
+
+<CardGrid>
+  <LinkCard title="Editar un contrato" href="/es/contracts/edit/" />
+  <LinkCard title="Cuando un cambio rompe un workflow" href="/es/contracts/impact/" />
+  <LinkCard title="Mensajes del análisis y del contrato" href="/es/reference/analysis-messages/" />
+  <LinkCard title="Solución de problemas de contratos" href="/es/contracts/troubleshooting/" />
+</CardGrid>
