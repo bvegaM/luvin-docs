@@ -101,7 +101,24 @@ Dentro de un workspace no hay «cerrar» una sola colección. Abre otra colecci�
 1. Abre el menú **⋯** de la colección, en el **Inicio** o en la barra lateral, y elige **Renombrar**.
 2. Escribe el nuevo nombre y presiona Enter.
 
-Solo cambia el nombre visible. La carpeta conserva su nombre.
+La carpeta del disco también toma el nombre nuevo, así la carpeta del workspace (y git) muestra lo mismo que la app. Renombrar **test** a **Eloyfall cobrand** mueve `test/` a `eloyfall-cobrand/`, con todo lo que tiene.
+
+| Qué se mueve con ella | Cómo |
+|---|---|
+| Sus archivos: Arazzo, contratos, ambientes, requests, mocks | La carpeta se mueve entera. |
+| `luvin.yaml` | Lista la carpeta nueva. |
+| Los secretos de sus ambientes, requests y autorización | Pasan a la carpeta nueva en este equipo. |
+| El historial, el ambiente que elegiste y los contratos descargados | Luvin los recuerda para la carpeta nueva. |
+
+- El nombre de la carpeta es el nombre en minúsculas, sin tildes, con `-` en vez de espacios. Si otra carpeta ya lo tiene, Luvin agrega un número, como `pagos-2`, y nunca pisa una carpeta.
+- Si el nombre nuevo da la misma carpeta, por ejemplo `Pagos` → `PAGOS`, solo cambia el nombre visible.
+- Una colección cuya carpeta todavía tiene otro nombre, porque se renombró con una versión anterior, se arregla confirmando otra vez el mismo nombre: abre **Renombrar** y pulsa Enter.
+- La colección de la raíz del workspace (carpeta `.`) no se mueve: solo cambia su nombre visible.
+- En git, el cambio aparece como archivos movidos a la carpeta nueva. Haz commit de todo junto, así tu equipo recibe la carpeta nueva.
+
+<Aside type="caution">
+Cierra otros programas que estén usando archivos de la colección, como un editor con uno de sus archivos abierto, antes de renombrarla. En Windows un archivo abierto puede impedir que la carpeta se mueva; Luvin muestra el error y no cambia nada.
+</Aside>
 
 ## El menú ⋯ de una colección
 
@@ -115,7 +132,7 @@ El menú de una colección en la barra lateral también crea cosas dentro de ell
 | **Nuevo request**, **Importar desde cURL**, **Nueva carpeta** | Crean requests y carpetas de requests. |
 | **Nuevo archivo Arazzo**, **Nuevo contrato OpenAPI**, **Nuevo contrato AsyncAPI** | Crean un archivo en la colección. |
 | **Agregar archivos a la colección** | Agrega archivos de tu disco. |
-| **Renombrar** | Cambia el nombre visible. |
+| **Renombrar** | Cambia el nombre y mueve la carpeta a ese nombre. |
 | **Mostrar en Finder** (**Mostrar en el explorador**) <Badge text="Solo escritorio" variant="caution" /> | Abre la carpeta en tu explorador de archivos. |
 | **Abrir en terminal** <Badge text="Solo escritorio" variant="caution" /> | Abre una terminal en la carpeta. |
 | **Quitar del workspace** | La saca del workspace. Los archivos quedan. |

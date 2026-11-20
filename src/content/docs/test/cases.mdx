@@ -94,13 +94,29 @@ Some cases are left out on purpose:
 
 - An input that goes in the path gets no "missing" case. Without it the URL points to another resource (`/pokemon/` instead of `/pokemon/pikachu`), which usually exists.
 - An invalid-value case exists only for inputs with allowed options, a number or yes/no type, or a pattern.
-- **Without credentials** exists only if a contract protects at least one step.
+- **Without credentials** exists when at least one step sends credentials: because its contract protects it, or because its API has an authorization set in Luvin. That includes a step built from a request, with the request's authorization or the one it inherits from the collection, and an API with its own authorization in the workflow's **Authorization** tab. The case targets the first of those steps and sends none of them.
 
 ## Choose which cases run
 
 - Tick or untick the checkbox of a case.
 - The checkbox in a group header ticks or unticks the whole group.
 - **All** and **None**, at the top right, tick or untick every case.
+
+## Delete a case
+
+Unticking keeps a case in the list. To take it out, press **Delete** on its row.
+
+| Case | What **Delete** does |
+|---|---|
+| A case of yours (**Custom data cases**) | Removes it. |
+| A generated case | Removes it from the list, from the runner and from the counts, and Luvin doesn't generate it again. The happy path can't be deleted. |
+
+Deleted generated cases are saved in the scenarios file of the workflow file, under `removed`, so your team doesn't get them either. To bring them back, open the **⋯** menu at the top right of the **Cases** tab and choose **Restore deleted cases (N)**.
+
+```yaml title="scenarios/pokemon.arazzo.yaml"
+removed:
+  - pokemonCard::scenario-getPokemon-onFailure-pokemonNotFound
+```
 
 The number on the **Cases** tab is how many cases are ready to run. The **Run** button shows the same number. To run one case on its own, press ▶ on its row. See [Run](/test/run/).
 

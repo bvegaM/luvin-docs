@@ -13,14 +13,15 @@ Muchas APIs devuelven listas: las tarjetas de un cliente, los productos de un ca
 
 ## Ejemplo: Pokemon card contra la API real
 
-El primer paso de **Pokemon card** devuelve dos listas que usan los pasos siguientes: `types` (1 elemento) y `abilities` (2 elementos). La ejecución se pausa una vez, por `abilities`. Con un solo elemento, en `types` no hay nada que elegir, así que la ejecución sigue con ese.
+El primer paso de **Pokemon card** devuelve dos listas que usan los pasos siguientes: `types` (1 elemento) y `abilities` (2 elementos). Contra la API real la ejecución se pausa por las dos, también por `types` con su único elemento: ves lo que devolvió el servicio y confirmas con qué sigue. En Simulación se pausa solo por `abilities`, la lista que tiene entre qué elegir.
 
 <Steps>
 1. Elige **API real** y pulsa **Ejecutar**.
-2. El diálogo se abre por `abilities`, que tiene dos elementos. Haz clic en el que quieras y pulsa **Continuar con este elemento**.
+2. El diálogo se abre por `types`, con su único elemento. Pulsa **Continuar con este elemento**.
+3. Se abre de nuevo por `abilities`, que tiene dos elementos. Haz clic en el que quieras y pulsa **Continuar con este elemento**.
 </Steps>
 
-El diálogo solo aparece cuando la lista tiene dos elementos o más, contra la API real y en **Simulación**. Para una versión paso a paso, mira la receta [Elige un elemento de una lista](/es/recipes/list-pick/).
+Contra la API real el diálogo aparece por cada lista que usan los pasos siguientes, aunque tenga un solo elemento. En **Simulación** aparece solo cuando la lista tiene dos elementos o más. Para una versión paso a paso, mira la receta [Elige un elemento de una lista](/es/recipes/list-pick/).
 
 ## Elige y continúa
 
@@ -116,11 +117,11 @@ Si ningún elemento cumple la condición:
 
 ## Qué queda registrado
 
-El paso que devolvió la lista guarda una nota, **Elegido al ejecutar**. Por ejemplo: *De la lista activeCreditCards se siguió con «Banco Sur» (elemento 2 de 3).* Debajo, la nota dice qué valor recibió cada parámetro.
+El paso que devolvió la lista guarda una nota, **Elegido al ejecutar**. Por ejemplo: *De la lista abilities se siguió con «lightning-rod» (elemento 2 de 2).* Debajo, la nota dice qué valor recibió cada parámetro.
 
 ## Cuándo no aparece el diálogo
 
-- Si la lista tiene un solo elemento, en cualquier modo. La ejecución sigue con ese, y el paso guarda una nota: *De la lista: La lista types trajo un solo elemento («…»): se usó ese.*
+- Si la lista tiene un solo elemento, en **Simulación**. La ejecución sigue con ese, y el paso guarda una nota: *De la lista: La lista types trajo un solo elemento («…»): se usó ese.* Contra la **API real** el diálogo sí aparece, para que confirmes lo que devolvió el servicio.
 - Si el paso tiene una regla guardada para esa lista. Mira [Reglas para las próximas veces](#reglas-para-las-próximas-veces).
 - En el [runner](/es/runner/workflows/). Nunca se detiene a preguntar: usa la regla guardada o el elemento que dice el diseño.
 - Si la lista llega vacía.

@@ -13,14 +13,15 @@ Many APIs return lists: the cards of a customer, the products of a catalog. When
 
 ## Example: Pokemon card against the real API
 
-The first step of **Pokemon card** returns two lists that later steps use: `types` (1 item) and `abilities` (2 items). The run pauses once, for `abilities`. With a single item, `types` has nothing to choose, so the run goes on with it.
+The first step of **Pokemon card** returns two lists that later steps use: `types` (1 item) and `abilities` (2 items). Against the real API the run pauses for both, also for `types` with its single item: you see what the service returned and confirm what the run goes on with. In Simulation it pauses only for `abilities`, the list with something to choose.
 
 <Steps>
 1. Choose **Real API** and press **Run**.
-2. The dialog opens for `abilities`, which has two items. Click the one you want and press **Continue with this item**.
+2. The dialog opens for `types`, with its single item. Press **Continue with this item**.
+3. It opens again for `abilities`, which has two items. Click the one you want and press **Continue with this item**.
 </Steps>
 
-The dialog only appears when the list has two or more items, against the real API and in **Simulation**. For a step-by-step version, see the recipe [Choose an item from a list](/recipes/list-pick/).
+Against the real API the dialog appears for every list later steps use, even with one item. In **Simulation** it appears only when the list has two or more items. For a step-by-step version, see the recipe [Choose an item from a list](/recipes/list-pick/).
 
 ## Choose and continue
 
@@ -116,11 +117,11 @@ If no item meets the condition:
 
 ## What is recorded
 
-The step that returned the list keeps a note, **Chosen at run time**. For example: *From the list activeCreditCards, the run continued with "Banco Sur" (item 2 of 3).* Below it, the note says which value each parameter received.
+The step that returned the list keeps a note, **Chosen at run time**. For example: *From the list abilities, the run continued with "lightning-rod" (item 2 of 2).* Below it, the note says which value each parameter received.
 
 ## When the dialog does not appear
 
-- If the list has a single item, in any mode. The run goes on with it, and the step keeps a note: *From the list: The list types had a single item ("…"): it was used.*
+- If the list has a single item, in **Simulation**. The run goes on with it, and the step keeps a note: *From the list: The list types had a single item ("…"): it was used.* Against the **Real API** the dialog does appear, so you confirm what the service returned.
 - If the step has a saved rule for that list. See [Saved rules for next times](#saved-rules-for-next-times).
 - In the [Runner](/runner/workflows/). It never stops to ask: it uses the saved rule or the item in the design.
 - If the list comes back empty.

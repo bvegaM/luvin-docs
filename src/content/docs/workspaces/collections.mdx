@@ -101,7 +101,24 @@ There is no “close” for one collection inside a workspace. Open another coll
 1. Open the **⋯** menu of the collection, on **Home** or in the sidebar, and choose **Rename**.
 2. Type the new name and press Enter.
 
-Only the visible name changes. The folder keeps its name.
+The folder on disk takes the new name too, so the workspace folder (and git) shows what the app shows. Renaming **test** to **Eloyfall cobrand** moves `test/` to `eloyfall-cobrand/`, with everything inside it.
+
+| What moves with it | How |
+|---|---|
+| Its files: Arazzo files, contracts, environments, requests, mocks | The folder is moved as a whole. |
+| `luvin.yaml` | Lists the new folder. |
+| Secrets of its environments, requests and authorization | They are moved to the new folder on this computer. |
+| History, the environment you chose and the downloaded contracts | Luvin remembers them for the new folder. |
+
+- The folder name is the name in lowercase, without accents, with `-` instead of spaces. If another folder already has it, Luvin adds a number, such as `pagos-2`, and never overwrites a folder.
+- If the new name gives the same folder, for example `Pagos` → `PAGOS`, only the visible name changes.
+- A collection whose folder still has another name, because it was renamed with an older version, is fixed by confirming the same name again: open **Rename** and press Enter.
+- The collection at the root of the workspace (folder `.`) does not move: only its visible name changes.
+- In git, the change shows as files moved to the new folder. Commit it together, so your team gets the new folder.
+
+<Aside type="caution">
+Close other programs that are using files of the collection, such as an editor with one of its files open, before you rename it. On Windows an open file can stop the folder from moving; Luvin then shows the error and nothing changes.
+</Aside>
 
 ## The ⋯ menu of a collection
 
@@ -115,7 +132,7 @@ The menu of a collection in the sidebar also creates things inside it:
 | **New request**, **Import from cURL**, **New folder** | Create requests and folders of requests. |
 | **New Arazzo file**, **New OpenAPI contract**, **New AsyncAPI contract** | Create a file in the collection. |
 | **Add files to the collection** | Adds files from your disk. |
-| **Rename** | Changes the visible name. |
+| **Rename** | Changes the name and moves the folder to it. |
 | **Show in Finder** (**Show in file explorer**) <Badge text="Desktop only" variant="caution" /> | Opens the folder in your file manager. |
 | **Open in Terminal** <Badge text="Desktop only" variant="caution" /> | Opens a terminal in the folder. |
 | **Remove from workspace** | Takes it out of the workspace. The files stay. |

@@ -94,13 +94,29 @@ Algunos casos se omiten a propósito:
 
 - Un input que va en la ruta no tiene caso "sin el input". Sin él la URL apunta a otro recurso (`/pokemon/` en lugar de `/pokemon/pikachu`), que normalmente existe.
 - El caso de valor inválido existe solo para inputs con opciones permitidas, de tipo número o sí/no, o con un patrón.
-- **Sin credenciales** existe solo si un contrato protege al menos un paso.
+- **Sin credenciales** existe cuando al menos un paso envía credenciales: porque su contrato lo protege, o porque su API tiene una autorización puesta en Luvin. Eso incluye un paso armado desde un request, con la autorización del request o la que hereda de la colección, y una API con autorización propia en la pestaña **Autorización** del workflow. El caso apunta al primero de esos pasos y no envía ninguna.
 
 ## Elige qué casos se ejecutan
 
 - Marca o desmarca la casilla de un caso.
 - La casilla del encabezado de un grupo marca o desmarca todo el grupo.
 - **Todos** y **Ninguno**, arriba a la derecha, marcan o desmarcan todos los casos.
+
+## Elimina un caso
+
+Desmarcar deja el caso en la lista. Para sacarlo, pulsa **Eliminar** en su fila.
+
+| Caso | Qué hace **Eliminar** |
+|---|---|
+| Un caso tuyo (**Casos con datos propios**) | Lo borra. |
+| Un caso generado | Lo saca de la lista, del runner y de los conteos, y Luvin no lo vuelve a generar. El camino feliz no se puede eliminar. |
+
+Los casos generados eliminados se guardan en el archivo de escenarios del archivo de workflows, en `removed`, así tu equipo tampoco los recibe. Para recuperarlos, abre el menú **⋯** arriba a la derecha de la pestaña **Casos** y elige **Restaurar casos eliminados (N)**.
+
+```yaml title="scenarios/pokemon.arazzo.yaml"
+removed:
+  - pokemonCard::scenario-getPokemon-onFailure-pokemonNotFound
+```
 
 El número en la pestaña **Casos** es cuántos casos están listos para ejecutar. El botón **Ejecutar** muestra el mismo número. Para ejecutar un caso solo, pulsa ▶ en su fila. Mira [Ejecutar](/es/test/run/).
 
