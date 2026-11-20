@@ -72,7 +72,7 @@ Two kinds of placeholders look similar. They are resolved at different moments a
 | Example | `$steps.getPokemon.outputs.id` | `{{baseUrl}}`, `{{$randomFirstName}}` |
 | When | While the workflow runs, step by step. | First, when the value is prepared. |
 
-Templates are replaced first. A `{{name}}` that is neither a variable of the environment nor a generator is left as written, and Luvin warns you before sending it. The generators are `{{email}}`, `{{cpf}}`, `{{rut}}`, `{{uuid}}`, `{{number:8}}`, `{{date}}` and `{{timestamp}}`, plus the dynamic variables such as `{{$randomUUID}}`. See [Dynamic variables](/environments/dynamic-variables/) and [Base URLs, variables and secrets](/environments/variables-and-secrets/).
+Templates are replaced first. A `{{name}}` that is neither a variable of the environment nor a generator is left as written. In a request, a yellow strip under the URL bar says so before you send it, with **Open the environment**. In a workflow there is no strip: the field shows the variable in red. The generators are `{{email}}`, `{{cpf}}`, `{{rut}}`, `{{uuid}}`, `{{number:8}}`, `{{date}}` and `{{timestamp}}`, plus the dynamic variables such as `{{$randomUUID}}`. See [Dynamic variables](/environments/dynamic-variables/) and [Base URLs, variables and secrets](/environments/variables-and-secrets/).
 
 :::tip
 `{{$guid}}` with two braces is a template. `$steps.a.outputs.id` without braces is an expression. If you mix them up, the value stays as typed and the API receives the wrong text.

@@ -60,7 +60,7 @@ Optional values are never reported. If the contract does not require it, the ste
 Click **Complete**. Luvin works through the two lists, step by step, and changes only what is missing. Your steps stay as they are.
 
 <Steps>
-1. **Inputs that are used but not declared.** Luvin declares them as inputs of the workflow. If a parameter uses the input, the input takes that parameter's type, description, example and whether it is required, from the contract. If it is used somewhere else, such as the body, Luvin declares it with no extra details.
+1. **Inputs that are used but not declared.** Luvin declares them as inputs of the workflow. If a parameter uses the input, the input takes that parameter's type, description, example, rules (such as `enum` or `pattern`) and whether it is required, from the contract. See [What a new input takes from the contract](/contracts/schemas-and-cases/). If it is used somewhere else, such as the body, Luvin declares it with no extra details.
 2. **Data the contract requires and a step does not send.** For each one, Luvin looks for a source among the steps before it, with the same rules it follows when you add a step. See [Connect data between steps](/design/wire-data/).
    - If an earlier step has the value, the step now reads it. Luvin adds the output to that earlier step if it needs one.
    - If none has it, Luvin creates a **required** input with the name of the value and the type of the contract, and the step reads that input. If the name is taken, it adds a number: `currency2`.

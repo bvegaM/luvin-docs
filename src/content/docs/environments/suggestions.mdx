@@ -64,6 +64,8 @@ Each `{{name}}` in a field gets a color:
 
 The color follows the active environment. A name that is green in `staging` can be red in `local` if `local` does not have it. Switch environments and the colors change at once.
 
+In a request, Luvin also warns you before you send it. When the URL, the ticked params, the path variables, the ticked headers, the body or the authorization (in GraphQL, also the query and its variables) use a red name, a yellow strip under the URL bar says, for example: *`{{apiKey}}` doesn’t exist in the “local” environment: it will be sent as written.* **Open the environment** opens it so you can add the variable. A value saved by a request counts as known. Workflows have no strip: the field shows the name in red.
+
 Fields that hide what you type, such as a password, are not colored. A secret field of the **Authorization** tab shows its text, with colors, as soon as it holds a `{{name}}`.
 
 ## The card of a variable
@@ -77,7 +79,7 @@ Point at a colored name, or put the cursor inside it, and a card opens below it.
 | A generator or a dynamic variable | *⚡ is generated when running*. |
 | Unknown | *does not exist in “staging”*, with **Create variable** and **Create secret**. |
 
-What you type in the card goes straight to the active environment. **Create variable** and **Create secret** add an empty one with that name to the active environment. The name turns amber; type its value in the card and it turns green.
+What you type in the card goes straight to the active environment. For a value saved by a request (**Saved now**), it changes that saved value instead. **Create variable** and **Create secret** add an empty one with that name to the active environment. The name turns amber; type its value in the card and it turns green.
 
 <Aside type="caution" title="It changes the environment, not the field">
 Editing a value in the card changes it for every request and workflow that uses that name in this environment. To use a different value in one place only, type the value in the field instead of the variable.

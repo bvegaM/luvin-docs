@@ -72,7 +72,7 @@ Dos tipos de marcadores se parecen. Se resuelven en momentos distintos y desde l
 | Ejemplo | `$steps.getPokemon.outputs.id` | `{{baseUrl}}`, `{{$randomFirstName}}` |
 | Cuándo | Mientras corre el workflow, paso a paso. | Primero, cuando se prepara el valor. |
 
-Las plantillas se reemplazan primero. Un `{{nombre}}` que no es una variable del ambiente ni un generador se deja tal cual, y Luvin te avisa antes de enviarlo. Los generadores son `{{email}}`, `{{cpf}}`, `{{rut}}`, `{{uuid}}`, `{{numero:8}}`, `{{fecha}}` y `{{timestamp}}`, además de las variables dinámicas como `{{$randomUUID}}`. Mira [Variables dinámicas](/es/environments/dynamic-variables/) y [URLs base, variables y secretos](/es/environments/variables-and-secrets/).
+Las plantillas se reemplazan primero. Un `{{nombre}}` que no es una variable del ambiente ni un generador se deja tal cual. En un request, una franja amarilla bajo la barra de la URL lo dice antes de enviarlo, con **Abrir el ambiente**. En un workflow no hay franja: el campo muestra la variable en rojo. Los generadores son `{{email}}`, `{{cpf}}`, `{{rut}}`, `{{uuid}}`, `{{numero:8}}`, `{{fecha}}` y `{{timestamp}}`, además de las variables dinámicas como `{{$randomUUID}}`. Mira [Variables dinámicas](/es/environments/dynamic-variables/) y [URLs base, variables y secretos](/es/environments/variables-and-secrets/).
 
 :::tip
 `{{$guid}}` con dos llaves es una plantilla. `$steps.a.outputs.id` sin llaves es una expresión. Si las confundes, el valor queda como lo escribiste y la API recibe el texto equivocado.

@@ -143,14 +143,20 @@ The environment tab always shows the active environment. Clicking another name i
 
 ![Before running PayPal's Create order: the notice that a POST modifies data in the Sandbox environment](/media/en/test-run-confirm.webp)
 
+Luvin also clears what the previous environment obtained, so it never reaches the new one:
+
+- Values saved by requests (**Saved now**).
+- OAuth 2.0 tokens.
+- Cookies of single requests.
+
+A token obtained with `local` is no longer sent to `production`. Send the login again in the new environment; an OAuth 2.0 token is fetched again on the next send. This happens every time the active environment changes: from the pill, from the **Environments** panel, when you create an environment or delete the active one, and when a mock environment becomes active.
+
 Some things stay as they were:
 
 | What | Why |
 |---|---|
 | The results of the last run | They keep the environment they ran with. A report exported later still names that one. |
 | History | Each entry keeps the name of the environment it used. |
-| Values saved by requests (**Saved now**) | They belong to the collection, not to an environment, and they win over environment variables. A token saved while `local` was active is still used after you switch. Click **Clear all** in the **Variables** tab of a request to drop them. |
-| OAuth 2.0 tokens | Luvin keeps them in memory while the collection is open. Press **Clear token** if the new environment needs another one. |
 
 <Aside type="caution" title="Check the pill before a real run">
 The pill at the top right is the only place outside the sidebar that names the active environment. A red label for production makes it hard to miss.

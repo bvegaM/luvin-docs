@@ -60,7 +60,7 @@ Los valores opcionales nunca se reportan. Si el contrato no lo exige, el paso pu
 Haz clic en **Completar**. Luvin recorre las dos listas, paso por paso, y cambia solo lo que falta. Tus pasos quedan como están.
 
 <Steps>
-1. **Inputs que se usan pero no se declaran.** Luvin los declara como inputs del workflow. Si un parámetro usa el input, el input toma del contrato el tipo, la descripción, el ejemplo y si es obligatorio de ese parámetro. Si se usa en otro lugar, como el body, Luvin lo declara sin más detalles.
+1. **Inputs que se usan pero no se declaran.** Luvin los declara como inputs del workflow. Si un parámetro usa el input, el input toma del contrato el tipo, la descripción, el ejemplo, las reglas (como `enum` o `pattern`) y si es obligatorio de ese parámetro. Mira [Qué toma un input nuevo del contrato](/es/contracts/schemas-and-cases/). Si se usa en otro lugar, como el body, Luvin lo declara sin más detalles.
 2. **Datos que el contrato exige y un paso no envía.** Para cada uno, Luvin busca una fuente entre los pasos anteriores, con las mismas reglas que sigue cuando agregas un paso. Mira [Conectar datos entre pasos](/es/design/wire-data/).
    - Si un paso anterior tiene el valor, el paso ahora lo lee. Luvin agrega el output a ese paso anterior si hace falta.
    - Si ninguno lo tiene, Luvin crea un input **obligatorio** con el nombre del valor y el tipo del contrato, y el paso lee ese input. Si el nombre ya existe, agrega un número: `currency2`.

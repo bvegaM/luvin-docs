@@ -46,7 +46,7 @@ The shop collection has `local`, with the base URL `shop` set to `http://localho
 
 1. Open the **Environments** panel of the sidebar.
 2. Click **+** in its header (**New environment**).
-3. The new environment is added to the list and becomes active. Click it to open it, and rename it there.
+3. The new environment is added to the list, becomes active and opens in its tab, as with **+ New**. Rename it there.
 
 </Steps>
 
@@ -54,6 +54,8 @@ The shop collection has `local`, with the base URL `shop` set to `http://localho
 </Tabs>
 
 If **New environment** is taken, the new one is called **New environment 2**, and so on.
+
+As with any switch, creating an environment clears the values saved by requests, the OAuth 2.0 tokens and the cookies of single requests. See [What changes when you switch](/environments/overview/).
 
 ### What the new environment copies
 
@@ -147,7 +149,7 @@ The confirmation says *Delete “staging” and its credentials?*
 | The environment file, such as `environments/staging.yaml` | In the workspace folder. |
 | The values of its secrets and its credentials | Encrypted storage on this computer. |
 
-If you delete the active environment, the first one of the list becomes active. There is no undo. If the workspace is in git you can restore the file, but the secret values are gone from this computer: type them again.
+If you delete the active environment, the first one of the list becomes active, and the values saved by requests, the OAuth 2.0 tokens and the cookies of single requests are cleared. There is no undo. If the workspace is in git you can restore the file, but the secret values are gone from this computer: type them again.
 
 <Aside type="note" title="There is always one environment">
 If you delete the only environment, the confirmation says *“local” is the only environment: deleting it leaves a new, empty one. Delete its variables and credentials?* Luvin then creates **My environment**, with the base URLs of the contracts and nothing else.

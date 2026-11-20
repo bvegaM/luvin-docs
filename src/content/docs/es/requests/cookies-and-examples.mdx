@@ -28,7 +28,7 @@ Luvin guarda la cookie en su almacén. La pestaña **Cookies** de esa respuesta 
 
 Una cookie es un dato pequeño que una API le pide al cliente que recuerde, por ejemplo una sesión. La API la envía en un header `Set-Cookie`. Luvin guarda esas cookies en un **almacén de cookies** y las devuelve, solo, en los siguientes requests al mismo dominio, como hace Postman.
 
-- El almacén vive en memoria mientras la colección está abierta. No se guarda en el disco.
+- El almacén vive en memoria mientras la colección está abierta. No se guarda en el disco. Cambiar de ambiente lo vacía.
 - Una cookie se envía solo a los requests que coinciden con su dominio y su ruta. Una cookie marcada `Secure` se envía solo por `https`. Una cookie vencida no se envía.
 - En la pestaña **Headers** de un request, la fila automática `Cookie` muestra lo que se va a enviar. Desmárcala para no enviar ninguna cookie. Si escribes tu propio header `Cookie` en la tabla, el tuyo gana.
 

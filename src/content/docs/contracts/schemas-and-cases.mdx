@@ -11,7 +11,7 @@ A schema says what a value looks like: its type, whether it is required, its all
 
 ## Example: the type of the Pokémon
 
-Drag `GET /type/{idOrName}` onto an empty workflow. Nothing gives `idOrName` a value, so Luvin creates an input from the parameter of the contract. Then add the allowed values yourself.
+Drag `GET /type/{idOrName}` onto an empty workflow. Nothing gives `idOrName` a value, so Luvin creates an input from the parameter of the contract. This contract lists no allowed values, so add them yourself.
 
 <Tabs>
 <TabItem label="Contract">
@@ -72,8 +72,9 @@ When a required value has no source, Luvin creates an input. From the parameter 
 | `description` | The first line of the description of the parameter or field. |
 | `example` | The `example` of the parameter, else the `example`, the first of `examples`, the `default` or the first `enum` option of its schema. For an object, one built from its fields. |
 | `required` | The input is required when the parameter or field is. |
+| `enum`, `pattern`, `format`, `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `minLength`, `maxLength` | The schema of the parameter or field, as written. A rule the input already has is not replaced. |
 
-It does **not** copy `enum`, `pattern`, `format`, `minimum`, `maximum`, `minLength`, `maxLength` or other rules. The input of the workflow is yours: add the rules you want to test in the [YAML tab](/design/arazzo-editor/), as in the example above. Those rules give you checks in the **Inputs** tab and cases in the **Cases** tab.
+Other keywords of the schema are not copied. Because the rules come with the input, their checks appear in the **Inputs** tab and their cases in the **Cases** tab right away. The input of the workflow is yours: change the rules, or add the ones the contract does not have, in the [YAML tab](/design/arazzo-editor/), as in the example above.
 
 The same applies when **Complete**, in the bar **This workflow is missing data**, declares inputs for you. See [Complete missing data](/design/complete-gaps/).
 
@@ -151,7 +152,7 @@ These cases only make sense against the **Real API**: in **Simulation** every st
 | `readOnly`, `writeOnly`, `discriminator`, `xml` | Not used. |
 
 <Aside type="tip">
-Rules in the schema of the **contract** still matter even if the input does not copy them: Luvin checks each real response against the response schema, and the API you test probably validates the request with the same rules. See [Does the response match the contract?](/contracts/response-check/)
+Rules in the schema of the **contract** that the input does not have still matter: Luvin checks each real response against the response schema, and the API you test probably validates the request with the same rules. See [Does the response match the contract?](/contracts/response-check/)
 </Aside>
 
 ## Related

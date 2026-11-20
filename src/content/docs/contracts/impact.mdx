@@ -72,19 +72,19 @@ Click the bar, or **Show**, to open the list. **Hide** folds it.
 
 ## Which workflows count
 
-Luvin counts every workflow of the workflow files that list the contract in `sourceDescriptions`, whether or not a step calls it. In the Pokédex, both `pokeapi` and `pokedexEvents` show *4 workflow(s)*, because the four workflows live in the same file.
+Luvin counts the workflows that have at least one step calling the contract. A step that your change left without an operation, such as one whose `operationId` you just renamed, still counts. A workflow whose file lists the contract in `sourceDescriptions` but never calls it does not. In the Pokédex, `pokeapi` shows *4 workflow(s)*, and `pokedexEvents` shows *1 workflow(s)*: only **Register sighting** calls it.
 
-For a file that a contract references with `$ref`, such as a file of shared schemas, the bar counts the workflows of the contracts that mention it. A change in a shared schema can affect them all.
+For a file that a contract references with `$ref`, such as a file of shared schemas, the bar counts the workflows with steps calling the contracts that mention it. A change in a shared schema can affect them all.
 
 ## What counts as a new problem
 
-When the editor opens, Luvin remembers the problems each workflow already has. Then it shows only the problems that appear after that moment:
+The first time you open the contract, Luvin remembers the problems each workflow already has. Then it shows only the problems that appear after that moment:
 
 - Errors and warnings count. Information messages do not.
 - A problem is compared by its message. One that already existed when you opened the contract is never listed, so old problems do not hide the new ones.
 
-<Aside type="caution" title="The comparison starts when the editor opens">
-When you leave the contract tab, for example to open a workflow from the list, and come back, the editor opens again and the comparison starts from that moment. Problems you created before now count as existing, and the bar may say *no new problems*. The workflows still show their errors: look at the dot of each workflow in the sidebar, or at the **Overview** tab.
+<Aside type="note" title="The starting point stays while you edit">
+Leaving the contract tab, for example to open a workflow from the list, and coming back does not reset the comparison. Luvin keeps the starting point of each contract while its text differs from how it was when you first opened it. Once the text is back to that version, the comparison starts again the next time you open the contract.
 </Aside>
 
 ## Changes the bar catches

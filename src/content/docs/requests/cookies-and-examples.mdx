@@ -28,7 +28,7 @@ Luvin keeps the cookie in its jar. The **Cookies** tab of that response shows it
 
 A cookie is a small piece of data that an API asks the client to remember, for example a session. The API sends it in a `Set-Cookie` header. Luvin keeps those cookies in a **cookie jar** and sends them back, on its own, in the next requests to the same domain, as Postman does.
 
-- The jar lives in memory while the collection is open. It is not saved to disk.
+- The jar lives in memory while the collection is open. It is not saved to disk. Switching environments empties it.
 - A cookie is sent only to requests that match its domain and path. A cookie marked `Secure` is sent only over `https`. An expired cookie is not sent.
 - In the **Headers** tab of a request, the automatic `Cookie` row shows what will be sent. Untick it to send no cookie. If you write your own `Cookie` header in the table, yours wins.
 

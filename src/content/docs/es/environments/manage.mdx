@@ -46,7 +46,7 @@ La colección de la tienda tiene `local`, con la URL base `shop` en `http://loca
 
 1. Abre el panel **Ambientes** de la barra lateral.
 2. Haz clic en **+** en su encabezado (**Nuevo ambiente**).
-3. El ambiente nuevo se agrega a la lista y queda activo. Haz clic en él para abrirlo, y renómbralo ahí.
+3. El ambiente nuevo se agrega a la lista, queda activo y se abre en su pestaña, como con **+ Nuevo**. Renómbralo ahí.
 
 </Steps>
 
@@ -54,6 +54,8 @@ La colección de la tienda tiene `local`, con la URL base `shop` en `http://loca
 </Tabs>
 
 Si **Nuevo ambiente** ya existe, el nuevo se llama **Nuevo ambiente 2**, y así sucesivamente.
+
+Como en cualquier cambio de ambiente, crear uno borra los valores guardados por los requests, los tokens de OAuth 2.0 y las cookies de los requests sueltos. Mira [Qué cambia cuando cambias de ambiente](/es/environments/overview/).
 
 ### Qué copia el ambiente nuevo
 
@@ -147,7 +149,7 @@ La confirmación dice *¿Eliminar «staging» y sus credenciales?*
 | El archivo del ambiente, como `environments/staging.yaml` | En la carpeta del workspace. |
 | Los valores de sus secretos y sus credenciales | El almacenamiento cifrado de este equipo. |
 
-Si eliminas el ambiente activo, queda activo el primero de la lista. No se puede deshacer. Si el workspace está en git puedes recuperar el archivo, pero los valores de los secretos ya no están en este equipo: escríbelos otra vez.
+Si eliminas el ambiente activo, queda activo el primero de la lista, y se borran los valores guardados por los requests, los tokens de OAuth 2.0 y las cookies de los requests sueltos. No se puede deshacer. Si el workspace está en git puedes recuperar el archivo, pero los valores de los secretos ya no están en este equipo: escríbelos otra vez.
 
 <Aside type="note" title="Siempre hay un ambiente">
 Si eliminas el único ambiente, la confirmación dice *«local» es el único ambiente: al eliminarlo queda uno nuevo, vacío. ¿Eliminar sus variables y credenciales?* Luvin crea entonces **Mi ambiente**, con las URLs base de los contratos y nada más.

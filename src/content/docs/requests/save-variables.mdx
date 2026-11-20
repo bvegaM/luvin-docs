@@ -121,6 +121,7 @@ Saved values are kept **in memory** while the collection is open.
 
 - They are **not written to the environment** or to any file, so a token never ends up in git.
 - They are lost when you close the app, close the collection or open another one.
+- They are cleared when you switch environments, so a token obtained with `local` is never sent to `production`.
 - They belong to the collection, not to a request: what **Log in** saves, every other request of the collection sees.
 
 The **Variables** tab of any request lists them under **Saved now**, with the note **from every request in the collection**. Each line shows `{{name}}` and its value (point at it to read it whole, except for secrets). Click **Clear all** to forget every value. The list appears only when there is at least one saved value.
@@ -161,7 +162,7 @@ In a load test, each virtual user keeps its own saved values, and none of them s
 
 | What you see | Why | What to do |
 |---|---|---|
-| The request sends `{{token}}` literally | The value is not saved: the first request was not sent since the app was opened, **Clear all** was clicked, or another collection was opened | Send the request that saves it again |
+| The request sends `{{token}}` literally | The value is not saved: the first request was not sent since the app was opened, **Clear all** was clicked, another environment became active, or another collection was opened | Send the request that saves it again |
 | **was not in the response** after a send | The field is not there: a typo, a different case (`res.body.Id`), or the API answered an error with another body | Open the **Body** tab of the response and copy the exact path |
 | The value is `{"name":…}` instead of a text | The expression points to an object | Add the field: `res.body.species.name` |
 | An old value is used | The last response did not have the field, so the variable kept its previous value | Look for **was not in the response** in the **Checks** tab of the response |

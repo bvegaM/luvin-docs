@@ -70,7 +70,7 @@ El bloque `if` se salta completo, y la importación cuenta este script como uno 
 El segundo argumento tiene que ser algo que Luvin pueda leer de la respuesta (mira la tabla siguiente). Si no, como `jsonData.items.map(i => i.id)`, la línea se salta.
 
 <Aside type="note" title="No se escribe en el ambiente">
-En Postman, `pm.environment.set` cambia el ambiente. En Luvin, el valor es un valor guardado: vive en memoria mientras la colección está abierta y gana sobre la variable del ambiente con el mismo nombre. Mira [Guarda valores de una respuesta](/es/requests/save-variables/#en-memoria-no-en-el-ambiente).
+En Postman, `pm.environment.set` cambia el ambiente. En Luvin, el valor es un valor guardado: vive en memoria mientras la colección está abierta (cambiar de ambiente lo borra) y gana sobre la variable del ambiente con el mismo nombre. Mira [Guarda valores de una respuesta](/es/requests/save-variables/#en-memoria-no-en-el-ambiente).
 </Aside>
 
 ## Leer la respuesta

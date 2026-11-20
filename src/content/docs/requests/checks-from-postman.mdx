@@ -70,7 +70,7 @@ The `if` block is skipped as a whole, and the import counts this script as havin
 The second argument must be something Luvin can read from the response (see the next table). If it is not, such as `jsonData.items.map(i => i.id)`, the line is skipped.
 
 <Aside type="note" title="Not written to the environment">
-In Postman, `pm.environment.set` changes the environment. In Luvin, the value is a saved value: it lives in memory while the collection is open and wins over the environment variable with the same name. See [Save values from a response](/requests/save-variables/#where-the-saved-values-live).
+In Postman, `pm.environment.set` changes the environment. In Luvin, the value is a saved value: it lives in memory while the collection is open (switching environments clears it) and wins over the environment variable with the same name. See [Save values from a response](/requests/save-variables/#where-the-saved-values-live).
 </Aside>
 
 ## Reading the response

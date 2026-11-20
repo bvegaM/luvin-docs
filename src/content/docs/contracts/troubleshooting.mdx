@@ -34,7 +34,7 @@ If `pokeapi` had shown ✕, the problem would have been the file, not the operat
 | ✕ with *"name" does not look like an OpenAPI document.* | The file you attached is an AsyncAPI, or not a contract, or the workflow file says the wrong `type`. | Attach the right file, or fix `type` in `sourceDescriptions`. |
 | ✕ with *Could not download: …* | The contract lives at a URL that could not be downloaded. | See [Remote contracts and references](/contracts/remote-and-refs/#download-a-contract). |
 | The counter shows `2/3` in a warning color | One of the contracts that workflow files name did not load. | Hover over the rows with ✕ to read why. |
-| A contract that loaded yesterday shows ✕ today | It was downloaded or attached, and those are not saved in the collection. | Click **Download** or **Attach** again, or **Make a local copy** to keep it. |
+| A contract that loaded yesterday shows ✕ today | It was downloaded and could not be downloaded again this time (no network, or the address changed), or it was attached and Luvin did not save it in the collection (outside a workspace, or a `url` that is an address or a path outside the collection). | Click **Download** or **Attach** again, or **Make a local copy** to keep it. |
 | A contract you imported replaced another one | Both files had the same name. A file with the same name replaces the one in the collection. | Rename one of them, and import it again. |
 
 ## The contract loads, but is not used
@@ -55,7 +55,7 @@ If `pokeapi` had shown ✕, the problem would have been the file, not the operat
 | The preview stops changing while you type | The YAML cannot be read. The preview keeps the last readable version. | Fix the error that the panel lists with its line. |
 | *Couldn’t load Swagger UI:* | The preview could not start. | Close the contract tab and open it again. The editor and its errors keep working meanwhile. |
 | **Servers** in Swagger UI does not list the environment | The contract is ○, or the environment has no base URL for it. | List the contract in a workflow file, and check **Base URLs** in the environment. |
-| The bar says *no new problems*, but a workflow shows errors | You left the contract tab and came back: the comparison started again, and older problems count as existing. | Look at the workflow itself. See [When a change breaks a workflow](/contracts/impact/#what-counts-as-a-new-problem). |
+| The bar says *no new problems*, but a workflow shows errors | The workflow already had those problems when you first opened the contract, before your edits. Only problems your edits add are new. | Look at the workflow itself. See [When a change breaks a workflow](/contracts/impact/#what-counts-as-a-new-problem). |
 | A message points to a line that looks fine | A wrong indentation above moves everything below it. | Look one or two lines up. See [Contract errors and warnings](/contracts/lint-errors/). |
 
 ## Designing workflows

@@ -34,7 +34,7 @@ Si `pokeapi` hubiera mostrado ✕, el problema habría estado en el archivo, no 
 | ✕ con *"nombre" no parece un OpenAPI.* | El archivo que adjuntaste es un AsyncAPI, o no es un contrato, o el archivo de workflow dice un `type` equivocado. | Adjunta el archivo correcto, o corrige `type` en `sourceDescriptions`. |
 | ✕ con *No se pudo descargar: …* | El contrato vive en una URL que no se pudo descargar. | Mira [Contratos remotos y referencias](/es/contracts/remote-and-refs/#descargar-un-contrato). |
 | El contador muestra `2/3` en color de advertencia | Uno de los contratos que nombran los archivos de workflow no cargó. | Pasa el mouse sobre las filas con ✕ para leer el motivo. |
-| Un contrato que ayer cargaba hoy muestra ✕ | Se descargó o se adjuntó, y eso no se guarda en la colección. | Haz clic otra vez en **Descargar** o **Adjuntar**, o en **Hacer copia local** para conservarlo. |
+| Un contrato que ayer cargaba hoy muestra ✕ | Se descargó y esta vez no se pudo volver a descargar (sin red, o cambió la dirección), o se adjuntó y Luvin no lo guardó en la colección (fuera de un workspace, o con una `url` que es una dirección o una ruta fuera de la colección). | Haz clic otra vez en **Descargar** o **Adjuntar**, o en **Hacer copia local** para conservarlo. |
 | Un contrato que importaste reemplazó a otro | Los dos archivos tenían el mismo nombre. Un archivo con el mismo nombre reemplaza al de la colección. | Cambia el nombre de uno de ellos y vuelve a importarlo. |
 
 ## El contrato carga, pero no se usa
@@ -55,7 +55,7 @@ Si `pokeapi` hubiera mostrado ✕, el problema habría estado en el archivo, no 
 | La vista previa deja de cambiar mientras escribes | El YAML no se puede leer. La vista previa conserva la última versión legible. | Corrige el error que el panel lista con su línea. |
 | *No se pudo cargar Swagger UI:* | La vista previa no pudo arrancar. | Cierra la pestaña del contrato y vuelve a abrirla. Mientras tanto, el editor y sus errores siguen funcionando. |
 | **Servers** en Swagger UI no lista el ambiente | El contrato es ○, o el ambiente no tiene URL base para él. | Lista el contrato en un archivo de workflow, y revisa las **URLs base** del ambiente. |
-| La barra dice *sin problemas nuevos*, pero un workflow muestra errores | Saliste de la pestaña del contrato y volviste: la comparación empezó de nuevo, y los problemas anteriores cuentan como existentes. | Mira el workflow mismo. Mira [Cuando un cambio rompe un workflow](/es/contracts/impact/#qué-cuenta-como-problema-nuevo). |
+| La barra dice *sin problemas nuevos*, pero un workflow muestra errores | El workflow ya tenía esos problemas cuando abriste el contrato por primera vez, antes de tus cambios. Solo son nuevos los problemas que agregan tus cambios. | Mira el workflow mismo. Mira [Cuando un cambio rompe un workflow](/es/contracts/impact/#qué-cuenta-como-problema-nuevo). |
 | Un mensaje apunta a una línea que se ve bien | Una sangría equivocada más arriba mueve todo lo que está debajo. | Mira una o dos líneas más arriba. Mira [Errores y advertencias del contrato](/es/contracts/lint-errors/). |
 
 ## Al diseñar workflows

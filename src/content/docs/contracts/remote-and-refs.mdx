@@ -82,9 +82,11 @@ A server in the contract written as a path, such as `/api/v2`, is completed with
 
 The file must be of the kind the workflow file asks for. Otherwise the row says *"name" does not look like an OpenAPI document.* (or AsyncAPI).
 
+In a workspace, when the `url` of the row is a path inside the collection, such as `./pokeapi.openapi.yaml`, Luvin saves the file you choose into the collection folder under that path. From then on it is an ordinary contract of the collection: it is still there when you open the collection again, and you can edit it. Outside a workspace, or when `url` is an address or a path outside the collection (`../…`), the file is only linked to the row, as **Read-only**, and is not saved with the collection.
+
 ## Read-only, and how to edit it
 
-A downloaded or attached contract belongs to its address or to your computer, not to the collection, so it opens as **Read-only**:
+A downloaded contract, or an attached file that Luvin did not save in the collection, belongs to its address or to your computer, not to the collection, so it opens as **Read-only**:
 
 - The text of a downloaded contract is Luvin's reading of the file. Comments and the original layout may not be there.
 - An attached file shows its text as it was.
@@ -93,14 +95,14 @@ To change it, click **Make a local copy**. Luvin adds it to the collection as a 
 
 ## Keep it, or get a newer version
 
-<Aside type="caution" title="Downloads and attachments are not saved in the collection">
-A downloaded or attached contract is not written to the collection folder. When you open the collection again, its row shows ✕ again, and you click **Download** or **Attach** once more. Outside a workspace, continuing a saved session downloads it again for you.
+<Aside type="caution" title="Downloads are remembered, not saved in the collection">
+A downloaded contract is not written to the collection folder. In a workspace, Luvin remembers on this computer which contracts you downloaded in each collection, and downloads them again when you open the collection. If that fails, for example without network, the row shows ✕ and Luvin tries again the next time. Outside a workspace, continuing a saved session downloads it again for you. An attached file that Luvin did not save in the collection is not remembered: attach it again.
 </Aside>
 
 | You want | Do |
 |---|---|
-| The contract to stay with the collection, also for your team | **Make a local copy**. The file goes into the collection folder, and into git if you use it. |
-| Always the version published at the address | Keep it remote, and click **Download** each time you open the collection. |
+| The contract to stay with the collection, also for your team | **Make a local copy**. The file goes into the collection folder, and into git if you use it. A download is remembered only on this computer. |
+| Always the version published at the address | Keep it remote. Luvin downloads it again each time you open the collection. |
 | A newer version after a local copy | Download the file and import it: a file with the same name replaces the copy. |
 
 While a remote contract is loaded, the row has no **Download** button. Opening the collection again is how you take the version that is published now.

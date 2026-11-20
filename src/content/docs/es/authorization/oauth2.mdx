@@ -102,7 +102,7 @@ Bajo los campos, una línea muestra el estado del token y sus primeros seis cara
 - Un token cuenta como vencido 30 segundos antes.
 - Si el proveedor dio un `refresh_token`, Luvin renueva con él un token vencido (`grant_type=refresh_token`). Si falla, pide uno nuevo.
 - Cuando varios pasos necesitan el token a la vez, se pide una sola vez.
-- Los tokens viven en memoria mientras la colección está abierta. Nunca se escriben en disco.
+- Los tokens viven en memoria mientras la colección está abierta. Nunca se escriben en disco. Cambiar de ambiente los borra: un token obtenido con `local` no se manda a `production`.
 - Si escribiste un header `Authorization` en **Headers**, Luvin no agrega el token.
 
 ### Quién comparte un token

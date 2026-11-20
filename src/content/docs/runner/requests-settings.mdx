@@ -72,7 +72,7 @@ During the run, a value that a request saves is always used by the requests afte
 - **On**: the values that changed during the run stay for the collection, so the next request you send by hand uses them. For example, the `token` that **Log in** saved.
 - **Off**: they are dropped. The collection keeps the values it had before the run.
 
-Only values that changed are kept: a value equal to the one in the environment, or equal to a value of the same column of the data file, is not. Like any value a request saves, they live in memory while the collection is open: they are not written to the environment. See [Checks and variables](/requests/variables-and-checks/).
+Only values that changed are kept: a value equal to the one in the environment, or equal to a value of the same column of the data file, is not. Like any value a request saves, they live in memory while the collection is open, until you switch environments: they are not written to the environment. See [Checks and variables](/requests/variables-and-checks/).
 
 ## Start with the saved cookies
 

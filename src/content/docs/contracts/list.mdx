@@ -62,8 +62,8 @@ Click the name to open the contract in the editor. Its tooltip says *Open pokeap
 | Button | Shown on | What it does |
 |---|---|---|
 | **+** | Loaded OpenAPI contracts, including ○ ones | Opens **Generate requests from «name»**. See [Generate requests from a contract](/requests/generate-from-contract/). |
-| **Attach** | Contracts that did not load | Opens a file picker. Choose the contract file and Luvin links it to that row. |
-| **Download** | Contracts that did not load and whose address starts with `http://` or `https://` | Downloads the contract from its address. See [Remote contracts and references](/contracts/remote-and-refs/). |
+| **Attach** | Contracts that did not load | Opens a file picker. Choose the contract file and Luvin links it to that row. In a workspace, when the row's `url` is a path inside the collection, Luvin also saves the file there. |
+| **Download** | Contracts that did not load and whose address starts with `http://` or `https://` | Downloads the contract from its address. In a workspace, Luvin downloads it again each time you open the collection. See [Remote contracts and references](/contracts/remote-and-refs/). |
 | **⋯** | Every row except the contracts built from requests | Opens the menu of the row. |
 
 The **⋯** menu has:

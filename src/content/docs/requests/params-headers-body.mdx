@@ -103,6 +103,7 @@ Any field accepts `{{variables}}`: the URL, params, headers, the authorization f
 
 - Type `{{` in a field to see the variables of the active environment and the generators.
 - Move the mouse over a `{{name}}` to see its value. If it does not exist in the environment, the card says so and offers **Create variable** or **Create secret**.
+- If a field you are about to send uses a `{{name}}` that is neither in the active environment nor a generator, a yellow strip under the URL bar says, for example, *`{{apiKey}}` doesn’t exist in the “local” environment: it will be sent as written.* Click **Open the environment** to add it.
 - A generator produces a new value on every send, for example `{{$randomEmail}}` or `{{uuid}}`.
 
 ```json

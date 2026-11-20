@@ -54,7 +54,7 @@ Cuando ya existe, la pestaña del mock dice *Ambiente «Mock · Mock de Pokédex
 - Si el ambiente del mock está activo, parte de sí mismo: las variables que cambiaste a mano se quedan, salvo las que tienen una URL como valor.
 - Si hay otro ambiente activo, vuelve a partir de ese.
 - Los secretos y las credenciales que completaste en el ambiente del mock se quedan.
-- El ambiente del mock queda activo.
+- El ambiente del mock queda activo. Si había otro activo, se borran los valores guardados por los requests, los tokens de OAuth 2.0 y las cookies de los requests sueltos, como en cualquier cambio de ambiente.
 
 ## Vuelve a tu ambiente de siempre
 
@@ -65,7 +65,7 @@ Elige tu ambiente de siempre en la pastilla de arriba a la derecha, o haz clic e
 | Tu ambiente de siempre | Exactamente como estaba. El ambiente del mock nunca escribió en él. |
 | El ambiente del mock | Queda en la lista para la próxima vez. |
 | El mock server | Sigue encendido hasta que pulses **Apagar**. |
-| Valores guardados por los requests y tokens de OAuth 2.0 | Se quedan, como en cualquier cambio de ambiente. Un token del mock puede no servir en la API real: pulsa **Borrar token** o **Borrar todas** si molesta. |
+| Valores guardados por los requests, tokens de OAuth 2.0 y cookies de los requests sueltos | Se borran, como en cualquier cambio de ambiente. Un token del mock nunca llega a la API real: envía el login de nuevo allí. |
 
 ## Es un ambiente como cualquier otro
 

@@ -72,7 +72,7 @@ Durante la ejecución, un valor que guarda un request siempre lo usan los reques
 - **Marcado**: los valores que cambiaron durante la ejecución quedan para la colección, así el próximo request que envíes a mano los usa. Por ejemplo, el `token` que guardó **Log in**.
 - **Sin marcar**: se descartan. La colección conserva los valores que tenía antes de la ejecución.
 
-Solo se conservan los valores que cambiaron: un valor igual al del ambiente, o igual a un valor de la misma columna del archivo de datos, no. Como cualquier valor que guarda un request, viven en memoria mientras la colección está abierta: no se escriben en el ambiente. Mira [Variables y comprobaciones](/es/requests/variables-and-checks/).
+Solo se conservan los valores que cambiaron: un valor igual al del ambiente, o igual a un valor de la misma columna del archivo de datos, no. Como cualquier valor que guarda un request, viven en memoria mientras la colección está abierta, hasta que cambias de ambiente: no se escriben en el ambiente. Mira [Variables y comprobaciones](/es/requests/variables-and-checks/).
 
 ## Empezar con las cookies guardadas
 

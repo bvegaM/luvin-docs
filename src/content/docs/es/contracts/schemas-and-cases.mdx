@@ -11,7 +11,7 @@ Un schema dice cómo es un valor: su tipo, si es obligatorio, sus opciones permi
 
 ## Ejemplo: el tipo del Pokémon
 
-Arrastra `GET /type/{idOrName}` a un workflow vacío. Nada le da un valor a `idOrName`, así que Luvin crea un input a partir del parámetro del contrato. Después agrega tú los valores permitidos.
+Arrastra `GET /type/{idOrName}` a un workflow vacío. Nada le da un valor a `idOrName`, así que Luvin crea un input a partir del parámetro del contrato. Este contrato no lista valores permitidos, así que agrégalos tú.
 
 <Tabs>
 <TabItem label="Contrato">
@@ -72,8 +72,9 @@ Cuando un valor obligatorio no tiene origen, Luvin crea un input. Del parámetro
 | `description` | La primera línea de la descripción del parámetro o del campo. |
 | `example` | El `example` del parámetro, si no el `example`, el primero de `examples`, el `default` o la primera opción de `enum` de su schema. Para un objeto, uno armado a partir de sus campos. |
 | `required` | El input es obligatorio cuando el parámetro o el campo lo es. |
+| `enum`, `pattern`, `format`, `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `minLength`, `maxLength` | El schema del parámetro o del campo, tal como está escrito. Una regla que el input ya tiene no se reemplaza. |
 
-**No** copia `enum`, `pattern`, `format`, `minimum`, `maximum`, `minLength`, `maxLength` ni otras reglas. El input del workflow es tuyo: agrega las reglas que quieras probar en la [pestaña YAML](/es/design/arazzo-editor/), como en el ejemplo de arriba. Esas reglas te dan revisiones en la pestaña **Inputs** y casos en la pestaña **Casos**.
+Las demás palabras clave del schema no se copian. Como las reglas llegan con el input, sus revisiones aparecen en la pestaña **Inputs** y sus casos en la pestaña **Casos** de inmediato. El input del workflow es tuyo: cambia las reglas, o agrega las que el contrato no tiene, en la [pestaña YAML](/es/design/arazzo-editor/), como en el ejemplo de arriba.
 
 Lo mismo vale cuando **Completar**, en la barra **A este workflow le faltan datos**, declara inputs por ti. Mira [Completa los datos que faltan](/es/design/complete-gaps/).
 
@@ -151,7 +152,7 @@ Estos casos solo tienen sentido contra la **API real**: en **Simulación** cada 
 | `readOnly`, `writeOnly`, `discriminator`, `xml` | No se usan. |
 
 <Aside type="tip">
-Las reglas del schema del **contrato** siguen importando aunque el input no las copie: Luvin revisa cada respuesta real contra el schema de la respuesta, y la API que pruebas probablemente valida el request con las mismas reglas. Mira [¿La respuesta cumple el contrato?](/es/contracts/response-check/)
+Las reglas del schema del **contrato** que el input no tiene siguen importando: Luvin revisa cada respuesta real contra el schema de la respuesta, y la API que pruebas probablemente valida el request con las mismas reglas. Mira [¿La respuesta cumple el contrato?](/es/contracts/response-check/)
 </Aside>
 
 ## Relacionado

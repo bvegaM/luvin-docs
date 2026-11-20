@@ -102,7 +102,7 @@ Under the fields, a line shows the state of the token and its first six characte
 - A token counts as expired 30 seconds early.
 - If the provider gave a `refresh_token`, Luvin renews an expired token with it (`grant_type=refresh_token`). If that fails, it asks for a new one.
 - When several steps need the token at once, it is requested once.
-- Tokens live in memory while the collection is open. They are never written to disk.
+- Tokens live in memory while the collection is open. They are never written to disk. Switching environments clears them: a token obtained with `local` is not sent to `production`.
 - If you wrote an `Authorization` header in **Headers**, Luvin does not add the token.
 
 ### Who shares a token

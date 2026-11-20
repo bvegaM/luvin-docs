@@ -52,8 +52,8 @@ If there is no notice and you still get `401`, open the failed step and read wha
 |---|---|---|
 | A `{{name}}` is red | No variable, base URL or generator has that name in the active environment. It may exist only in another one, differ in capitals, or have an invalid name. | Point at it and click **Create variable** or **Create secret**, or fix the spelling. Check the name in the environment for a red error. |
 | A `{{name}}` is amber | It exists but is empty. Typical for secrets after a clone or in a new environment. | Type its value in the card or in the environment. |
-| The request sends `{{name}}` literally | The name was red when it went out. | As above. |
-| The environment value is ignored | A value saved by a request with the same name wins, also after you switch environments. In the Runner, a column of the data file wins too. | Click **Clear all** under **Saved now** in the **Variables** tab of a request, or rename one of them. See [Save values from a response](/requests/save-variables/). |
+| The request sends `{{name}}` literally | The name was red when it went out. The yellow strip under the URL bar said so: *… doesn’t exist in the “name” environment: it will be sent as written.* | As above, or click **Open the environment** in the strip. |
+| The environment value is ignored | A value saved by a request with the same name wins while that environment stays active. In the Runner, a column of the data file wins too. | Click **Clear all** under **Saved now** in the **Variables** tab of a request, or rename one of them. See [Save values from a response](/requests/save-variables/). |
 | `{{email}}` always sends the same value | A variable called `email` hides the generator. The environment shows *Shadows the `{{email}}` generator*. | Rename the variable. |
 | Two steps get two different `{{$guid}}` | Every occurrence is a new value. | Put the generator in an input and read `$inputs.name` in both steps. See [Dynamic variables](/environments/dynamic-variables/). |
 | The Arazzo file can't be read after you wrote `{{name}}` in it | In YAML, an unquoted `{` starts a mapping. | Put the value in quotes: `value: '{{$randomUUID}}'`. |
@@ -64,7 +64,7 @@ If there is no notice and you still get `401`, open the failed step and read wha
 | Symptom | Cause | Fix |
 |---|---|---|
 | *Credentials are missing in “name”: calls that need them will answer 401.* | A step needs a scheme with no value in this environment. | Click **Fill in**. See [Credentials](/environments/credentials/). |
-| `401` after switching environments, without a notice | The credential points to a secret that is empty here, or an OAuth 2.0 token from the previous environment is still in use. | Fill in the secret. Press **Clear token** in the **Authorization** tab, then run again. |
+| `401` after switching environments, without a notice | The credential points to a secret that is empty here, or the token came from a login request: switching cleared the values saved by requests. | Fill in the secret, or send the login request again in this environment. |
 | The badge of **Credentials** stays amber in the PayPal example | The workflows get their token from their **Authorization** tab, not from the contract's credential. | Nothing to do. Fill `clientId` and `clientSecret` instead. |
 | Secrets are empty on another computer, or in another clone | Values are stored per computer and per copy of the workspace, never in the files. | Type them in **Secrets**. See [Environment files and teams](/environments/files-and-teams/). |
 | Secrets are empty every time you reopen, in the desktop app | The keychain of the operating system is not available, so Luvin cannot store them. | Make the keychain available, or type them each time. |

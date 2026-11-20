@@ -143,14 +143,20 @@ La pestaña del ambiente siempre muestra el ambiente activo. Hacer clic en otro 
 
 ![Antes de ejecutar Create order de PayPal: el aviso de que un POST modifica datos en el ambiente Sandbox](/media/es/test-run-confirm.webp)
 
+Luvin también borra lo que obtuvo el ambiente anterior, para que nunca llegue al nuevo:
+
+- Los valores guardados por los requests (**Guardadas ahora**).
+- Los tokens de OAuth 2.0.
+- Las cookies de los requests sueltos.
+
+Un token obtenido con `local` ya no se manda a `production`. Envía el login de nuevo en el ambiente nuevo; un token de OAuth 2.0 se vuelve a pedir en el siguiente envío. Pasa cada vez que cambia el ambiente activo: desde la pastilla, desde el panel **Ambientes**, al crear un ambiente o borrar el activo, y cuando un ambiente de mock queda activo.
+
 Algunas cosas quedan como estaban:
 
 | Qué | Por qué |
 |---|---|
 | Los resultados de la última ejecución | Conservan el ambiente con el que corrieron. Un reporte exportado después sigue nombrando ese. |
 | Historial | Cada entrada conserva el nombre del ambiente que usó. |
-| Valores guardados por los requests (**Guardadas ahora**) | Son de la colección, no de un ambiente, y mandan sobre las variables del ambiente. Un token guardado mientras `local` estaba activo se sigue usando después de cambiar. Haz clic en **Borrar todas** en la pestaña **Variables** de un request para olvidarlos. |
-| Tokens de OAuth 2.0 | Luvin los guarda en memoria mientras la colección está abierta. Pulsa **Borrar token** si el ambiente nuevo necesita otro. |
 
 <Aside type="caution" title="Mira la pastilla antes de una ejecución real">
 La pastilla de arriba a la derecha es el único lugar fuera de la barra lateral que nombra el ambiente activo. Una etiqueta roja para producción hace difícil pasarlo por alto.

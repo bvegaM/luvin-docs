@@ -121,6 +121,7 @@ Los valores guardados viven **en memoria** mientras la colección está abierta.
 
 - **No se escriben en el ambiente** ni en ningún archivo, así que un token nunca termina en git.
 - Se pierden al cerrar la app, al cerrar la colección o al abrir otra.
+- Se borran al cambiar de ambiente, así un token obtenido con `local` nunca se manda a `production`.
 - Son de la colección, no de un request: lo que guarda **Log in** lo ven todos los demás requests de la colección.
 
 La pestaña **Variables** de cualquier request los lista en **Guardadas ahora**, con la nota **las de todos los requests de la colección**. Cada línea muestra `{{nombre}}` y su valor (apunta para leerlo completo, salvo los secretos). Haz clic en **Borrar todas** para olvidar todos los valores. La lista aparece solo cuando hay al menos un valor guardado.
@@ -161,7 +162,7 @@ En una prueba de rendimiento, cada usuario virtual tiene sus propios valores gua
 
 | Lo que ves | Por qué | Qué hacer |
 |---|---|---|
-| El request envía `{{token}}` tal cual | El valor no está guardado: no se envió el primer request desde que abriste la app, se hizo clic en **Borrar todas** o se abrió otra colección | Vuelve a enviar el request que lo guarda |
+| El request envía `{{token}}` tal cual | El valor no está guardado: no se envió el primer request desde que abriste la app, se hizo clic en **Borrar todas**, quedó activo otro ambiente o se abrió otra colección | Vuelve a enviar el request que lo guarda |
 | **no estaba en la respuesta** después de un envío | El campo no está: un error de tipeo, otras mayúsculas (`res.body.Id`) o la API respondió un error con otro body | Abre la pestaña **Body** de la respuesta y copia el camino exacto |
 | El valor es `{"name":…}` en vez de un texto | La expresión apunta a un objeto | Agrega el campo: `res.body.species.name` |
 | Se usa un valor viejo | La última respuesta no traía el campo, así que la variable conservó su valor anterior | Busca **no estaba en la respuesta** en la pestaña **Comprobaciones** de la respuesta |

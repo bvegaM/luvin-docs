@@ -103,6 +103,7 @@ Cualquier campo acepta `{{variables}}`: la URL, los params, los headers, los cam
 
 - Escribe `{{` en un campo para ver las variables del ambiente activo y los generadores.
 - Pasa el mouse sobre un `{{nombre}}` para ver su valor. Si no existe en el ambiente, la tarjeta lo dice y ofrece **Crear variable** o **Crear secreto**.
+- Si un campo que vas a enviar usa un `{{nombre}}` que no está en el ambiente activo ni es un generador, una franja amarilla bajo la barra de la URL dice, por ejemplo, *`{{apiKey}}` no existe en el ambiente «local»: se enviará tal cual.* Haz clic en **Abrir el ambiente** para agregarlo.
 - Un generador produce un valor nuevo en cada envío, por ejemplo `{{$randomEmail}}` o `{{uuid}}`.
 
 ```json

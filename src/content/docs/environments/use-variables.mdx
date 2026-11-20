@@ -55,7 +55,7 @@ Switch to `local` and the same request goes to your machine, with the `customerI
 | Spaces inside are allowed | `{{ clientId }}` works the same |
 | It can sit inside any text | `Bearer {{token}}`, `{{baseUrl}}/v1/orders`, `user-{{customerId}}@example.com` |
 | Your variable names are case-sensitive | `{{ClientId}}` is not `{{clientId}}` |
-| A name that is nothing known | It is left as written. A request sends `{{clientid}}` literally |
+| A name that is nothing known | It is left as written. A request sends `{{clientid}}` literally, and a yellow strip under its URL bar warns you before you send it |
 
 When you type `{{` in a field, Luvin suggests the names it knows and colors each one. See [Suggestions and colors](/environments/suggestions/).
 
@@ -94,7 +94,7 @@ The same name can exist in several places. When it does, the one lower in this t
 | Luvin's generators | `{{email}}`, `{{uuid}}` | Always available |
 | Base URLs of the active environment | `{{baseUrl}}`, `{{pokeapi}}` | While the environment is active |
 | Variables and secrets of the active environment | `{{clientId}}` | While the environment is active |
-| Values saved by requests (**Saved now**) | `{{token}}` saved from a login response | While the collection is open, or until **Clear all** |
+| Values saved by requests (**Saved now**) | `{{token}}` saved from a login response | Until you switch environments, open another collection or click **Clear all** |
 | Columns of a data file in the Runner | `{{customerId}}` from a CSV | During that run |
 
 Some consequences:
@@ -102,7 +102,7 @@ Some consequences:
 - A variable called `email` hides the `{{email}}` generator. The environment warns you. See [Luvin's generators](/environments/generators/).
 - `{{number:8}}`, with a colon, is always the generator: a variable cannot take an argument.
 - Names that start with `$`, such as `{{$guid}}`, can never be hidden by an environment variable, because a variable name cannot start with `$`.
-- A value saved by a request wins over the environment even after you switch environments. See [Save values from a response](/requests/save-variables/).
+- A value saved by a request wins over the environment, but only in the environment where it was saved: switching environments clears it. See [Save values from a response](/requests/save-variables/).
 
 ## Inputs and cases
 

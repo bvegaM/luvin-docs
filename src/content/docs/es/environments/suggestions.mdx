@@ -64,6 +64,8 @@ Cada `{{nombre}}` de un campo tiene un color:
 
 El color sigue al ambiente activo. Un nombre que está verde en `staging` puede estar rojo en `local` si `local` no lo tiene. Cambia de ambiente y los colores cambian al instante.
 
+En un request, Luvin además te avisa antes de enviarlo. Cuando la URL, los params marcados, las variables de ruta, los headers marcados, el body o la autorización (en GraphQL, también la query y sus variables) usan un nombre en rojo, una franja amarilla bajo la barra de la URL dice, por ejemplo: *`{{apiKey}}` no existe en el ambiente «local»: se enviará tal cual.* **Abrir el ambiente** lo abre para que agregues la variable. Un valor guardado por un request cuenta como conocido. En los workflows no hay franja: el campo muestra el nombre en rojo.
+
 Los campos que ocultan lo que escribes, como una contraseña, no se pintan. Un campo secreto de la pestaña **Autorización** muestra su texto, con colores, en cuanto tiene un `{{nombre}}`.
 
 ## La tarjeta de una variable
@@ -77,7 +79,7 @@ Pasa el mouse sobre un nombre pintado, o pon el cursor dentro de él, y se abre 
 | Un generador o una variable dinámica | *⚡ se genera al ejecutar*. |
 | Desconocido | *no existe en «staging»*, con **Crear variable** y **Crear secreto**. |
 
-Lo que escribes en la tarjeta va directo al ambiente activo. **Crear variable** y **Crear secreto** agregan uno vacío con ese nombre al ambiente activo. El nombre se pone ámbar; escribe su valor en la tarjeta y se pone verde.
+Lo que escribes en la tarjeta va directo al ambiente activo. Si es un valor guardado por un request (**Guardadas ahora**), cambia ese valor guardado. **Crear variable** y **Crear secreto** agregan uno vacío con ese nombre al ambiente activo. El nombre se pone ámbar; escribe su valor en la tarjeta y se pone verde.
 
 <Aside type="caution" title="Cambia el ambiente, no el campo">
 Editar un valor en la tarjeta lo cambia para todos los requests y workflows que usan ese nombre en este ambiente. Para usar un valor distinto en un solo lugar, escribe el valor en el campo en vez de la variable.

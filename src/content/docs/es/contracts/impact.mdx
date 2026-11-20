@@ -72,19 +72,19 @@ Haz clic en la barra, o en **Mostrar**, para abrir la lista. **Ocultar** la plie
 
 ## Qué workflows cuentan
 
-Luvin cuenta todos los workflows de los archivos de workflow que listan el contrato en `sourceDescriptions`, lo llame un paso o no. En la Pokédex, tanto `pokeapi` como `pokedexEvents` muestran *4 workflow(s)*, porque los cuatro workflows están en el mismo archivo.
+Luvin cuenta los workflows que tienen al menos un paso que llama al contrato. Un paso que tu cambio dejó sin operación, como uno cuyo `operationId` acabas de renombrar, también cuenta. Un workflow cuyo archivo lista el contrato en `sourceDescriptions` pero nunca lo llama, no. En la Pokédex, `pokeapi` muestra *4 workflow(s)*, y `pokedexEvents` muestra *1 workflow(s)*: solo **Register sighting** lo llama.
 
-Para un archivo que un contrato referencia con `$ref`, como un archivo de schemas compartidos, la barra cuenta los workflows de los contratos que lo mencionan. Un cambio en un schema compartido puede afectarlos a todos.
+Para un archivo que un contrato referencia con `$ref`, como un archivo de schemas compartidos, la barra cuenta los workflows con pasos que llaman a los contratos que lo mencionan. Un cambio en un schema compartido puede afectarlos a todos.
 
 ## Qué cuenta como problema nuevo
 
-Cuando se abre el editor, Luvin recuerda los problemas que ya tiene cada workflow. Después muestra solo los problemas que aparecen desde ese momento:
+La primera vez que abres el contrato, Luvin recuerda los problemas que ya tiene cada workflow. Después muestra solo los problemas que aparecen desde ese momento:
 
 - Cuentan los errores y las advertencias. Los mensajes de información, no.
 - Un problema se compara por su mensaje. Uno que ya existía cuando abriste el contrato nunca se lista, así los problemas viejos no esconden los nuevos.
 
-<Aside type="caution" title="La comparación empieza cuando se abre el editor">
-Cuando sales de la pestaña del contrato, por ejemplo para abrir un workflow desde la lista, y vuelves, el editor se abre de nuevo y la comparación empieza desde ese momento. Los problemas que creaste antes ahora cuentan como existentes, y la barra puede decir *sin problemas nuevos*. Los workflows siguen mostrando sus errores: mira el punto de cada workflow en la barra lateral, o la pestaña **Resumen**.
+<Aside type="note" title="El punto de partida se mantiene mientras editas">
+Salir de la pestaña del contrato, por ejemplo para abrir un workflow desde la lista, y volver no reinicia la comparación. Luvin mantiene el punto de partida de cada contrato mientras su texto sea distinto de como estaba cuando lo abriste por primera vez. Cuando el texto vuelve a esa versión, la comparación empieza de nuevo la próxima vez que abres el contrato.
 </Aside>
 
 ## Cambios que detecta la barra

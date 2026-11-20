@@ -55,7 +55,7 @@ Cambia a `local` y el mismo request va a tu equipo, con el `customerId` y la cla
 | Se permiten espacios adentro | `{{ clientId }}` funciona igual |
 | Puede ir dentro de cualquier texto | `Bearer {{token}}`, `{{baseUrl}}/v1/orders`, `user-{{customerId}}@example.com` |
 | Los nombres de tus variables distinguen mayúsculas | `{{ClientId}}` no es `{{clientId}}` |
-| Un nombre que no es nada conocido | Queda tal como lo escribiste. Un request envía `{{clientid}}` literal |
+| Un nombre que no es nada conocido | Queda tal como lo escribiste. Un request envía `{{clientid}}` literal, y una franja amarilla bajo su barra de la URL te avisa antes de enviarlo |
 
 Cuando escribes `{{` en un campo, Luvin sugiere los nombres que conoce y pinta cada uno. Mira [Sugerencias y colores](/es/environments/suggestions/).
 
@@ -94,7 +94,7 @@ El mismo nombre puede existir en varios lugares. Cuando pasa, manda el que está
 | Los generadores de Luvin | `{{email}}`, `{{uuid}}` | Siempre disponibles |
 | URLs base del ambiente activo | `{{baseUrl}}`, `{{pokeapi}}` | Mientras el ambiente está activo |
 | Variables y secretos del ambiente activo | `{{clientId}}` | Mientras el ambiente está activo |
-| Valores guardados por los requests (**Guardadas ahora**) | `{{token}}` guardado de la respuesta de un login | Mientras la colección está abierta, o hasta **Borrar todas** |
+| Valores guardados por los requests (**Guardadas ahora**) | `{{token}}` guardado de la respuesta de un login | Hasta que cambias de ambiente, abres otra colección o haces clic en **Borrar todas** |
 | Columnas de un archivo de datos en el runner | `{{customerId}}` de un CSV | Durante esa ejecución |
 
 Algunas consecuencias:
@@ -102,7 +102,7 @@ Algunas consecuencias:
 - Una variable llamada `email` tapa al generador `{{email}}`. El ambiente te avisa. Mira [Los generadores de Luvin](/es/environments/generators/).
 - `{{numero:8}}`, con dos puntos, siempre es el generador: una variable no recibe argumentos.
 - Los nombres que empiezan con `$`, como `{{$guid}}`, nunca quedan tapados por una variable del ambiente, porque el nombre de una variable no puede empezar con `$`.
-- Un valor guardado por un request manda sobre el ambiente incluso después de cambiar de ambiente. Mira [Guarda valores de una respuesta](/es/requests/save-variables/).
+- Un valor guardado por un request manda sobre el ambiente, pero solo en el ambiente donde se guardó: al cambiar de ambiente se borra. Mira [Guarda valores de una respuesta](/es/requests/save-variables/).
 
 ## Inputs y casos
 

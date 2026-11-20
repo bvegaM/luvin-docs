@@ -82,9 +82,11 @@ Un servidor del contrato escrito como una ruta, como `/api/v2`, se completa con 
 
 El archivo tiene que ser del tipo que pide el archivo de workflow. Si no, la fila dice *"nombre" no parece un OpenAPI.* (o AsyncAPI).
 
+En un workspace, cuando la `url` de la fila es una ruta dentro de la colección, como `./pokeapi.openapi.yaml`, Luvin guarda el archivo que eliges en la carpeta de la colección, con esa ruta. Desde ese momento es un contrato normal de la colección: sigue ahí cuando vuelves a abrir la colección, y puedes editarlo. Fuera de un workspace, o cuando `url` es una dirección o una ruta fuera de la colección (`../…`), el archivo solo queda vinculado a la fila, como **Solo lectura**, y no se guarda con la colección.
+
 ## Solo lectura, y cómo editarlo
 
-Un contrato descargado o adjuntado pertenece a su dirección o a tu computador, no a la colección, así que se abre como **Solo lectura**:
+Un contrato descargado, o un archivo adjuntado que Luvin no guardó en la colección, pertenece a su dirección o a tu computador, no a la colección, así que se abre como **Solo lectura**:
 
 - El texto de un contrato descargado es la lectura que Luvin hace del archivo. Puede que no estén los comentarios ni el formato original.
 - Un archivo adjuntado muestra su texto tal como era.
@@ -93,14 +95,14 @@ Para cambiarlo, haz clic en **Hacer copia local**. Luvin lo agrega a la colecci�
 
 ## Conservarlo, u obtener una versión más nueva
 
-<Aside type="caution" title="Las descargas y los adjuntos no se guardan en la colección">
-Un contrato descargado o adjuntado no se escribe en la carpeta de la colección. Cuando vuelves a abrir la colección, su fila vuelve a mostrar ✕, y haces clic en **Descargar** o **Adjuntar** otra vez. Fuera de un workspace, al continuar una sesión guardada se vuelve a descargar por ti.
+<Aside type="caution" title="Las descargas se recuerdan, no se guardan en la colección">
+Un contrato descargado no se escribe en la carpeta de la colección. En un workspace, Luvin recuerda en este equipo qué contratos descargaste en cada colección, y los vuelve a descargar cuando abres la colección. Si falla, por ejemplo sin red, la fila muestra ✕ y Luvin lo intenta de nuevo la próxima vez. Fuera de un workspace, al continuar una sesión guardada se vuelve a descargar por ti. Un archivo adjuntado que Luvin no guardó en la colección no se recuerda: adjúntalo otra vez.
 </Aside>
 
 | Quieres | Haz esto |
 |---|---|
-| Que el contrato se quede con la colección, también para tu equipo | **Hacer copia local**. El archivo va a la carpeta de la colección, y a git si lo usas. |
-| Siempre la versión publicada en la dirección | Déjalo remoto, y haz clic en **Descargar** cada vez que abras la colección. |
+| Que el contrato se quede con la colección, también para tu equipo | **Hacer copia local**. El archivo va a la carpeta de la colección, y a git si lo usas. Una descarga se recuerda solo en este equipo. |
+| Siempre la versión publicada en la dirección | Déjalo remoto. Luvin lo vuelve a descargar cada vez que abres la colección. |
 | Una versión más nueva después de una copia local | Descarga el archivo e impórtalo: un archivo con el mismo nombre reemplaza la copia. |
 
 Mientras un contrato remoto está cargado, la fila no tiene botón **Descargar**. Volver a abrir la colección es la forma de tomar la versión que está publicada ahora.
