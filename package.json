@@ -13,7 +13,8 @@
     "media": "node scripts/capture.mjs en .media/en && node scripts/convert.mjs .media/en public/media/en && node scripts/capture.mjs es .media/es && node scripts/convert.mjs .media/es public/media/es",
     "verify-recipes": "node scripts/verify-recipes.mjs",
     "deploy": "astro build && wrangler deploy",
-    "check-links": "node scripts/check-links.mjs"
+    "check-links": "node scripts/check-links.mjs",
+    "verify": "npm run check-links"
   },
   "dependencies": {
     "@astrojs/starlight": "0.43.1",
